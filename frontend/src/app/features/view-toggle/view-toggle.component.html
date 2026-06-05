@@ -1,15 +1,17 @@
-<div class="view-toggle">
-  <span class="label">View</span>
-  <sbb-tag
-    [class.active-tag]="store.showMap()"
-    (click)="toggleMap()"
-    title="Topology Map">
-    ▦ Map
-  </sbb-tag>
-  <sbb-tag
-    [class.active-tag]="store.showMarey()"
-    (click)="toggleMarey()"
-    title="Time-Distance Marey Chart">
-    ⊞ Marey
-  </sbb-tag>
-</div>
+@if (store.session()) {
+  <div class="view-toggle">
+    <span class="label">View</span>
+    <sbb-tag
+      [class.active-tag]="store.showMap()"
+      (click)="toggleMap()"
+      title="Topology Map">
+      ▦ Map
+    </sbb-tag>
+    <sbb-tag
+      [class.active-tag]="store.showMarey()"
+      (click)="toggleMarey()"
+      title="Time-Distance Marey Chart">
+      ⊞ Marey
+    </sbb-tag>
+  </div>
+}

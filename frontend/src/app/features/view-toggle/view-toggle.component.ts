@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 
 @Component({
@@ -6,6 +6,7 @@ import { SessionStore } from '../../core/session.store';
   standalone: true,
   templateUrl: './view-toggle.component.html',
   styleUrl: './view-toggle.component.scss',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ViewToggleComponent {
   store = inject(SessionStore);

@@ -112,3 +112,36 @@
     color: white;
   }
 }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 16px 24px;
+  gap: 12px;
+}
+
+.empty-icon {
+  font-size: 36px;
+  color: var(--sbb-color-cloud, #d2d2d2);
+  line-height: 1;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal, #212121);
+  margin: 0;
+}
+
+.empty-desc {
+  font-size: 13px;
+  color: var(--sbb-color-granite, #686868);
+  margin: 0;
+  line-height: 1.5;
+
+  strong {
+    color: var(--sbb-color-red, #eb0000);
+  }
+}

@@ -15,48 +15,68 @@
 
 <app-toolbar></app-toolbar>
 
-<div class="three-col">
-  <aside class="left-pane">
-    <app-left-sidebar></app-left-sidebar>
-  </aside>
+@if (store.session()) {
+  <div class="three-col">
+    <aside class="left-pane">
+      <app-left-sidebar></app-left-sidebar>
+    </aside>
 
-  <section class="center-pane">
-    <app-view-toggle></app-view-toggle>
+    <section class="center-pane">
+      <app-view-toggle></app-view-toggle>
 
-    <div class="views"
-         [class.split]="store.showMap() && store.showMarey()"
-         [class.only-map]="store.showMap() && !store.showMarey()"
-         [class.only-marey]="!store.showMap() && store.showMarey()">
+      <div class="views"
+           [class.split]="store.showMap() && store.showMarey()"
+           [class.only-map]="store.showMap() && !store.showMarey()"
+           [class.only-marey]="!store.showMap() && store.showMarey()">
 
-      @if (store.showMap()) {
-        <section class="map-section">
-          <app-flatland-map></app-flatland-map>
-        </section>
-      }
+        @if (store.showMap()) {
+          <section class="map-section">
+            <app-flatland-map></app-flatland-map>
+          </section>
+        }
 
-      @if (store.showMarey()) {
-        <section class="marey-section">
-          <app-marey-chart></app-marey-chart>
-        </section>
-      }
+        @if (store.showMarey()) {
+          <section class="marey-section">
+            <app-marey-chart></app-marey-chart>
+          </section>
+        }
+      </div>
+    </section>
+
+    <aside class="right-pane">
+      <app-agent-inspector></app-agent-inspector>
+    </aside>
+  </div>
+} @else {
+  <main class="welcome">
+    <div class="welcome-card">
+      <span class="welcome-icon">🚂</span>
+      <h2 class="welcome-title">Welcome to Flatland Dispatcher</h2>
+      <p class="welcome-desc">
+        Human-in-the-Loop Train-Dispatching auf Basis von Flatland.<br>
+        Erstelle eine neue Session um zu starten.
+      </p>
+      <sbb-button size="l" (click)="store.newSession()">
+        + New Session
+      </sbb-button>
     </div>
-  </section>
-
-  <aside class="right-pane">
-    <app-agent-inspector></app-agent-inspector>
-  </aside>
-</div>
+  </main>
+}
 
 <footer class="footer">
-  <span>Step: <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>
-  <span>Agents: <strong>{{ store.agents().length }}</strong></span>
-  @if (store.playing()) {
-    <span class="playing-indicator">
-      <sbb-loading-indicator-circle size="s"></sbb-loading-indicator-circle>
-      Playing
-    </span>
-  }
-  @if (store.loading()) {
-    <span class="loading">Loading…</span>
+  @if (store.session()) {
+    <span>Step: <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>
+    <span>Agents: <strong>{{ store.agents().length }}</strong></span>
+    @if (store.playing()) {
+      <span class="playing-indicator">
+        <sbb-loading-indicator-circle size="s"></sbb-loading-indicator-circle>
+        Playing
+      </span>
+    }
+    @if (store.loading()) {
+      <span class="loading">Loading…</span>
+    }
+  } @else {
+    <span class="footer-idle">No active session</span>
   }
 </footer>

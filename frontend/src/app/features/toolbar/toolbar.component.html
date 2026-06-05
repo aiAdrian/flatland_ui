@@ -1,28 +1,27 @@
 <div class="toolbar">
-  <sbb-button variant="primary" size="m" (click)="newSession()">
+  <sbb-button size="m" (click)="newSession()">
     + New Session
   </sbb-button>
 
   @if (store.session()) {
-    <sbb-button variant="secondary" size="m" (click)="reset()" [disabled]="store.loading()">
-      ↻ Reset
-    </sbb-button>
-  }
+    <sbb-secondary-button size="m" (click)="reset()"
+      [attr.disabled]="store.loading() ? '' : null">
+      Reset
+    </sbb-secondary-button>
 
-  <sbb-divider orientation="vertical"></sbb-divider>
+    <sbb-divider orientation="vertical"></sbb-divider>
 
-  @if (store.session()) {
-    <sbb-button
-      [variant]="store.playing() ? 'primary' : 'secondary'"
-      size="m"
-      (click)="togglePlay()"
-      [disabled]="store.episodeDone()">
-      @if (store.playing()) {
-        ⏸ Pause
-      } @else {
-        ▶ Play
-      }
-    </sbb-button>
+    @if (store.playing()) {
+      <sbb-button size="m" (click)="togglePlay()" icon-name="pause-small">
+        Pause
+      </sbb-button>
+    } @else {
+      <sbb-button size="m" (click)="togglePlay()"
+                  [attr.disabled]="store.episodeDone() ? '' : null"
+                  icon-name="play-small">
+        Play
+      </sbb-button>
+    }
 
     <div class="speed-control">
       <label>Speed</label>
@@ -36,45 +35,36 @@
         class="slider" />
       <span class="speed-value">{{ speed() }} st/s</span>
     </div>
+
+    <sbb-divider orientation="vertical"></sbb-divider>
+
+    <sbb-transparent-button size="s" (click)="step(1)"
+      [attr.disabled]="(store.loading() || store.episodeDone() || store.playing()) ? '' : null">
+      Step 1
+    </sbb-transparent-button>
+    <sbb-transparent-button size="s" (click)="step(10)"
+      [attr.disabled]="(store.loading() || store.episodeDone() || store.playing()) ? '' : null">
+      Step 10
+    </sbb-transparent-button>
+    <sbb-transparent-button size="s" (click)="step(50)"
+      [attr.disabled]="(store.loading() || store.episodeDone() || store.playing()) ? '' : null">
+      Step 50
+    </sbb-transparent-button>
+
+    <sbb-divider orientation="vertical"></sbb-divider>
+
+    <span class="label">Policy</span>
+    <sbb-tag
+      [class.active-tag]="policy() === 'random'"
+      (click)="setPolicy('random')">
+      Random
+    </sbb-tag>
+    <sbb-tag
+      [class.active-tag]="policy() === 'shortest_path'"
+      (click)="setPolicy('shortest_path')">
+      Shortest Path
+    </sbb-tag>
   }
-
-  <sbb-divider orientation="vertical"></sbb-divider>
-
-  <sbb-button
-    variant="tertiary"
-    size="s"
-    (click)="step(1)"
-    [disabled]="!store.session() || store.loading() || store.episodeDone() || store.playing()">
-    Step 1
-  </sbb-button>
-  <sbb-button
-    variant="tertiary"
-    size="s"
-    (click)="step(10)"
-    [disabled]="!store.session() || store.loading() || store.episodeDone() || store.playing()">
-    Step 10
-  </sbb-button>
-  <sbb-button
-    variant="tertiary"
-    size="s"
-    (click)="step(50)"
-    [disabled]="!store.session() || store.loading() || store.episodeDone() || store.playing()">
-    Step 50
-  </sbb-button>
-
-  <sbb-divider orientation="vertical"></sbb-divider>
-
-  <span class="label">Policy</span>
-  <sbb-tag
-    [class.active-tag]="policy() === 'random'"
-    (click)="setPolicy('random')">
-    Random
-  </sbb-tag>
-  <sbb-tag
-    [class.active-tag]="policy() === 'shortest_path'"
-    (click)="setPolicy('shortest_path')">
-    Shortest Path
-  </sbb-tag>
 
   <div class="spacer"></div>
 
