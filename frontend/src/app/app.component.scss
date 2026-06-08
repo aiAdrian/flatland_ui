@@ -294,3 +294,12 @@
 @media (max-width: 900px) {
   .session-meta-top { display: none; } /* hide on small screens */
 }
+
+/* === P1: Welcome-Subtitle (Human-AI Teaming Playground) === */
+.welcome-subtitle {
+  margin: 0 0 var(--sbb-spacing-fixed-3x, 12px);
+  font-size: 1.125rem;
+  font-weight: 400;
+  color: var(--sbb-color-granite, #6b6b6b);
+  letter-spacing: 0.01em;
+}
