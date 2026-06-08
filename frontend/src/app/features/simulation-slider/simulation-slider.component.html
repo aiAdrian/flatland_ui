@@ -1,0 +1,58 @@
+<div class="sim-slider">
+  <div class="row controls">
+    <button class="btn btn-icon"
+            (click)="reset()"
+            [disabled]="store.loading()"
+            title="Reset">⟲</button>
+
+    <button class="btn btn-play"
+            (click)="togglePlay()"
+            [disabled]="store.episodeDone() && !store.playing()">
+      @if (store.playing()) {
+        <span>⏸ Pause</span>
+      } @else {
+        <span>▶ Play</span>
+      }
+    </button>
+
+    @if (!store.playing()) {
+      <button class="btn btn-icon" (click)="step(1)"
+              [disabled]="store.loading() || store.episodeDone()" title="Step 1">+1</button>
+      <button class="btn btn-icon" (click)="step(10)"
+              [disabled]="store.loading() || store.episodeDone()" title="Step 10">+10</button>
+      <button class="btn btn-icon" (click)="step(50)"
+              [disabled]="store.loading() || store.episodeDone()" title="Step 50">+50</button>
+    }
+
+    <div class="speed">
+      <label>Speed</label>
+      <input type="range" min="1" max="20" step="1"
+             [value]="speed()"
+             (input)="onSpeedChange($event)"
+             class="slider-input speed-input" />
+      <span class="value">{{ speed() }} st/s</span>
+    </div>
+
+    <div class="policy">
+      <label>Policy</label>
+      <select [value]="policy()"
+              (change)="onPolicyChange($any($event.target).value)">
+        <option value="shortest_path">Shortest Path</option>
+        <option value="random">Random</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row time">
+    <span class="time-label">{{ formatTime(store.elapsedSteps()) }}</span>
+    <input type="range"
+           min="0"
+           [max]="store.maxSteps()"
+           [value]="store.elapsedSteps()"
+           (input)="onTimeChange($event)"
+           class="slider-input time-input" />
+    <span class="time-label time-max">{{ formatTime(store.maxSteps()) }}</span>
+  </div>
+
+  
+</div>

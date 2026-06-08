@@ -1,16 +1,20 @@
-<header class="header">
-  <div class="header-brand">
+<header class="header"><div class="header-brand">
     <span class="header-logo">SBB CFF FFS</span>
     <span class="header-title">Flatland Dispatcher</span>
   </div>
-  <div class="header-meta">
-    @if (store.session(); as s) {
-      <span class="session-id">Session: {{ s.id }}</span>
-    }
-    @if (store.error(); as e) {
-      <span class="error">{{ e }}</span>
-    }
-  </div>
+  @if (store.session()) {
+    <div class="header-meta">
+      <span class="grid_info-id">Grid: {{ store.state()?.width }} × {{ store.state()?.height }}</span>
+      <span class="anzahl_Agents-id">Agents: {{ store.agents().length }}</span>
+      <span class="session-id">Session: {{ store.session()?.id }}</span>
+    </div>
+  }
+
+<!-- Session meta (compact) -->
+  @if (store.session()) {
+    
+  }
+
 </header>
 
 <app-toolbar></app-toolbar>
@@ -43,6 +47,8 @@
           </section>
         }
       </div>
+
+      
     </section>
 
     <aside class="right-pane">

@@ -1,21 +1,7 @@
 <div class="sidebar-content">
   @if (store.session(); as s) {
-    <h3 class="section-title">Session</h3>
-    <div class="info-row">
-      <span class="label">Grid</span>
-      <span class="value">{{ s.width }} × {{ s.height }}</span>
-    </div>
-
-    @if (store.state()) {
-      <div class="progress-row">
-        <span class="step-counter">{{ store.elapsedSteps() }} / {{ store.maxSteps() }}</span>
-        <span class="step-pct">{{ progress() }}%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" [style.width.%]="progress()"></div>
-      </div>
-
-      <h3 class="section-title">Agents ({{ store.agents().length }})</h3>
+@if (store.state()) {
+<h3 class="section-title">Agents ({{ store.agents().length }})</h3>
       <div class="agent-list">
         @for (a of store.agents(); track a.handle) {
           <div
@@ -76,4 +62,3 @@
       <p class="empty-desc">Klicke <strong>+ New Session</strong> in der Toolbar um zu starten.</p>
     </div>
   }
-</div>
