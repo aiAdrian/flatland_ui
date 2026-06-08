@@ -19,6 +19,8 @@ from app.core.ws_manager import ws_manager
 from app.core.play_manager import play_manager, PlayState
 from app.policies.random_policy import RandomPolicy
 from app.policies.shortest_path_policy import ShortestPathPolicy
+from app.policies.override_policy import OverridePolicy
+from app.core.override_manager import override_manager
 
 router = APIRouter()
 
@@ -41,7 +43,11 @@ def _is_done(env) -> bool:
 
 
 def _build_state_payload(session_id: str, env) -> dict:
-    state = serialize_env(env)
+    """Build the state payload broadcast over WebSocket.
+    Includes the current overrides so the frontend keeps showing the
+    selected action pills while play is running."""
+    overrides = override_manager.get_all(session_id)
+    state = serialize_env(env, overrides=overrides)
     state["episode_done"] = _is_done(env)
     return {"type": "state", "session_id": session_id, "state": state}
 
@@ -61,9 +67,11 @@ async def _play_loop(session_id: str):
             action_size = int(env.action_space[0])
         except Exception:
             action_size = 5
-        policy = RandomPolicy(action_size=action_size)
+        default_policy = RandomPolicy(action_size=action_size)
     else:
-        policy = ShortestPathPolicy(env)
+        default_policy = ShortestPathPolicy(env)
+    # Wrap the chosen policy so user overrides are honoured during play.
+    policy = OverridePolicy(env, session_id, default_policy)
 
     while state.running:
         if _is_done(env):

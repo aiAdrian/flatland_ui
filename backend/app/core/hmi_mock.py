@@ -48,23 +48,102 @@ def _pick(items, n: int):
 
 
 def generate_notifications(session_id: str, step: int) -> List[AppNotification]:
+    """Build notifications from the actual env state.
+
+    We surface four classes of events, all derived deterministically
+    from the current env so the list reflects what the operator can
+    observe on the map:
+      - error   "Malfunction"          - any agent currently malfunctioning
+      - warning "Override active"      - any agent with a user-set override
+      - info    "Decision pending"     - agent has a next decision <=5 cells away
+      - info    "Episode finished"     - all agents done
+    Notifications disappear automatically once the underlying condition
+    clears.
+    """
+    from app.core.session_manager import session_manager
+    from app.core.cell_classifier import lookahead_to_decision
+    from app.core.override_manager import override_manager
+
     out: List[AppNotification] = []
-    for i in range(3):
-        slot = step // 25 - i
-        if slot < 0:
-            continue
-        seed = _seeded(session_id, slot, "noti")
-        kind, title, tmpl = _pick(_NOTIFICATION_TEMPLATES, seed)
-        elem_id = str(seed % 9999).zfill(4)
-        elem_kind = _pick(["train", "switch", "signal"], seed >> 8)
+
+    sess = session_manager.get(session_id)
+    if not sess:
+        return out
+    env = getattr(sess, "env", None)
+    if env is None:
+        return out
+
+    # 1) Episode finished
+    dones = getattr(env, "dones", {}) or {}
+    if dones.get("__all__"):
         out.append(AppNotification(
-            id=f"n_{slot}_{seed % 1000}",
-            kind=kind,
-            title=title,
-            message=tmpl.format(id=elem_id),
-            timestamp=slot * 25,
-            relatedElement=RelatedElement(kind=elem_kind, id=elem_id),
+            id=f"n_{step}_done",
+            kind="info",
+            title="Episode finished",
+            message="All agents have reached their target.",
+            timestamp=step,
+            relatedElement=None,
         ))
+
+    overrides = override_manager.get_all(session_id)
+
+    for agent in getattr(env, "agents", []) or []:
+        h = int(agent.handle)
+        aid = str(h)
+
+        # 2) Malfunction (use new MalfunctionHandler API)
+        mh = getattr(agent, "malfunction_handler", None)
+        mf_steps = 0
+        if mh is not None:
+            try:
+                mf_steps = int(getattr(mh, "malfunction_down_counter", 0) or 0)
+            except Exception:
+                mf_steps = 0
+        if mf_steps > 0:
+            out.append(AppNotification(
+                id=f"n_{step}_mf_{h}",
+                kind="error",
+                title="Malfunction",
+                message=f"Train {h} is malfunctioning ({mf_steps} steps remaining).",
+                timestamp=step,
+                relatedElement=RelatedElement(kind="train", id=aid),
+            ))
+
+        # 3) Override active
+        if h in overrides:
+            action = overrides[h]
+            label = {1: "LEFT", 2: "FORWARD", 3: "RIGHT"}.get(int(action), str(action))
+            out.append(AppNotification(
+                id=f"n_{step}_ov_{h}",
+                kind="warning",
+                title="Override active",
+                message=f"Train {h}: operator override {label} pending.",
+                timestamp=step,
+                relatedElement=RelatedElement(kind="train", id=aid),
+            ))
+
+        # 4) Decision pending (<=5 cells)
+        try:
+            nd = lookahead_to_decision(env, agent)
+        except Exception:
+            nd = None
+        if nd is not None:
+            dist = int(nd.get("distance", 999))
+            if dist <= 5:
+                kind = nd.get("cell_type", "DECISION")
+                pos = nd.get("decision_position") or [None, None]
+                out.append(AppNotification(
+                    id=f"n_{step}_dec_{h}",
+                    kind="info",
+                    title="Decision pending",
+                    message=(
+                        f"Train {h} reaches a {kind.lower()} at "
+                        f"({pos[0]},{pos[1]}) in {dist} cells."
+                    ),
+                    timestamp=step,
+                    relatedElement=RelatedElement(kind="train", id=aid),
+                ))
+
     return out
 
 
