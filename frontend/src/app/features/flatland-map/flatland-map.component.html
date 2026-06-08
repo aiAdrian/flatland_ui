@@ -61,14 +61,39 @@
 
     <!-- Switches layer: small directional glyph at every switch-cell -->
     @if (store.layerVisibility().switches) {
-      @for (m of switchMarkers(); track m.id) {
-        <g class="switch-marker"
-           [attr.transform]="'translate(' + m.x + ',' + m.y + ') rotate(' + m.rotation + ')'">
-          <!-- Diamond pointing in direction of travel -->
-          <path d="M 0 -5 L 4 0 L 0 5 L -4 0 Z"
+      <!-- Animated ">>>>>" inflow line per switch entry direction.
+           Starts 25% inside the neighbour cell and runs to the centre. -->
+      @for (f of switchInflows(); track f.id) {
+        <line class="switch-inflow"
+              [attr.x1]="f.x1" [attr.y1]="f.y1"
+              [attr.x2]="f.x2" [attr.y2]="f.y2"
+              stroke="var(--layer-color-switches)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-dasharray="4 4"
+              opacity="0.85" />
+      }
+      <!-- One arrow per exit: a line from cell centre out to the cell edge,
+           ending 5% before the edge with an arrowhead. The arrow native
+           direction is "up"; rotation = exit_dir * 90deg. -->
+      @for (m of switchExitArrows(); track m.id) {
+        <g class="switch-exit"
+           [attr.transform]="'translate(' + m.cx + ',' + m.cy + ') rotate(' + m.rotation + ')'">
+          <!-- shaft: from centre (0,0) out toward the edge.
+               cellSize=32, arrow tip at -14.4 (= -0.45*32),
+               shaft stops at -10 to leave room for the head. -->
+          <line class="switch-exit-shaft"
+                x1="0" y1="0" x2="0" y2="-6"
+                stroke="var(--layer-color-switches)"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-dasharray="2 2" />
+          <!-- arrowhead stays static so the tip is a stable visual anchor -->
+          <path d="M 0 -10.5 L 2.5 -6 L -2.5 -6 Z"
                 fill="var(--layer-color-switches)"
                 stroke="white"
-                stroke-width="0.8" />
+                stroke-width="0.5"
+                stroke-linejoin="round" />
         </g>
       }
     }

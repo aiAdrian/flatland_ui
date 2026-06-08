@@ -11,6 +11,9 @@ interface DirectionalMarker {
   y: number;
   rotation: number;
   d: number;
+  // Cell centre (start point of the spoke from centre to this marker)
+  cx: number;
+  cy: number;
 }
 
 interface DecisionLayer {
@@ -178,15 +181,70 @@ export class FlatlandMapComponent {
       .flatMap((c) => this._buildDirectionalMarkers(c, 'signal'));
   });
 
-  /**
-   * Markers for "switch" cells - rendered as the Switches layer.
-   * Same geometry as signals, distinguished by class + colour.
-   */
-  readonly switchMarkers = computed<DirectionalMarker[]>(() => {
+  /** Animated inflow line per switch entry direction.
+   * Each switch may classify under one or more headings (directions[]).
+   * For each heading we draw an animated ">>>>>" line that comes from
+   * 25% beyond the cell edge (i.e. into the neighbour cell) and runs
+   * to the cell centre - showing how a train would enter that switch. */
+  readonly switchInflows = computed<{
+    id: string; x1: number; y1: number; x2: number; y2: number;
+  }[]>(() => {
+    const cells = (this.store.state()?.decision_cells ?? []) as DecisionCell[];
+    const cs = this.cellSize;
+    const out: { id: string; x1: number; y1: number; x2: number; y2: number }[] = [];
+    for (const c of cells) {
+      if (c.kind !== 'switch') continue;
+      const cx = c.c * cs + cs / 2;
+      const cy = c.r * cs + cs / 2;
+      // 25% beyond the cell edge in the direction the train comes FROM.
+      // directions[] is the heading of the incoming train (0=N means heading
+      // north, i.e. coming from the south). The line therefore starts at
+      // cy + 0.75*cs (south of the cell) and ends at the centre.
+      // 85% rule: glyph stays inside the cell.
+      // Half cell = 0.5*cs; 85% of that = 0.425*cs.
+      const reach = cs * 0.33;
+      for (const d of c.directions ?? []) {
+        // Start point = "behind" the entry edge, i.e. opposite to the heading
+        const sx = d === 1 ? cx - reach : d === 3 ? cx + reach : cx;
+        const sy = d === 0 ? cy + reach : d === 2 ? cy - reach : cy;
+        out.push({
+          id: `inflow_${c.r}_${c.c}_${d}`,
+          x1: sx, y1: sy,
+          x2: cx, y2: cy,
+        });
+      }
+    }
+    return out;
+  });
+
+  /** Centre marker per switch-cell (one diamond in the middle).
+   * Renders for every switch and signals "this cell is a switch" at a glance. */
+  readonly switchCentres = computed<{ id: string; x: number; y: number }[]>(() => {
+    const cells = (this.store.state()?.decision_cells ?? []) as DecisionCell[];
+    const cs = this.cellSize;
+    return cells
+      .filter((c) => c.kind === 'switch')
+      .map((c) => ({
+        id: `switch_centre_${c.r}_${c.c}`,
+        x: c.c * cs + cs / 2,
+        y: c.r * cs + cs / 2,
+      }));
+  });
+
+  /** Exit arrows per switch-cell - one outward arrow per switch_exits direction.
+   * Reuses _buildDirectionalMarkers by feeding switch_exits as if they were
+   * "directions", so each arrow sits on the corresponding cell edge pointing
+   * OUT in that direction. */
+  readonly switchExitArrows = computed<DirectionalMarker[]>(() => {
     const cells = (this.store.state()?.decision_cells ?? []) as DecisionCell[];
     return cells
       .filter((c) => c.kind === 'switch')
-      .flatMap((c) => this._buildDirectionalMarkers(c, 'switch'));
+      .flatMap((c) => {
+        const exits = c.switch_exits ?? [];
+        if (exits.length === 0) return [];
+        const fakeCell: DecisionCell = { ...c, directions: exits };
+        return this._buildDirectionalMarkers(fakeCell, 'switch');
+      });
   });
 
   private _buildDirectionalMarkers(
@@ -198,10 +256,8 @@ export class FlatlandMapComponent {
     const cs = this.cellSize;
     const cx = cell.c * cs + cs / 2;
     const cy = cell.r * cs + cs / 2;
-    // Glyph sits exactly on the outgoing cell edge (50% of cellSize
-    // from centre). At a curve the rail is locally parallel to the
-    // cell axis on the edge, so direction*90deg is the correct tangent.
-    const off = cs * 0.5;
+    // Arrow tip sits 5% before the cell edge (off = 0.45 * cellSize).
+    const off = cs * 0.33;
     return dirs.map((d, i) => {
       // Move (dx, dy) one direction step from centre toward edge
       const dx = d === 1 ? off : d === 3 ? -off : 0;
@@ -213,6 +269,8 @@ export class FlatlandMapComponent {
         y: cy + dy,
         rotation: d * 90,
         d,
+        cx,
+        cy,
       };
     });
   }

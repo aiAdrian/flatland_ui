@@ -85,4 +85,5 @@ export interface DecisionCell {
   c: number;
   kind: 'switch' | 'merge';
   directions?: number[]; // 0=N, 1=E, 2=S, 3=W (incoming)
+  switch_exits?: number[];   // for SWITCH cells: directions a train can leave by
 }

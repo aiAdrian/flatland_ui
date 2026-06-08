@@ -360,11 +360,33 @@
 /* P3c: directional markers for Signals and Switches.
    Subtle pulse so the markers feel "live" without distracting. */
 .signal-marker,
-.switch-marker {
+.switch-marker,
+.switch-centre,
+.switch-exit {
   animation: marker-pulse 2.4s ease-in-out infinite;
   pointer-events: none;
 }
 @keyframes marker-pulse {
   0%, 100% { opacity: 0.65; }
   50%      { opacity: 1.0;  }
+}
+
+/* Animated dashed inflow line on switch cells (same flow-effect as decision-path). */
+.switch-inflow {
+  animation: switch-inflow-flow 0.8s linear infinite;
+}
+@keyframes switch-inflow-flow {
+  from { stroke-dashoffset: 8; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Animated dashed shaft on switch exit arrows.
+   The arrowhead is rendered separately and stays fixed - only the
+   shaft "flows" outward toward the tip. */
+.switch-exit-shaft {
+  animation: switch-exit-flow 0.7s linear infinite;
+}
+@keyframes switch-exit-flow {
+  from { stroke-dashoffset: 4; }
+  to   { stroke-dashoffset: 0; }
 }

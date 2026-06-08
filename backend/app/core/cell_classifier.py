@@ -278,6 +278,21 @@ def find_decision_cells(env) -> List[Dict]:
     # Quick lookup: which cells are switches?
     switch_cells = {pos for pos, info in raw.items() if info["switch"]}
 
+    def _switch_exits(r: int, c: int, in_dirs: List[int]) -> List[int]:
+        """Collect all rail directions in which the cell can be left,
+        across every incoming direction that classifies as SWITCH.
+        Returns a sorted, unique list of 0..3."""
+        exits = set()
+        for d in in_dirs:
+            try:
+                trans = _get_transitions(env, r, c, d)
+            except Exception:
+                continue
+            for od in range(4):
+                if trans[od]:
+                    exits.add(int(od))
+        return sorted(exits)
+
     # 0=N -> (-1,0), 1=E -> (0,+1), 2=S -> (+1,0), 3=W -> (0,-1)
     NEIGH = {0: (-1, 0), 1: (0, 1), 2: (1, 0), 3: (0, -1)}
 
@@ -289,6 +304,7 @@ def find_decision_cells(env) -> List[Dict]:
                 "c": int(c),
                 "kind": "switch",
                 "directions": [int(d) for d in info["switch"]],
+                "switch_exits": _switch_exits(r, c, info["switch"]),
             })
         else:
             # MERGE: keep only directions whose immediate neighbour is a switch.
