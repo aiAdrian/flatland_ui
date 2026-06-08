@@ -1,5 +1,12 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ApiService } from './api.service';
+import {
+  AppNotification,
+  KpiPriorities,
+  LayerVisibility,
+  Recommendation,
+  ScenarioOption,
+} from './events/event-types';
 import { WebSocketService } from './websocket.service';
 import { AgentDTO, RailTile, SessionInfo, SessionState, PolicyName } from './models';
 
@@ -41,6 +48,25 @@ export class SessionStore {
   readonly railGrid = computed<number[][]>(() => this.state()?.rail_grid ?? []);
   readonly railTiles = computed<RailTile[]>(() => this.state()?.rail_tiles ?? []);
   readonly episodeDone = computed(() => this.state()?.episode_done ?? false);
+
+
+  // === HMI-Architektur (Phase A) ===
+  readonly simulationTime = signal<number>(0);
+  readonly layerVisibility = signal<LayerVisibility>({
+    trains: true,
+    switches: true,
+    signals: true,
+  });
+  readonly kpiPriorities = signal<KpiPriorities>({
+    time: 1,
+    energy: 0.5,
+    platformRouting: 0.5,
+    trainRouting: 0.5,
+  });
+  readonly notifications = signal<AppNotification[]>([]);
+  readonly scenarios = signal<ScenarioOption[]>([]);
+  readonly recommendations = signal<Recommendation[]>([]);
+  readonly focusedElement = signal<{ kind: 'train' | 'switch' | 'signal'; id: string } | null>(null);
 
   constructor() {
     effect(() => {
