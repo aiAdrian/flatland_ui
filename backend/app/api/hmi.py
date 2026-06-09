@@ -30,6 +30,30 @@ from app.models.hmi import (
 )
 from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
 
+
+# ── Policy registry (used by /hmi/scenarios + POST /policy) ──────────
+def _build_all_policies():
+    from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
+    from app.policies.shortest_path_policy import ShortestPathPolicy
+    from app.policies.forward_only_policy import ForwardOnlyPolicy
+    from app.policies.do_nothing_policy import DoNothingPolicy
+    from app.policies.random_policy import RandomPolicy
+    return {
+        "deadlock_avoidance": DeadLockAvoidancePolicy,
+        "shortest_path": ShortestPathPolicy,
+        "forward_only": ForwardOnlyPolicy,
+        "do_nothing": DoNothingPolicy,
+        "random": RandomPolicy,
+    }
+
+
+_ALL_POLICIES = _build_all_policies()
+
+
+def _policy_factory_for(policy_id: str):
+    return _ALL_POLICIES.get(policy_id)
+
+
 router = APIRouter()
 
 
@@ -74,11 +98,20 @@ def get_notifications(session_id: str):
 @router.get("/{session_id}/hmi/scenarios", response_model=list[ScenarioOption])
 def get_scenarios(
     session_id: str,
-    handle: Optional[int] = Query(None, description="Agent handle to branch on; auto-pick if omitted"),
-    horizon: int = Query(30, ge=1, le=300, description="Branch lookahead in steps"),
+    horizon: int = Query(50, ge=10, le=300, description="Branch lookahead in steps"),
 ):
-    """Real what-if scenarios for the given agent (or auto-pick).
-    Falls back to the mock when no suitable agent is on the map yet."""
+    """What-if scenarios across alternative POLICIES.
+
+    Runs the current policy as baseline plus each alternative policy
+    in turn, all from the same env state. Returns:
+      [baseline] + [alt1, alt2, …] sorted by score descending.
+
+    Cached per (session_id, env._elapsed_steps) — no re-compute until
+    the env actually advances.
+    """
+    from app.core.scenario_cache import scenario_cache
+    from app.core.scenario_builder import ScenarioBuilder
+
     sess = session_manager.get(session_id)
     if not sess:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
@@ -86,27 +119,42 @@ def get_scenarios(
     if env is None:
         return mock_generate_scenarios(session_id, _step_for(session_id))
 
-    target_handle = handle if handle is not None else _pick_default_handle(env)
-    if target_handle is None:
-        return mock_generate_scenarios(session_id, _step_for(session_id))
+    # Determine the currently active baseline policy for this session.
+    baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
+    baseline_factory = _policy_factory_for(baseline_id)
+    if baseline_factory is None:
+        # Unknown policy id stored on session — fall back to DLA.
+        baseline_id = "deadlock_avoidance"
+        baseline_factory = DeadLockAvoidancePolicy
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    cache_key_step = elapsed
+    cached = scenario_cache.get(session_id, cache_key_step)
+    if cached is not None:
+        return cached
+
+    # Build candidate list (every policy id except baseline).
+    candidates = [
+        (pid, fac) for pid, fac in _ALL_POLICIES.items()
+        if pid != baseline_id
+    ]
 
     try:
-        builder = ScenarioBuilder(env, DeadLockAvoidancePolicy)
-        scenarios = builder.generate_scenarios(handle=target_handle, horizon=horizon)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+        builder = ScenarioBuilder(env, baseline_id, baseline_factory)
+        scenarios = builder.generate_scenarios(
+            candidate_policies=candidates,
+            horizon=horizon,
+        )
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(
-            "ScenarioBuilder failed for session %s, handle %s: %r",
-            session_id, target_handle, e,
+            "ScenarioBuilder failed for session %s: %r", session_id, e,
         )
         return mock_generate_scenarios(session_id, _step_for(session_id))
 
-    return scenarios_to_options(scenarios, target_handle)
-
-
-# ── recommendations (real, with mock fallback) ─────────────────────
+    options = scenarios_to_options(scenarios)
+    scenario_cache.put(session_id, cache_key_step, options)
+    return options
 
 
 @router.get("/{session_id}/hmi/recommendations", response_model=list[Recommendation])

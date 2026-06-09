@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   ActionInt,
   PlayRequest,
+  PolicyInfo,
   PolicyName,
   SessionInfo,
   SessionState,
@@ -83,5 +84,16 @@ export class ApiService {
 
   getHmiBundle(id: string) {
     return this.http.get<HmiBundle>(`${API_BASE}/session/${id}/hmi`);
+  }
+
+  listPolicies(): Observable<PolicyInfo[]> {
+    return this.http.get<PolicyInfo[]>(`${API_BASE}/policies`);
+  }
+
+  setPolicy(id: string, policy: PolicyName): Observable<{ session_id: string; policy: string }> {
+    return this.http.post<{ session_id: string; policy: string }>(
+      `${API_BASE}/session/${id}/policy`,
+      { policy },
+    );
   }
 }

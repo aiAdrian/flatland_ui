@@ -10,6 +10,9 @@ class Session:
         self.env = env
         self.last_observations = None
         self.last_info = None
+        # Currently active policy (used as baseline in /hmi/scenarios
+        # and applied to every step unless overridden in the step request).
+        self.policy: str = "deadlock_avoidance" 
 
 
 class SessionManager:

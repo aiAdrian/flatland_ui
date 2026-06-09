@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.api import sessions, websockets, overrides, hmi
+from app.api import sessions, websockets, overrides, hmi, policies
 
 app = FastAPI(
     title="Flatland Dispatcher API",
@@ -22,6 +22,7 @@ app.include_router(sessions.router, prefix="/session", tags=["sessions"])
 app.include_router(overrides.router, prefix="/session", tags=["overrides"])
 app.include_router(websockets.router, tags=["realtime"])
 app.include_router(hmi.router, prefix="/session", tags=["hmi"])
+app.include_router(policies.router, tags=["policies"])
 
 
 @app.get("/")

@@ -1,4 +1,16 @@
-export type PolicyName = 'random' | 'shortest_path';
+export type PolicyName =
+  | 'deadlock_avoidance'
+  | 'shortest_path'
+  | 'forward_only'
+  | 'do_nothing'
+  | 'random';
+
+export interface PolicyInfo {
+  id: PolicyName;
+  label: string;
+  description: string;
+  is_default: boolean;
+}
 
 export type CellType = 'OUTSIDE' | 'FORWARD_ONLY' | 'MERGING' | 'SWITCH' | 'DONE' | 'UNKNOWN';
 

@@ -26,12 +26,25 @@ class KpiDelta(BaseModel):
     energy: Optional[float] = None   # kWh delta
 
 
+class ScenarioKpis(BaseModel):
+    totalDelay: int = 0
+    deadlocks: int = 0
+    done: int = 0
+    meanDelay: float = 0.0
+
+
 class ScenarioOption(BaseModel):
     id: str
     title: str
     description: str
     kpiDelta: KpiDelta
     isRecommended: bool = False
+    # Real-scenario fields (None for mock fallback).
+    kpis: Optional[ScenarioKpis] = None
+    kpiDeltas: Optional[ScenarioKpis] = None
+    isBaseline: bool = False
+    score: Optional[float] = None
+    tag: Optional[str] = None
 
 
 class Recommendation(BaseModel):

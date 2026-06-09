@@ -26,7 +26,7 @@ export class SimulationSliderComponent {
 
   // local UI state
   speed = signal(5);
-  policy = signal<PolicyName>('shortest_path');
+  policy = signal<PolicyName>('deadlock_avoidance');
 
   // Sync simulationTime im Store mit elapsedSteps wenn Sim laeuft
   constructor() {

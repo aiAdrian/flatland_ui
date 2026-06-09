@@ -23,12 +23,36 @@ export interface AppNotification {
   relatedElement?: { kind: 'train' | 'switch' | 'signal'; id: string };
 }
 
+export interface ScenarioKpis {
+  /** Total delay across all agents (steps). */
+  totalDelay: number;
+  /** Number of deadlock cycles detected. */
+  deadlocks: number;
+  /** Number of agents arrived (DONE). */
+  done: number;
+  /** Mean delay per arrived agent (steps). */
+  meanDelay: number;
+}
+
 export interface ScenarioOption {
   id: string;
   title: string;
   description: string;
+  /** Legacy fields kept for backward compat with mock data. */
   kpiDelta: { time?: number; energy?: number };
+  /** Real KPIs (filled by adapter when scenario is real). Optional
+   *  because the mock fallback doesn't populate them. */
+  kpis?: ScenarioKpis;
+  /** Deltas relative to baseline; positive means worse for delay/deadlocks,
+   *  positive means better for done. Only meaningful for non-baseline. */
+  kpiDeltas?: ScenarioKpis;
   isRecommended?: boolean;
+  /** True for the currently active policy's scenario. */
+  isBaseline?: boolean;
+  /** Score in roughly [-1, 1]; higher is better. */
+  score?: number;
+  /** "recommended" | "avoid" | undefined */
+  tag?: string;
 }
 
 export interface Recommendation {

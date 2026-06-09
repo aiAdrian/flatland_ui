@@ -1,43 +1,79 @@
 <div class="scenario-panel">
-  <h3 class="panel-title">Scenarios</h3>
+  <h3 class="panel-title">Scenarios — Policy Comparison</h3>
 
   @if (store.scenarios().length === 0) {
     <p class="empty">No scenarios available</p>
   } @else {
     <div class="scenarios">
       @for (s of store.scenarios(); track s.id) {
-        <div class="scenario-card" [class.recommended]="s.isRecommended">
-          @if (s.isRecommended) {
-            <span class="rec-badge">Recommended</span>
+        <div class="scenario-card"
+             [class.baseline]="s.isBaseline"
+             [class.recommended]="s.isRecommended"
+             [class.avoid]="s.tag === 'avoid'">
+
+          <div class="card-header">
+            <h4 class="title">{{ s.title }}</h4>
+            @if (s.isBaseline) {
+              <span class="badge current">Current</span>
+            } @else if (s.isRecommended) {
+              <span class="badge recommended">Recommended</span>
+            } @else if (s.tag === 'avoid') {
+              <span class="badge avoid">Avoid</span>
+            }
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi">
+              <div class="kpi-label">Done</div>
+              <div class="kpi-value">{{ s.kpis?.done ?? '–' }}</div>
+              @if (!s.isBaseline && (s.kpiDeltas?.done ?? 0) !== 0) {
+                <div class="kpi-delta"
+                     [class.good]="(s.kpiDeltas?.done ?? 0) > 0"
+                     [class.bad]="(s.kpiDeltas?.done ?? 0) < 0">
+                  {{ formatDelta(s.kpiDeltas?.done) }}
+                </div>
+              }
+            </div>
+
+            <div class="kpi">
+              <div class="kpi-label">Deadlocks</div>
+              <div class="kpi-value">{{ s.kpis?.deadlocks ?? '–' }}</div>
+              @if (!s.isBaseline && (s.kpiDeltas?.deadlocks ?? 0) !== 0) {
+                <div class="kpi-delta"
+                     [class.good]="(s.kpiDeltas?.deadlocks ?? 0) < 0"
+                     [class.bad]="(s.kpiDeltas?.deadlocks ?? 0) > 0">
+                  {{ formatDelta(s.kpiDeltas?.deadlocks) }}
+                </div>
+              }
+            </div>
+
+            <div class="kpi">
+              <div class="kpi-label">Total Delay</div>
+              <div class="kpi-value">{{ s.kpis?.totalDelay ?? '–' }}</div>
+              @if (!s.isBaseline && (s.kpiDeltas?.totalDelay ?? 0) !== 0) {
+                <div class="kpi-delta"
+                     [class.good]="(s.kpiDeltas?.totalDelay ?? 0) < 0"
+                     [class.bad]="(s.kpiDeltas?.totalDelay ?? 0) > 0">
+                  {{ formatDelta(s.kpiDeltas?.totalDelay) }}
+                </div>
+              }
+            </div>
+
+            <div class="kpi">
+              <div class="kpi-label">Mean Delay</div>
+              <div class="kpi-value">{{ s.kpis?.meanDelay ?? '–' }}</div>
+            </div>
+          </div>
+
+          @if (!s.isBaseline) {
+            <div class="actions">
+              <button class="btn btn-confirm"
+                      [disabled]="confirming() === s.id"
+                      (click)="confirm(s)">
+                {{ confirming() === s.id ? 'Switching…' : 'Switch to this policy' }}
+              </button>
+            </div>
           }
-          <h4 class="title">{{ s.title }}</h4>
-          <p class="desc">{{ s.description }}</p>
-
-          <div class="kpis">
-            @if (s.kpiDelta.time != null) {
-              <span class="pill"
-                    [class.good]="isPositive(s.kpiDelta.time)"
-                    [class.bad]="isNegative(s.kpiDelta.time)">
-                ⏱ {{ formatTime(s.kpiDelta.time) }}
-              </span>
-            }
-            @if (s.kpiDelta.energy != null) {
-              <span class="pill"
-                    [class.good]="isPositive(s.kpiDelta.energy)"
-                    [class.bad]="isNegative(s.kpiDelta.energy)">
-                ⚡ {{ formatEnergy(s.kpiDelta.energy) }}
-              </span>
-            }
-          </div>
-
-          <div class="actions">
-            <button class="btn btn-secondary" (click)="simulate(s)">
-              Simulate
-            </button>
-            <button class="btn btn-primary" (click)="confirm(s)">
-              Confirm
-            </button>
-          </div>
         </div>
       }
     </div>

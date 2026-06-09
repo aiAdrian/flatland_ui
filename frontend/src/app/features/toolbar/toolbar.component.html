@@ -58,8 +58,9 @@
       size="s"
       [value]="policy()"
       (change)="onPolicyChange($event)">
-      <sbb-radio-button value="random">Random</sbb-radio-button>
-      <sbb-radio-button value="shortest_path">Shortest Path</sbb-radio-button>
+      @for (p of store.availablePolicies(); track p.id) {
+        <sbb-radio-button [value]="p.id" [title]="p.description">{{ p.label }}</sbb-radio-button>
+      }
     </sbb-radio-button-group>
   }
 

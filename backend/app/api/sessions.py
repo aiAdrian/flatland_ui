@@ -1,5 +1,6 @@
 import asyncio
 
+from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
 from typing import List
 
@@ -153,6 +154,9 @@ async def step(session_id: str, req: StepRequest):
         }
 
     policy = _build_policy(session_id, env, req.policy)
+    # Track the most recently used policy so /hmi/scenarios can
+    # use it as baseline.
+    session.policy = req.policy
 
     rewards = {}
     dones = {}
@@ -237,3 +241,31 @@ def delete_session(session_id: str):
         raise HTTPException(404, f"Session {session_id} not found")
     override_manager.clear_all(session_id)
     return {"deleted": session_id}
+
+
+# ── POST /session/{id}/policy: set active policy without stepping ──
+class PolicyChangeRequest(BaseModel):
+    policy: str
+
+
+@router.post("/{session_id}/policy")
+def set_session_policy(session_id: str, req: PolicyChangeRequest):
+    """Switch the active policy for a session without stepping.
+    Subsequent steps and /hmi/scenarios use this as baseline."""
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+    # Validate against known policy ids
+    known = {"deadlock_avoidance", "shortest_path", "forward_only", "do_nothing", "random"}
+    if req.policy not in known:
+        raise HTTPException(400, f"Unknown policy: {req.policy}")
+    session.policy = req.policy
+    # Invalidate the scenario cache so the next /hmi/scenarios call
+    # recomputes with the new baseline.
+    try:
+        from app.core.scenario_cache import scenario_cache
+        scenario_cache.clear_session(session_id)
+    except Exception:
+        pass
+    return {"session_id": session_id, "policy": session.policy}
+

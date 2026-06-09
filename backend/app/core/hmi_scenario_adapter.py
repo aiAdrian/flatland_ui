@@ -1,80 +1,85 @@
-"""Adapter: ScenarioBuilder.Scenario → app.models.hmi.ScenarioOption.
-
-Keeps the API contract stable for the frontend while we replace the
-hmi_mock with real what-if trajectories.
-
-The kpiDelta is computed *relative to the baseline*:
-  - time:    baseline.total_delay - candidate.total_delay
-             (positive → candidate has less delay → "better")
-  - energy:  baseline.num_conflicts*5 - candidate.num_conflicts*5
-             (rough heuristic: each conflict costs 5 energy units)
-"""
+"""Adapter: ScenarioBuilder.Scenario → app.models.hmi.ScenarioOption."""
 from __future__ import annotations
 
 from typing import List, Optional
 
 from app.core.scenario_builder import Scenario
 from app.core.scenario_runner import BranchResult
-from app.models.hmi import KpiDelta, ScenarioOption
+from app.models.hmi import KpiDelta, ScenarioKpis, ScenarioOption
 
 
-def _describe(result: BranchResult) -> str:
-    """Generate a human-readable one-liner describing the branch outcome."""
-    done = f"{result.success_count}/{result.total_agents} trains arrive"
-    n_conf = len(result.conflicts)
-    delay = int(result.kpis.get("total_delay", 0))
-    n_dl = int(result.kpis.get("num_deadlock_cycles", 0))
-
-    parts = [done]
-    if n_conf:
-        parts.append(f"{n_conf} conflict{'s' if n_conf != 1 else ''}")
-    if delay:
-        parts.append(f"{delay}-step delay")
-    if n_dl:
-        parts.append(f"⚠ {n_dl} deadlock{'s' if n_dl != 1 else ''}")
-    return ", ".join(parts) + f" (over {result.elapsed_steps} steps)"
+POLICY_LABELS = {
+    "deadlock_avoidance": "DLA (Deadlock Avoidance)",
+    "shortest_path": "Shortest Path",
+    "forward_only": "Forward Only",
+    "do_nothing": "Do Nothing",
+    "random": "Random",
+}
 
 
-def _conflict_count(result: BranchResult) -> int:
-    """Total non-informational conflicts (used for energy proxy)."""
-    by_kind = result.kpis.get("by_kind", {}) or {}
-    return (
-        int(by_kind.get("blocked", 0))
-        + int(by_kind.get("swap_attempt", 0))
-        + int(by_kind.get("deadlock_cycle", 0))
+def _label_for(s: Scenario) -> str:
+    base = POLICY_LABELS.get(s.policy_id, s.policy_id)
+    return f"{base} (current)" if s.name == "baseline" else base
+
+
+def _kpis_from(res: BranchResult) -> ScenarioKpis:
+    n_done = int(res.success_count)
+    total_delay = int(res.kpis.get("total_delay", 0))
+    mean_delay = round(total_delay / n_done, 1) if n_done > 0 else 0.0
+    return ScenarioKpis(
+        totalDelay=total_delay,
+        deadlocks=int(res.kpis.get("num_deadlock_cycles", 0)),
+        done=n_done,
+        meanDelay=mean_delay,
     )
 
 
-def scenario_to_option(
-    scenario: Scenario,
-    baseline: Optional[BranchResult],
-    handle: int,
-) -> ScenarioOption:
-    """Convert one Scenario to the API-compatible ScenarioOption."""
-    res = scenario.result
-
-    base_delay = int((baseline.kpis.get("total_delay", 0) if baseline else 0))
-    cand_delay = int(res.kpis.get("total_delay", 0))
-    time_delta = base_delay - cand_delay
-
-    base_conflicts = _conflict_count(baseline) if baseline else 0
-    cand_conflicts = _conflict_count(res)
-    energy_delta = (base_conflicts - cand_conflicts) * 5
-
-    return ScenarioOption(
-        id=f"s_h{handle}_{scenario.name.lower()}",
-        title=scenario.name,
-        description=_describe(res),
-        kpiDelta=KpiDelta(time=int(time_delta), energy=int(energy_delta)),
-        isRecommended=(scenario.tag == "recommended"),
+def _deltas(cand: ScenarioKpis, base: ScenarioKpis) -> ScenarioKpis:
+    return ScenarioKpis(
+        totalDelay=cand.totalDelay - base.totalDelay,
+        deadlocks=cand.deadlocks - base.deadlocks,
+        done=cand.done - base.done,
+        meanDelay=round(cand.meanDelay - base.meanDelay, 1),
     )
 
 
-def scenarios_to_options(scenarios: List[Scenario], handle: int) -> List[ScenarioOption]:
-    """Convert a list of Scenarios. Uses the baseline (name='baseline')
-    as reference for delta calculation."""
-    baseline_result = next(
-        (s.result for s in scenarios if s.name == "baseline"),
-        None,
-    )
-    return [scenario_to_option(s, baseline_result, handle) for s in scenarios]
+def _describe(kpis: ScenarioKpis, deltas: Optional[ScenarioKpis]) -> str:
+    base = f"done={kpis.done} · deadlocks={kpis.deadlocks} · delay={kpis.totalDelay} (mean {kpis.meanDelay})"
+    if deltas is None:
+        return f"Current policy: {base}"
+    parts = []
+    if deltas.done != 0:
+        parts.append(f"Δdone={deltas.done:+d}")
+    if deltas.deadlocks != 0:
+        parts.append(f"Δdeadlocks={deltas.deadlocks:+d}")
+    if deltas.totalDelay != 0:
+        parts.append(f"Δdelay={deltas.totalDelay:+d}")
+    head = " · ".join(parts) if parts else "≈ baseline"
+    return f"{head}  |  {base}"
+
+
+def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
+    baseline_scenario = next((s for s in scenarios if s.name == "baseline"), None)
+    base_kpis = _kpis_from(baseline_scenario.result) if baseline_scenario else None
+
+    out: List[ScenarioOption] = []
+    for s in scenarios:
+        kpis = _kpis_from(s.result)
+        is_baseline = (s.name == "baseline")
+        deltas = None if is_baseline or base_kpis is None else _deltas(kpis, base_kpis)
+        out.append(ScenarioOption(
+            id=f"scn_{s.policy_id}",
+            title=_label_for(s),
+            description=_describe(kpis, deltas),
+            kpiDelta=KpiDelta(
+                time=kpis.totalDelay,
+                energy=kpis.deadlocks,
+            ),
+            kpis=kpis,
+            kpiDeltas=deltas,
+            isBaseline=is_baseline,
+            isRecommended=(s.tag == "recommended"),
+            score=round(s.score, 3),
+            tag=s.tag,
+        ))
+    return out

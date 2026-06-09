@@ -8,7 +8,7 @@ import {
   ScenarioOption,
 } from './events/event-types';
 import { WebSocketService } from './websocket.service';
-import { AgentDTO, RailTile, SessionInfo, SessionState, PolicyName } from './models';
+import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState } from './models';
 
 export interface TrajectoryPoint {
   step: number;
@@ -41,6 +41,21 @@ export class SessionStore {
   readonly trajectories = signal<Map<number, TrajectoryPoint[]>>(new Map());
 
   readonly agents = computed<AgentDTO[]>(() => this.state()?.agents ?? []);
+
+  // ── Policies (loaded once at app start) ───────────────────────
+  private readonly _policies = signal<PolicyInfo[]>([]);
+  readonly availablePolicies = computed<PolicyInfo[]>(() => this._policies());
+  readonly defaultPolicy = computed<PolicyName>(() => {
+    const def = this._policies().find((p) => p.is_default);
+    return (def?.id ?? 'deadlock_avoidance') as PolicyName;
+  });
+
+  loadPolicies(): void {
+    this.api.listPolicies().subscribe({
+      next: (list) => this._policies.set(list),
+      error: (err) => console.warn('Failed to load policies', err),
+    });
+  }
   readonly elapsedSteps = computed(() => this.state()?.elapsed_steps ?? 0);
   readonly maxSteps = computed(() => this.state()?.max_episode_steps ?? 0);
   readonly width = computed(() => this.state()?.width ?? 0);
@@ -294,4 +309,13 @@ export class SessionStore {
       error: (e: any) => this.error.set('Clear override failed: ' + e.message),
     });
   }
+
+  // ── Active policy (synced with backend session.policy) ────────
+  private readonly _activePolicy = signal<PolicyName>('deadlock_avoidance');
+  readonly activePolicy = computed<PolicyName>(() => this._activePolicy());
+
+  setActivePolicy(policy: PolicyName): void {
+    this._activePolicy.set(policy);
+  }
+
 }

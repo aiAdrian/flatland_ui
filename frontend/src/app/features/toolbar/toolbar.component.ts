@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { PolicyName } from '../../core/models';
 
@@ -15,8 +15,20 @@ export class ToolbarComponent {
   newHeight = signal(20);
   newAgents = signal(3);
 
-  policy = signal<PolicyName>('shortest_path');
+  policy = signal<PolicyName>('deadlock_avoidance');
   speed = signal(5);
+
+  constructor() {
+    // When backend session-policy changes (e.g. via scenario Confirm),
+    // mirror it into the local toolbar selection so the radios reflect it.
+    effect(() => {
+      const active = this.store.activePolicy();
+      if (active && active !== this.policy()) {
+        this.policy.set(active);
+      }
+    });
+  }
+
 
   newSession() {
     this.store.newSession({
