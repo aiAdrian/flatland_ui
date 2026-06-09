@@ -1,5 +1,5 @@
 """HMI-Mock-Models fuer Notifications, Scenarios, Recommendations."""
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 from pydantic import BaseModel
 
 
@@ -39,6 +39,14 @@ class ScenarioKpis(BaseModel):
     episodeFinished: bool = False
 
 
+class TrajectoryPoint(BaseModel):
+    """One agent's position at one simulated step."""
+    step: int
+    row: int
+    col: int
+    dir: int  # 0=N, 1=E, 2=S, 3=W
+
+
 class ScenarioOption(BaseModel):
     id: str
     title: str
@@ -51,6 +59,10 @@ class ScenarioOption(BaseModel):
     isBaseline: bool = False
     score: Optional[float] = None
     tag: Optional[str] = None
+    # Marey-chart data: per-agent positions over the simulated horizon.
+    # Keys are agent handles (as strings, JSON-friendly); values are the
+    # on-map points (off-map / WAITING / DONE steps are omitted).
+    trajectories: Dict[str, List[TrajectoryPoint]] = {}
 
 
 class Recommendation(BaseModel):

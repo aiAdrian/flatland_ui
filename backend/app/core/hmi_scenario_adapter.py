@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from app.core.scenario_builder import Scenario
 from app.core.scenario_runner import BranchResult
-from app.models.hmi import KpiDelta, ScenarioKpis, ScenarioOption
+from app.models.hmi import KpiDelta, ScenarioKpis, ScenarioOption, TrajectoryPoint
 
 
 POLICY_LABELS = {
@@ -97,6 +97,35 @@ def _describe(
     return "≈ Same outcome as current policy"
 
 
+def _extract_trajectories(snapshots):
+    """Snapshots → {handle_str: [TrajectoryPoint, ...]}.
+
+    Off-map agents (pos is None) are skipped per step.
+    """
+    out: dict = {}
+    for snap in snapshots:
+        step = int(snap.get("step", 0))
+        agents = snap.get("agents") or {}
+        # Snapshot agents may be dict {handle: {...}} or list of dicts.
+        if isinstance(agents, dict):
+            iterator = agents.items()
+        else:
+            iterator = ((str(i), a) for i, a in enumerate(agents))
+        for handle, info in iterator:
+            pos = info.get("pos") if isinstance(info, dict) else None
+            d   = info.get("dir") if isinstance(info, dict) else None
+            if pos is None or d is None:
+                continue
+            try:
+                row, col = int(pos[0]), int(pos[1])
+            except (TypeError, ValueError, IndexError):
+                continue
+            out.setdefault(str(handle), []).append(
+                TrajectoryPoint(step=step, row=row, col=col, dir=int(d))
+            )
+    return out
+
+
 def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
     baseline_scenario = next((s for s in scenarios if s.name == "baseline"), None)
     base_kpis = _kpis_from(baseline_scenario.result) if baseline_scenario else None
@@ -107,6 +136,7 @@ def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
         is_baseline = (s.name == "baseline")
         deltas = None if is_baseline or base_kpis is None else _deltas(kpis, base_kpis)
         out.append(ScenarioOption(
+            trajectories=_extract_trajectories(s.result.snapshots),
             id=f"scn_{s.policy_id}",
             title=_label_for(s),
             description=_describe(kpis, deltas, s.result.total_agents, is_baseline),

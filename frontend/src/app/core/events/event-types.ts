@@ -34,10 +34,22 @@ export interface ScenarioKpis {
   episodeFinished: boolean;
 }
 
+export interface TrajectoryPoint {
+  step: number;
+  row: number;
+  col: number;
+  /** 0=N, 1=E, 2=S, 3=W */
+  dir: number;
+}
+
 export interface ScenarioOption {
   id: string;
   title: string;
   description: string;
+  /** Per-agent trajectories over the simulated horizon. Keys are
+   *  string-encoded handle ids (JSON-friendly). Used by the Marey
+   *  chart to draw lines per agent per branch. */
+  trajectories?: { [handle: string]: TrajectoryPoint[] };
   /** Legacy fields kept for backward compat with mock data. */
   kpiDelta: { time?: number; energy?: number };
   /** Real KPIs (filled by adapter when scenario is real). Optional

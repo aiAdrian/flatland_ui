@@ -1,134 +1,135 @@
-import { Component, computed, inject } from '@angular/core';
-import { SessionStore, TrajectoryPoint } from '../../core/session.store';
-
-const AGENT_COLORS = [
-  '#eb0000', '#0079c7', '#00973b', '#ffaa00', '#9c4ddc',
-  '#b3489e', '#0aafa5', '#5a4f3f', '#a3641c', '#3f4d8c',
-];
+import {
+  Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SessionStore } from '../../core/session.store';
+import { AgentColorService } from '../../core/agent-color.service';
 
 interface AgentLine {
   handle: number;
   color: string;
-  pathD: string;
-  selected: boolean;
-}
-
-interface Tick {
-  v: number;
-  pos: number;
-  label: string;
+  pastD: string;
+  futureD: string;
+  isActive: boolean;
 }
 
 @Component({
   selector: 'app-marey-chart',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './marey-chart.component.html',
-  styleUrl: './marey-chart.component.scss',
+  styleUrls: ['./marey-chart.component.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MareyChartComponent {
-  store = inject(SessionStore);
+  private readonly store = inject(SessionStore);
+  private readonly colors = inject(AgentColorService);
 
-  readonly margin = { top: 20, right: 24, bottom: 36, left: 56 };
-  readonly chartWidth = 900;
-  readonly chartHeight = 300;
+  readonly W = 1200;
+  readonly H = 700;
+  readonly PAD = { top: 32, right: 24, bottom: 36, left: 56 };
 
-  readonly innerWidth = computed(() => this.chartWidth - this.margin.left - this.margin.right);
-  readonly innerHeight = computed(() => this.chartHeight - this.margin.top - this.margin.bottom);
+  readonly activeHandle = this.store.activeHandle;
+  readonly elapsed = computed(() => this.store.state()?.elapsed_steps ?? 0);
+  readonly maxSteps = computed(() => this.store.maxSteps() || 1);
+  readonly scenarios = this.store.scenarios;
 
-  readonly maxStep = computed(() =>
-    Math.max(this.store.maxSteps(), this.store.elapsedSteps(), 10),
-  );
+  readonly forecastScenarioId = signal<string | null>(null);
 
-  // y-axis = "distance to target" (Manhattan, normalized 0-100%)
-  // i.e. agent starts at top (= 100% to go), arrives at bottom (= 0%)
-
-  readonly viewBox = computed(() => `0 0 ${this.chartWidth} ${this.chartHeight}`);
-
-  readonly xTicks = computed<Tick[]>(() => {
-    const max = this.maxStep();
-    const n = 6;
-    const step = Math.max(1, Math.ceil(max / n));
-    const ticks: Tick[] = [];
-    for (let i = 0; i <= n; i++) {
-      const v = i * step;
-      if (v > max) break;
-      ticks.push({ v, pos: this._scaleX(v), label: String(v) });
+  readonly forecastScenario = computed(() => {
+    const id = this.forecastScenarioId();
+    const all = this.scenarios();
+    if (!all || all.length === 0) return null;
+    if (id) {
+      const found = all.find(s => s.id === id);
+      if (found) return found;
     }
-    return ticks;
+    return all.find(s => s.isBaseline) ?? all[0];
   });
 
-  readonly yTicks = computed<Tick[]>(() => {
-    const ticks: Tick[] = [];
-    for (let pct = 0; pct <= 100; pct += 25) {
-      ticks.push({
-        v: pct,
-        pos: this._scaleY(pct),
-        label: `${pct}%`,
-      });
+  readonly pathCells = computed<string[]>(() => {
+    const sc = this.forecastScenario();
+    const handle = this.activeHandle();
+    if (!sc || handle == null || !sc.trajectories) return [];
+    const traj = sc.trajectories[String(handle)] ?? [];
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const p of traj) {
+      const key = `${p.row},${p.col}`;
+      if (!seen.has(key)) { seen.add(key); out.push(key); }
     }
-    return ticks;
+    return out;
   });
 
-  readonly lines = computed<AgentLine[]>(() => {
-    const trajectories = this.store.trajectories();
-    const agents = this.store.agents();
-    const selected = this.store.selectedHandles();
-    const result: AgentLine[] = [];
+  readonly pathIndex = computed<Map<string, number>>(() => {
+    const m = new Map<string, number>();
+    this.pathCells().forEach((k, i) => m.set(k, i));
+    return m;
+  });
 
-    for (const a of agents) {
-      const points = trajectories.get(a.handle) ?? [];
-      const target = a.target;
-      if (!target) continue;
+  readonly agentLines = computed<AgentLine[]>(() => {
+    const sc = this.forecastScenario();
+    const active = this.activeHandle();
+    const idx = this.pathIndex();
+    if (!sc || active == null || idx.size === 0 || !sc.trajectories) return [];
 
-      const segments: string[] = [];
-      let started = false;
-      for (const pt of points) {
-        if (!pt.position) continue;
-        const dist = this._distToTarget(pt.position, target);
-        const distPct = (dist / Math.max(1, this._maxDistForAgent(a))) * 100;
-        const x = this._scaleX(pt.step);
-        const y = this._scaleY(100 - distPct);  // invert: 100% remaining = top
-        segments.push(`${started ? 'L' : 'M'} ${x.toFixed(1)} ${y.toFixed(1)}`);
-        started = true;
+    const now = this.elapsed();
+    const lines: AgentLine[] = [];
+
+    for (const [handleStr, traj] of Object.entries(sc.trajectories)) {
+      const handle = Number(handleStr);
+      const isActive = handle === active;
+      const past: { x: number; y: number }[] = [];
+      const future: { x: number; y: number }[] = [];
+
+      for (const p of traj) {
+        const key = `${p.row},${p.col}`;
+        const xIdx = idx.get(key);
+        if (xIdx === undefined) continue;
+        const sx = this.xCoord(xIdx);
+        const sy = this.yCoord(p.step);
+        (p.step <= now ? past : future).push({ x: sx, y: sy });
       }
 
-      if (segments.length === 0) continue;
+      const pastD = past.length > 1 ? this.toPathD(past) : '';
+      const futureD = future.length > 1 ? this.toPathD(future) : '';
+      if (!pastD && !futureD) continue;
 
-      result.push({
-        handle: a.handle,
-        color: AGENT_COLORS[a.handle % AGENT_COLORS.length],
-        pathD: segments.join(' '),
-        selected: selected.has(a.handle),
+      lines.push({
+        handle, color: this.colors.getColorSolid(handle),
+        pastD, futureD, isActive,
       });
     }
-
-    return result;
+    lines.sort((a, b) => Number(a.isActive) - Number(b.isActive));
+    return lines;
   });
 
-  private _scaleX(stepValue: number): number {
-    const ratio = stepValue / Math.max(1, this.maxStep());
-    return this.margin.left + ratio * this.innerWidth();
+  xCoord(i: number): number {
+    const cells = this.pathCells().length || 1;
+    const inner = this.W - this.PAD.left - this.PAD.right;
+    return this.PAD.left + (i / Math.max(1, cells - 1)) * inner;
+  }
+  yCoord(step: number): number {
+    const m = this.maxSteps();
+    const inner = this.H - this.PAD.top - this.PAD.bottom;
+    return this.PAD.top + (step / m) * inner;
+  }
+  toPathD(pts: { x: number; y: number }[]): string {
+    return pts.map((p, i) =>
+      `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`
+    ).join(' ');
   }
 
-  private _scaleY(pct: number): number {
-    // pct: 0 = bottom, 100 = top  (we flip in lines() above)
-    const ratio = pct / 100;
-    return this.margin.top + (1 - ratio) * this.innerHeight();
-  }
+  readonly yTicks = computed(() => {
+    const m = this.maxSteps();
+    const step = m <= 200 ? 50 : m <= 500 ? 100 : 200;
+    const out: { v: number; y: number }[] = [];
+    for (let v = 0; v <= m; v += step) out.push({ v, y: this.yCoord(v) });
+    return out;
+  });
+  readonly nowY = computed(() => this.yCoord(this.elapsed()));
 
-  private _distToTarget(pos: [number, number], target: [number, number]): number {
-    return Math.abs(pos[0] - target[0]) + Math.abs(pos[1] - target[1]);
+  setForecastScenario(id: string | null): void {
+    this.forecastScenarioId.set(id);
   }
-
-  private _maxDistForAgent(a: any): number {
-    if (!a.initial_position || !a.target) return 1;
-    return this._distToTarget(a.initial_position, a.target);
-  }
-
-  toggleSelect(handle: number) {
-    this.store.toggleAgentSelection(handle);
-  }
-
-  trackByLine = (_: number, l: AgentLine) => l.handle;
-  trackByTick = (_: number, t: Tick) => t.v;
 }
