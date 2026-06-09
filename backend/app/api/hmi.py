@@ -160,26 +160,50 @@ def get_scenarios(
 
 @router.get("/{session_id}/hmi/recommendations", response_model=list[Recommendation])
 def get_recommendations(session_id: str):
-    """Recommendations from the top-scoring ScenarioBuilder option.
-    Returns [] when DLA is already optimal — that's a feature, not a bug:
-    the UI hides the panel when there's nothing to act on."""
+    """Surface the top-scoring alternative policy as a Recommendation,
+    only if it clearly beats the current baseline. Empty list otherwise
+    — that's the right signal: 'current policy is fine'."""
+    from app.core.scenario_cache import scenario_cache
+    from app.core.scenario_builder import ScenarioBuilder
+
     sess = session_manager.get(session_id)
     if not sess:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     env = getattr(sess, "env", None)
     if env is None:
-        return mock_generate_recommendations(session_id, _step_for(session_id))
+        return []
 
+    baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
+    baseline_factory = _policy_factory_for(baseline_id) or DeadLockAvoidancePolicy
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)
+    horizon = min(max(50, max_ep - elapsed) if max_ep else 200, 500)
+
+    # We share the scenario cache with /hmi/scenarios so we don't re-run
+    # the same 5 branches twice in a row.
+    cache_key_step = elapsed * 1000 + horizon
+    cached_options = scenario_cache.get(session_id, cache_key_step)
+
+    # Cached options are already serialized; we need the Scenario objects.
+    # Easiest: rebuild from scratch when the cache only has options.
+    # (Future optimization: cache both shapes.)
     try:
-        recs = real_recommendations(session_id, env)
+        candidates = [
+            (pid, fac) for pid, fac in _ALL_POLICIES.items() if pid != baseline_id
+        ]
+        builder = ScenarioBuilder(env, baseline_id, baseline_factory)
+        scenarios = builder.generate_scenarios(
+            candidate_policies=candidates, horizon=horizon,
+        )
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(
-            "Recommendation generator failed for %s: %r", session_id, e,
+            "Recommendation: ScenarioBuilder failed for %s: %r", session_id, e,
         )
-        return mock_generate_recommendations(session_id, _step_for(session_id))
+        return []
 
-    return recs
+    return real_recommendations(session_id, scenarios)
 
 
 # ── bundle (still mock, used by some UI panels) ────────────────────

@@ -230,3 +230,23 @@ sbb-transparent-button:hover {
   outline: none;
   border-color: var(--sbb-color-charcoal, #212121);
 }
+
+/* ── Policy dropdown (replaces radio-button-group) ──────────── */
+.policy-select {
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: white;
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 2px;
+  cursor: pointer;
+  min-width: 180px;
+  height: 28px;
+}
+.policy-select:hover {
+  border-color: var(--sbb-color-granite, #686868);
+}
+.policy-select:focus {
+  outline: 2px solid var(--sbb-color-blue, #2a73d9);
+  outline-offset: 1px;
+}

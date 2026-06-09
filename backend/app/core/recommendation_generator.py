@@ -1,133 +1,102 @@
-"""RecommendationGenerator — turns the top-scoring ScenarioBuilder option
-into an actionable Recommendation for the operator.
+"""RecommendationGenerator — surfaces the top-scoring alternative POLICY
+when it would clearly beat the currently active baseline.
 
 Logic
 -----
-1. Pick an "interesting" agent (same heuristic as scenarios endpoint).
-2. Run ScenarioBuilder.generate_scenarios for that agent.
-3. If the top-scoring scenario is the *baseline* (default policy), do not
-   surface a recommendation — DLA is already doing the right thing.
-4. If the top scenario has tag == "recommended", emit a Recommendation
-   whose `scenarioId` matches the corresponding `ScenarioOption.id` so
-   the frontend's Accept-button can wire it through to the override.
+1. Look at the scenarios that ScenarioBuilder produced for this session.
+2. The first (after baseline) is the top-scoring alternative.
+3. If its score beats baseline by a clear margin AND it has tag
+   == "recommended", surface it as a Recommendation. The Accept-button
+   in the UI then triggers POST /session/{id}/policy.
+4. Otherwise return [] — the operator gets an empty panel, which is
+   the right signal: "current policy is fine, nothing to act on".
 
 Confidence
 ----------
-Confidence is the score, clamped to [0, 1]. Scores typically fall in
-[-0.5, 1.0]; we map negatives to 0.
+The score is mapped to [0, 1]. Scores typically fall in [-0.5, 1.0],
+so we just clamp.
 """
 from __future__ import annotations
 
 from typing import List, Optional
 
-from flatland.envs.rail_env import RailEnv
-
-from app.core.scenario_builder import Scenario, ScenarioBuilder
-from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
+from app.core.scenario_builder import Scenario
 from app.models.hmi import Recommendation
 
 
-def _pick_interesting_handle(env: RailEnv) -> Optional[int]:
-    """Same heuristic as hmi.py's _pick_default_handle."""
-    priority_states = ("MOVING", "STOPPED", "MALFUNCTION", "READY_TO_DEPART")
-    for state_name in priority_states:
-        for h, ag in enumerate(env.agents):
-            s = ag.state.name if hasattr(ag.state, "name") else str(ag.state)
-            if s == state_name:
-                return h
-    return None
-
-
-def _steps_to_decision(env: RailEnv, handle: int) -> int:
-    """Approximate steps until the agent reaches its next decision cell.
-    Returns a small default if we can't determine it (e.g. no decision
-    ahead within a reasonable horizon)."""
-    try:
-        from app.core.cell_classifier import lookahead_to_decision
-        ag = env.agents[handle]
-        nd = lookahead_to_decision(env, ag)
-        if nd and "steps_ahead" in nd:
-            return max(1, int(nd["steps_ahead"]))
-    except Exception:
-        pass
-    return 10  # generic fallback
+# Display labels (kept in sync with hmi_scenario_adapter.POLICY_LABELS)
+POLICY_LABELS = {
+    "deadlock_avoidance": "DLA (Deadlock Avoidance)",
+    "shortest_path": "Shortest Path",
+    "forward_only": "Forward Only",
+    "do_nothing": "Do Nothing",
+    "random": "Random",
+}
 
 
 def _confidence(score: float) -> float:
-    """Map a score (~[-0.5, 1.0]) to a confidence in [0, 1]."""
     return max(0.0, min(1.0, float(score)))
 
 
-def _describe_recommendation(top: Scenario, baseline_score: float) -> str:
-    res = top.result
-    delay = int(res.kpis.get("total_delay", 0))
-    n_dl = int(res.kpis.get("num_deadlock_cycles", 0))
-    pieces = []
-    score_gain = top.score - baseline_score
-    if score_gain > 0.05:
-        pieces.append(f"improves outcome by {score_gain:+.2f} pts")
-    if n_dl > 0:
-        pieces.append(f"⚠ would still cause {n_dl} deadlock(s)")
-    if delay > 0:
-        pieces.append(f"{delay}-step delay")
-    if not pieces:
-        pieces.append(f"{res.success_count}/{res.total_agents} trains arrive")
-    return "; ".join(pieces)
+def _describe(top: Scenario, baseline: Scenario) -> str:
+    """Plain-language reasoning for the recommendation."""
+    t_res, b_res = top.result, baseline.result
+    d_done = t_res.success_count - b_res.success_count
+    d_delay = int(t_res.kpis.get("total_delay", 0)) - int(b_res.kpis.get("total_delay", 0))
+    d_dl = int(t_res.kpis.get("num_deadlock_cycles", 0)) - int(b_res.kpis.get("num_deadlock_cycles", 0))
+
+    parts: List[str] = []
+    if d_done > 0:
+        parts.append(f"{d_done} more train(s) would arrive")
+    if d_dl < 0:
+        parts.append(f"avoids {abs(d_dl)} deadlock(s)")
+    if d_delay < -10:
+        parts.append(f"saves {abs(d_delay)} steps of delay")
+    if not parts:
+        parts.append("better outcome")
+    return " · ".join(parts)
+
+
+# Hard-coded baseline confidence threshold: only surface a recommendation
+# if the alternative's score is at least this much higher than baseline.
+SCORE_MARGIN = 0.10
 
 
 def generate_recommendations(
     session_id: str,
-    env: RailEnv,
-    horizon: int = 30,
+    scenarios: List[Scenario],
 ) -> List[Recommendation]:
-    """Generate live recommendations for a session.
-
-    Returns at most one Recommendation (the top alternative for the
-    most interesting agent). Empty list if DLA already does the
-    right thing or no agent is on the map yet.
-    """
-    handle = _pick_interesting_handle(env)
-    if handle is None:
-        return []
-
-    builder = ScenarioBuilder(env, DeadLockAvoidancePolicy)
-    try:
-        scenarios = builder.generate_scenarios(handle=handle, horizon=horizon)
-    except Exception:
-        return []
-
+    """Build at most one Recommendation from a pre-computed scenario list.
+    The hmi.py endpoint is responsible for fetching the scenarios (with
+    its cache); we just consume them here to keep things DRY."""
     if not scenarios:
         return []
 
-    # Find baseline score for delta computation.
     baseline = next((s for s in scenarios if s.name == "baseline"), None)
-    baseline_score = baseline.score if baseline else 0.0
-
-    top = scenarios[0]  # already sorted descending
-
-    # If DLA's own choice (baseline) is the winner, no need to recommend
-    # an alternative — the policy is already doing the right thing.
-    if top.name == "baseline":
+    if baseline is None:
         return []
 
-    # Only surface recommendations that the builder itself flagged.
-    if top.tag != "recommended":
+    # Candidates are everything that's not baseline; already sorted by score.
+    candidates = [s for s in scenarios if s.name != "baseline"]
+    if not candidates:
         return []
 
-    # Score must be a clear improvement over baseline (avoid ties / noise).
-    if (top.score - baseline_score) < 0.1:
+    top = candidates[0]
+
+    # Refuse to surface a "recommendation" that introduces deadlocks.
+    if top.result.kpis.get("num_deadlock_cycles", 0) > 0:
         return []
 
-    elapsed = int(getattr(env, "_elapsed_steps", 0))
-    confidence = _confidence(top.score)
-    countdown = max(5, _steps_to_decision(env, handle) * 2)  # ~2s per step
+    # Must clearly beat baseline.
+    if (top.score - baseline.score) < SCORE_MARGIN:
+        return []
 
+    label = POLICY_LABELS.get(top.policy_id, top.policy_id)
     return [Recommendation(
-        id=f"rec_h{handle}_{top.name.lower()}_step{elapsed}",
-        title=f"Train {handle}: take {top.name} at next switch",
-        description=_describe_recommendation(top, baseline_score),
-        confidence=round(confidence, 2),
-        countdownSeconds=int(countdown),
-        # Match the scenario id format from hmi_scenario_adapter.scenario_to_option:
-        scenarioId=f"s_h{handle}_{top.name.lower()}",
+        id=f"rec_policy_{top.policy_id}",
+        title=f"Switch to {label}",
+        description=_describe(top, baseline),
+        confidence=round(_confidence(top.score), 2),
+        countdownSeconds=30,            # generic; policy switch isn't time-critical
+        scenarioId=f"scn_{top.policy_id}",
     )]

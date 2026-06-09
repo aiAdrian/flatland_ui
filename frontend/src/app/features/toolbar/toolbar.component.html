@@ -53,15 +53,15 @@
     <sbb-divider orientation="vertical"></sbb-divider>
 
     <span class="label">Policy</span>
-    <sbb-radio-button-group
-      orientation="horizontal"
-      size="s"
+    <select
+      class="policy-select"
       [value]="policy()"
-      (change)="onPolicyChange($event)">
+      (change)="onPolicyChange($event)"
+      [title]="policyDescription()">
       @for (p of store.availablePolicies(); track p.id) {
-        <sbb-radio-button [value]="p.id" [title]="p.description">{{ p.label }}</sbb-radio-button>
+        <option [value]="p.id" [title]="p.description">{{ p.label }}</option>
       }
-    </sbb-radio-button-group>
+    </select>
   }
 
   <div class="spacer"></div>

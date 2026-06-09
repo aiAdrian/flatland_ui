@@ -69,4 +69,11 @@ export class ToolbarComponent {
       this.store.play(this.policy(), v);
     }
   }
+
+  /** Tooltip text for the currently selected policy (description). */
+  policyDescription(): string {
+    const id = this.policy();
+    const info = this.store.availablePolicies().find((p) => p.id === id);
+    return info?.description ?? '';
+  }
 }

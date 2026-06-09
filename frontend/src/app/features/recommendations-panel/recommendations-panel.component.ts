@@ -3,6 +3,7 @@ import { SessionStore } from '../../core/session.store';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
 import { Recommendation } from '../../core/events/event-types';
+import { PolicyName } from '../../core/models';
 
 @Component({
   selector: 'app-recommendations-panel',
@@ -70,9 +71,39 @@ export class RecommendationsPanelComponent implements OnDestroy {
   }
 
   accept(r: Recommendation) {
+    const sess = this.store.session();
+    if (!sess) return;
+    // Recommendation.scenarioId follows the format 'scn_<policy_id>' so
+    // we can derive the policy id directly. If for some reason it's
+    // missing, we just emit the bus events without a server call.
     this.bus.emit({ type: 'RECOMMENDATION_ACCEPTED', recId: r.id });
-    if (r.scenarioId) {
-      this.bus.emit({ type: 'SCENARIO_CONFIRMED', scenarioId: r.scenarioId });
+
+    if (!r.scenarioId || !r.scenarioId.startsWith('scn_')) {
+      // Legacy / mock recommendation: keep bus event for compatibility.
+      if (r.scenarioId) {
+        this.bus.emit({ type: 'SCENARIO_CONFIRMED', scenarioId: r.scenarioId });
+      }
+      this.dismiss(r);
+      return;
     }
+
+    const policyId = r.scenarioId.slice(4) as PolicyName;
+    this.api.setPolicy(sess.id, policyId).subscribe({
+      next: () => {
+        this.store.setActivePolicy(policyId);
+        // Inform the rest of the app (scenario panel listens, etc.)
+        this.bus.emit({ type: 'SCENARIO_CONFIRMED', scenarioId: r.scenarioId! });
+        this.dismiss(r);
+      },
+      error: (err) => {
+        console.warn('Failed to apply recommendation', err);
+      },
+    });
+  }
+
+  /** Remove a recommendation from the local list (visual cue). */
+  private dismiss(r: Recommendation) {
+    const cur = this.store.recommendations();
+    this.store.recommendations.set(cur.filter((x) => x.id !== r.id));
   }
 }
