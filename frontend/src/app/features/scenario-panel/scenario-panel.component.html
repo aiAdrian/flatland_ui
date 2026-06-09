@@ -11,6 +11,7 @@
              [class.recommended]="s.isRecommended"
              [class.avoid]="s.tag === 'avoid'">
 
+          <!-- Header row -->
           <div class="card-header">
             <h4 class="title">{{ s.title }}</h4>
             @if (s.isBaseline) {
@@ -22,47 +23,28 @@
             }
           </div>
 
-          <div class="kpi-grid">
-            <div class="kpi">
-              <div class="kpi-label">Done</div>
-              <div class="kpi-value">{{ s.kpis?.done ?? '–' }}</div>
-              @if (!s.isBaseline && (s.kpiDeltas?.done ?? 0) !== 0) {
-                <div class="kpi-delta"
-                     [class.good]="(s.kpiDeltas?.done ?? 0) > 0"
-                     [class.bad]="(s.kpiDeltas?.done ?? 0) < 0">
-                  {{ formatDelta(s.kpiDeltas?.done) }}
-                </div>
-              }
-            </div>
+          <!-- Headline: the prominent plain-language summary -->
+          <p class="headline"
+             [class.good]="(s.description || '').startsWith('✓')"
+             [class.warn]="(s.description || '').startsWith('⚠')"
+             [class.bad]="(s.description || '').startsWith('✗')">
+            {{ s.description }}
+          </p>
 
-            <div class="kpi">
-              <div class="kpi-label">Deadlocks</div>
-              <div class="kpi-value">{{ s.kpis?.deadlocks ?? '–' }}</div>
-              @if (!s.isBaseline && (s.kpiDeltas?.deadlocks ?? 0) !== 0) {
-                <div class="kpi-delta"
-                     [class.good]="(s.kpiDeltas?.deadlocks ?? 0) < 0"
-                     [class.bad]="(s.kpiDeltas?.deadlocks ?? 0) > 0">
-                  {{ formatDelta(s.kpiDeltas?.deadlocks) }}
-                </div>
-              }
-            </div>
-
-            <div class="kpi">
-              <div class="kpi-label">Total Delay</div>
-              <div class="kpi-value">{{ s.kpis?.totalDelay ?? '–' }}</div>
-              @if (!s.isBaseline && (s.kpiDeltas?.totalDelay ?? 0) !== 0) {
-                <div class="kpi-delta"
-                     [class.good]="(s.kpiDeltas?.totalDelay ?? 0) < 0"
-                     [class.bad]="(s.kpiDeltas?.totalDelay ?? 0) > 0">
-                  {{ formatDelta(s.kpiDeltas?.totalDelay) }}
-                </div>
-              }
-            </div>
-
-            <div class="kpi">
-              <div class="kpi-label">Mean Delay</div>
-              <div class="kpi-value">{{ s.kpis?.meanDelay ?? '–' }}</div>
-            </div>
+          <!-- Compact KPI strip -->
+          <div class="kpi-strip">
+            <span class="kpi-pill">
+              <span class="kpi-label">Done</span>
+              <span class="kpi-value">{{ s.kpis?.done ?? '–' }}/{{ totalAgents() }}</span>
+            </span>
+            <span class="kpi-pill" [class.warn]="(s.kpis?.deadlocks ?? 0) > 0">
+              <span class="kpi-label">Deadlocks</span>
+              <span class="kpi-value">{{ s.kpis?.deadlocks ?? '–' }}</span>
+            </span>
+            <span class="kpi-pill" [class.warn]="(s.kpis?.totalDelay ?? 0) > 50">
+              <span class="kpi-label">Delay</span>
+              <span class="kpi-value">{{ s.kpis?.totalDelay ?? '–' }}</span>
+            </span>
           </div>
 
           @if (!s.isBaseline) {

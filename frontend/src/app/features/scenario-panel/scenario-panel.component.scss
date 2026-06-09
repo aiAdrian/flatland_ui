@@ -229,3 +229,51 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ── Headline prominence (H3.3) ────────────────────────────── */
+
+.headline {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 6px 0 10px 0;
+  color: #2a2a2a;
+}
+.headline.good { color: #00702c; }
+.headline.warn { color: #c47100; }
+.headline.bad  { color: #c5341e; }
+
+/* Compact KPI strip (replaces 4-column grid) */
+.kpi-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.kpi-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+.kpi-pill.warn {
+  border-color: #f5a25b;
+  background: #fff5e8;
+}
+.kpi-pill .kpi-label {
+  color: #686868;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.kpi-pill .kpi-value {
+  font-weight: 700;
+  color: #2a2a2a;
+}
+
+/* Hide the old kpi-grid block from H3.2 */
+.kpi-grid { display: none; }

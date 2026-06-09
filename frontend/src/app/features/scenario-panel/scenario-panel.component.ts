@@ -59,4 +59,9 @@ export class ScenarioPanelComponent {
     if (n == null) return '';
     return n > 0 ? `+${n}` : `${n}`;
   }
+
+  /** Total agents from session state, used for KPI denominator. */
+  totalAgents(): number {
+    return this.store.state()?.agents?.length ?? 0;
+  }
 }

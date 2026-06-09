@@ -98,7 +98,7 @@ def get_notifications(session_id: str):
 @router.get("/{session_id}/hmi/scenarios", response_model=list[ScenarioOption])
 def get_scenarios(
     session_id: str,
-    horizon: int = Query(50, ge=10, le=300, description="Branch lookahead in steps"),
+    horizon: int = Query(200, ge=10, le=500, description="Branch lookahead in steps"),
 ):
     """What-if scenarios across alternative POLICIES.
 
@@ -128,7 +128,8 @@ def get_scenarios(
         baseline_factory = DeadLockAvoidancePolicy
 
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
-    cache_key_step = elapsed
+    # Cache key combines step + horizon so different horizons don't collide.
+    cache_key_step = elapsed * 1000 + int(horizon)
     cached = scenario_cache.get(session_id, cache_key_step)
     if cached is not None:
         return cached

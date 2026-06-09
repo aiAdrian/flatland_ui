@@ -43,19 +43,56 @@ def _deltas(cand: ScenarioKpis, base: ScenarioKpis) -> ScenarioKpis:
     )
 
 
-def _describe(kpis: ScenarioKpis, deltas: Optional[ScenarioKpis]) -> str:
-    base = f"done={kpis.done} · deadlocks={kpis.deadlocks} · delay={kpis.totalDelay} (mean {kpis.meanDelay})"
-    if deltas is None:
-        return f"Current policy: {base}"
-    parts = []
-    if deltas.done != 0:
-        parts.append(f"Δdone={deltas.done:+d}")
-    if deltas.deadlocks != 0:
-        parts.append(f"Δdeadlocks={deltas.deadlocks:+d}")
-    if deltas.totalDelay != 0:
-        parts.append(f"Δdelay={deltas.totalDelay:+d}")
-    head = " · ".join(parts) if parts else "≈ baseline"
-    return f"{head}  |  {base}"
+def _describe(
+    kpis: ScenarioKpis,
+    deltas: Optional[ScenarioKpis],
+    total_agents: int,
+    is_baseline: bool,
+) -> str:
+    """Plain-language outcome summary; the small KPI grid in the UI
+    carries the numeric details, this is the headline."""
+    n_done = kpis.done
+    n_dl = kpis.deadlocks
+
+    # ── Baseline (current policy) ───────────────────────────────
+    if is_baseline:
+        if n_dl > 0:
+            return f"⚠ Current policy causes {n_dl} deadlock(s)"
+        if n_done == total_agents:
+            return f"✓ All {total_agents} trains will arrive"
+        if n_done == 0:
+            return f"✗ No trains arrive within horizon"
+        return f"⚠ Only {n_done} of {total_agents} trains arrive"
+
+    # ── Alternative policy (deltas vs baseline) ─────────────────
+    assert deltas is not None  # always set for non-baseline
+    d_done = deltas.done
+    d_dl = deltas.deadlocks
+    d_delay = deltas.totalDelay
+
+    # Worst signal first: deadlocks introduced
+    if d_dl > 0:
+        return f"⚠ Would cause {d_dl} new deadlock(s)"
+
+    # Catastrophic loss of arrivals
+    if n_done == 0 and d_done < 0:
+        return f"✗ {abs(d_done)} train(s) would not arrive"
+
+    # Strict improvement
+    if d_done > 0:
+        return f"✓ {d_done} more train(s) would arrive"
+
+    # Strict regression
+    if d_done < 0:
+        return f"⚠ {abs(d_done)} fewer train(s) would arrive"
+
+    # Same arrivals — look at delay
+    if d_delay < -20:
+        return f"✓ Saves {abs(d_delay)} steps of delay"
+    if d_delay > 20:
+        return f"⚠ Adds {d_delay} steps of delay"
+
+    return "≈ Same outcome as current policy"
 
 
 def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
@@ -70,7 +107,7 @@ def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
         out.append(ScenarioOption(
             id=f"scn_{s.policy_id}",
             title=_label_for(s),
-            description=_describe(kpis, deltas),
+            description=_describe(kpis, deltas, s.result.total_agents, is_baseline),
             kpiDelta=KpiDelta(
                 time=kpis.totalDelay,
                 energy=kpis.deadlocks,
