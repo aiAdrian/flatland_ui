@@ -1,5 +1,6 @@
 :host {
   display: block;
+  position: relative;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -23,16 +24,109 @@
   font-style: italic;
 }
 
+/* ── Chart svg ────────────────────────────────────────────────── */
 .marey-svg {
   display: block;
   width: 100%;
   height: 100%;
+  cursor: grab;
+  user-select: none;
 }
 
+/* ── Overlays: layout copied 1:1 from flatland-map ───────────── */
+.map-nav-overlay {
+  position: absolute;
+  bottom: 56px;
+  right: 50px;
+  display: grid;
+  grid-template-columns: 32px 32px 32px;
+  grid-template-rows: 32px 32px 32px;
+  gap: 2px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.map-zoom-overlay {
+  position: absolute;
+  right: 50px;
+  bottom: 16px;
+  width: 100px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 6px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--sbb-color-charcoal, #212121);
+  user-select: none;
+  z-index: 10;
+}
+
+.zoom-value {
+  flex: 1;
+  text-align: center;
+  color: var(--sbb-color-granite, #686868);
+  font-variant-numeric: tabular-nums;
+}
+
+.map-swap-overlay {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 32px;
+  height: 32px;
+  z-index: 10;
+
+  .nav-btn { width: 100%; height: 100%; }
+}
+
+.nav-btn {
+  pointer-events: auto;
+  border: 1px solid #d2d2d2;
+  background: rgba(255, 255, 255, 0.95);
+  color: #212121;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.nav-btn:hover {
+  background: #212121;
+  color: white;
+  border-color: #212121;
+}
+.nav-btn:active {
+  transform: scale(0.94);
+}
+.nav-btn.active {
+  background: #c5341e;
+  color: #fff;
+  border-color: #962a17;
+}
+
+/* Pan-Cross-Layout */
+.nav-up      { grid-column: 2; grid-row: 1; }
+.nav-left    { grid-column: 1; grid-row: 2; }
+.nav-center  { grid-column: 2; grid-row: 2; }
+.nav-right   { grid-column: 3; grid-row: 2; }
+.nav-down    { grid-column: 2; grid-row: 3; }
+
+/* ── Visuals ──────────────────────────────────────────────────── */
 .marey-grid {
   line {
     stroke: #e8e8e8;
     stroke-width: 1;
+    vector-effect: non-scaling-stroke;
   }
   text {
     font-size: 10px;
@@ -46,6 +140,7 @@
     stroke: #c5341e;
     stroke-width: 1.5;
     stroke-dasharray: 4 3;
+    vector-effect: non-scaling-stroke;
   }
   text {
     font-size: 11px;
@@ -60,23 +155,24 @@
       fill: none;
       stroke-linecap: round;
       stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
     }
     path.past {
-      stroke-width: 1.2;
+      stroke-width: 3;
       opacity: 0.55;
     }
     path.future {
-      stroke-width: 1.2;
+      stroke-width: 3;
       opacity: 0.25;
       stroke-dasharray: 3 3;
     }
     &.is-active {
       path.past {
-        stroke-width: 2.4;
+        stroke-width: 3;
         opacity: 1;
       }
       path.future {
-        stroke-width: 2.4;
+        stroke-width: 3;
         opacity: 0.55;
         stroke-dasharray: none;
       }
@@ -84,9 +180,26 @@
   }
 }
 
-.marey-axis-label {
-  font-size: 10px;
-  fill: #686868;
-  font-family: monospace;
-  letter-spacing: 0.5px;
+.map-nav-overlay .nav-btn { width: 100%; height: 100%; }
+
+
+.marey-labels {
+  .agent {
+    cursor: pointer;
+  }
+  .agent circle {
+    transition: stroke-width 0.15s, filter 0.15s;
+  }
+  .agent:hover circle {
+    stroke-width: 4;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
+  }
+  .agent.selected circle {
+    stroke: #ffaa00;
+    stroke-width: 4;
+  }
+  .agent text {
+    pointer-events: none;
+    user-select: none;
+  }
 }

@@ -4,55 +4,102 @@
       <p>Select an agent to see its time–distance trajectory.</p>
     </div>
   } @else {
-    <svg
-      class="marey-svg"
-      [attr.viewBox]="'0 0 ' + W + ' ' + H"
-      preserveAspectRatio="xMidYMid meet"
-    >
+    <svg #svgEl
+         class="marey-svg"
+         [attr.viewBox]="viewBox()"
+         preserveAspectRatio="none"
+         (wheel)="onWheel($event)"
+         (mousedown)="onMouseDown($event)"
+         (mousemove)="onMouseMove($event)"
+         (mouseup)="onMouseUp()"
+         (mouseleave)="onMouseLeave()">
+
       <g class="marey-grid">
-        @for (t of yTicks(); track t.v) {
-          <line [attr.x1]="PAD.left" [attr.x2]="W - PAD.right"
-                [attr.y1]="t.y" [attr.y2]="t.y" />
-          <text [attr.x]="PAD.left - 8" [attr.y]="t.y + 4" text-anchor="end">
-            {{ t.v }}
-          </text>
+        @for (t of timeTicks(); track t.v) {
+          @if (axesSwapped()) {
+            <line [attr.x1]="t.coord" [attr.x2]="t.coord"
+                  [attr.y1]="PAD.top" [attr.y2]="H - PAD.bottom" />
+            <text [attr.x]="t.coord" [attr.y]="PAD.top - 4" text-anchor="middle">{{ t.v }}</text>
+          } @else {
+            <line [attr.x1]="PAD.left" [attr.x2]="W - PAD.right"
+                  [attr.y1]="t.coord" [attr.y2]="t.coord" />
+            <text [attr.x]="PAD.left - 8" [attr.y]="t.coord + 4" text-anchor="end">{{ t.v }}</text>
+          }
         }
       </g>
 
       <g class="marey-now">
-        <line
-          [attr.x1]="PAD.left" [attr.x2]="W - PAD.right"
-          [attr.y1]="nowY()"   [attr.y2]="nowY()"
-        />
-        <text [attr.x]="W - PAD.right + 4" [attr.y]="nowY() + 4">now</text>
+        @if (axesSwapped()) {
+          <line [attr.x1]="nowCoord()" [attr.x2]="nowCoord()"
+                [attr.y1]="PAD.top"    [attr.y2]="H - PAD.bottom" />
+          <text [attr.x]="nowCoord() + 4" [attr.y]="PAD.top - 4">now</text>
+        } @else {
+          <line [attr.x1]="PAD.left" [attr.x2]="W - PAD.right"
+                [attr.y1]="nowCoord()" [attr.y2]="nowCoord()" />
+          <text [attr.x]="W - PAD.right + 4" [attr.y]="nowCoord() + 4">now</text>
+        }
       </g>
 
       <g class="marey-lines">
         @for (line of agentLines(); track line.handle) {
           <g [class.is-active]="line.isActive">
             @if (line.pastD) {
-              <path class="past"
-                    [attr.d]="line.pastD"
-                    [attr.stroke]="line.color" />
+              <path class="past" [attr.d]="line.pastD" [attr.stroke]="line.color" />
             }
             @if (line.futureD) {
-              <path class="future"
-                    [attr.d]="line.futureD"
-                    [attr.stroke]="line.color" />
+              <path class="future" [attr.d]="line.futureD" [attr.stroke]="line.color" />
             }
           </g>
         }
       </g>
 
-      <text class="marey-axis-label" [attr.x]="W / 2" [attr.y]="H - 8"
-            text-anchor="middle">
-        Position along active agent's path
-      </text>
-      <text class="marey-axis-label" [attr.x]="14" [attr.y]="H / 2"
-            text-anchor="middle"
-            [attr.transform]="'rotate(-90 14 ' + (H/2) + ')'">
-        Time (steps)
-      </text>
+      <g class="marey-labels">
+        @for (lbl of agentLabels(); track lbl.handle) {
+          <g class="agent"
+             [class.selected]="isSelected(lbl.handle)"
+             (click)="onAgentClick(lbl.handle, $event)">
+            <circle
+              [attr.cx]="lbl.textX"
+              [attr.cy]="lbl.textY"
+              r="11"
+              [attr.fill]="lbl.color"
+              stroke="white"
+              stroke-width="2.5" />
+            <text
+              [attr.x]="lbl.textX"
+              [attr.y]="lbl.textY + 4"
+              text-anchor="middle"
+              font-size="11"
+              font-weight="bold"
+              fill="white">
+              {{ lbl.handle }}
+            </text>
+          </g>
+        }
+      </g>
     </svg>
+
+    <!-- Pan cross (bottom-right, like flatland-map) -->
+    <div class="map-nav-overlay">
+      <button title="Pan up"        class="nav-btn nav-up"     (click)="panStep(0, -1)">↑</button>
+      <button title="Pan left"      class="nav-btn nav-left"   (click)="panStep(-1, 0)">←</button>
+      <button title="Reset zoom + pan" class="nav-btn nav-center" (click)="resetPan()">⌂</button>
+      <button title="Pan right"     class="nav-btn nav-right"  (click)="panStep(1, 0)">→</button>
+      <button title="Pan down"      class="nav-btn nav-down"   (click)="panStep(0, 1)">↓</button>
+    </div>
+
+    <!-- Zoom overlay (above pan-cross) -->
+    <!-- Zoom panel (bottom row, like flatland-map) -->
+    <div class="map-zoom-overlay">
+      <button title="Zoom in" class="nav-btn" (click)="zoomIn()">+</button>
+      <span class="zoom-value">{{ zoomPct() }}%</span>
+      <button title="Zoom out" class="nav-btn" (click)="zoomOut()">−</button>
+    </div>
+
+    <!-- Swap-axes overlay: where flatland-map has its opacity slider -->
+    <div class="map-swap-overlay">
+      <button title="Swap horizontal/vertical axes" class="nav-btn"
+              [class.active]="axesSwapped()" (click)="swapAxes()">⇄</button>
+    </div>
   }
 </div>
