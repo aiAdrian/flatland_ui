@@ -9,7 +9,7 @@
         <div class="scenario-card"
              [class.baseline]="s.isBaseline"
              [class.recommended]="s.isRecommended"
-             [class.avoid]="s.tag === 'avoid'">
+             [class.avoid]="s.tag === 'avoid'" (mouseenter)="store.previewScenarioId.set(s.id)" (mouseleave)="store.previewScenarioId.set(null)">
 
           <!-- Header row -->
           <div class="card-header">

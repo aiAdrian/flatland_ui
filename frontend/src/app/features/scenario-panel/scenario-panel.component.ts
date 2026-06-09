@@ -46,6 +46,15 @@ export class ScenarioPanelComponent {
       next: () => {
         this.bus.emit({ type: 'SCENARIO_CONFIRMED', scenarioId: s.id });
         this.store.setActivePolicy(policyId as PolicyName);
+        // Backend has cleared the scenario cache; force a reload so the
+        // panel + Marey re-render with the NEW baseline (the chosen
+        // policy now carries the 'Current' badge).
+        this.api.getScenarios(sess.id).subscribe({
+          next: (scenarios) => this.store.scenarios.set(scenarios),
+          error: () => {},
+        });
+        // Also clear any hover-preview so the Marey snaps back to baseline.
+        this.store.previewScenarioId.set(null);
         this.confirming.set(null);
       },
       error: (err) => {

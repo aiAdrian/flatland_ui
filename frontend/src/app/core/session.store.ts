@@ -27,6 +27,10 @@ export class SessionStore {
   readonly state = signal<SessionState | null>(null);
   // Single-selection: at most one agent at a time.
   readonly selectedHandle = signal<number | null>(null);
+
+  /** When user hovers a scenario card, store its id here so the Marey
+   *  can swap its forecast preview. null = use the active baseline. */
+  readonly previewScenarioId = signal<string | null>(null);
   // Backwards-compat: components that still call .has(h) on a Set.
   readonly selectedHandles = computed<Set<number>>(() => {
     const h = this.selectedHandle();

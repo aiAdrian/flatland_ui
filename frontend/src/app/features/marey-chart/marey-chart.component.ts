@@ -90,12 +90,19 @@ export class MareyChartComponent implements AfterViewInit {
 
   // ── data: scenario + path + agent lines ──────────────────────
   readonly forecastScenario = computed(() => {
-    const id = this.forecastScenarioId();
+    // Priority: hover-preview from a scenario card → local override
+    // (kept for direct API) → baseline (= currently active policy).
     const all = this.scenarios();
     if (!all || all.length === 0) return null;
-    if (id) {
-      const found = all.find(s => s.id === id);
-      if (found) return found;
+    const previewId = this.store.previewScenarioId();
+    if (previewId) {
+      const f = all.find(s => s.id === previewId);
+      if (f) return f;
+    }
+    const localId = this.forecastScenarioId();
+    if (localId) {
+      const f = all.find(s => s.id === localId);
+      if (f) return f;
     }
     return all.find(s => s.isBaseline) ?? all[0];
   });
