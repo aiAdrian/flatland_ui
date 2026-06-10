@@ -55,6 +55,25 @@ export class MareyChartComponent implements AfterViewInit {
       const ref = this.svgRef();
       if (ref) this.svgEl = ref.nativeElement;
     });
+
+    // Auto-reset xRange to the full path whenever pathCells changes
+    // (active agent switched, scenario reloaded, …). The user can
+    // narrow it again via the X-slider in Etappe 4.
+    effect(() => {
+      const n = this.pathCells().length;
+      if (n > 0) {
+        this.xRange.set({ start: 0, end: n - 1 });
+      }
+    });
+
+    // Auto-reset yRange to the full time horizon whenever maxSteps
+    // changes (new session / new scenario).
+    effect(() => {
+      const m = this.maxSteps();
+      if (m > 0) {
+        this.yRange.set({ start: 0, end: m });
+      }
+    });
   }
 
   readonly W = 1200;
@@ -84,23 +103,30 @@ export class MareyChartComponent implements AfterViewInit {
   readonly zoomX = signal(1);
   readonly zoomY = signal(1);
 
+  /** Visible Tile-Index range on the X (path) axis. start/end inclusive.
+   *  Default: full path. The topology overlay AND the SVG chart both
+   *  read this signal — that's the structural sync guarantee. */
+  readonly xRange = signal<{ start: number; end: number }>({ start: 0, end: 0 });
+
+  /** Visible Step range on the Y (time) axis. Default: full time. */
+  readonly yRange = signal<{ start: number; end: number }>({ start: 0, end: 0 });
+
   /** Topology header height in CSS pixels (matches HTML overlay). */
   readonly TOPOLOGY_PX = 48;
 
-  /** CSS transform for the HTML topology track:
-   *  scrolls horizontally in lockstep with the SVG's viewBox X-pan,
-   *  scales horizontally with zoomX. Y is ignored (topology stays put). */
+  /** CSS transform for the HTML topology track, driven by xRange.
+   *  The flex track is N tiles wide at 100%. To show only [start, end]:
+   *    - scaleX(N / visible)   makes the visible window fill 100%
+   *    - translateX(-start/N*100%)  moves 'start' to the left edge
+   *  Order in CSS string: scale first (= applied last math), translate
+   *  applied first in element-local space (% of own width). */
   readonly topologyTrackTransform = computed(() => {
-    // Map SVG viewBox X-coord X to container-X (X-panX)*zoomX*Cpx/W.
-    // Tiles are placed at left:(X/W)*100% inside the track. With CSS
-    //   transform: scaleX(zoomX) translateX(-panX/W * 100%)
-    // the translate is applied first (in the element's own coordinate
-    // system, % resolved against its own width = Cpx), then scaleX.
-    // Result for a tile at left:(X/W)*Cpx :
-    //   after translate: ((X-panX)/W) * Cpx
-    //   after scale:     ((X-panX)/W) * Cpx * zoomX  ✓
-    const tx = -(this.panX() / this.W) * 100;
-    const sx = this.zoomX();
+    const n = this.pathCells().length;
+    if (n === 0) return "none";
+    const r = this.xRange();
+    const visible = Math.max(1, r.end - r.start + 1);
+    const sx = n / visible;
+    const tx = -(r.start / n) * 100;
     return `scaleX(${sx}) translateX(${tx}%)`;
   });
 
@@ -378,24 +404,34 @@ export class MareyChartComponent implements AfterViewInit {
     return out;
   });
 
-  // ── coord helpers ────────────────────────────────────────────
+  // ── coord helpers (range-driven, single source of truth) ─────
+  /** Map a tile-index to its X (or Y if axes swapped) pixel coord.
+   *  Indices inside [xRange.start, xRange.end] map linearly into the
+   *  chart's inner area; indices outside fall outside the area and
+   *  get clipped by the SVG. Topology + chart use the same range so
+   *  they stay structurally in sync. */
   pathCoord(i: number): number {
-    const cells = this.pathCells().length || 1;
+    const r = this.xRange();
+    const span = Math.max(1, r.end - r.start);
+    const t = (i - r.start) / span;
     if (this.axesSwapped()) {
       const inner = this.H - this.PAD.top - this.PAD.bottom;
-      return this.PAD.top + (i / Math.max(1, cells - 1)) * inner;
+      return this.PAD.top + t * inner;
     }
     const inner = this.W - this.PAD.left - this.PAD.right;
-    return this.PAD.left + (i / Math.max(1, cells - 1)) * inner;
+    return this.PAD.left + t * inner;
   }
+  /** Map a step to its Y (or X if axes swapped) pixel coord, using yRange. */
   timeCoord(step: number): number {
-    const m = this.maxSteps();
+    const r = this.yRange();
+    const span = Math.max(1, r.end - r.start);
+    const t = (step - r.start) / span;
     if (this.axesSwapped()) {
       const inner = this.W - this.PAD.left - this.PAD.right;
-      return this.PAD.left + (step / m) * inner;
+      return this.PAD.left + t * inner;
     }
     const inner = this.H - this.PAD.top - this.PAD.bottom;
-    return this.PAD.top + (step / m) * inner;
+    return this.PAD.top + t * inner;
   }
   toPathD(pts: { x: number; y: number }[]): string {
     return pts.map((p, i) =>

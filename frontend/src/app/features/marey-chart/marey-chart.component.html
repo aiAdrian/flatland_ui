@@ -15,7 +15,7 @@
       <div class="cell-topology">
         <div class="marey-topology-html"
              [style.height.px]="TOPOLOGY_PX">
-      <div class="marey-topology-track">
+      <div class="marey-topology-track" [style.transform]="topologyTrackTransform()">
         @for (pt of pathTiles(); track $index; let cellIdx = $index) {
           <div class="topo-cell">
             @if (pt) {
