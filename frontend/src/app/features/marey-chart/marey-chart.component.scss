@@ -443,8 +443,8 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  background: rgba(235, 0, 0, 0.10);
-  border: 1.5px solid rgba(235, 0, 0, 0.75);
+  background: rgba(120, 120, 120, 0.12);
+  border: 1.5px solid rgba(120, 120, 120, 0.7);
   border-radius: 2px;
   cursor: grab;
 }
@@ -454,7 +454,7 @@
   top: -2px;
   bottom: -2px;
   width: 8px;
-  background: #eb0000;
+  background: #888;
   border-radius: 4px;
   cursor: ew-resize;
 }
@@ -494,9 +494,9 @@
   position: absolute;
   left: 0;
   right: 0;
-  background: rgba(235, 0, 0, 0.10);
-  border-top: 1.5px solid rgba(235, 0, 0, 0.75);
-  border-bottom: 1.5px solid rgba(235, 0, 0, 0.75);
+  background: rgba(120, 120, 120, 0.12);
+  border-top: 1.5px solid rgba(120, 120, 120, 0.7);
+  border-bottom: 1.5px solid rgba(120, 120, 120, 0.7);
   cursor: grab;
 }
 .y-brush-window:active { cursor: grabbing; }
@@ -505,7 +505,7 @@
   left: -2px;
   right: -2px;
   height: 8px;
-  background: #eb0000;
+  background: #888;
   border-radius: 4px;
   cursor: ns-resize;
 }
