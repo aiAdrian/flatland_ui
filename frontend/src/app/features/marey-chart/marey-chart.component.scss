@@ -274,9 +274,14 @@
 }
 
 .topo-border {
+  /* Cell-aligned border: sits exactly on the cell edge, not inset.
+     Earlier 'inset: 4px' was a visible problem at small cell widths
+     (e.g. 20 px on a long trajectory): the border shrank to a 12 px
+     box stranded inside a 20 px tile, breaking the read of a
+     continuous rail strip. */
   position: absolute;
-  inset: 4px;
-  border: 1px solid #888;
+  inset: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   pointer-events: none;
 }
 
