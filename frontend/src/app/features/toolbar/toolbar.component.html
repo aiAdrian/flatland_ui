@@ -50,18 +50,20 @@
       </sbb-secondary-button>
     }
 
-    <sbb-divider orientation="vertical"></sbb-divider>
+    @if (selectablePolicies().length > 0) {
+      <sbb-divider orientation="vertical"></sbb-divider>
 
-    <span class="label">Policy</span>
-    <select
-      class="policy-select"
-      [value]="policy()"
-      (change)="onPolicyChange($event)"
-      [title]="policyDescription()">
-      @for (p of store.availablePolicies(); track p.id) {
-        <option [value]="p.id" [title]="p.description">{{ p.label }}</option>
-      }
-    </select>
+      <span class="label">Policy</span>
+      <select
+        class="policy-select"
+        [value]="policy()"
+        (change)="onPolicyChange($event)">
+        @for (p of selectablePolicies(); track p.id) {
+          <option [value]="p.id" [title]="p.description">{{ p.label }}</option>
+        }
+      </select>
+    }
+
   }
 
   <div class="spacer"></div>

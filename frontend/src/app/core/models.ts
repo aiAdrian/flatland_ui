@@ -12,6 +12,12 @@ export interface PolicyInfo {
   is_default: boolean;
 }
 
+export interface ScenarioPoliciesConfig {
+  session_id: string;
+  enabled_ids: string[];
+  available_ids: string[];
+}
+
 export type CellType = 'OUTSIDE' | 'FORWARD_ONLY' | 'MERGING' | 'SWITCH' | 'DONE' | 'UNKNOWN';
 
 export type ActionInt = 0 | 1 | 2 | 3 | 4;

@@ -30,24 +30,11 @@ from app.models.hmi import (
     Recommendation,
     ScenarioOption,
 )
-from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
+from app.policies.registry import scenario_policy_factories
 
 
 # ── Policy registry (used by /hmi/scenarios + POST /policy) ──────────
-def _build_all_policies():
-    from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
-    from app.policies.shortest_path_policy import ShortestPathPolicy
-    from app.policies.forward_only_policy import ForwardOnlyPolicy
-    from app.policies.do_nothing_policy import DoNothingPolicy
-    from app.policies.random_policy import RandomPolicy
-    return {
-        "deadlock_avoidance": DeadLockAvoidancePolicy,
-        "shortest_path": ShortestPathPolicy,
-        "random": RandomPolicy,
-    }
-
-
-_ALL_POLICIES = _build_all_policies()
+_ALL_POLICIES = scenario_policy_factories()
 
 
 def _policy_factory_for(policy_id: str):
@@ -126,13 +113,22 @@ def get_scenarios(
     if env is None:
         return mock_generate_scenarios(session_id, _step_for(session_id))
 
-    # Determine the currently active baseline policy for this session.
+    # Determine enabled scenario policies for this session.
+    enabled = set(getattr(sess, "enabled_scenario_policies", set(_ALL_POLICIES.keys())))
+    enabled = {pid for pid in enabled if pid in _ALL_POLICIES}
+    if not enabled:
+        enabled = {"deadlock_avoidance"}
+
+    # Determine baseline: active session policy if enabled, otherwise first enabled.
     baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
+    if baseline_id not in enabled:
+        baseline_id = sorted(enabled)[0]
+
     baseline_factory = _policy_factory_for(baseline_id)
     if baseline_factory is None:
-        # Unknown policy id stored on session — fall back to DLA.
         baseline_id = "deadlock_avoidance"
-        baseline_factory = DeadLockAvoidancePolicy
+        baseline_factory = _policy_factory_for("deadlock_avoidance")
+        enabled.add(baseline_id)
 
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
     # Smart default: simulate until episode end (cap 1000 steps; the
@@ -179,8 +175,9 @@ def get_scenarios(
 
     # Build candidate list (every policy id except baseline).
     candidates = [
-        (pid, fac) for pid, fac in _ALL_POLICIES.items()
-        if pid != baseline_id
+        (pid, fac)
+        for pid, fac in _ALL_POLICIES.items()
+        if pid != baseline_id and pid in enabled
     ]
 
     try:
@@ -241,8 +238,15 @@ def get_recommendations(session_id: str):
     if env is None:
         return []
 
+    enabled = set(getattr(sess, "enabled_scenario_policies", set(_ALL_POLICIES.keys())))
+    enabled = {pid for pid in enabled if pid in _ALL_POLICIES}
+    if not enabled:
+        enabled = {"deadlock_avoidance"}
+
     baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
-    baseline_factory = _policy_factory_for(baseline_id) or DeadLockAvoidancePolicy
+    if baseline_id not in enabled:
+        baseline_id = sorted(enabled)[0]
+    baseline_factory = _policy_factory_for(baseline_id) or _policy_factory_for("deadlock_avoidance")
 
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
     max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)
@@ -291,7 +295,8 @@ def get_recommendations(session_id: str):
             return []
         
         candidates = [
-            (pid, fac) for pid, fac in _ALL_POLICIES.items() if pid != baseline_id
+            (pid, fac) for pid, fac in _ALL_POLICIES.items()
+            if pid != baseline_id and pid in enabled
         ]
         builder = ScenarioBuilder(env, baseline_id, baseline_factory, session_id=session_id)
         scenarios = builder.generate_scenarios(

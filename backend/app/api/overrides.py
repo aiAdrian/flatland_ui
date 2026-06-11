@@ -8,6 +8,7 @@ from app.core.session_manager import session_manager
 from app.core.scenario_cache import scenario_cache
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
+from app.policies.registry import scenario_policy_factories
 
 router = APIRouter()
 
@@ -17,15 +18,8 @@ class OverrideRequest(BaseModel):
 
 
 def _policy_factory_for(policy_id: str):
-    from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
-    from app.policies.shortest_path_policy import ShortestPathPolicy
-    from app.policies.random_policy import RandomPolicy
-
-    return {
-        "deadlock_avoidance": DeadLockAvoidancePolicy,
-        "shortest_path": ShortestPathPolicy,
-        "random": RandomPolicy,
-    }.get(policy_id, DeadLockAvoidancePolicy)
+    factories = scenario_policy_factories()
+    return factories.get(policy_id, factories["deadlock_avoidance"])
 
 
 def _estimate_branch_kpis(env, policy_factory, overrides: dict, horizon: int) -> tuple[int, int]:

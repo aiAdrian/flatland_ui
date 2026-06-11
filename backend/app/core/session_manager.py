@@ -2,6 +2,7 @@ import uuid
 from typing import Dict, Optional
 from flatland.envs.rail_env import RailEnv
 from app.core.env_factory import create_env
+from app.policies.registry import scenario_policy_factories
 
 
 class Session:
@@ -12,7 +13,9 @@ class Session:
         self.last_info = None
         # Currently active policy (used as baseline in /hmi/scenarios
         # and applied to every step unless overridden in the step request).
-        self.policy: str = "deadlock_avoidance" 
+        self.policy: str = "deadlock_avoidance"
+        # Session-scoped filter for scenario candidates (UI toggles).
+        self.enabled_scenario_policies: set[str] = set(scenario_policy_factories().keys())
 
 
 class SessionManager:

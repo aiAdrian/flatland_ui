@@ -214,7 +214,6 @@ sbb-transparent-button:hover {
   border-color: var(--sbb-color-charcoal, #212121);
 }
 
-/* ── Policy dropdown (replaces radio-button-group) ──────────── */
 .policy-select {
   padding: 4px 8px;
   font-size: 13px;
@@ -226,14 +225,15 @@ sbb-transparent-button:hover {
   min-width: 180px;
   height: 28px;
 }
+
 .policy-select:hover {
   border-color: var(--sbb-color-granite, #686868);
 }
+
 .policy-select:focus {
   outline: 2px solid var(--sbb-color-blue, #2a73d9);
   outline-offset: 1px;
 }
-
 
 /* Multi-step countdown badge — shown in place of the loading spinner
    while a /step request with n_steps>1 is in flight. Counts down via

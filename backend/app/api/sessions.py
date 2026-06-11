@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
 import logging
 import time
-from typing import List
+from typing import Any, List
 
 from app.core.session_manager import session_manager
 from app.core.serializer import serialize_env
@@ -17,12 +17,8 @@ from app.models.session import (
     StepRequest,
 )
 from app.models.agent import ActionRequest
-from app.policies.random_policy import RandomPolicy
-from app.policies.shortest_path_policy import ShortestPathPolicy
-from app.policies.do_nothing_policy import DoNothingPolicy
-from app.policies.forward_only_policy import ForwardOnlyPolicy
-from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
 from app.policies.override_policy import OverridePolicy
+from app.policies.registry import create_runtime_policy, scenario_policy_factories
 
 _perf_log = logging.getLogger("flatland.perf")
 _perf_log.setLevel(logging.INFO)
@@ -87,23 +83,10 @@ def _build_policy(session_id: str, env, policy_name: str):
 
     R1: hybrid Policy interface — call policy.reset(env) so stateful
     heuristics (DLA later) get an env reference."""
-    if policy_name == "random":
-        try:
-            action_size = int(env.action_space[0])
-        except Exception:
-            action_size = 5
-        default = RandomPolicy(action_size=action_size)
-    elif policy_name == "shortest_path":
-        default = ShortestPathPolicy(env)
-    elif policy_name == "do_nothing":
-        default = DoNothingPolicy()
-    elif policy_name == "forward_only":
-        default = ForwardOnlyPolicy()
-    elif policy_name == "deadlock_avoidance":
-        default = DeadLockAvoidancePolicy()
-    else:
+    try:
+        default = create_runtime_policy(policy_name, env)
+    except KeyError:
         raise HTTPException(400, f"Unknown policy: {policy_name}")
-    default.reset(env)
     wrapped = OverridePolicy(default, session_id)
     wrapped.reset(env)
     return wrapped
@@ -164,6 +147,10 @@ async def step(session_id: str, req: StepRequest):
             "message": "Episode finished. Use 'Reset' to start again.",
         }
 
+    enabled = set(getattr(session, "enabled_scenario_policies", set()))
+    if req.policy not in enabled:
+        raise HTTPException(400, f"Policy '{req.policy}' is not enabled for this session")
+
     policy = _build_policy(session_id, env, req.policy)
     # Track the most recently used policy so /hmi/scenarios can
     # use it as baseline.
@@ -181,7 +168,7 @@ async def step(session_id: str, req: StepRequest):
             all_done = True
             break
         handles = env.get_agent_handles()
-        observations = session.last_observations or {}
+        observations: dict[int, Any] = session.last_observations or {}
         policy.start_step()
         actions = policy.act_many(handles, observations)
         try:
@@ -276,6 +263,10 @@ class PolicyChangeRequest(BaseModel):
     policy: str
 
 
+class ScenarioPoliciesUpdateRequest(BaseModel):
+    enabled_ids: list[str]
+
+
 @router.post("/{session_id}/policy")
 def set_session_policy(session_id: str, req: PolicyChangeRequest):
     """Switch the active policy for a session without stepping.
@@ -283,10 +274,9 @@ def set_session_policy(session_id: str, req: PolicyChangeRequest):
     session = session_manager.get(session_id)
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
-    # Validate against known policy ids
-    known = {"deadlock_avoidance", "shortest_path", "forward_only", "do_nothing", "random"}
-    if req.policy not in known:
-        raise HTTPException(400, f"Unknown policy: {req.policy}")
+    enabled = set(getattr(session, "enabled_scenario_policies", set()))
+    if req.policy not in enabled:
+        raise HTTPException(400, f"Policy '{req.policy}' is not enabled for this session")
     session.policy = req.policy
     # Invalidate the scenario cache so the next /hmi/scenarios call
     # recomputes with the new baseline.
@@ -296,4 +286,51 @@ def set_session_policy(session_id: str, req: PolicyChangeRequest):
     except Exception:
         pass
     return {"session_id": session_id, "policy": session.policy}
+
+
+@router.get("/{session_id}/scenario-policies")
+def get_scenario_policies(session_id: str):
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    specs = scenario_policy_factories()
+    enabled = getattr(session, "enabled_scenario_policies", set(specs.keys()))
+    return {
+        "session_id": session_id,
+        "enabled_ids": sorted(pid for pid in enabled if pid in specs),
+        "available_ids": sorted(specs.keys()),
+    }
+
+
+@router.post("/{session_id}/scenario-policies")
+def set_scenario_policies(session_id: str, req: ScenarioPoliciesUpdateRequest):
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    available = set(scenario_policy_factories().keys())
+    requested = set(req.enabled_ids or [])
+    unknown = sorted(requested - available)
+    if unknown:
+        raise HTTPException(400, f"Unknown scenario policy ids: {unknown}")
+
+    if not requested:
+        raise HTTPException(400, "At least one scenario policy must remain enabled")
+
+    session.enabled_scenario_policies = set(requested)
+    if session.policy not in session.enabled_scenario_policies:
+        session.policy = sorted(session.enabled_scenario_policies)[0]
+
+    try:
+        from app.core.scenario_cache import scenario_cache
+        scenario_cache.clear_session(session_id)
+    except Exception:
+        pass
+
+    return {
+        "session_id": session_id,
+        "enabled_ids": sorted(session.enabled_scenario_policies),
+        "available_ids": sorted(available),
+    }
 

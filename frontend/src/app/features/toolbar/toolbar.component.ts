@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, signal } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { PolicyName } from '../../core/models';
 import { ApiService } from '../../core/api.service';
@@ -18,7 +18,13 @@ export class ToolbarComponent {
   newAgents = signal(3);
 
   policy = signal<PolicyName>('deadlock_avoidance');
+  enabledPolicyIds = signal<string[]>([]);
   speed = signal(5);
+
+  readonly selectablePolicies = computed(() => {
+    const enabled = new Set(this.enabledPolicyIds());
+    return this.store.availablePolicies().filter((p) => enabled.has(p.id));
+  });
 
   constructor() {
     // When backend session-policy changes (e.g. via scenario Confirm),
@@ -28,6 +34,23 @@ export class ToolbarComponent {
       if (active && active !== this.policy()) {
         this.policy.set(active);
       }
+    });
+
+    effect(() => {
+      const sid = this.store.session()?.id;
+      if (!sid) {
+        this.enabledPolicyIds.set([]);
+        return;
+      }
+      this.api.getScenarioPolicies(sid).subscribe({
+        next: (cfg) => {
+          this.enabledPolicyIds.set(cfg.enabled_ids);
+          if (!cfg.enabled_ids.includes(this.policy()) && cfg.enabled_ids.length > 0) {
+            this.policy.set(cfg.enabled_ids[0] as PolicyName);
+          }
+        },
+        error: () => this.enabledPolicyIds.set([]),
+      });
     });
   }
 
@@ -45,34 +68,29 @@ export class ToolbarComponent {
   }
 
   step(n: number) {
-    this.store.step(this.policy(), n);
-  }
-
-  setPolicy(p: PolicyName) {
-    this.policy.set(p);
+    this.store.step(this.currentPolicy(), n);
   }
 
   onPolicyChange(event: Event) {
     const target = event.target as HTMLInputElement;
-    if (target?.value) {
-      const p = target.value as PolicyName;
-      this.setPolicy(p);
+    if (!target?.value) return;
+    const p = target.value as PolicyName;
+    this.policy.set(p);
 
-      const sess = this.store.session();
-      if (!sess) return;
-      this.api.setPolicy(sess.id, p).subscribe({
-        next: () => {
-          this.store.setActivePolicy(p);
-          this.store.previewScenarioId.set(null);
-          this.store.refreshForecasts();
-        },
-        error: (e) => this.store.error.set(`Set policy failed: ${e.message}`),
-      });
-    }
+    const sess = this.store.session();
+    if (!sess) return;
+    this.api.setPolicy(sess.id, p).subscribe({
+      next: () => {
+        this.store.setActivePolicy(p);
+        this.store.previewScenarioId.set(null);
+        this.store.refreshForecasts();
+      },
+      error: (e) => this.store.error.set(`Set policy failed: ${e.message}`),
+    });
   }
 
   togglePlay() {
-    this.store.togglePlay(this.policy(), this.speed());
+    this.store.togglePlay(this.currentPolicy(), this.speed());
   }
 
   onSpeedChange(ev: Event) {
@@ -80,14 +98,11 @@ export class ToolbarComponent {
     this.speed.set(v);
     if (this.store.playing()) {
       // Restart play with new speed
-      this.store.play(this.policy(), v);
+      this.store.play(this.currentPolicy(), v);
     }
   }
 
-  /** Tooltip text for the currently selected policy (description). */
-  policyDescription(): string {
-    const id = this.policy();
-    const info = this.store.availablePolicies().find((p) => p.id === id);
-    return info?.description ?? '';
+  private currentPolicy(): PolicyName {
+    return this.policy();
   }
 }

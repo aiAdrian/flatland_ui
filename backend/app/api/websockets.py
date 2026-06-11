@@ -13,18 +13,14 @@ import logging
 import time
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 
 from app.core.session_manager import session_manager
 from app.core.serializer import serialize_env
 from app.core.ws_manager import ws_manager
 from app.core.play_manager import play_manager, PlayState
-from app.policies.random_policy import RandomPolicy
-from app.policies.shortest_path_policy import ShortestPathPolicy
 from app.policies.override_policy import OverridePolicy
-from app.policies.forward_only_policy import ForwardOnlyPolicy
-from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
-from app.policies.do_nothing_policy import DoNothingPolicy
+from app.policies.registry import create_runtime_policy
 from app.core.override_manager import override_manager
 
 router = APIRouter()
@@ -75,27 +71,11 @@ async def _play_loop(session_id: str):
 
     env = session.env
 
-    # Build default policy. Mirrors api/sessions.py:_build_policy.
-    if state.policy == "random":
-        try:
-            action_size = int(env.action_space[0])
-        except Exception:
-            action_size = 5
-        default_policy = RandomPolicy(action_size=action_size)
-    elif state.policy == "shortest_path":
-        default_policy = ShortestPathPolicy(env)
-    elif state.policy == "do_nothing":
-        default_policy = DoNothingPolicy()
-    elif state.policy == "forward_only":
-        default_policy = ForwardOnlyPolicy()
-    elif state.policy == "deadlock_avoidance":
-        default_policy = DeadLockAvoidancePolicy()
-    else:
-        # Unknown policy → fall back to deadlock_avoidance (safest default).
-        default_policy = DeadLockAvoidancePolicy()
+    try:
+        default_policy = create_runtime_policy(state.policy, env)
+    except KeyError:
+        default_policy = create_runtime_policy("deadlock_avoidance", env)
 
-    # Hybrid Policy lifecycle: reset both inner and wrapper.
-    default_policy.reset(env)
     policy = OverridePolicy(default_policy, session_id)
     policy.reset(env)
 
@@ -110,7 +90,7 @@ async def _play_loop(session_id: str):
 
         try:
             handles = env.get_agent_handles()
-            observations = session.last_observations or {}
+            observations: dict[int, Any] = session.last_observations or {}
             # Split timing: policy.act_many vs env.step. With heavy policies
             # (DeadLockAvoidance walker) act_many is the dominant cost.
             t_pol0 = time.perf_counter()
@@ -201,6 +181,10 @@ async def play(session_id: str, req: PlayRequest):
     session = session_manager.get(session_id)
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
+
+    enabled = set(getattr(session, "enabled_scenario_policies", set()))
+    if req.policy not in enabled:
+        raise HTTPException(400, f"Policy '{req.policy}' is not enabled for this session")
 
     if play_manager.is_playing(session_id):
         return {"session_id": session_id, "playing": True, "message": "Already playing"}

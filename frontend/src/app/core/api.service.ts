@@ -6,6 +6,7 @@ import {
   PlayRequest,
   PolicyInfo,
   PolicyName,
+  ScenarioPoliciesConfig,
   SessionInfo,
   SessionState,
   StepResponse,
@@ -95,5 +96,15 @@ export class ApiService {
       `${API_BASE}/session/${id}/policy`,
       { policy },
     );
+  }
+
+  getScenarioPolicies(id: string): Observable<ScenarioPoliciesConfig> {
+    return this.http.get<ScenarioPoliciesConfig>(`${API_BASE}/session/${id}/scenario-policies`);
+  }
+
+  setScenarioPolicies(id: string, enabled_ids: string[]): Observable<ScenarioPoliciesConfig> {
+    return this.http.post<ScenarioPoliciesConfig>(`${API_BASE}/session/${id}/scenario-policies`, {
+      enabled_ids,
+    });
   }
 }
