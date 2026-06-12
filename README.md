@@ -1,134 +1,240 @@
-# Flatland Dispatcher UI
-
-Human-in-the-Loop Train-Dispatching auf Basis von Flatland-RL.
+# Flatland Dispatcher- A Human-AI Teaming Playground (UI)
 
 
+Human-in-the-loop train dispatching based on the Flatland Reinforcement Learning environment, integrated into the AI4REALNET research project.  
+Frontend follows the official SBB Design System and uses SBB Lyne Web Components.
 
+---
 
-## Architektur
+## Overview
 
-3-Spalten-HMI (Phase A-D in Migration):
+The Flatland Dispatcher UI is a modular HMI for interactive railway dispatching experiments.  
+It combines:
 
-- LEFT (280px): Notifications + Layer-Visibility + Sidebar
-- MIDDLE (1fr): Track Layout (Map) + Graphic Timetable (Marey) + Simulation Slider
-- RIGHT (320px): Scenarios + KPI Filter + Recommendations + Inspector
+- **Flatland-RL** (multi-agent RL environment for railway networks)  
+- **FastAPI backend** for simulation control  
+- **Angular 18 frontend** using **SBB Lyne** components  
+- **Human-in-the-loop decision support** (scenarios, KPIs, recommendations)
 
-Backend: FastAPI + Flatland-RL.
-Frontend: Angular 18 (standalone components, signals) + SBB Lyne Elements.
+---
 
-## Voraussetzungen
+## Architecture
 
-- Python 3.12+
-- Node.js 20+ / npm 10+
+3-column HMI layout (Phase A–D during migration):
 
-## Backend - Setup + Start
+- **LEFT (280px)** — Notifications, Layer Visibility, KPI Filter,
+- **MIDDLE (1fr)** — Simulation Slider and Control, Track Layout (Map), Graphic Timetable (Marey), 
+- **RIGHT (320px)** — Scenarios, Recommendations, Agents Sidebar, Agent Inspector  
+
+**Backend:** FastAPI + Flatland-RL  
+**Frontend:** Angular 18 (standalone components, signals) + SBB Lyne Elements
+
+---
+
+## Requirements
+
+- Python **3.12+**  
+- Node.js **20+** / npm **10+**
+
+---
+
+## Backend — Setup & Start
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/backend
 ```
 
-# Erstmals: virtuelle Umgebung
-```
+### First-time setup
+
+```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
-# Start (Auto-Reload bei Code-Aenderung)
-```
+
+### Start backend (auto-reload)
+
+```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Backend laeuft dann auf http://localhost:8000:
-- API-Docs interactive: http://localhost:8000/docs
-- Health-Check: http://localhost:8000/health
+Backend available at:
 
-### Wichtige Endpoints
+- API Docs: http://localhost:8000/docs  
+- Health Check: http://localhost:8000/health  
 
-POST   /session                              # Neue Session
-GET    /session/{id}/state                   # Aktueller State
-POST   /session/{id}/step                    # Step ausfuehren
-POST   /session/{id}/play                    # Auto-play start
+### Important Endpoints
+
+```
+POST   /session                              # Create new session
+GET    /session/{id}/state                   # Current state
+POST   /session/{id}/step                    # Execute step
+POST   /session/{id}/play                    # Start auto-play
 POST   /session/{id}/pause                   # Pause
 POST   /session/{id}/reset                   # Reset
-POST   /session/{id}/agent/{handle}/override # Action-Override setzen
-DELETE /session/{id}/agent/{handle}/override # Override loeschen
+POST   /session/{id}/agent/{handle}/override # Set action override
+DELETE /session/{id}/agent/{handle}/override # Remove override
+```
 
-# HMI Mock-Daten (procedural per Seed)
+### HMI Mock Data (procedural via seed)
+
+```
 GET    /session/{id}/hmi/notifications
 GET    /session/{id}/hmi/scenarios
 GET    /session/{id}/hmi/recommendations
-GET    /session/{id}/hmi                      # Alles in einem Bundle
+GET    /session/{id}/hmi                      # All in one bundle
+```
 
-# WebSocket (Live-State-Updates)
+### WebSocket (live updates)
+
+```
 WS     /ws/session/{id}
+```
 
-## Frontend - Setup + Start
+---
+
+## Frontend — Setup & Start
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/frontend
 ```
 
-# Erstmals
+### First-time setup
+
 ```bash
 npm install
 ```
 
-# Start (Hot-Module-Reload)
+### Start frontend (HMR)
+
 ```bash
 npm run start
 ```
 
-Frontend laeuft auf http://localhost:4200.
+Frontend available at:  
+http://localhost:4200
 
-## Quick-Start (zwei Terminals)
+---
 
-Terminal 1 - Backend:
+## Quickstart (two terminals)
+
+### Terminal 1 — Backend
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/backend
 source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
-Terminal 2 - Frontend:
+
+### Terminal 2 — Frontend
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/frontend
 npm run start
 ```
+
 Browser: http://localhost:4200
 
-## Smoke-Test (curl)
+---
 
-# Session erzeugen
+## Smoke Test (curl)
+
+### Create session
+
 ```bash
 curl -sL -X POST http://localhost:8000/session \
   -H "Content-Type: application/json" \
   -d '{"width":50,"height":20,"number_of_agents":3}'
 ```
-# State holen
+
+### Get state
+
 ```bash
 curl -s http://localhost:8000/session/<ID>/state | head -c 500
 ```
 
-# HMI-Bundle
+### Get HMI bundle
+
 ```bash
 curl -s http://localhost:8000/session/<ID>/hmi
 ```
+
+---
+
 ## Troubleshooting
 
-Backend startet nicht:
+### Backend does not start
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/backend
 source .venv/bin/activate
 python -c "import flatland; print(flatland.__version__)"
 ```
-Falls ModuleNotFoundError: pip install -r requirements.txt
 
-Frontend kompiliert nicht:
+If `ModuleNotFoundError`:  
+`pip install -r requirements.txt`
+
+### Frontend does not compile
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/frontend
 rm -rf node_modules package-lock.json
 npm install
 npm run start
 ```
- 
- 
-  
-- Pan via Maus-Drag + 5 Pan-Buttons
 
+---
+
+## References
+
+### SBB Design System & SBB Lyne
+
+The UI follows the official SBB Design System and uses SBB Lyne Web Components:
+
+- SBB Design System: https://digital.sbb.ch/en/design-system  
+- SBB Lyne Web Components: https://digital.sbb.ch/en/design-system/web-components  
+- Lyne GitHub: https://github.com/sbb-design-systems/lyne-components  
+
+Benefits:
+
+- WCAG 2.1 AA accessibility  
+- Corporate Identity compliance  
+- Consistent interaction patterns  
+- Native integration with Angular standalone components  
+
+### Flatland (Reinforcement Learning Environment)
+
+Flatland is a multi-agent RL environment for railway dispatching:
+
+- GitHub: https://github.com/flatland-rl/flatland  
+- Documentation: https://flatland-rl-docs.s3.eu-central-1.amazonaws.com/index.html  
+
+Features:
+
+- Grid-based railway topology  
+- Multi-agent pathfinding  
+- Deadlocks, conflicts, stochastic delays  
+- Step-based simulation API  
+
+### AI4REALNET (EU Horizon Project)
+
+The project focuses on applying AI to real-world networked systems:
+
+- Project Page: https://ai4realnet.eu  
+
+Research topics:
+
+- Human-in-the-loop dispatching  
+- Multi-agent reinforcement learning  
+- Real-time decision support  
+- Explainable AI for railway operations  
+
+The Flatland Dispatcher UI serves as:
+
+- Research tool for interactive RL experiments  
+- Demonstrator for human–AI teaming  
+- Modular HMI for railway dispatching prototypes  
+
+---
+
+Pan via mouse drag + 5 pan buttons.
