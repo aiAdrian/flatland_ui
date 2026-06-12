@@ -102,6 +102,7 @@ export class SessionStore {
   readonly layerVisibility = signal<LayerVisibility>({
     grid: true,
     nextDecisions: true,
+    agentTrajectory: false,
     switches: false,
     signals: false,
   });
@@ -146,10 +147,27 @@ export class SessionStore {
     for (const a of state.agents) {
       const list = newMap.get(a.handle) ?? [];
       const lastPt = list.length > 0 ? list[list.length - 1] : null;
-      if (lastPt && lastPt.step === state.elapsed_steps) continue;
+      if (lastPt && lastPt.step === state.elapsed_steps) {
+        // Same step can arrive more than once (polling/ws timing). Keep
+        // the newer snapshot if it contains a position while the old one
+        // did not; otherwise update metadata and leave path intact.
+        const shouldReplace = lastPt.position == null && a.position != null;
+        if (shouldReplace || lastPt.direction !== a.direction || lastPt.state !== a.state) {
+          const updatedLast = {
+            step: state.elapsed_steps,
+            position: a.position ?? a.initial_position,
+            direction: a.direction,
+            state: a.state,
+          };
+          const updated = [...list.slice(0, -1), updatedLast];
+          newMap.set(a.handle, updated);
+          changed = true;
+        }
+        continue;
+      }
       const updated = [...list, {
         step: state.elapsed_steps,
-        position: a.position,
+        position: a.position ?? a.initial_position,
         direction: a.direction,
         state: a.state,
       }];
@@ -284,38 +302,46 @@ export class SessionStore {
     // Multi-step: remember the target so the toolbar can show 'N left'.
     const currentElapsed = this.state()?.elapsed_steps ?? 0;
     this.targetStep.set(currentElapsed + n_steps);
-    // While the backend is computing, poll getState every 500ms so the
-    // counter actually counts down. The /step request only resolves at
-    // the end of all n_steps, but elapsed_steps in getState is updated
-    // incrementally by the backend.
     this._stopPolling();
-    if (n_steps > 1) {
-      this._pollHandle = setInterval(() => {
-        if (!this.loading()) { this._stopPolling(); return; }
-        this.api.getState(s.id).subscribe({
+    this._stepSequential(s.id, policy, n_steps, canRecover);
+  }
+
+  private _stepSequential(sessionId: string, policy: PolicyName, remaining: number, canRecover: boolean): void {
+    if (remaining <= 0) {
+      this.targetStep.set(null);
+      this.loading.set(false);
+      this.refreshForecasts();
+      return;
+    }
+
+    this.api.step(sessionId, policy, 1).subscribe({
+      next: (res) => {
+        if (res.message) this.message.set(res.message);
+        this.api.getState(sessionId).subscribe({
           next: (st) => {
             this.state.set(st);
             this._recordTrajectory(st);
+            if (st.episode_done) {
+              this.targetStep.set(null);
+              this.loading.set(false);
+              this.refreshForecasts();
+              return;
+            }
+            this._stepSequential(sessionId, policy, remaining - 1, false);
           },
-          error: () => { /* swallow — main step request will report */ },
+          error: (e) => {
+            this.error.set(`State failed: ${e.message}`);
+            this.targetStep.set(null);
+            this.loading.set(false);
+          },
         });
-      }, 500);
-    }
-    this.api.step(s.id, policy, n_steps).subscribe({
-      next: (res) => {
-        if (res.message) this.message.set(res.message);
-        this._stopPolling();
-        this.targetStep.set(null);
-        this.refreshState();
-        this.refreshForecasts();
       },
       error: (e) => {
         if (canRecover && this._isPolicyNotEnabledError(e)) {
-          this._recoverPolicyAndRetryStep(s.id, n_steps);
+          this._recoverPolicyAndRetryStep(sessionId, remaining);
           return;
         }
         this.error.set(`Step failed: ${e.message}`);
-        this._stopPolling();
         this.targetStep.set(null);
         this.loading.set(false);
       },

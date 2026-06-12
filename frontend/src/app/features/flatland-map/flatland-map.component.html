@@ -32,6 +32,34 @@
       }
     }
 
+    <!-- Selected-agent trajectory: cell background overlay in agent color,
+         darker for past, lighter for forecast (same semantics as Marey). -->
+    @if (selectedTrajectoryCells().length > 0) {
+      @for (cell of selectedTrajectoryCells(); track cell.id) {
+        <defs>
+          <mask [attr.id]="'traj-mask-' + cell.id" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" mask-type="alpha">
+            <image
+              [attr.href]="cell.href"
+              [attr.x]="cell.x"
+              [attr.y]="cell.y"
+              [attr.width]="cellSize"
+              [attr.height]="cellSize"
+              [attr.transform]="cell.transform" />
+          </mask>
+        </defs>
+        <rect
+          [attr.x]="cell.x"
+          [attr.y]="cell.y"
+          [attr.width]="cellSize"
+          [attr.height]="cellSize"
+          [attr.fill]="cell.color"
+          [attr.opacity]="cell.opacity"
+          [attr.mask]="'url(#traj-mask-' + cell.id + ')'"
+          class="trajectory-rail"
+          pointer-events="none" />
+      }
+    }
+
         <!-- Rail Tiles (always visible) -->
     @for (t of tiles(); track trackByTile($index, t)) {
       <image

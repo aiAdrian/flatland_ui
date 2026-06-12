@@ -43,6 +43,16 @@ interface BoundingBox {
   maxC: number;
 }
 
+interface TrajectoryOverlayCell {
+  id: string;
+  x: number;
+  y: number;
+  href: string;
+  transform: string;
+  color: string;
+  opacity: number;
+}
+
 @Component({
   selector: 'app-flatland-map',
   standalone: true,
@@ -158,6 +168,132 @@ export class FlatlandMapComponent {
   });
 
   readonly tiles = computed(() => this.store.railTiles());
+
+  readonly selectedTrajectoryCells = computed<TrajectoryOverlayCell[]>(() => {
+    if (!this.store.layerVisibility().agentTrajectory) return [];
+
+    const handle = this.store.selectedHandle();
+    if (handle == null) return [];
+
+    const now = this.store.elapsedSteps();
+    const history = this.store.trajectories().get(handle) ?? [];
+    const scenarios = this.store.scenarios();
+    const previewId = this.store.previewScenarioId();
+    const forecastScenario = previewId
+      ? scenarios.find((s) => s.id === previewId)
+      : null;
+    const activeScenario = forecastScenario ?? scenarios.find((s) => s.isBaseline) ?? scenarios[0] ?? null;
+    const forecast = activeScenario?.trajectories?.[String(handle)] ?? [];
+
+    const byCell = new Map<string, { row: number; col: number; isPast: boolean }>();
+
+    // Past: build by step first (one snapshot per elapsed step), then
+    // interpolate gaps between sampled points so visited cells are not missing.
+    const pastByStep = new Map<number, { step: number; row: number; col: number }>();
+    for (const p of history) {
+      if (p.position == null || p.step > now) continue;
+      pastByStep.set(p.step, {
+        step: p.step,
+        row: Number(p.position[0]),
+        col: Number(p.position[1]),
+      });
+    }
+    // Optional gap-fill source: some scenarios include full absolute steps,
+    // including <= now. Use only where local history has no sample.
+    for (const p of forecast) {
+      if (p.step > now || pastByStep.has(p.step)) continue;
+      pastByStep.set(p.step, { step: p.step, row: p.row, col: p.col });
+    }
+
+    const orderedPast = Array.from(pastByStep.values()).sort((a, b) => a.step - b.step);
+    let prev: { row: number; col: number } | null = null;
+    for (const pt of orderedPast) {
+      this._markPastCell(byCell, pt.row, pt.col);
+      if (prev) {
+        this._interpolatePastCells(byCell, prev.row, prev.col, pt.row, pt.col);
+      }
+      prev = { row: pt.row, col: pt.col };
+    }
+
+    for (const p of forecast) {
+      if (p.step <= now) continue;
+      const key = `${p.row}_${p.col}`;
+      if (byCell.has(key)) continue;
+      byCell.set(key, { row: p.row, col: p.col, isPast: false });
+    }
+
+    const tilesByKey = new Map(this.tiles().map((t) => [`${t.r}_${t.c}`, t] as const));
+    const color = this.agentColors.getColorSolid(handle);
+    return Array.from(byCell.values())
+      .map((cell) => {
+        const tile = tilesByKey.get(`${cell.row}_${cell.col}`);
+        if (!tile) return null;
+        return {
+          id: `traj_${handle}_${cell.row}_${cell.col}`,
+          x: cell.col * this.cellSize,
+          y: cell.row * this.cellSize,
+          href: this.tileHref(tile),
+          transform: this.tileTransform(tile),
+          color,
+          // Same visual separation as Marey: darker past, lighter forecast.
+          opacity: cell.isPast ? 0.55 : 0.25,
+        };
+      })
+      .filter((cell): cell is TrajectoryOverlayCell => cell != null);
+  });
+
+  private _markPastCell(
+    map: Map<string, { row: number; col: number; isPast: boolean }>,
+    row: number,
+    col: number,
+  ): void {
+    const key = `${row}_${col}`;
+    const cur = map.get(key);
+    if (cur) {
+      if (!cur.isPast) map.set(key, { ...cur, isPast: true });
+      return;
+    }
+    map.set(key, { row, col, isPast: true });
+  }
+
+  private _interpolatePastCells(
+    map: Map<string, { row: number; col: number; isPast: boolean }>,
+    fromRow: number,
+    fromCol: number,
+    toRow: number,
+    toCol: number,
+  ): void {
+    const dr = toRow - fromRow;
+    const dc = toCol - fromCol;
+    if (dr === 0 && dc === 0) return;
+
+    const stepR = Math.sign(dr);
+    const stepC = Math.sign(dc);
+
+    // Standard case: movement samples are axis-aligned in grid space.
+    if (dr === 0 || dc === 0) {
+      let r = fromRow;
+      let c = fromCol;
+      while (r !== toRow || c !== toCol) {
+        if (r !== toRow) r += stepR;
+        if (c !== toCol) c += stepC;
+        this._markPastCell(map, r, c);
+      }
+      return;
+    }
+
+    // Fallback for sparse samples around turns: fill an L-shape.
+    let r = fromRow;
+    let c = fromCol;
+    while (r !== toRow) {
+      r += stepR;
+      this._markPastCell(map, r, c);
+    }
+    while (c !== toCol) {
+      c += stepC;
+      this._markPastCell(map, r, c);
+    }
+  }
   /** Active agents only: hide WAITING (not yet departed) and DONE
    *  (already arrived). The sidebar still shows the full roster. */
   readonly agents = computed(() =>

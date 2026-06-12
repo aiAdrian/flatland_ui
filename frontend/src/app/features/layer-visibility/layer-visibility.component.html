@@ -15,6 +15,12 @@
     </label>
     <label class="layer-item">
       <input type="checkbox"
+             [checked]="store.layerVisibility().agentTrajectory"
+             (change)="toggle('agentTrajectory')">
+      <span>Agents trajectory</span>
+    </label>
+    <label class="layer-item">
+      <input type="checkbox"
              [checked]="store.layerVisibility().switches"
              (change)="toggle('switches')">
       <span>All Switches</span>

@@ -1,6 +1,7 @@
 export type LayerVisibility = {
   grid: boolean;
   nextDecisions: boolean;
+  agentTrajectory: boolean;
   switches: boolean;
   signals: boolean;
 };

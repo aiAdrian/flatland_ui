@@ -31,6 +31,11 @@
   pointer-events: none;
 }
 
+.trajectory-rail {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
 .target {
   pointer-events: none;
 }
