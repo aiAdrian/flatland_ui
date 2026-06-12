@@ -1,134 +1,150 @@
 # Flatland Dispatcher UI
 
-Human-in-the-Loop Train-Dispatching auf Basis von Flatland-RL.
+Human-in-the-Loop train dispatching based on Flatland-RL.
 
+## Architecture
 
+3-column HMI (Phase A–D during migration):
 
-
-## Architektur
-
-3-Spalten-HMI (Phase A-D in Migration):
-
-- LEFT (280px): Notifications + Layer-Visibility + Sidebar
+- LEFT (280px): Notifications + Layer Visibility + Sidebar
 - MIDDLE (1fr): Track Layout (Map) + Graphic Timetable (Marey) + Simulation Slider
 - RIGHT (320px): Scenarios + KPI Filter + Recommendations + Inspector
 
-Backend: FastAPI + Flatland-RL.
-Frontend: Angular 18 (standalone components, signals) + SBB Lyne Elements.
+Backend: FastAPI + Flatland-RL  
+Frontend: Angular 18 (standalone components, signals) + SBB Lyne Elements
 
-## Voraussetzungen
+## Requirements
 
 - Python 3.12+
 - Node.js 20+ / npm 10+
 
-## Backend - Setup + Start
+## Backend – Setup & Start
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/backend
 ```
 
-# Erstmals: virtuelle Umgebung
-```
+### First time: virtual environment
+
+```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
-# Start (Auto-Reload bei Code-Aenderung)
-```
+
+### Start (auto-reload on code changes)
+
+```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Backend laeuft dann auf http://localhost:8000:
-- API-Docs interactive: http://localhost:8000/docs
-- Health-Check: http://localhost:8000/health
+Backend runs on http://localhost:8000:
 
-### Wichtige Endpoints
+- Interactive API docs: http://localhost:8000/docs
+- Health check: http://localhost:8000/health
 
-POST   /session                              # Neue Session
-GET    /session/{id}/state                   # Aktueller State
-POST   /session/{id}/step                    # Step ausfuehren
-POST   /session/{id}/play                    # Auto-play start
-POST   /session/{id}/pause                   # Pause
-POST   /session/{id}/reset                   # Reset
-POST   /session/{id}/agent/{handle}/override # Action-Override setzen
-DELETE /session/{id}/agent/{handle}/override # Override loeschen
+### Important Endpoints
 
-# HMI Mock-Daten (procedural per Seed)
-GET    /session/{id}/hmi/notifications
-GET    /session/{id}/hmi/scenarios
-GET    /session/{id}/hmi/recommendations
-GET    /session/{id}/hmi                      # Alles in einem Bundle
+POST   /session                              # Create new session  
+GET    /session/{id}/state                   # Current state  
+POST   /session/{id}/step                    # Execute step  
+POST   /session/{id}/play                    # Start auto-play  
+POST   /session/{id}/pause                   # Pause  
+POST   /session/{id}/reset                   # Reset  
+POST   /session/{id}/agent/{handle}/override # Set action override  
+DELETE /session/{id}/agent/{handle}/override # Remove override  
 
-# WebSocket (Live-State-Updates)
+### HMI Mock Data (procedural via seed)
+
+GET    /session/{id}/hmi/notifications  
+GET    /session/{id}/hmi/scenarios  
+GET    /session/{id}/hmi/recommendations  
+GET    /session/{id}/hmi                      # All in one bundle  
+
+### WebSocket (live state updates)
+
 WS     /ws/session/{id}
 
-## Frontend - Setup + Start
+## Frontend – Setup & Start
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/frontend
 ```
 
-# Erstmals
+### First time
+
 ```bash
 npm install
 ```
 
-# Start (Hot-Module-Reload)
+### Start (Hot Module Reload)
+
 ```bash
 npm run start
 ```
 
-Frontend laeuft auf http://localhost:4200.
+Frontend runs on http://localhost:4200.
 
-## Quick-Start (zwei Terminals)
+## Quick Start (two terminals)
 
-Terminal 1 - Backend:
+### Terminal 1 – Backend
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/backend
 source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
-Terminal 2 - Frontend:
+
+### Terminal 2 – Frontend
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/frontend
 npm run start
 ```
+
 Browser: http://localhost:4200
 
-## Smoke-Test (curl)
+## Smoke Test (curl)
 
-# Session erzeugen
+### Create session
+
 ```bash
 curl -sL -X POST http://localhost:8000/session \
   -H "Content-Type: application/json" \
   -d '{"width":50,"height":20,"number_of_agents":3}'
 ```
-# State holen
+
+### Get state
+
 ```bash
 curl -s http://localhost:8000/session/<ID>/state | head -c 500
 ```
 
-# HMI-Bundle
+### HMI bundle
+
 ```bash
 curl -s http://localhost:8000/session/<ID>/hmi
 ```
+
 ## Troubleshooting
 
-Backend startet nicht:
+### Backend does not start
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/backend
 source .venv/bin/activate
 python -c "import flatland; print(flatland.__version__)"
 ```
-Falls ModuleNotFoundError: pip install -r requirements.txt
 
-Frontend kompiliert nicht:
+If `ModuleNotFoundError`: run `pip install -r requirements.txt`.
+
+### Frontend does not compile
+
 ```bash
 cd ~/workspace/ai4realnet/flatland_ui/frontend
 rm -rf node_modules package-lock.json
 npm install
 npm run start
 ```
- 
- 
-  
-- Pan via Maus-Drag + 5 Pan-Buttons
 
+Pan via mouse drag + 5 pan buttons.
