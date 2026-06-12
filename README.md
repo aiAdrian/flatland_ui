@@ -22,9 +22,9 @@ It combines:
 
 3-column HMI layout (Phase A–D during migration):
 
-- **LEFT (280px)** — Notifications, Layer Visibility, Sidebar  
-- **MIDDLE (1fr)** — Track Layout (Map), Graphic Timetable (Marey), Simulation Slider  
-- **RIGHT (320px)** — Scenarios, KPI Filter, Recommendations, Inspector  
+- **LEFT (280px)** — Notifications, Layer Visibility, KPI Filter,
+- **MIDDLE (1fr)** — Simulation Slider and Control, Track Layout (Map), Graphic Timetable (Marey), 
+- **RIGHT (320px)** — Scenarios, Recommendations, Agents Sidebar, Agent Inspector  
 
 **Backend:** FastAPI + Flatland-RL  
 **Frontend:** Angular 18 (standalone components, signals) + SBB Lyne Elements
