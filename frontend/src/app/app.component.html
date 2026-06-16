@@ -105,21 +105,6 @@
           </label>
         </div>
 
-        <div class="welcome-policies">
-          <span class="welcome-grid-label">Scenario Policies:</span>
-          <div class="welcome-policy-list">
-            @for (p of store.availablePolicies(); track p.id) {
-              <label class="welcome-policy-row" [title]="p.description">
-                <input
-                  type="checkbox"
-                  [checked]="isWelcomeScenarioPolicyEnabled(p.id)"
-                  [disabled]="isWelcomeScenarioPolicyEnabled(p.id) && welcomeScenarioPolicyIds().length === 1"
-                  (change)="toggleWelcomeScenarioPolicy(p.id, $any($event.target).checked)" />
-                <span>{{ p.label }}</span>
-              </label>
-            }
-          </div>
-        </div>
       </div>
     } @else if (scenarioPolicyMode()) {
       <div class="policy-card">
