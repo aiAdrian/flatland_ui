@@ -2,6 +2,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, effect, inject, OnDestroy} from '@an
 import { SessionStore } from '../../core/session.store';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
+import { AgentColorService } from '../../core/agent-color.service';
 import { AppNotification } from '../../core/events/event-types';
 
 @Component({
@@ -15,6 +16,7 @@ export class NotificationsPanelComponent implements OnDestroy {
   store = inject(SessionStore);
   api = inject(ApiService);
   bus = inject(EventBusService);
+  colors = inject(AgentColorService);
 
   private _notifPollHandle: any = null;
   private _notifLastSession: string | null = null;
@@ -114,6 +116,16 @@ export class NotificationsPanelComponent implements OnDestroy {
 
     // Otherwise select the first related agent.
     return handles[0];
+  }
+
+  singleNotificationAgentHandle(n: AppNotification): number | null {
+    const handles = this.notificationAgentHandles(n);
+    return handles.length === 1 ? handles[0] : null;
+  }
+
+  notificationAgentColor(n: AppNotification): string | null {
+    const h = this.singleNotificationAgentHandle(n);
+    return h == null ? null : this.colors.getColorSolid(h);
   }
 
   isAgentRelated(n: AppNotification): boolean {

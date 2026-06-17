@@ -649,3 +649,183 @@
     stroke-dashoffset: 0;
   }
 }
+
+
+/* flatland shared Marey-style agent badge policy
+   Same visual semantics as Marey topology agents:
+   - normal: agent colour filled, white text
+   - hover: agent colour filled, white text
+   - notification-hover: agent colour filled, white text
+   - selected: EDIT_COLOR filled, white text
+   - selected + hover: EDIT_COLOR filled, white text
+   - malfunction: red icon, white "!"
+*/
+:host {
+  --agent-edit-color: #f939e9;
+  --agent-malfunction-color: #e00000;
+}
+
+/* Agent group itself: no opacity changes. */
+.agent {
+  opacity: 1 !important;
+}
+
+/* Main Flatland agent circle.
+   Normal/hover/notification-hover keeps the agent colour from SVG attrs. */
+.agent > .agent-main-circle,
+.agent:hover > .agent-main-circle,
+.agent.notification-hover > .agent-main-circle {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Selected wins over normal, hover and notification-hover. */
+.agent.selected > .agent-main-circle,
+.agent.selected:hover > .agent-main-circle,
+.agent.selected.notification-hover > .agent-main-circle {
+  fill: var(--agent-edit-color) !important;
+  stroke: var(--agent-edit-color) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Agent handle text: always white, exactly like Marey topo-agent text. */
+.agent > .agent-handle-text,
+.agent:hover > .agent-handle-text,
+.agent.notification-hover > .agent-handle-text,
+.agent.selected > .agent-handle-text,
+.agent.selected:hover > .agent-handle-text,
+.agent.selected.notification-hover > .agent-handle-text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+  stroke: none !important;
+  paint-order: normal !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Malfunction badge: semantic red icon, white border and white "!". */
+.malfunction-badge-bg,
+.agent:hover .malfunction-badge-bg,
+.agent.notification-hover .malfunction-badge-bg,
+.agent.selected .malfunction-badge-bg,
+.agent.selected.notification-hover .malfunction-badge-bg {
+  fill: var(--agent-malfunction-color) !important;
+  stroke: #ffffff !important;
+  stroke-width: 1.5px !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.malfunction-badge-text,
+.agent:hover .malfunction-badge-text,
+.agent.notification-hover .malfunction-badge-text,
+.agent.selected .malfunction-badge-text,
+.agent.selected.notification-hover .malfunction-badge-text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+  stroke: none !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+}
+
+
+/* flatland single-agent notification colour policy
+   Direct hover and one-agent notification hover use the agent colour.
+   Multi-agent notification hover uses neutral grey.
+   Selected still wins with edit colour. */
+.agent:hover > .agent-main-circle,
+.agent.notification-hover-single-agent > .agent-main-circle {
+  fill: var(--flatland-agent-color, currentColor) !important;
+  stroke: var(--flatland-agent-color, currentColor) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.agent.notification-hover-multi-agent > .agent-main-circle {
+  fill: var(--app-hover-border-dark, #686868) !important;
+  stroke: var(--app-hover-border-dark, #686868) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.agent.selected > .agent-main-circle,
+.agent.selected:hover > .agent-main-circle,
+.agent.selected.notification-hover > .agent-main-circle,
+.agent.selected.notification-hover-single-agent > .agent-main-circle,
+.agent.selected.notification-hover-multi-agent > .agent-main-circle {
+  fill: var(--app-select-color, #f939e9) !important;
+  stroke: var(--app-select-color, #f939e9) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.agent > text,
+.agent:hover > text,
+.agent.notification-hover > text,
+.agent.notification-hover-single-agent > text,
+.agent.notification-hover-multi-agent > text,
+.agent.selected > text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+  stroke: none !important;
+  opacity: 1 !important;
+}
+
+.malfunction-badge-bg,
+.agent:hover .malfunction-badge-bg,
+.agent.notification-hover .malfunction-badge-bg,
+.agent.selected .malfunction-badge-bg {
+  fill: #e00000 !important;
+  stroke: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.malfunction-badge-text,
+.agent:hover .malfunction-badge-text,
+.agent.notification-hover .malfunction-badge-text,
+.agent.selected .malfunction-badge-text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+  stroke: none !important;
+  opacity: 1 !important;
+}
+
+/* no grey hover / no hover shadow for Flatland agents */
+.agent:hover,
+.agent.notification-hover {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.agent:hover > .agent-main-circle,
+.agent.notification-hover > .agent-main-circle,
+.agent.notification-hover-single-agent > .agent-main-circle,
+.agent.notification-hover-multi-agent > .agent-main-circle {
+  fill: var(--flatland-agent-color, currentColor) !important;
+  stroke: var(--flatland-agent-color, currentColor) !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.agent.selected > .agent-main-circle,
+.agent.selected:hover > .agent-main-circle,
+.agent.selected.notification-hover > .agent-main-circle {
+  fill: var(--app-select-color, #f939e9) !important;
+  stroke: var(--app-select-color, #f939e9) !important;
+}
+
+/* agent hover radius +2px */
+.agent:hover > .agent-main-circle,
+.agent.notification-hover > .agent-main-circle,
+.agent.notification-hover-single-agent > .agent-main-circle,
+.agent.notification-hover-multi-agent > .agent-main-circle {
+  r: 11px !important;
+}
+
+.agent.selected:hover > .agent-main-circle,
+.agent.selected.notification-hover > .agent-main-circle {
+  r: 11px !important;
+  fill: var(--app-select-color, #f939e9) !important;
+  stroke: var(--app-select-color, #f939e9) !important;
+}

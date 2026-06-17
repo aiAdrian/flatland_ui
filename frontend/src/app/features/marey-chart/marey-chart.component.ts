@@ -322,6 +322,10 @@ export class MareyChartComponent implements AfterViewInit {
     this.svgEl = this.svgRef()?.nativeElement ?? null;
   }
 
+  notificationHoverHandleCount(): number {
+    return this.store.notificationHoverHandles().size;
+  }
+
   isNotificationHovered(handle: number): boolean {
     return this.store.notificationHoverHandles().has(handle);
   }

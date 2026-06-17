@@ -341,6 +341,30 @@ export class FlatlandMapComponent {
         }
       }
 
+      // Forecasts can end one cell before the target although visually the
+      // intended trajectory should reach the target marker. Only append the
+      // target when it is directly adjacent to the last forecast/path cell;
+      // this avoids drawing artificial long extensions when the forecast
+      // horizon genuinely ends before the target.
+      const target = agent?.target;
+      const lastPathCell = pathCells[pathCells.length - 1] ?? null;
+      if (target && lastPathCell) {
+        const targetRow = Number(target[0]);
+        const targetCol = Number(target[1]);
+
+        if (Number.isFinite(targetRow) && Number.isFinite(targetCol)) {
+          const dr = Math.abs(lastPathCell.row - targetRow);
+          const dc = Math.abs(lastPathCell.col - targetCol);
+          const isAdjacentTarget = dr + dc === 1;
+          const alreadyAtTarget =
+            lastPathCell.row === targetRow && lastPathCell.col === targetCol;
+
+          if (!alreadyAtTarget && isAdjacentTarget) {
+            this._pushTrajectoryPathCell(pathCells, targetRow, targetCol);
+          }
+        }
+      }
+
       if (pathCells.length < 2) continue;
 
       const color = this._trajectoryColorForHandle(handle);

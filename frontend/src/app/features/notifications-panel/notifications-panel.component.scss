@@ -193,3 +193,48 @@
 .notif.hovered-agent-related:not(.selected-agent-related) .title {
   font-weight: 750;
 }
+
+
+/* notification card single-agent colour policy
+   If a notification is linked to exactly one agent, use that agent colour.
+   Otherwise keep the neutral grey relation/highlight colour. */
+.notif.single-agent-related,
+.notif.single-agent-related:hover,
+.notif.single-agent-related.hovered-agent-related,
+.notif.single-agent-related.selected-agent-related {
+  border-left-color: var(--notification-agent-color, var(--app-hover-border-dark, #686868)) !important;
+  background: color-mix(in srgb, var(--notification-agent-color, #686868) 10%, white) !important;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--notification-agent-color, #686868) 22%, transparent),
+    0 2px 6px rgba(0, 0, 0, 0.08) !important;
+}
+
+.notif.single-agent-related .title,
+.notif.single-agent-related .related {
+  color: var(--notification-agent-color, var(--app-hover-border-dark, #686868)) !important;
+}
+
+.notif.multi-agent-related,
+.notif.multi-agent-related:hover,
+.notif.multi-agent-related.hovered-agent-related {
+  border-left-color: var(--app-hover-border-dark, #686868) !important;
+  background: var(--app-hover-bg, #f8f8f8) !important;
+}
+
+/* no grey hover / no hover shadow */
+.notif:hover,
+.notif.agent-related:hover,
+.notif.hovered-agent-related,
+.notif.hovered-agent-related:not(.selected-agent-related),
+.notif.multi-agent-related,
+.notif.multi-agent-related:hover {
+  box-shadow: none !important;
+  background: inherit !important;
+}
+
+.notif.single-agent-related,
+.notif.single-agent-related:hover,
+.notif.single-agent-related.hovered-agent-related {
+  border-left-color: var(--notification-agent-color, currentColor) !important;
+  box-shadow: none !important;
+}

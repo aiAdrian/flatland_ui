@@ -966,3 +966,39 @@
   padding: 0;
 }
 /* marey swap-home horizontal override - end */
+
+/* compact topo-agent hover policy */
+.topo-agent:hover,
+.topo-agent.notification-hover,
+.topo-agent.notification-hover-single-agent,
+.topo-agent.notification-hover-multi-agent {
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transform: scale(1.14) !important;
+  transform-origin: center center !important;
+  z-index: 5 !important;
+}
+
+.topo-agent:not(.selected):hover,
+.topo-agent.notification-hover:not(.selected),
+.topo-agent.notification-hover-single-agent:not(.selected),
+.topo-agent.notification-hover-multi-agent:not(.selected) {
+  background: var(--marey-agent-color, currentColor) !important;
+  border-color: var(--marey-agent-color, currentColor) !important;
+  color: #fff !important;
+}
+
+.topo-agent.selected,
+.topo-agent.selected:hover,
+.topo-agent.selected.notification-hover {
+  background: var(--app-select-color, #f939e9) !important;
+  border-color: var(--app-select-color, #f939e9) !important;
+  color: #fff !important;
+}
+
+.topo-malfunction {
+  background: #e00000 !important;
+  border-color: #fff !important;
+  color: #fff !important;
+}
