@@ -112,4 +112,8 @@ export class ApiService {
       enabled_policy_ids,
     });
   }
+  getMareyData(sessionId: string) {
+    return this.http.get<any>(`${API_BASE}/session/${sessionId}/hmi/marey-data`);
+  }
+
 }

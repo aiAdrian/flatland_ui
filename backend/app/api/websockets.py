@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from typing import Optional, Any
 
 from app.core.session_manager import session_manager
+from app.core.marey_history import capture_marey_history_snapshot
 from app.core.serializer import serialize_env
 from app.core.ws_manager import ws_manager
 from app.core.play_manager import play_manager, PlayState
@@ -111,6 +112,8 @@ async def _play_loop(session_id: str):
             policy.end_step()
             session.last_observations = next_obs
             session.last_info = info
+            # Marey real-history snapshot after websocket/play step.
+            capture_marey_history_snapshot(session)
         except Exception as e:
             state.running = False
             await ws_manager.broadcast(session_id, {

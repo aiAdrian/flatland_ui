@@ -33,6 +33,10 @@ class Session:
         if not self.enabled_policy_ids:
             self.enabled_policy_ids = policy_available
 
+        # Real executed trajectory history for Marey.
+        # Shape compatible with hmi_scenario_adapter._extract_trajectories().
+        self.marey_history_snapshots: list[dict] = []
+
 
 class SessionManager:
     def __init__(self):

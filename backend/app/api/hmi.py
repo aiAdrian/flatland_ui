@@ -19,7 +19,7 @@ from app.core.hmi_mock import (
     generate_recommendations as mock_generate_recommendations,
     generate_scenarios as mock_generate_scenarios,
 )
-from app.core.hmi_scenario_adapter import scenarios_to_options
+from app.core.hmi_scenario_adapter import scenarios_to_options, _extract_trajectories
 from app.core.recommendation_generator import (
     generate_recommendations as real_recommendations,
 )
@@ -381,9 +381,33 @@ def get_marey_data(session_id: str):
         return {"agents": {}, "cached": False}
     
     # Build output: history + forecast per agent
+    def _dump_trajectory_point(point):
+        if isinstance(point, dict):
+            return dict(point)
+        if hasattr(point, "model_dump"):
+            return point.model_dump()
+        if hasattr(point, "dict"):
+            return point.dict()
+        return dict(point)
+
+    history_by_handle = {}
+    try:
+        history_snapshots = list(getattr(sess, "marey_history_snapshots", []) or [])
+        history_by_handle = _extract_trajectories(history_snapshots, env=env)
+    except Exception:
+        history_by_handle = {}
+
     agents_data = {}
     
-    for handle_str, traj_points in (baseline_opt.trajectories or {}).items():
+    forecast_by_handle = baseline_opt.trajectories or {}
+    all_handle_keys = sorted(
+        set(str(k) for k in forecast_by_handle.keys()) |
+        set(str(k) for k in history_by_handle.keys()),
+        key=lambda x: int(x) if str(x).isdigit() else str(x),
+    )
+
+    for handle_str in all_handle_keys:
+        traj_points = forecast_by_handle.get(handle_str) or []
         handle = int(handle_str)
         
         def _point_value(point, name, default=None):
@@ -517,9 +541,15 @@ def get_marey_data(session_id: str):
         # Extract and enrich position (row, col, direction) from each point.
         forecast = _enrich_forecast_points(traj_points, handle)
         
+        history = [
+            _dump_trajectory_point(p)
+            for p in (history_by_handle.get(str(handle)) or [])
+            if int(_dump_trajectory_point(p).get("step", 0) or 0) <= elapsed
+        ]
+
         agents_data[handle] = {
             "handle": handle,
-            "history": [],  # Will be populated from session history if available
+            "history": history,
             "forecast": forecast,
             "override_active": handle in active_overrides,
             "current_step": elapsed,

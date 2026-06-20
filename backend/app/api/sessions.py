@@ -11,6 +11,7 @@ from app.core.serializer import serialize_env
 from app.core.ws_manager import ws_manager
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
+from app.core.marey_history import capture_marey_history_snapshot, reset_marey_history
 from app.models.session import (
     SessionCreateRequest,
     SessionInfo,
@@ -50,6 +51,62 @@ def _to_plain(value):
         return float(value)
     except Exception:
         return str(value)
+
+
+
+def _agent_state_name(agent) -> str:
+    state = getattr(agent, "state", None)
+    return getattr(state, "name", str(state))
+
+
+def _capture_marey_history_snapshot(session) -> None:
+    """Capture one real executed env state for Marey history.
+
+    Stored shape intentionally matches Scenario/Conflict snapshots:
+      {"step": int, "agents": {"0": {"pos": [r,c], "dir": d, "state": "MOVING"}}}
+    """
+    env = getattr(session, "env", None)
+    if env is None:
+        return
+
+    try:
+        step = int(getattr(env, "_elapsed_steps", 0) or 0)
+    except Exception:
+        step = 0
+
+    agents: dict[str, dict] = {}
+
+    for handle, agent in enumerate(getattr(env, "agents", []) or []):
+        pos = getattr(agent, "position", None)
+        direction = getattr(agent, "direction", None)
+
+        # Off-map agents cannot produce a Marey path cell.
+        if pos is None or direction is None:
+            continue
+
+        try:
+            row, col = int(pos[0]), int(pos[1])
+            dir_i = int(direction)
+        except Exception:
+            continue
+
+        agents[str(handle)] = {
+            "pos": [row, col],
+            "dir": dir_i,
+            "state": _agent_state_name(agent),
+        }
+
+    snap = {"step": step, "agents": agents}
+
+    hist = list(getattr(session, "marey_history_snapshots", []) or [])
+
+    # Avoid duplicate snapshots for repeated polling/state calls at same step.
+    if hist and int(hist[-1].get("step", -1)) == step:
+        hist[-1] = snap
+    else:
+        hist.append(snap)
+
+    session.marey_history_snapshots = hist
 
 
 def _is_done(env) -> bool:
@@ -112,6 +169,8 @@ def create_session(req: SessionCreateRequest):
         enabled_policy_ids=req.enabled_policy_ids,
         enabled_scenario_policy_ids=req.enabled_scenario_policy_ids,
     )
+    _capture_marey_history_snapshot(session)
+
     return SessionInfo(
         id=session.id,
         width=session.env.width,
@@ -190,6 +249,8 @@ async def step(session_id: str, req: StepRequest):
         policy.end_step()
         session.last_observations = next_obs
         session.last_info = info
+        # Capture exact executed state for Marey history.
+        _capture_marey_history_snapshot(session)
         n_done_steps += 1
         if dones.get("__all__", False):
             all_done = True
@@ -226,6 +287,8 @@ async def reset_session(session_id: str):
     obs, info = session.env.reset()
     session.last_observations = obs
     session.last_info = info
+    session.marey_history_snapshots = []
+    _capture_marey_history_snapshot(session)
     override_manager.clear_all(session_id)
     notification_manager.clear_session(session_id)
 
@@ -245,6 +308,8 @@ async def manual_action(session_id: str, req: ActionRequest):
     next_obs, rewards, dones, info = env.step({req.handle: req.action})
     session.last_observations = next_obs
     session.last_info = info
+    # Capture manual action state for Marey history.
+    _capture_marey_history_snapshot(session)
 
     await _broadcast_state(session_id, env)
 
