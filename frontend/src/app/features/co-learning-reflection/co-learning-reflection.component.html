@@ -1,54 +1,68 @@
 @if (!dismissed()) {
   <div class="reflection-panel">
-    <h3 class="panel-title">Co-Learning Reflection</h3>
-
-    <div class="summary">
-      <span class="summary-count">{{ store.interventionCount() }}</span>
-      <span class="summary-label">manual intervention{{ store.interventionCount() === 1 ? '' : 's' }} this run</span>
+    <div class="rp-head">
+      <h3 class="panel-title">Co-Learning Reflection</h3>
+      <span class="rp-phase" title="Kolb experiential learning — reflection phase">reflect</span>
     </div>
 
-    @if (interventions().length > 0) {
-      <ul class="intervention-list">
-        @for (e of interventions(); track e.timestamp) {
-          <li class="intervention">
-            <span class="iv-step">step {{ e.step }}</span>
-            <span class="iv-body">
-              Train {{ e.handle }} → action {{ e.humanAction }}
-              @if (e.aiSuggestion) {
-                <span class="iv-ai" title="AI recommendation at that moment">vs AI: {{ e.aiSuggestion }}</span>
-              }
-            </span>
-          </li>
-        }
-      </ul>
-    }
+    <!-- Mirroring [MR]: the operator's own run, reflected back -->
+    <div class="rp-section">
+      <span class="rp-mode" title="Supportive-AI mode: Mirroring">MR · your run</span>
+      <div class="recap">
+        <div class="recap-cell">
+          <span class="recap-num">{{ interventionCount() }}</span>
+          <span class="recap-lbl">intervention{{ interventionCount() === 1 ? '' : 's' }}</span>
+        </div>
+        <div class="recap-cell">
+          <span class="recap-num">{{ overridesDespiteAi() }}</span>
+          <span class="recap-lbl">despite AI hint</span>
+        </div>
+        <div class="recap-cell">
+          <span class="recap-num">{{ arrived() }}/{{ total() }}</span>
+          <span class="recap-lbl">arrived</span>
+        </div>
+        <div class="recap-cell" [class.warn]="totalDelay() > 0">
+          <span class="recap-num">+{{ totalDelay() }}</span>
+          <span class="recap-lbl">total delay</span>
+        </div>
+      </div>
 
-    <div class="questions">
-      @for (q of questions; track q.key) {
-        <div class="question">
-          <label class="q-text">{{ q.text }}</label>
-          @if (q.type === 'radio') {
-            <div class="q-radios">
-              @for (opt of q.options; track opt) {
-                <button
-                  type="button"
-                  class="q-radio"
-                  [class.selected]="answers()[q.key] === opt"
-                  (click)="setAnswer(q.key, opt)">
-                  {{ opt }}
-                </button>
-              }
-            </div>
-          } @else {
+      @if (interventions().length > 0) {
+        <ul class="intervention-list">
+          @for (e of interventions(); track e.timestamp) {
+            <li class="intervention">
+              <span class="iv-step">step {{ e.step }}</span>
+              <span class="iv-body">
+                Train {{ e.handle }} → action {{ e.humanAction }}
+                @if (e.aiSuggestion) {
+                  <span class="iv-ai" title="AI recommendation at that moment">vs AI: {{ e.aiSuggestion }}</span>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- Animation [AM] / Transparency [TP]: Socratic prompts -->
+    <div class="rp-section">
+      <span class="rp-mode" title="Supportive-AI modes: Animation / Transparency">AM · reflect &amp; conceptualise</span>
+      <div class="questions">
+        @for (q of questions(); track q.key) {
+          <div class="question">
+            <label class="q-text">
+              {{ q.text }}
+              <span class="q-mode" [title]="modeLabel(q.mode)">{{ q.mode }}</span>
+            </label>
             <textarea
               class="q-input"
               rows="2"
               [value]="answers()[q.key] || ''"
               (input)="setAnswer(q.key, $any($event.target).value)"
               placeholder="Add your notes…"></textarea>
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
     </div>
 
     <div class="actions">

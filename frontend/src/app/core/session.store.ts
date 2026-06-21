@@ -247,6 +247,24 @@ export class SessionStore {
   readonly interventionCount = computed(() => this.coLearningFeedback().length);
 
   /**
+   * "Things have calmed down": the lull in which Co-Learning reflection should
+   * become available (Hamouche et al., Kolb phase 2). Calm = a started session
+   * that is currently paused with no agent in malfunction. A pause counts as
+   * calm; the very start (no steps yet) does not.
+   */
+  readonly isCalm = computed(() => {
+    if (!this.session()) return false;
+    if (this.playing()) return false;
+    if (this.elapsedSteps() === 0) return false;
+    const anyMalfunction = this.agents().some(
+      (a) => !!a.is_malfunctioning
+        || (a.malfunction_remaining ?? 0) > 0
+        || String(a.state ?? '').toUpperCase().includes('MALFUNCTION'),
+    );
+    return !anyMalfunction;
+  });
+
+  /**
    * Switch collaboration mode and apply its immediate behaviour:
    *  - Director: hand control to the AI by starting auto-play.
    *  - leaving Director: pause so the human regains step-by-step control.

@@ -11,42 +11,88 @@
   margin: 4px;
 }
 
+.rp-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 .panel-title {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--sbb-color-granite, #686868);
-  margin: 0 0 10px 0;
+  margin: 0;
 }
 
-.summary {
+.rp-phase {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--sbb-color-red, #eb0000);
+  padding: 1px 8px;
+  border-radius: 9px;
+}
+
+.rp-section {
+  margin-bottom: 14px;
+}
+
+.rp-mode {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sbb-color-granite, #686868);
+  margin-bottom: 6px;
+}
+
+.recap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.recap-cell {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  background: var(--sbb-color-white, #fff);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 4px;
 }
 
-.summary-count {
-  font-size: 24px;
+.recap-num {
+  font-size: 16px;
   font-weight: 700;
   color: var(--sbb-color-charcoal, #212121);
   font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
-.summary-label {
-  font-size: 12px;
+.recap-lbl {
+  font-size: 9px;
   color: var(--sbb-color-granite, #686868);
 }
 
+.recap-cell.warn .recap-num { color: var(--sbb-color-orange, #cc8800); }
+
 .intervention-list {
   list-style: none;
-  margin: 0 0 12px;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 140px;
+  max-height: 120px;
   overflow-y: auto;
 }
 
@@ -66,9 +112,7 @@
   font-weight: 600;
 }
 
-.iv-body {
-  color: var(--sbb-color-charcoal, #212121);
-}
+.iv-body { color: var(--sbb-color-charcoal, #212121); }
 
 .iv-ai {
   display: block;
@@ -92,32 +136,20 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--sbb-color-charcoal, #212121);
-}
-
-.q-radios {
   display: flex;
-  gap: 6px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.q-radio {
+.q-mode {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--sbb-color-granite, #686868);
   border: 1px solid var(--sbb-color-cloud, #d2d2d2);
-  background: #fff;
   border-radius: 3px;
-  padding: 4px 14px;
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  color: var(--sbb-color-charcoal, #212121);
-}
-
-.q-radio:hover {
-  border-color: var(--sbb-color-charcoal, #212121);
-}
-
-.q-radio.selected {
-  background: var(--sbb-color-charcoal, #212121);
-  border-color: var(--sbb-color-charcoal, #212121);
-  color: #fff;
+  padding: 0 4px;
 }
 
 .q-input {
@@ -138,7 +170,7 @@
 }
 
 .actions {
-  margin-top: 14px;
+  margin-top: 6px;
   display: flex;
   justify-content: flex-end;
 }

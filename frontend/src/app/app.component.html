@@ -106,7 +106,7 @@
       <div class="right-kpi-filter">
         <app-kpi-filter></app-kpi-filter>
       </div>
-      @if (store.isCoLearning() && store.episodeDone()) {
+      @if (store.isCoLearning() && (store.isCalm() || store.episodeDone())) {
         <app-co-learning-reflection></app-co-learning-reflection>
       }
     </aside>
