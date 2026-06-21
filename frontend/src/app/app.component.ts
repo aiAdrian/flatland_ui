@@ -15,6 +15,8 @@ import { CoLearningReflectionComponent } from './features/co-learning-reflection
 import { SituationSummaryComponent } from './features/situation-summary/situation-summary.component';
 import { GoalAchievementComponent } from './features/goal-achievement/goal-achievement.component';
 import { DirectorDirectiveComponent } from './features/director-directive/director-directive.component';
+import { SurveyComponent } from './features/survey/survey.component';
+import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
 import { SessionStore } from './core/session.store';
 import { InteractionMode } from './core/events/event-types';
@@ -35,6 +37,7 @@ import { InteractionMode } from './core/events/event-types';
     SituationSummaryComponent,
     GoalAchievementComponent,
     DirectorDirectiveComponent,
+    SurveyComponent,
     AgentInspectorComponent,
     AgentsPanelComponent,
     ViewToggleComponent,
@@ -78,6 +81,32 @@ export class AppComponent implements OnInit {
 
   settingsMode = signal(false);
   scenarioPolicyMode = signal(false);
+  surveyActive = signal(false);
+
+  /** Available survey building blocks + the draft selection edited in Settings. */
+  readonly surveyParts = SURVEY_PARTS;
+  draftSurveyParts = signal<string[]>([...DEFAULT_SURVEY_PARTS]);
+
+  isDraftSurveyPartEnabled(id: string): boolean {
+    return this.draftSurveyParts().includes(id);
+  }
+
+  toggleDraftSurveyPart(id: string, enabled: boolean) {
+    const cur = this.draftSurveyParts();
+    const next = enabled
+      ? Array.from(new Set([...cur, id]))
+      : cur.filter((x) => x !== id);
+    this.draftSurveyParts.set(next);
+  }
+
+  openSurvey() {
+    this.surveyActive.set(true);
+    this.blurActiveElement();
+  }
+
+  closeSurvey() {
+    this.surveyActive.set(false);
+  }
   draftWidth = signal(50);
   draftHeight = signal(20);
   draftAgents = signal(3);
@@ -138,6 +167,7 @@ export class AppComponent implements OnInit {
         malfunctionRate: this.newMalfunctionRate(),
         malfunctionMinDuration: this.newMalfunctionMinDuration(),
         malfunctionMaxDuration: this.newMalfunctionMaxDuration(),
+        surveyParts: this.store.enabledSurveyParts(),
       }));
     } catch {
       // localStorage can be unavailable in tests / private mode.
@@ -166,6 +196,7 @@ export class AppComponent implements OnInit {
       if (cfg.malfunctionRate != null) this.newMalfunctionRate.set(Number(cfg.malfunctionRate));
       if (cfg.malfunctionMinDuration != null) this.newMalfunctionMinDuration.set(Number(cfg.malfunctionMinDuration));
       if (cfg.malfunctionMaxDuration != null) this.newMalfunctionMaxDuration.set(Number(cfg.malfunctionMaxDuration));
+      if (Array.isArray(cfg.surveyParts)) this.store.setEnabledSurveyParts(cfg.surveyParts.map(String));
     } catch {
       // Ignore malformed persisted settings.
     }
@@ -252,6 +283,7 @@ export class AppComponent implements OnInit {
     this.draftMalfunctionMinDuration.set(this.newMalfunctionMinDuration());
     this.draftMalfunctionMaxDuration.set(this.newMalfunctionMaxDuration());
     this.draftScenarioPolicyIds.set([...this.welcomeScenarioPolicyIds()]);
+    this.draftSurveyParts.set([...this.store.enabledSurveyParts()]);
     this.scenarioPolicyMode.set(false);
     this.settingsMode.set(true);
     this.blurActiveElement();
@@ -278,6 +310,7 @@ export class AppComponent implements OnInit {
     this.newMalfunctionRate.set(this.draftMalfunctionRate());
     this.newMalfunctionMinDuration.set(Math.max(1, Math.floor(this.draftMalfunctionMinDuration() || 1)));
     this.newMalfunctionMaxDuration.set(Math.max(this.newMalfunctionMinDuration(), Math.floor(this.draftMalfunctionMaxDuration() || this.newMalfunctionMinDuration())));
+    this.store.setEnabledSurveyParts(this.draftSurveyParts());
     this.persistSessionSettings();
     this.settingsMode.set(false);
     this.blurActiveElement();
@@ -397,6 +430,13 @@ export class AppComponent implements OnInit {
     // ESC priority:
     // 1) close open settings dialogs/panels
     // 2) only if no dialog/panel was open, deselect selected agent
+
+    if (this.surveyActive()) {
+      this.closeSurvey();
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
 
     if (this.settingsMode()) {
       this.cancelSettings();

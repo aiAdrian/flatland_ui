@@ -1,0 +1,80 @@
+<div class="survey-card">
+  <div class="survey-header">
+    <div>
+      <h2>{{ config().title }}</h2>
+      @if (config().description) { <p>{{ config().description }}</p> }
+    </div>
+    <button class="survey-close" type="button" aria-label="Close survey" (click)="cancel()">×</button>
+  </div>
+
+  <div class="survey-progress">
+    {{ answered() }} / {{ totalQuestions() }} answered
+  </div>
+
+  <div class="survey-body">
+    @for (section of config().sections; track section.id) {
+      <section class="survey-section">
+        <div class="section-head">
+          @if (section.title) { <h3>{{ section.title }}</h3> }
+          @if (section.instrument) { <span class="instrument-tag">{{ section.instrument }}</span> }
+        </div>
+        @if (section.description) { <p class="section-desc">{{ section.description }}</p> }
+
+        @for (q of section.questions; track q.id) {
+          <div class="q">
+            <label class="q-text">{{ q.text }}</label>
+
+            @switch (q.type) {
+              @case ('text') {
+                <textarea
+                  class="q-textarea"
+                  rows="2"
+                  [value]="$any(answers()[q.id]) || ''"
+                  (input)="setAnswer(q.id, $any($event.target).value)"
+                  placeholder="Your answer…"></textarea>
+              }
+              @case ('radio') {
+                <div class="q-options">
+                  @for (opt of q.options; track opt) {
+                    <button type="button" class="q-chip"
+                            [class.selected]="answers()[q.id] === opt"
+                            (click)="setAnswer(q.id, opt)">{{ opt }}</button>
+                  }
+                </div>
+              }
+              @case ('scale') {
+                <div class="q-scale">
+                  <span class="anchor">{{ q.minLabel }}</span>
+                  <input type="range"
+                         [min]="q.min ?? 0" [max]="q.max ?? 100" step="5"
+                         [value]="$any(answers()[q.id]) ?? ((q.min ?? 0) + (q.max ?? 100)) / 2"
+                         (input)="setAnswer(q.id, +$any($event.target).value)" />
+                  <span class="anchor">{{ q.maxLabel }}</span>
+                  <span class="scale-val">{{ answers()[q.id] ?? '–' }}</span>
+                </div>
+              }
+              @default {
+                <div class="q-likert">
+                  <span class="anchor">{{ q.minLabel }}</span>
+                  <div class="likert-buttons">
+                    @for (v of range(q); track v) {
+                      <button type="button" class="likert-btn"
+                              [class.selected]="answers()[q.id] === v"
+                              (click)="setAnswer(q.id, v)">{{ v }}</button>
+                    }
+                  </div>
+                  <span class="anchor">{{ q.maxLabel }}</span>
+                </div>
+              }
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+
+  <div class="survey-actions">
+    <sbb-secondary-button (click)="cancel()">Cancel</sbb-secondary-button>
+    <sbb-button (click)="submit()">Submit</sbb-button>
+  </div>
+</div>

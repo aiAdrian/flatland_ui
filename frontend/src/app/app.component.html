@@ -41,6 +41,7 @@
         <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings</sbb-menu-button>
         <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenarios / Policy</sbb-menu-button>
         <sbb-menu-button (click)="resetWithSettings()">Reset session</sbb-menu-button>
+        <sbb-menu-button icon-name="form-small" (click)="openSurvey()">Post-session survey</sbb-menu-button>
       </sbb-menu>
     </div>
   }
@@ -251,6 +252,21 @@
         </div>
       </section>
 
+      <section class="settings-section">
+        <h3>Post-session Survey</h3>
+        <p class="settings-hint">Choose which questionnaires are shown after a run.</p>
+        <div class="survey-parts">
+          @for (p of surveyParts; track p.id) {
+            <label class="survey-part">
+              <input type="checkbox"
+                     [checked]="isDraftSurveyPartEnabled(p.id)"
+                     (change)="toggleDraftSurveyPart(p.id, $any($event.target).checked)">
+              <span>{{ p.label }}</span>
+            </label>
+          }
+        </div>
+      </section>
+
       <div class="settings-actions">
         <sbb-secondary-button (click)="cancelSettings()">Cancel</sbb-secondary-button>
         <sbb-button (click)="applySettings()">Apply</sbb-button>
@@ -326,6 +342,12 @@
 }
 <!-- /session-dialog-overlays -->
 
+@if (surveyActive()) {
+  <div class="session-dialog-backdrop">
+    <app-survey (closed)="closeSurvey()"></app-survey>
+  </div>
+}
+
 <footer class="footer">
   <div class="footer-left">
     @if (store.session()) {
@@ -345,6 +367,11 @@
       }
       @if (store.loading()) {
         <span class="loading">Loading…</span>
+      }
+      @if (store.episodeDone()) {
+        <button class="footer-survey-btn" type="button" (click)="openSurvey()">
+          Post-session survey →
+        </button>
       }
     } @else {
       <span class="footer-idle">No active session</span>

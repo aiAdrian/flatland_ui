@@ -15,6 +15,39 @@ Frontend follows the official [SBB Design System](https://digital.sbb.ch/en/) an
 
 ---
 
+## Quick start
+
+Requires Python 3.12+ and Node.js 20+ / npm 10+. Use **two terminals**.
+
+```bash
+# 0) clone the playground branch
+git clone -b experiment/vibecoding-playground https://github.com/danib8005/flatland_ui.git
+cd flatland_ui
+```
+
+**Terminal 1 — backend (port 8000):**
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+**Terminal 2 — frontend (port 4200):**
+
+```bash
+cd frontend
+npm install
+npm run start
+```
+
+Then open **http://localhost:4200**. The backend API docs are at
+http://localhost:8000/docs. Detailed setup and endpoints are below.
+
+---
+
 ## Overview
 
 The Flatland Dispatcher UI is a modular HMI for interactive railway dispatching experiments.  

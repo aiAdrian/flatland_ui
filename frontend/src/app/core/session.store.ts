@@ -218,6 +218,16 @@ export class SessionStore {
    */
   readonly interactionMode = signal<InteractionMode>('recommendation');
 
+  /** Which post-session survey parts are active (configured in Settings).
+   *  Default: all parts (see DEFAULT_SURVEY_PARTS). */
+  readonly enabledSurveyParts = signal<string[]>([
+    'mode', 'nasa-tlx', 'trust', 'ueq-s', 'open',
+  ]);
+
+  setEnabledSurveyParts(ids: string[]): void {
+    this.enabledSurveyParts.set([...ids]);
+  }
+
   /** True while the AI drives the simulation autonomously (Director / WP 3.4). */
   readonly aiInControl = computed(() => this.interactionMode() === 'director');
   /** True in Co-Learning mode (WP 3.3), where human interventions are logged. */
