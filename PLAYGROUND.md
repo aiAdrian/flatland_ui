@@ -81,24 +81,39 @@ emoji icons), clearer hierarchy. Lays groundwork for the event-centric layout.
 
 Key files: `features/notifications-panel/*`.
 
-## 5. Agent details as an inline card
+## 5. Three-zone information architecture (Hypervision direction)
 
-The thin "Agent Info" line + fixed hover-popover were replaced by a clean
-**inline detail card** that appears when an agent is selected (colour dot, train
-id, state badge, 2-column data grid, delay/malfunction highlighting). The
-component's ~500-line `!important`-heavy SCSS was rewritten to ~90 clean lines.
+The layout was restructured into three clear zones, following the AI4REALNET
+Hypervision / InteractiveAI pattern (situation → visualisation → intervention):
 
-Key files: `features/agent-inspector/*`.
+- **LEFT — situation:** a new `situation-summary` (Hypervision synthesis:
+  arrived/total, active, delayed, malfunctions), the Event Feed, and the Agents
+  list — Event Feed and Agents split 50/50 below the summary.
+- **MIDDLE — visualisation:** map controls bar (View + Layer chips) + map/marey,
+  plus **agent details as a floating map-corner overlay** (key facts +
+  next-decision action buttons). The old side panel of numbers is gone — details
+  now have spatial context where the action happens.
+- **RIGHT — intervention:** all leverage grouped here — Policies (scenario
+  comparison), Recommendations (WP 3.1 only), then Options (KPI weights). The KPI
+  filter moved here from the left, fixing the earlier left/right inconsistency
+  (it is the "objective" lever, alongside the policy and per-agent levers).
 
-## 6. Layer visibility moved to the map
+The agent-inspector was rewritten from a hover-popover into the map overlay; its
+~500-line `!important`-heavy SCSS is now ~90 clean lines.
 
-Layer toggles control the map, so they moved from the left column into a **map
-controls bar** above the map (next to the View toggle), rendered as compact
-chips and only shown when the map is visible. The left column is now Event Feed +
-KPI filter.
-
-Key files: `app.component.*`, `features/layer-visibility/*`,
+Key files: `app.component.*`, `features/situation-summary/*`,
+`features/agent-inspector/*`, `features/layer-visibility/*`,
 `features/view-toggle/*`.
+
+## 6. Relationship to Adrian's Designer prompt
+
+Adrian's `aiAdrian/Designer` branch specifies a **configurable layout *designer***
+(drag-and-drop panels, EventBus/SharedState, persistence). This branch ships a
+**fixed** three-zone layout instead — intended to become one `LayoutDefinition`
+**preset** inside that future system. The feature work (modes, KPI, Hypervision,
+reflection) is independent of the layout system and can be adopted on its own.
+See [`docs/layout-preset-and-designer-alignment.md`](docs/layout-preset-and-designer-alignment.md)
+for a panel-by-panel mapping and a feature-layer vs. layout-layer split.
 
 ## 7. Cleanup
 
