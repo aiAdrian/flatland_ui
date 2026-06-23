@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal, untracked } from '@angula
 import { ApiService } from './api.service';
 import {
   AppNotification,
+  ImpactItem,
   InteractionMode,
   KpiPriorities,
   KpiWeights,
@@ -241,6 +242,14 @@ export class SessionStore {
     this.demoMalfunctionTypes.set(on);
   }
 
+  /** How many Co-Learning reflection questions to show per incident.
+   *  Samira's storyboard: 2 of 5. Configurable in Settings. */
+  readonly reflectionQuestionLimit = signal<number>(2);
+
+  setReflectionQuestionLimit(n: number): void {
+    this.reflectionQuestionLimit.set(Math.max(1, Math.min(5, Math.floor(n || 1))));
+  }
+
   /** Synthetic operational malfunction types (AI4REALNET D4.1 taxonomy A). */
   private static readonly DEMO_MALFUNCTION_TYPES = [
     'Track blockage',
@@ -334,6 +343,8 @@ export class SessionStore {
   readonly notifications = signal<AppNotification[]>([]);
   readonly scenarios = signal<ScenarioOption[]>([]);
   readonly recommendations = signal<Recommendation[]>([]);
+  /** Phase-1 impact analysis: trains affected by a malfunction. */
+  readonly impact = signal<ImpactItem[]>([]);
   readonly focusedElement = signal<{ kind: 'train' | 'switch' | 'signal'; id: string } | null>(null);
 
   constructor() {
@@ -548,6 +559,7 @@ export class SessionStore {
     this.playing.set(false);
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
+    this.impact.set([]);
     const payload: any = {};
     if (opts.width != null) payload.width = opts.width;
     if (opts.height != null) payload.height = opts.height;
@@ -683,6 +695,7 @@ export class SessionStore {
     this.playing.set(false);
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
+    this.impact.set([]);
     this.api.reset(s.id).subscribe({
       next: () => this.refreshState(true),
       error: (e) => {
@@ -849,6 +862,10 @@ export class SessionStore {
     });
     this.api.getRecommendations(s.id, kpi).subscribe({
       next: (recs) => this.recommendations.set(recs),
+      error: () => {},
+    });
+    this.api.getImpact(s.id).subscribe({
+      next: (items) => this.impact.set(items),
       error: () => {},
     });
   }

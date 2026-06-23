@@ -107,6 +107,7 @@
       @if (store.aiInControl()) {
         <app-goal-achievement></app-goal-achievement>
       }
+      <app-impact-panel></app-impact-panel>
       <app-scenario-panel></app-scenario-panel>
       @if (store.optionPresentation() === 'recommended') {
         <app-recommendations-panel></app-recommendations-panel>
@@ -255,6 +256,18 @@
           <label><span>Max Cities</span><input type="number" min="2" max="10" [value]="draftMaxNumCities()" (input)="draftMaxNumCities.set(+$any($event.target).value)"></label>
           <label><span>Rails Between Cities</span><input type="number" min="1" max="10" [value]="draftMaxRailsBetweenCities()" (input)="draftMaxRailsBetweenCities.set(+$any($event.target).value)"></label>
           <label><span>Rail Pairs In City</span><input type="number" min="1" max="10" [value]="draftMaxRailPairsInCity()" (input)="draftMaxRailPairsInCity.set(+$any($event.target).value)"></label>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3>Co-Learning Reflection</h3>
+        <div class="settings-grid">
+          <label title="How many of the 5 reflection questions to show per incident (Samira: 2 of 5).">
+            <span>Reflection questions shown</span>
+            <input type="number" min="1" max="5"
+                   [value]="draftReflectionLimit()"
+                   (input)="draftReflectionLimit.set(+$any($event.target).value)">
+          </label>
         </div>
       </section>
 

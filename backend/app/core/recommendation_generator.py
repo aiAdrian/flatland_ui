@@ -81,22 +81,22 @@ def generate_recommendations(
     if not candidates:
         return []
 
-    top = candidates[0]
-
-    # Refuse to surface a "recommendation" that introduces deadlocks.
-    if top.result.kpis.get("num_deadlock_cycles", 0) > 0:
-        return []
-
-    # Must clearly beat baseline.
-    if (top.score - baseline.score) < SCORE_MARGIN:
-        return []
-
-    label = POLICY_LABELS.get(top.policy_id, top.policy_id)
-    return [Recommendation(
-        id=f"rec_policy_{top.policy_id}",
-        title=f"Switch to {label}",
-        description=_describe(top, baseline),
-        confidence=round(_confidence(top.score), 2),
-        countdownSeconds=30,            # generic; policy switch isn't time-critical
-        scenarioId=f"scn_{top.policy_id}",
-    )]
+    # Surface up to 3 recommendations (ranked, no explanation text). The human
+    # can still do something else entirely (overrides stay available).
+    recs: List[Recommendation] = []
+    for cand in candidates[:3]:
+        # Skip options that introduce deadlocks or don't clearly beat baseline.
+        if cand.result.kpis.get("num_deadlock_cycles", 0) > 0:
+            continue
+        if (cand.score - baseline.score) < SCORE_MARGIN:
+            continue
+        label = POLICY_LABELS.get(cand.policy_id, cand.policy_id)
+        recs.append(Recommendation(
+            id=f"rec_policy_{cand.policy_id}",
+            title=f"Switch to {label}",
+            description="",                 # no explanation (by design)
+            confidence=round(_confidence(cand.score), 2),
+            countdownSeconds=30,            # generic; policy switch isn't time-critical
+            scenarioId=f"scn_{cand.policy_id}",
+        ))
+    return recs

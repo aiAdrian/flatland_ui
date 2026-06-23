@@ -16,6 +16,7 @@ import { SituationSummaryComponent } from './features/situation-summary/situatio
 import { GoalAchievementComponent } from './features/goal-achievement/goal-achievement.component';
 import { DirectorDirectiveComponent } from './features/director-directive/director-directive.component';
 import { SurveyComponent } from './features/survey/survey.component';
+import { ImpactPanelComponent } from './features/impact-panel/impact-panel.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
 import { SessionStore } from './core/session.store';
@@ -38,6 +39,7 @@ import { InteractionMode } from './core/events/event-types';
     GoalAchievementComponent,
     DirectorDirectiveComponent,
     SurveyComponent,
+    ImpactPanelComponent,
     AgentInspectorComponent,
     AgentsPanelComponent,
     ViewToggleComponent,
@@ -87,6 +89,7 @@ export class AppComponent implements OnInit {
   readonly surveyParts = SURVEY_PARTS;
   draftSurveyParts = signal<string[]>([...DEFAULT_SURVEY_PARTS]);
   draftDemoMalfunctionTypes = signal(false);
+  draftReflectionLimit = signal(2);
 
   isDraftSurveyPartEnabled(id: string): boolean {
     return this.draftSurveyParts().includes(id);
@@ -170,6 +173,7 @@ export class AppComponent implements OnInit {
         malfunctionMaxDuration: this.newMalfunctionMaxDuration(),
         surveyParts: this.store.enabledSurveyParts(),
         demoMalfunctionTypes: this.store.demoMalfunctionTypes(),
+        reflectionLimit: this.store.reflectionQuestionLimit(),
       }));
     } catch {
       // localStorage can be unavailable in tests / private mode.
@@ -200,6 +204,7 @@ export class AppComponent implements OnInit {
       if (cfg.malfunctionMaxDuration != null) this.newMalfunctionMaxDuration.set(Number(cfg.malfunctionMaxDuration));
       if (Array.isArray(cfg.surveyParts)) this.store.setEnabledSurveyParts(cfg.surveyParts.map(String));
       if (cfg.demoMalfunctionTypes != null) this.store.setDemoMalfunctionTypes(Boolean(cfg.demoMalfunctionTypes));
+      if (cfg.reflectionLimit != null) this.store.setReflectionQuestionLimit(Number(cfg.reflectionLimit));
     } catch {
       // Ignore malformed persisted settings.
     }
@@ -288,6 +293,7 @@ export class AppComponent implements OnInit {
     this.draftScenarioPolicyIds.set([...this.welcomeScenarioPolicyIds()]);
     this.draftSurveyParts.set([...this.store.enabledSurveyParts()]);
     this.draftDemoMalfunctionTypes.set(this.store.demoMalfunctionTypes());
+    this.draftReflectionLimit.set(this.store.reflectionQuestionLimit());
     this.scenarioPolicyMode.set(false);
     this.settingsMode.set(true);
     this.blurActiveElement();
@@ -316,6 +322,7 @@ export class AppComponent implements OnInit {
     this.newMalfunctionMaxDuration.set(Math.max(this.newMalfunctionMinDuration(), Math.floor(this.draftMalfunctionMaxDuration() || this.newMalfunctionMinDuration())));
     this.store.setEnabledSurveyParts(this.draftSurveyParts());
     this.store.setDemoMalfunctionTypes(this.draftDemoMalfunctionTypes());
+    this.store.setReflectionQuestionLimit(this.draftReflectionLimit());
     this.persistSessionSettings();
     this.settingsMode.set(false);
     this.blurActiveElement();

@@ -11,7 +11,7 @@ import {
   SessionState,
   StepResponse,
 } from './models';
-import { AppNotification, KpiPriorities, Recommendation, ScenarioOption } from './events/event-types';
+import { AppNotification, ImpactItem, KpiPriorities, Recommendation, ScenarioOption } from './events/event-types';
 
 /** Build the KPI query params for the scenario/recommendation endpoints. */
 function kpiParams(kpi?: KpiPriorities): { [k: string]: string } {
@@ -92,6 +92,10 @@ export class ApiService {
 
   getRecommendations(id: string, kpi?: KpiPriorities) {
     return this.http.get<Recommendation[]>(`${API_BASE}/session/${id}/hmi/recommendations`, { params: kpiParams(kpi) });
+  }
+
+  getImpact(id: string) {
+    return this.http.get<ImpactItem[]>(`${API_BASE}/session/${id}/hmi/impact`);
   }
 
   getHmiBundle(id: string) {

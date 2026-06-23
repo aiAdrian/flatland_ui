@@ -91,6 +91,18 @@ export interface Recommendation {
   scenarioId?: string;
 }
 
+/** One affected train from the Phase-1 impact analysis (malfunction fallout). */
+export interface ImpactItem {
+  handle: number;
+  blocked_by: number;
+  blocked_cell: [number, number];
+  eta_steps: number;
+  clears_in_steps: number;
+  can_reroute: boolean;
+  recommended_action: 'reroute' | 'hold';
+  severity: 'high' | 'medium';
+}
+
 export type AppEvent =
   | { type: 'SIMULATION_TIME_CHANGED'; time: number }
   | { type: 'FOCUS_INFRASTRUCTURE_ELEMENT'; kind: 'switch' | 'signal' | 'train'; id: string }

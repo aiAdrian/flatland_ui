@@ -48,7 +48,7 @@
     <div class="rp-section">
       <span class="rp-mode" title="Supportive-AI modes: Animation / Transparency">AM · reflect &amp; conceptualise</span>
       <div class="questions">
-        @for (q of questions(); track q.key) {
+        @for (q of visibleQuestions(); track q.key) {
           <div class="question">
             <label class="q-text">
               {{ q.text }}

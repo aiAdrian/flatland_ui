@@ -1,0 +1,46 @@
+@if (store.impact().length > 0) {
+  <div class="impact-panel">
+    <div class="ip-head">
+      <h3 class="panel-title">Impact — Affected Trains</h3>
+      <span class="ip-count">{{ store.impact().length }}</span>
+    </div>
+
+    <ul class="ip-list">
+      @for (item of store.impact(); track item.handle) {
+        <li class="ip-item" [class.high]="item.severity === 'high'">
+          <div class="ip-row">
+            <span class="ip-dot" [style.background]="agentColor(item.handle)"></span>
+            <span class="ip-title">Train {{ item.handle }}</span>
+            <span class="ip-sev" [class.high]="item.severity === 'high'">{{ item.severity }}</span>
+          </div>
+          <div class="ip-why">
+            blocked by Train {{ item.blocked_by }} at ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
+            · reaches in {{ item.eta_steps }} · clears in {{ item.clears_in_steps }}
+          </div>
+
+          @switch (store.optionPresentation()) {
+            @case ('recommended') {
+              <div class="ip-actions">
+                <span class="ip-rec">Recommended: {{ item.recommended_action }}</span>
+                <button class="ip-btn" type="button" (click)="apply(item)">
+                  {{ item.recommended_action === 'hold' ? 'Hold train' : 'Reroute…' }}
+                </button>
+              </div>
+            }
+            @case ('neutral') {
+              <div class="ip-actions">
+                <span class="ip-options">
+                  Options: reroute @if (item.can_reroute) {} @else { (no switch — hold only) } · hold
+                </span>
+                <button class="ip-btn neutral" type="button" (click)="inspect(item)">Inspect</button>
+              </div>
+            }
+            @default {
+              <div class="ip-overview">AI handling autonomously</div>
+            }
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}

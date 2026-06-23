@@ -86,6 +86,27 @@ def get_notifications(session_id: str):
     return generate_notifications(session_id, _step_for(session_id))
 
 
+@router.get("/{session_id}/hmi/impact")
+def get_impact(session_id: str):
+    """Impact analysis / intervention recommendations: trains affected by a
+    malfunctioning train, with a per-train recommendation. Produced by the active
+    InterventionRecommender (pluggable seam) — Phase-1 proximity today, PP replan
+    / RL later. Empty when there is no active malfunction."""
+    from app.core.recommenders.registry import active_recommender
+
+    sess = session_manager.get(session_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    env = getattr(sess, "env", None)
+    if env is None:
+        return []
+    try:
+        return active_recommender().recommend(env)
+    except Exception as e:
+        _perf_log.warning("Impact analysis failed for %s: %r", session_id, e)
+        return []
+
+
 # ── scenarios (real, with mock fallback) ───────────────────────────
 
 

@@ -66,6 +66,11 @@ export class CoLearningReflectionComponent {
     ];
   });
 
+  /** Only the first N questions are shown (Samira: 2 of 5), configurable. */
+  readonly visibleQuestions = computed<ReflectionQuestion[]>(() =>
+    this.questions().slice(0, this.store.reflectionQuestionLimit()),
+  );
+
   readonly answers = signal<Record<string, string>>({});
 
   private static readonly STORAGE_PREFIX = 'flatland_colearning_reflection_';
