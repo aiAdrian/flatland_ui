@@ -54,9 +54,10 @@ def test_generate_recommendations_empty_without_candidates():
 
 
 def test_generate_recommendations_empty_when_margin_too_small():
+    # Candidate beats baseline by only 0.03, below SCORE_MARGIN (0.05).
     scenarios = [
         _scenario("baseline", "deadlock_avoidance", 0.80),
-        _scenario("Forward Only", "forward_only", 0.85),
+        _scenario("Forward Only", "forward_only", 0.83),
     ]
     assert generate_recommendations("sid", scenarios) == []
 
@@ -91,10 +92,16 @@ def test_generate_recommendations_returns_top_policy_recommendation():
     assert rec.countdownSeconds >= 5
 
 
-def test_generate_recommendations_at_most_one():
+def test_generate_recommendations_caps_at_three_ranked():
+    # The generator surfaces up to 3 qualifying alternatives, ranked by score
+    # (best first). All of these clearly beat the baseline.
     scenarios = [
         _scenario("baseline", "deadlock_avoidance", 0.0),
         _scenario("Forward Only", "forward_only", 0.9),
         _scenario("Random", "random", 0.8),
+        _scenario("Shortest Path", "shortest_path", 0.7),
+        _scenario("Do Nothing", "do_nothing", 0.6),
     ]
-    assert len(generate_recommendations("sid", scenarios)) <= 1
+    recs = generate_recommendations("sid", scenarios)
+    assert len(recs) <= 3
+    assert recs[0].id == "rec_policy_forward_only"

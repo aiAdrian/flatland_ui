@@ -57,9 +57,12 @@ def _describe(top: Scenario, baseline: Scenario) -> str:
     return " · ".join(parts)
 
 
-# Hard-coded baseline confidence threshold: only surface a recommendation
-# if the alternative's score is at least this much higher than baseline.
-SCORE_MARGIN = 0.10
+# Baseline confidence threshold: only surface a recommendation if the
+# alternative's score is at least this much higher than baseline. Kept low
+# so near-ties still surface — DLA is a strong baseline, and with a high
+# margin the panel stayed empty for whole runs (see demo feedback). Phase 2
+# scripted events will instead guarantee a decision moment deterministically.
+SCORE_MARGIN = 0.05
 
 
 def generate_recommendations(
