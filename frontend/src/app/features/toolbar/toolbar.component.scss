@@ -30,13 +30,6 @@ sbb-button {
 sbb-tag {
   user-select: none;
 
-  &.done-tag {
-    --sbb-tag-background-color: #00973b;
-    --sbb-tag-color: white;
-    background: #00973b !important;
-    color: white !important;
-    font-weight: 700;
-  }
 }
 
 .label {
@@ -262,4 +255,20 @@ sbb-transparent-button.config-action.active {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+}
+
+.episode-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-left: 8px;
+  padding: 0 10px;
+  color: var(--sbb-color-granite, #666);
+  background: var(--sbb-color-milk, #f6f6f6);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
 }

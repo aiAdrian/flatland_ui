@@ -1,109 +1,116 @@
-"""OverridePolicy: wraps a policy and applies user overrides.
+"""Runtime policy wrapper for user action overrides.
 
 Semantics:
-- A user override is parked until the agent reaches a SWITCH/MERGING cell.
-- At that decision cell the override wins for exactly one action.
-- Immediately after application the override is cleared.
-- If the agent is not at a decision cell, the override remains parked.
+- Setting an override does NOT execute it immediately.
+- The wrapped/base policy controls the train until the agent reaches a
+  decision point.
+- At a decision point (SWITCH or MERGING), the override action is applied once.
+- Immediately after application, the override is cleared.
+
+UI mental model:
+  "Apply my next action at the next decision point."
 """
-from typing import Optional
+from __future__ import annotations
 
-from flatland.core.env_observation_builder import ObservationBuilder
-from flatland.envs.rail_env import RailEnv
-from flatland.envs.rail_env_action import RailEnvActions
+from typing import Any, Dict, Iterable
 
-STOP_MOVING_ACTION_VALUE = int(RailEnvActions.STOP_MOVING.value)
+from flatland.envs.rail_env import RailEnvActions
+from flatland.envs.step_utils.states import TrainState
 
-from app.core.cell_classifier import classify_cell_at as classify_cell
+from app.core.cell_classifier import classify_cell_at
 from app.core.override_manager import override_manager
-from app.policies.base import Policy
 
 
-class OverridePolicy(Policy):
-    """Wraps any policy; user overrides are one-shot at next decision point."""
+class OverridePolicy:
+    """Wrap a runtime policy and delay user overrides until a decision point."""
 
-    def __init__(self, default: Policy, session_id: str):
-        self._default = default
-        self._session_id = session_id
-        self._env: Optional[RailEnv] = None
+    def __init__(self, default_policy: Any, session_id: str):
+        self.default_policy = default_policy
+        self.session_id = session_id
+        self.env = None
 
-    def reset(self, env: RailEnv) -> None:
-        self._env = env
-        self._default.reset(env)
+    def reset(self, env) -> None:
+        self.env = env
+        if hasattr(self.default_policy, "reset"):
+            self.default_policy.reset(env)
 
-    def start_episode(self, train: bool = False) -> None:
-        self._default.start_episode(train)
+    def start_episode(self) -> None:
+        if hasattr(self.default_policy, "start_episode"):
+            self.default_policy.start_episode()
 
-    def start_step(self, train: bool = False) -> None:
-        self._default.start_step(train)
+    def end_episode(self) -> None:
+        if hasattr(self.default_policy, "end_episode"):
+            self.default_policy.end_episode()
 
-    def end_step(self, train: bool = False) -> None:
-        self._default.end_step(train)
+    def start_step(self) -> None:
+        if hasattr(self.default_policy, "start_step"):
+            self.default_policy.start_step()
 
-    def end_episode(self, train: bool = False) -> None:
-        self._default.end_episode(train)
+    def end_step(self) -> None:
+        if hasattr(self.default_policy, "end_step"):
+            self.default_policy.end_step()
 
-    def build_observation_builder(self) -> ObservationBuilder:
-        return self._default.build_observation_builder()
+    def act_many(self, handles: Iterable[int], observations: Dict[int, Any]) -> Dict[int, Any]:
+        handles = [int(h) for h in handles]
 
-    def build_predictor(self):
-        return self._default.build_predictor()
+        if hasattr(self.default_policy, "act_many"):
+            actions = dict(self.default_policy.act_many(handles, observations) or {})
+        else:
+            actions = {
+                h: self.default_policy.act(h, observations.get(h))
+                for h in handles
+            }
 
-    def _one_shot_override_for(self, handle):
-        """Return override for handle.
+        if self.env is None:
+            return actions
 
-        UX semantics:
-        - STOP_MOVING is persistent and applies immediately on every step
-          until the user explicitly clears/releases it.
-        - LEFT/FORWARD/RIGHT are decision overrides:
-          they are parked until the agent reaches SWITCH/MERGING, then
-          applied once and cleared.
-        """
-        h = int(handle)
-        override = override_manager.get(self._session_id, h)
-        if override is None:
-            return None
-
-        override_int = int(override.value if hasattr(override, "value") else override)
-
-        # Manual STOP is sticky/persistent and applies anywhere.
-        if override_int == STOP_MOVING_ACTION_VALUE:
-            return RailEnvActions.STOP_MOVING
-
-        # Non-stop overrides are only consumed at decision cells.
-        env = getattr(self, "_env", None) or getattr(self, "env", None)
-        if env is None:
-            return None
-
-        try:
-            agent = env.agents[h]
-        except Exception:
-            return None
-
-        if agent.position is None or agent.direction is None:
-            return None
-
-        kind = classify_cell(env, agent.position, agent.direction)
-        if kind not in ("SWITCH", "MERGING"):
-            # Park override until decision cell.
-            return None
-
-        # Consume one-shot decision override.
-        override_manager.clear(self._session_id, h)
-        return RailEnvActions(override_int)
-
-    def act_many(self, handles, observations, **kwargs):
-        actions = self._default.act_many(handles, observations, **kwargs)
         for h in handles:
-            override_action = self._one_shot_override_for(h)
-            if override_action is not None:
-                actions[h] = override_action
+            override_action = override_manager.get(self.session_id, h)
+            if override_action is None:
+                continue
+
+            agent = self.env.agents[h]
+
+            # Done agents do not need pending overrides anymore.
+            if getattr(agent, "state", None) == TrainState.DONE:
+                override_manager.clear(self.session_id, h)
+                continue
+
+            pos = getattr(agent, "position", None)
+            direction = getattr(agent, "direction", None)
+
+            # Off-map / not ready yet:
+            # keep override pending, do not apply.
+            if pos is None or direction is None:
+                continue
+
+            cur_pos = (int(pos[0]), int(pos[1]))
+
+            # Core bug fix:
+            # Override is only consumed at an actual decision point.
+            cell_type = classify_cell_at(self.env, cur_pos, int(direction))
+            if cell_type not in ("SWITCH", "MERGING"):
+                continue
+
+            # At DP: apply override.
+            action = RailEnvActions(int(override_action))
+            actions[h] = action
+
+            # STOP is sticky at the decision point:
+            # keep issuing STOP until the user clears/replaces the override.
+            #
+            # LEFT/FORWARD/RIGHT are one-shot decision actions:
+            # apply once at the DP, then clear.
+            if action != RailEnvActions.STOP_MOVING:
+                override_manager.clear(self.session_id, h)
+
         return actions
 
-    def act_for_handle(self, handle, observation=None, eps=0.0):
-        action = self._default.act_for_handle(handle, observation, eps)
-        override_action = self._one_shot_override_for(handle)
-        return override_action if override_action is not None else action
+    def act(self, handle: int, observation: Any = None) -> Any:
+        handle = int(handle)
+        return self.act_many([handle], {handle: observation}).get(handle)
 
-    def get_name(self) -> str:
-        return f"Override({self._default.get_name()})"
+    def act_for_handle(self, handle: int) -> Any:
+        """Backwards-compatible helper used by tests/callers."""
+        handle = int(handle)
+        return self.act_many([handle], {handle: self.env}).get(handle)

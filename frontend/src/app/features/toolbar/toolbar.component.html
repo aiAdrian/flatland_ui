@@ -62,7 +62,7 @@
   <div class="spacer"></div>
 
   @if (store.episodeDone()) {
-    <sbb-tag class="done-tag">Episode finished</sbb-tag>
+    <span class="episode-status" role="status" aria-live="polite">Episode finished</span>
   }
 
   @if (store.loading()) {

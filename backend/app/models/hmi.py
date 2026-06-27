@@ -1,5 +1,5 @@
 """HMI-Mock-Models fuer Notifications, Scenarios, Recommendations."""
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel
 
 
@@ -45,6 +45,16 @@ class TrajectoryPoint(BaseModel):
     row: int
     col: int
     dir: int  # 0=N, 1=E, 2=S, 3=W
+
+    # Optional Marey/topology debug metadata.
+    # Kept optional for backwards-compatible API responses.
+    handle: Optional[int] = None
+    agent_id: Optional[int] = None
+    marey_topology: Optional[str] = None
+    marey_svg: Optional[str] = None
+    marey_debug: Optional[dict[str, Any]] = None
+    marey_switch: Optional[dict[str, Any]] = None
+    marey_merge: Optional[dict[str, Any]] = None
 
 
 class ScenarioOption(BaseModel):

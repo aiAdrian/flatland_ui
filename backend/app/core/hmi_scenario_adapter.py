@@ -1,11 +1,13 @@
 """Adapter: ScenarioBuilder.Scenario → app.models.hmi.ScenarioOption."""
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.core.scenario_builder import Scenario
 from app.core.scenario_runner import BranchResult
 from app.models.hmi import KpiDelta, ScenarioKpis, ScenarioOption, TrajectoryPoint
+from app.core.marey_topology import classify_marey_point
+from app.core.tile_resolver import resolve_tile
 
 
 POLICY_LABELS = {
@@ -97,36 +99,218 @@ def _describe(
     return "≈ Same outcome as current policy"
 
 
-def _extract_trajectories(snapshots):
+def _safe_int(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _taken_out_dir(current_point: dict, next_point: Optional[dict]) -> Optional[int]:
+    """Derive the actually taken outgoing direction from consecutive positions.
+
+    Flatland direction convention:
+      0=N, 1=E, 2=S, 3=W
+    """
+    if next_point is None:
+        return None
+
+    try:
+        r0 = int(current_point["row"])
+        c0 = int(current_point["col"])
+        r1 = int(next_point["row"])
+        c1 = int(next_point["col"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+    dr = r1 - r0
+    dc = c1 - c0
+
+    if dr == -1 and dc == 0:
+        return 0
+    if dr == 0 and dc == 1:
+        return 1
+    if dr == 1 and dc == 0:
+        return 2
+    if dr == 0 and dc == -1:
+        return 3
+
+    # Non-adjacent or waiting/duplicate point: no reliable outgoing direction.
+    return None
+
+
+def _marey_svg_for_cell(env: Any, row: int, col: int) -> Optional[str]:
+    """Resolve SVG filename for a rail cell, matching map tile serialization."""
+    if env is None:
+        return None
+
+    try:
+        value = int(env.rail.grid[int(row), int(col)])
+    except Exception:
+        return None
+
+    if value == 0:
+        return None
+
+    try:
+        resolved = resolve_tile(value)
+    except Exception:
+        return None
+
+    if resolved is None:
+        # Keep same fallback as build_rail_tiles() / /hmi/marey-data.
+        return "Gleis_horizontal.svg"
+
+    svg, _rot = resolved
+    return svg
+
+
+def _marey_error_metadata(
+    *,
+    row: int,
+    col: int,
+    direction: int,
+    step: Optional[int],
+    handle: Optional[int],
+    marey_svg: Optional[str],
+    exc: Exception,
+) -> dict:
+    """Backward-compatible fallback if topology enrichment hits an edge case."""
+    return {
+        "marey_topology": "unknown",
+        "marey_svg": marey_svg,
+        "marey_debug": {
+            "pos": [int(row), int(col)],
+            "dir": int(direction),
+            "step": _safe_int(step),
+            "handle": _safe_int(handle),
+            "transition_bits": None,
+            "possible_out_dirs": [],
+            "possible_transitions": [],
+            "backward_transitions": {},
+            "possible_in_dirs_for_out": {},
+            "classification_reason": (
+                f"topology enrichment failed: {type(exc).__name__}: {exc}"
+            ),
+        },
+        "marey_switch": None,
+        "marey_merge": None,
+    }
+
+
+def _extract_trajectories(snapshots, env: Optional[Any] = None):
     """Snapshots → {handle_str: [TrajectoryPoint, ...]}.
 
     Off-map agents (pos is None) are skipped per step.
+
+    If env is provided, each point is enriched with backend-derived Marey
+    topology metadata:
+      - marey_topology
+      - marey_svg
+      - marey_debug
+      - marey_switch
+      - marey_merge
     """
-    out: dict = {}
+    raw: Dict[str, List[dict]] = {}
+
+    # First pass: collect raw per-agent points in chronological order.
     for snap in snapshots:
         step = int(snap.get("step", 0))
         agents = snap.get("agents") or {}
+
         # Snapshot agents may be dict {handle: {...}} or list of dicts.
         if isinstance(agents, dict):
             iterator = agents.items()
         else:
             iterator = ((str(i), a) for i, a in enumerate(agents))
+
         for handle, info in iterator:
             pos = info.get("pos") if isinstance(info, dict) else None
-            d   = info.get("dir") if isinstance(info, dict) else None
+            d = info.get("dir") if isinstance(info, dict) else None
+
             if pos is None or d is None:
                 continue
+
             try:
                 row, col = int(pos[0]), int(pos[1])
+                dir_i = int(d)
             except (TypeError, ValueError, IndexError):
                 continue
-            out.setdefault(str(handle), []).append(
-                TrajectoryPoint(step=step, row=row, col=col, dir=int(d))
+
+            handle_str = str(handle)
+            handle_i = _safe_int(handle)
+
+            raw.setdefault(handle_str, []).append(
+                {
+                    "step": step,
+                    "row": row,
+                    "col": col,
+                    "dir": dir_i,
+                    "handle": handle_i,
+                    "agent_id": handle_i,
+                }
             )
+
+    # Second pass: enrich each point, using the next point to derive
+    # the actually taken outgoing direction.
+    out: Dict[str, List[TrajectoryPoint]] = {}
+
+    for handle_str, points in raw.items():
+        handle_i = _safe_int(handle_str)
+        enriched: List[TrajectoryPoint] = []
+
+        for idx, point in enumerate(points):
+            next_point = points[idx + 1] if idx + 1 < len(points) else None
+
+            row_i = int(point["row"])
+            col_i = int(point["col"])
+            dir_i = int(point["dir"])
+            step_i = int(point["step"])
+
+            data = dict(point)
+            data["handle"] = handle_i
+            data["agent_id"] = handle_i
+
+            if env is not None:
+                marey_svg = _marey_svg_for_cell(env, row_i, col_i)
+                taken_out_dir = _taken_out_dir(point, next_point)
+
+                try:
+                    data.update(
+                        classify_marey_point(
+                            env,
+                            row_i,
+                            col_i,
+                            dir_i,
+                            step=step_i,
+                            handle=handle_i,
+                            taken_out_dir=taken_out_dir,
+                            marey_svg=marey_svg,
+                        )
+                    )
+                except Exception as exc:
+                    data.update(
+                        _marey_error_metadata(
+                            row=row_i,
+                            col=col_i,
+                            direction=dir_i,
+                            step=step_i,
+                            handle=handle_i,
+                            marey_svg=marey_svg,
+                            exc=exc,
+                        )
+                    )
+
+            enriched.append(TrajectoryPoint(**data))
+
+        out[handle_str] = enriched
+
     return out
 
 
-def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
+def scenarios_to_options(scenarios: List[Scenario], env: Optional[Any] = None) -> List[ScenarioOption]:
     baseline_scenario = next((s for s in scenarios if s.name == "baseline"), None)
     base_kpis = _kpis_from(baseline_scenario.result) if baseline_scenario else None
 
@@ -136,7 +320,7 @@ def scenarios_to_options(scenarios: List[Scenario]) -> List[ScenarioOption]:
         is_baseline = (s.name == "baseline")
         deltas = None if is_baseline or base_kpis is None else _deltas(kpis, base_kpis)
         out.append(ScenarioOption(
-            trajectories=_extract_trajectories(s.result.snapshots),
+            trajectories=_extract_trajectories(s.result.snapshots, env=env),
             id=f"scn_{s.policy_id}",
             title=_label_for(s),
             description=_describe(kpis, deltas, s.result.total_agents, is_baseline),

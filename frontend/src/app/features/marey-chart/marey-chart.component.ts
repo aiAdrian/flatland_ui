@@ -1,11 +1,20 @@
 import {
-  Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal,
-  ElementRef, viewChild, AfterViewInit,
+  Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal, ElementRef, viewChild, AfterViewInit, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
+import { ApiService } from '../../core/api.service';
 import { RailTile, NextDecision, DecisionOption, AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
+import { RailCellHoverService } from '../../services/rail-cell-hover.service';
+import type { TrajectoryPoint } from '../../core/events/event-types';
+
+type MareyTrajectoryPoint = TrajectoryPoint & {
+  endStep?: number;
+  durationSteps?: number;
+  dwellSteps?: number;
+  state?: string;
+};
 
 interface DecisionPill {
   /** Action int (0..4) — matches RailEnvActions / AgentDTO.override_action. */
@@ -68,6 +77,21 @@ interface AgentLabel {
   isActive: boolean;
 }
 
+interface TopologyTile {
+  svg: string;
+  rot: number;
+  xCoord: number;
+  yCoord: number;
+  step?: number;
+  row?: number;
+  col?: number;
+  dir?: number;
+  marey_topology?: string | null;
+  marey_debug?: TrajectoryPoint['marey_debug'];
+  marey_switch?: TrajectoryPoint['marey_switch'];
+  marey_merge?: TrajectoryPoint['marey_merge'];
+}
+
 @Component({
   selector: 'app-marey-chart',
   standalone: true,
@@ -78,7 +102,9 @@ interface AgentLabel {
 })
 export class MareyChartComponent implements AfterViewInit {
   private readonly store = inject(SessionStore);
+  private readonly api = inject(ApiService);
   private readonly colors = inject(AgentColorService);
+  private readonly railHover = inject(RailCellHoverService);
   // ── decision-pill click (mirrors left-sidebar.onActionClick) ────
   // First click sets the override; second click on the same action
   // clears it. The store handles the API round-trip + state refresh,
@@ -90,6 +116,227 @@ export class MareyChartComponent implements AfterViewInit {
     } else {
       this.store.setOverride(handle, action);
     }
+  }
+
+  trajectoryCellInfoEnabled(): boolean {
+    return this.isTrajectoryCellInfoEnabled();
+  }
+
+  private isTrajectoryCellInfoEnabled(): boolean {
+    return this.store.layerVisibility().trajectoryCellInfo !== false;
+  }
+
+  private setRailCellHoverFromTopologyTile(tile: TopologyTile | null): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    if (!tile || tile.row == null || tile.col == null) return;
+    this.railHover.setHoveredCell(`${tile.row},${tile.col}`, 'marey', null);
+  }
+
+  onTopologyTileEnter(tile: TopologyTile | null, ev: MouseEvent): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    if (!tile) return;
+    this.setRailCellHoverFromTopologyTile(tile);
+
+    const current = this.topologyTooltip();
+    if (current?.pinned) return;
+
+    this.topologyTooltip.set({
+      tile,
+      x: ev.clientX + 14,
+      y: ev.clientY + 14,
+      pinned: false,
+    });
+  }
+
+  onTopologyTileMove(ev: MouseEvent): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    const current = this.topologyTooltip();
+    if (!current || current.pinned) return;
+
+    this.topologyTooltip.set({
+      ...current,
+      x: ev.clientX + 14,
+      y: ev.clientY + 14,
+    });
+  }
+
+  onTopologyTileLeave(): void {
+    const current = this.topologyTooltip();
+    if (current?.pinned) return;
+    this.railHover.clearHoveredCell();
+    this.topologyTooltip.set(null);
+  }
+
+  onTopologyTileClick(tile: TopologyTile | null, ev: MouseEvent): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    if (!tile) return;
+
+    // Important: do not let this click bubble into agent/map selection logic.
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    this.setRailCellHoverFromTopologyTile(tile);
+
+    this.topologyTooltip.set({
+      tile,
+      x: ev.clientX + 14,
+      y: ev.clientY + 14,
+      pinned: true,
+    });
+  }
+
+  closeTopologyTooltip(): void {
+    this.railHover.clearHoveredCell();
+    this.topologyTooltip.set(null);
+  }
+
+  @HostListener('document:keydown.escape')
+  onTopologyTooltipEscape(): void {
+    this.closeTopologyTooltip();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onTopologyTooltipDocumentMouseDown(ev: MouseEvent): void {
+    const current = this.topologyTooltip();
+    if (!current?.pinned) return;
+
+    const target = ev.target as HTMLElement | null;
+    if (!target) return;
+
+    // Click inside tooltip: keep it open and do not affect train selection.
+    if (target.closest('.marey-topology-tooltip')) return;
+
+    // Click on a topology tile is handled by onTopologyTileClick.
+    if (target.closest('.topo-cell.has-topology-tooltip')) return;
+
+    this.closeTopologyTooltip();
+  }
+
+  isTopologyTileRailHovered(tile: TopologyTile | null): boolean {
+    if (!this.isTrajectoryCellInfoEnabled()) return false;
+    if (!tile || tile.row == null || tile.col == null) return false;
+    return this.railHover.hoveredCellKey() === `${tile.row},${tile.col}`;
+  }
+
+  private dirName(value: unknown): string {
+    if (value === null || value === undefined) return "–";
+
+    const n = Number(value);
+    if (!Number.isFinite(n)) return String(value);
+
+    switch (((n % 4) + 4) % 4) {
+      case 0: return "North ↑";
+      case 1: return "East →";
+      case 2: return "South ↓";
+      case 3: return "West ←";
+      default: return String(value);
+    }
+  }
+
+  private dirList(values: unknown): string {
+    if (!Array.isArray(values) || values.length === 0) return "–";
+    return values.map((v) => this.dirName(v)).join(", ");
+  }
+
+  private plainList(values: unknown): string {
+    if (!Array.isArray(values) || values.length === 0) return "–";
+    return values.map((v) => String(v)).join(", ");
+  }
+
+  topologyHumanLabel(tile: TopologyTile): string {
+    const topology = String(tile.marey_topology ?? "topology");
+
+    switch (topology) {
+      case "straight": return "Straight track";
+      case "switch": return "Switch / Weiche";
+      case "merge": return "Merge / Zusammenführung";
+      case "switch_merge": return "Switch + merge";
+      case "diamond": return "Diamond crossing";
+      case "unknown": return "Unknown topology";
+      default: return topology;
+    }
+  }
+
+  directionHumanLabel(value: unknown): string {
+    return this.dirName(value);
+  }
+
+  topologyReason(tile: TopologyTile): string {
+    const debug = tile.marey_debug as Record<string, unknown> | null | undefined;
+    const reason = debug?.["classification_reason"];
+    return typeof reason === "string" && reason.trim() ? reason.trim() : "–";
+  }
+
+  possibleOutgoingHumanLabel(tile: TopologyTile): string {
+    const debug = tile.marey_debug as Record<string, unknown> | null | undefined;
+    return this.dirList(debug?.["possible_out_dirs"]);
+  }
+
+  possibleIncomingHumanLabel(tile: TopologyTile): string {
+    const debug = tile.marey_debug as Record<string, unknown> | null | undefined;
+    const raw = debug?.["possible_in_dirs_for_out"];
+
+    if (!raw || typeof raw !== "object") return "–";
+
+    const entries = Object.entries(raw as Record<string, unknown>);
+    if (entries.length === 0) return "–";
+
+    return entries
+      .map(([outDir, inDirs]) => `${this.dirName(outDir)} from ${this.dirList(inDirs)}`)
+      .join("; ");
+  }
+
+  transitionCountHumanLabel(tile: TopologyTile): string {
+    const debug = tile.marey_debug as Record<string, unknown> | null | undefined;
+    const transitions = debug?.["possible_transitions"];
+
+    if (!Array.isArray(transitions)) return "–";
+    return `${transitions.length}`;
+  }
+
+  switchTakenHumanLabel(tile: TopologyTile): string {
+    const sw = tile.marey_switch as Record<string, unknown> | null | undefined;
+    return this.dirName(sw?.["taken"]);
+  }
+
+  switchNotTakenHumanLabel(tile: TopologyTile): string {
+    const sw = tile.marey_switch as Record<string, unknown> | null | undefined;
+    return this.dirList(sw?.["not_taken"]);
+  }
+
+  switchPossibleExitsHumanLabel(tile: TopologyTile): string {
+    const sw = tile.marey_switch as Record<string, unknown> | null | undefined;
+    return this.dirList(sw?.["possible_exits"]);
+  }
+
+  mergeArrivedFromHumanLabel(tile: TopologyTile): string {
+    const merge = tile.marey_merge as Record<string, unknown> | null | undefined;
+    return this.dirName(merge?.["arrived_from"]);
+  }
+
+  mergeOtherInputsHumanLabel(tile: TopologyTile): string {
+    const merge = tile.marey_merge as Record<string, unknown> | null | undefined;
+    return this.dirList(merge?.["other_inputs"]);
+  }
+
+  mergePossibleInputsHumanLabel(tile: TopologyTile): string {
+    const merge = tile.marey_merge as Record<string, unknown> | null | undefined;
+    return this.dirList(merge?.["possible_inputs"]);
+  }
+
+  hasReadableDebug(tile: TopologyTile): boolean {
+    return !!tile.marey_debug;
+  }
+
+  topologyTileTitle(tile: TopologyTile): string {
+    const parts: string[] = [];
+
+    if (tile.step !== undefined) parts.push(`step ${tile.step}`);
+    if (tile.row !== undefined && tile.col !== undefined) parts.push(`cell ${tile.row},${tile.col}`);
+    if (tile.marey_topology) parts.push(String(tile.marey_topology));
+    if (tile.svg) parts.push(tile.svg);
+
+    return parts.join(" · ");
   }
 
   private readonly svgRef = viewChild<ElementRef<SVGSVGElement>>('svgEl');
@@ -142,6 +389,7 @@ export class MareyChartComponent implements AfterViewInit {
   readonly maxSteps = computed(() => this.store.maxSteps() || 1);
   readonly scenarios = this.store.scenarios;
   readonly forecastScenarioId = signal<string | null>(null);
+  readonly topologyTooltip = signal<{ tile: TopologyTile; x: number; y: number; pinned: boolean } | null>(null);
 
   // viewport: pan + dual-axis zoom
   readonly panX = signal(0);
@@ -467,24 +715,104 @@ export class MareyChartComponent implements AfterViewInit {
     return out;
   }
 
-  readonly mergedTrajectories = computed<Record<string, Array<{ step: number; endStep?: number; durationSteps?: number; dwellSteps?: number; row: number; col: number; dir: number; state?: string }>>>(() => {
+  readonly mareyData = signal<any | null>(null);
+
+  private readonly mareyDataRefreshEffect = effect(() => {
+    const sessionId = this.store.session()?.id ?? null;
+    const elapsed = this.store.state()?.elapsed_steps ?? null;
+    const showMarey = this.store.showMarey();
+    const previewScenarioId = this.store.previewScenarioId();
+
+    // Explicit signal dependencies.
+    void elapsed;
+    void previewScenarioId;
+
+    if (!showMarey || !sessionId) return;
+
+    this.refreshMareyData();
+  });
+
+  private refreshMareyData(): void {
+    const session = this.store.session();
+    if (!session) return;
+
+    this.api.getMareyData(session.id).subscribe({
+      next: (data: any) => this.mareyData.set(data),
+      error: () => {
+        // Keep UI robust: backend-history can fail; local-history fallback remains.
+        this.mareyData.set(null);
+      },
+    });
+  }
+
+  private normalizeBackendMareyPoint(p: any): MareyTrajectoryPoint | null {
+    if (!p) return null;
+
+    const row = p.row ?? p.position?.[0];
+    const col = p.col ?? p.position?.[1];
+    const dir = p.dir ?? p.direction ?? 0;
+    const step = p.step;
+
+    if (row == null || col == null || step == null) return null;
+
+    const endStep = p.endStep ?? p.end_step ?? p.step;
+    const durationSteps =
+      p.durationSteps ??
+      p.duration_steps ??
+      p.dwellSteps ??
+      p.dwell_steps ??
+      Math.max(1, Number(endStep) - Number(step) + 1);
+
+    return {
+      ...(p as Partial<MareyTrajectoryPoint>),
+      step: Number(step),
+      endStep: Number(endStep),
+      durationSteps: Number(durationSteps),
+      dwellSteps: Number(p.dwellSteps ?? p.dwell_steps ?? durationSteps),
+      row: Number(row),
+      col: Number(col),
+      dir: Number(dir),
+      direction: Number(dir),
+      position: [Number(row), Number(col)],
+      state: p.state ?? "MOVING",
+    } as MareyTrajectoryPoint;
+  }
+
+  readonly backendHistoryTrajectories = computed<Record<string, MareyTrajectoryPoint[]>>(() => {
+    const data = this.mareyData();
+    const agents = data?.agents ?? {};
+    const out: Record<string, MareyTrajectoryPoint[]> = {};
+
+    for (const [handle, agentData] of Object.entries(agents as Record<string, any>)) {
+      const history = Array.isArray(agentData?.history) ? agentData.history : [];
+      out[String(handle)] = history
+        .map((p: any) => this.normalizeBackendMareyPoint(p))
+        .filter((p: MareyTrajectoryPoint | null): p is MareyTrajectoryPoint => !!p);
+    }
+
+    return out;
+  });
+
+  readonly mergedTrajectories = computed<Record<string, MareyTrajectoryPoint[]>>(() => {
     const sc = this.forecastScenario();
     const now = this.elapsed();
     if (!sc) return {};
 
     const forecast = sc.trajectories ?? {};
     const history = this.store.trajectories();
+    const backendHistory = this.backendHistoryTrajectories();
     const handles = new Set<string>([
       ...Object.keys(forecast),
       ...Array.from(history.keys()).map((h) => String(h)),
     ]);
 
-    const out: Record<string, Array<{ step: number; endStep?: number; durationSteps?: number; dwellSteps?: number; row: number; col: number; dir: number; state?: string }>> = {};
+    const out: Record<string, MareyTrajectoryPoint[]> = {};
     for (const handleStr of handles) {
       const h = Number(handleStr);
-      const hist = (history.get(h) ?? [])
+      const localHist = (history.get(h) ?? [])
         .filter((p) => p.position != null && p.step <= now)
-        .map((p) => ({
+        .map((p): MareyTrajectoryPoint => ({
+          ...(p as unknown as Partial<MareyTrajectoryPoint>),
           step: p.step,
           endStep: p.endStep ?? p.step,
           durationSteps: p.durationSteps ?? p.dwellSteps ?? Math.max(1, (p.endStep ?? p.step) - p.step + 1),
@@ -495,9 +823,16 @@ export class MareyChartComponent implements AfterViewInit {
           state: p.state,
         }));
 
+      const apiHist = backendHistory[handleStr] ?? [];
+
+      // Preferred: backend-enriched executed history.
+      // Fallback: local frontend history for old/pre-patch sessions.
+      const hist = apiHist.length > 0 ? apiHist.filter((p: MareyTrajectoryPoint) => p.step <= now) : localHist;
+
       const fut = (forecast[handleStr] ?? [])
         .filter((p) => p.step > now)
-        .map((p) => ({
+        .map((p): MareyTrajectoryPoint => ({
+          ...p,
           step: p.step,
           endStep: p.step,
           durationSteps: 1,
@@ -507,7 +842,32 @@ export class MareyChartComponent implements AfterViewInit {
           dir: p.dir,
         }));
 
-      out[handleStr] = this.compressMareyTrajectoryRuns([...hist, ...fut]);
+      const merged = [...hist, ...fut] as MareyTrajectoryPoint[];
+      const compressed = this.compressMareyTrajectoryRuns(merged) as MareyTrajectoryPoint[];
+
+      // compressMareyTrajectoryRuns may normalize points. Re-attach backend
+      // Marey metadata from the source point so pathTiles can use marey_svg.
+      out[handleStr] = compressed.map((point) => {
+        const source = merged.find((candidate) =>
+          candidate.step === point.step &&
+          candidate.row === point.row &&
+          candidate.col === point.col
+        );
+
+        if (!source) return point;
+
+        return {
+          ...source,
+          ...point,
+          marey_topology: point.marey_topology ?? source.marey_topology,
+          marey_svg: point.marey_svg ?? source.marey_svg,
+          marey_debug: point.marey_debug ?? source.marey_debug,
+          marey_switch: point.marey_switch ?? source.marey_switch,
+          marey_merge: point.marey_merge ?? source.marey_merge,
+          handle: point.handle ?? source.handle,
+          agent_id: point.agent_id ?? source.agent_id,
+        };
+      });
     }
     return out;
   });
@@ -533,11 +893,199 @@ export class MareyChartComponent implements AfterViewInit {
     return m;
   });
 
-  /** Marey-Topologie (begradigt): jede Pfad-Cell wird auf das passende
-   *  horizontale Asset gemappt — Gerade / Weiche-Variante / Merging — basierend
-   *  auf dem Original-Tile (Map) und der Action des aktiven Zugs (F/L/R), die
-   *  aus den `dir`-Werten benachbarter Trajectory-Punkte abgeleitet wird. */
-  readonly pathTiles = computed<({ svg: string; rot: number; xCoord: number; yCoord: number } | null)[]>(() => {
+  private numericDir(value: unknown): number | null {
+    if (value === null || value === undefined) return null;
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    return ((Math.trunc(n) % 4) + 4) % 4;
+  }
+
+  private firstNumericDir(value: unknown): number | null {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const n = this.numericDir(item);
+        if (n !== null) return n;
+      }
+      return null;
+    }
+
+    return this.numericDir(value);
+  }
+
+  private oppositeDir(value: unknown): number | null {
+    const n = this.numericDir(value);
+    return n === null ? null : (n + 2) % 4;
+  }
+
+  /**
+   * Direction side in driver-view.
+   *
+   * Flatland directions:
+   *   0=N, 1=E, 2=S, 3=W
+   *
+   * Relative to forwardDir:
+   *   +1 = right
+   *   +3 = left
+   */
+  private relativeSide(
+    targetDir: unknown,
+    forwardDir: unknown,
+  ): "left" | "right" | "straight" | "back" | "unknown" {
+    const target = this.numericDir(targetDir);
+    const forward = this.numericDir(forwardDir);
+
+    if (target === null || forward === null) return "unknown";
+
+    const rel = (target - forward + 4) % 4;
+    if (rel === 0) return "straight";
+    if (rel === 1) return "right";
+    if (rel === 2) return "back";
+    if (rel === 3) return "left";
+
+    return "unknown";
+  }
+
+  private mareySwitchInfo(point: MareyTrajectoryPoint): Record<string, unknown> | null {
+    return point.marey_switch && typeof point.marey_switch === "object"
+      ? point.marey_switch as Record<string, unknown>
+      : null;
+  }
+
+  private mareyMergeInfo(point: MareyTrajectoryPoint): Record<string, unknown> | null {
+    return point.marey_merge && typeof point.marey_merge === "object"
+      ? point.marey_merge as Record<string, unknown>
+      : null;
+  }
+
+  private driverViewSwitchSvg(point: MareyTrajectoryPoint, tile?: RailTile | null, next?: MareyTrajectoryPoint | null): string {
+    const sw = this.mareySwitchInfo(point);
+
+    const taken = this.firstNumericDir(sw?.["taken"]) ?? this.numericDir(point.dir) ?? this.numericDir(next?.dir) ?? 0;
+    let other = this.firstNumericDir(sw?.["not_taken"]);
+
+    // History fallback: no backend switch metadata. Infer side from the
+    // actually taken direction change. The driven path is straightened;
+    // if the train turns left, the non-taken branch is shown on the right,
+    // and vice versa.
+    if (other === null && tile) {
+      const curDir = this.numericDir(point.dir);
+      const nextDir = this.numericDir(next?.dir);
+      if (curDir !== null && nextDir !== null) {
+        const relTaken = (nextDir - curDir + 4) % 4;
+        if (relTaken === 3) other = (taken + 1) % 4; // taken left -> other right
+        else if (relTaken === 1) other = (taken + 3) % 4; // taken right -> other left
+      }
+    }
+
+    const side = this.relativeSide(other, taken);
+
+    // Driver-view switch:
+    // - own route is straight
+    // - not-taken branch leaves to left/right
+    if (side === "right") return "Weiche_horizontal_unten_links.svg";
+    return "Weiche_horizontal_oben_links.svg";
+  }
+
+  private driverViewMergeSvg(point: MareyTrajectoryPoint, tile?: RailTile | null, prev?: MareyTrajectoryPoint | null): string {
+    const merge = this.mareyMergeInfo(point);
+
+    // For merges, other_inputs are incoming directions into the merge.
+    // To decide whether the other track COMES FROM left/right, we compare
+    // the source side of that input, i.e. opposite(other_input), against
+    // the train's own forward direction.
+    const ownForward =
+      this.firstNumericDir(merge?.["arrived_from"]) ??
+      this.numericDir(point.dir);
+
+    let otherInput = this.firstNumericDir(merge?.["other_inputs"]);
+    let otherSourceSide = this.oppositeDir(otherInput);
+
+    // History fallback: no backend merge metadata. If this looks like a
+    // switch/merge tile and we know the previous direction, use the tile name
+    // as a weak hint. This is intentionally conservative: it prevents
+    // history from becoming all-straight while keeping the driven route flat.
+    if (otherSourceSide === null && tile) {
+      const svg = tile.svg || "";
+      if (svg.includes("_oben_")) otherSourceSide = (this.numericDir(point.dir) ?? 1) + 3;
+      else if (svg.includes("_unten_")) otherSourceSide = (this.numericDir(point.dir) ?? 1) + 1;
+    }
+
+    const side = this.relativeSide(otherSourceSide, ownForward);
+
+    // Driver-view merge:
+    // - own route is straight
+    // - other track joins from left/right
+    if (side === "right") return "Weiche_horizontal_unten_rechts.svg";
+    return "Weiche_horizontal_oben_rechts.svg";
+  }
+
+  private driverViewTopologySvg(
+    point: MareyTrajectoryPoint,
+    tile?: RailTile | null,
+    prev?: MareyTrajectoryPoint | null,
+    next?: MareyTrajectoryPoint | null,
+  ): string {
+    const topology = String(point.marey_topology ?? "").trim();
+    const backendSvg = String(point.marey_svg ?? "").trim();
+    const tileSvg = String(tile?.svg ?? "").trim();
+    const sourceSvg = backendSvg || tileSvg;
+
+    // Special topologies must win before generic switch/merge handling.
+    if (
+      topology === "diamond" ||
+      sourceSvg.includes("Diamond_Crossing")
+    ) {
+      return "Gleis_Diamond_Crossing.svg";
+    }
+
+    if (sourceSvg.includes("Double_Slip")) {
+      return "Weiche_Double_Slip.svg";
+    }
+
+    if (sourceSvg.includes("Single_Slip")) {
+      return "Weiche_Single_Slip.svg";
+    }
+
+    // Important: do NOT use backend marey_svg directly for normal switches.
+    // marey_svg describes the map/topology tile. The Marey header needs
+    // a straightened driver-view symbol.
+    if (point.marey_switch || topology === "switch" || topology === "switch_merge") {
+      return this.driverViewSwitchSvg(point, tile, next);
+    }
+
+    if (point.marey_merge || topology === "merge") {
+      return this.driverViewMergeSvg(point, tile, prev);
+    }
+
+    // History fallback: points from store.trajectories() often do not carry
+    // marey_* metadata. If the underlying map cell is a special tile, still
+    // render a driver-view symbol instead of flattening everything.
+    if (tileSvg.startsWith("Weiche_")) {
+      // Without metadata we cannot reliably distinguish switch vs merge.
+      // Use suffix as weak visual hint: left-side variants as switch,
+      // right-side variants as merge.
+      if (tileSvg.includes("_rechts")) {
+        return this.driverViewMergeSvg(point, tile, prev);
+      }
+      return this.driverViewSwitchSvg(point, tile, next);
+    }
+
+    return "Gleis_horizontal.svg";
+  }
+
+
+  /** Marey-Topologie in driver-view:
+   *  the train's own path is always straightened horizontally.
+   *
+   *  Switch:
+   *    other branch leaves left  -> Weiche_horizontal_oben_links.svg
+   *    other branch leaves right -> Weiche_horizontal_unten_links.svg
+   *
+   *  Merge:
+   *    other branch joins from left  -> Weiche_horizontal_oben_rechts.svg
+   *    other branch joins from right -> Weiche_horizontal_unten_rechts.svg
+   */
+  readonly pathTiles = computed<(TopologyTile | null)[]>(() => {
     const handle = this.activeHandle();
     const cells = this.pathCells();
     const tr = this.mergedTrajectories();
@@ -546,65 +1094,57 @@ export class MareyChartComponent implements AfterViewInit {
     const traj = tr[String(handle)] ?? [];
     if (traj.length === 0) return [];
 
-    // Cell-key → first index of that cell in the trajectory.
-    const trajIdxByKey = new Map<string, number>();
-    traj.forEach((t, i) => {
-      const k = `${t.row},${t.col}`;
-      if (!trajIdxByKey.has(k)) trajIdxByKey.set(k, i);
-    });
-
-    // Cell-key → original RailTile from the map.
     const tilesByKey = new Map<string, RailTile>();
     for (const t of this.store.railTiles()) tilesByKey.set(`${t.r},${t.c}`, t);
 
-    const out: ({ svg: string; rot: number; xCoord: number; yCoord: number } | null)[] = [];
+    const out: (TopologyTile | null)[] = [];
 
     for (let i = 0; i < cells.length; i++) {
       const key = cells[i];
       const tile = tilesByKey.get(key);
-      const tIdx = trajIdxByKey.get(key);
 
-      let svg = "Gleis_horizontal.svg";
-      const rot = 0; // begradigt: alles horizontal
+      // pathCells() is built from traj.map(...), therefore index i is the
+      // correct trajectory point, including repeated dwell cells.
+      const cur = traj[i];
+      const prev = i > 0 ? traj[i - 1] : null;
+      const next = i < traj.length - 1 ? traj[i + 1] : null;
 
-      if (tile && tIdx !== undefined) {
-        const cur = traj[tIdx];
-        const next = tIdx < traj.length - 1 ? traj[tIdx + 1] : null;
-        const curDir = cur.dir;
-        const nextDir = next ? next.dir : curDir;
-
-        // Action F / L / R based on direction change at this cell.
-        let action: "F" | "L" | "R" = "F";
-        if (nextDir === (curDir + 3) % 4) action = "L";
-        else if (nextDir === (curDir + 1) % 4) action = "R";
-
-        const t = tile.svg;
-        if (t === "Weiche_horizontal_oben_links.svg") {
-          // L/F switch: Forward → keep oben_links (Stummel oben);
-          //             Left   → unten_links (curve up).
-          svg = action === "L" ? "Weiche_horizontal_unten_links.svg" : "Weiche_horizontal_oben_links.svg";
-        } else if (t === "Weiche_horizontal_unten_links.svg") {
-          // R/F switch: Forward → keep unten_links (Stummel unten);
-          //             Right   → oben_links (curve down).
-          svg = action === "R" ? "Weiche_horizontal_oben_links.svg" : "Weiche_horizontal_unten_links.svg";
-        } else if (t === "Weiche_horizontal_oben_rechts.svg") {
-          svg = "Weiche_horizontal_oben_rechts.svg";
-        } else if (t === "Weiche_horizontal_unten_rechts.svg") {
-          svg = "Weiche_horizontal_unten_rechts.svg";
-        } else if (t === "Weiche_Double_Slip.svg" || t === "Weiche_Single_Slip.svg") {
-          svg = t;
-        } else {
-          // Gerade or Kurve → flatten to straight horizontal.
-          svg = "Gleis_horizontal.svg";
-        }
-      }
-
+      const [keyRow, keyCol] = key.split(",").map((v) => Number(v));
       const xCoord = this.axesSwapped() ? this.PAD.left + 18 : this.pathCoord(i);
       const yCoord = this.axesSwapped() ? this.pathCoord(i) : this.TOPOLOGY_PX / 2;
-      out.push({ svg, rot, xCoord, yCoord });
+
+      if (!cur) {
+        out.push({
+          svg: "Gleis_horizontal.svg",
+          rot: 0,
+          xCoord,
+          yCoord,
+          row: keyRow,
+          col: keyCol,
+        });
+        continue;
+      }
+
+      out.push({
+        svg: this.driverViewTopologySvg(cur, tile, prev, next),
+        rot: 0,
+        xCoord,
+        yCoord,
+        step: cur.step,
+        row: cur.row ?? keyRow,
+        col: cur.col ?? keyCol,
+        dir: cur.dir,
+        marey_topology: cur.marey_topology,
+        marey_debug: cur.marey_debug,
+        marey_switch: cur.marey_switch,
+        marey_merge: cur.marey_merge,
+      });
     }
+
     return out;
   });
+
+
 
   /** Subset of pathTiles inside xRange — used by the main topology
    *  header [2]. Mini-topology in [6] keeps using full pathTiles(). */

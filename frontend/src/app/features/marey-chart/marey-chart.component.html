@@ -18,11 +18,18 @@
       <div class="marey-topology-track">
         @for (pt of pathTilesVisible(); track $index; let visibleIdx = $index) {
           @let cellIdx = visibleIdx + xRange().start;
-          <div class="topo-cell">
+          <div class="topo-cell"
+                       [class.has-topology-tooltip]="!!pt && trajectoryCellInfoEnabled()"
+                       [class.rail-cell-hovered]="trajectoryCellInfoEnabled() && isTopologyTileRailHovered(pt)"
+                       (mouseenter)="onTopologyTileEnter(pt, $event)"
+                       (mousemove)="onTopologyTileMove($event)"
+                       (mouseleave)="onTopologyTileLeave()"
+                       (click)="onTopologyTileClick(pt, $event)">
             @if (pt) {
               <img class="topo-tile"
                    [src]="'/flatland-svg/' + pt.svg"
-                   [style.transform]="'rotate(' + pt.rot + 'deg)'" />
+                   [style.transform]="'rotate(' + pt.rot + 'deg)'"
+                   [title]="topologyTileTitle(pt)" />
               @if (showGrid()) {
                 <div class="topo-border"></div>
               }
@@ -253,11 +260,18 @@
             <div class="x-brush-bg">
               <div class="marey-topology-track">
                 @for (pt of pathTiles(); track $index) {
-                  <div class="topo-cell">
+                  <div class="topo-cell"
+                       [class.has-topology-tooltip]="!!pt && trajectoryCellInfoEnabled()"
+                       [class.rail-cell-hovered]="trajectoryCellInfoEnabled() && isTopologyTileRailHovered(pt)"
+                       (mouseenter)="onTopologyTileEnter(pt, $event)"
+                       (mousemove)="onTopologyTileMove($event)"
+                       (mouseleave)="onTopologyTileLeave()"
+                       (click)="onTopologyTileClick(pt, $event)">
                     @if (pt) {
                       <img class="topo-tile"
                            [src]="'/flatland-svg/' + pt.svg"
-                           [style.transform]="'rotate(' + pt.rot + 'deg)'" />
+                           [style.transform]="'rotate(' + pt.rot + 'deg)'"
+                           [title]="topologyTileTitle(pt)" />
                     }
                   </div>
                 }
@@ -283,4 +297,96 @@
 
     </div><!-- /marey-layout -->
   }
+
+  @if (topologyTooltip(); as tt) {
+    <div class="marey-topology-tooltip"
+         [class.pinned]="tt.pinned"
+         [style.left.px]="tt.x"
+         [style.top.px]="tt.y"
+         (mousedown)="$event.stopPropagation()"
+         (click)="$event.stopPropagation()">
+      <div class="tooltip-title">
+        {{ topologyHumanLabel(tt.tile) }}
+      </div>
+      <div class="tooltip-hint">
+        {{ tt.pinned ? 'Pinned · Esc or outside click to close' : 'Click tile to pin' }}
+      </div>
+
+      <div class="tooltip-row">
+        <span>Step</span>
+        <strong>{{ tt.tile.step ?? '–' }}</strong>
+      </div>
+      <div class="tooltip-row">
+        <span>Cell</span>
+        <strong>{{ tt.tile.row ?? '–' }}, {{ tt.tile.col ?? '–' }}</strong>
+      </div>
+      <div class="tooltip-row">
+        <span>Dir</span>
+        <strong>{{ directionHumanLabel(tt.tile.dir) }}</strong>
+      </div>
+      <div class="tooltip-row">
+        <span>SVG</span>
+        <strong>{{ tt.tile.svg }}</strong>
+      </div>
+
+      @if (hasReadableDebug(tt.tile)) {
+        <div class="tooltip-section">
+          <div class="tooltip-section-title">Why this tile?</div>
+          <div class="tooltip-row">
+            <span>Reason</span>
+            <strong>{{ topologyReason(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Outgoing</span>
+            <strong>{{ possibleOutgoingHumanLabel(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Incoming</span>
+            <strong>{{ possibleIncomingHumanLabel(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Transitions</span>
+            <strong>{{ transitionCountHumanLabel(tt.tile) }}</strong>
+          </div>
+        </div>
+      }
+
+      @if (tt.tile.marey_switch) {
+        <div class="tooltip-section">
+          <div class="tooltip-section-title">Switch decision</div>
+          <div class="tooltip-row">
+            <span>Taken path</span>
+            <strong>{{ switchTakenHumanLabel(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Other option</span>
+            <strong>{{ switchNotTakenHumanLabel(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Possible exits</span>
+            <strong>{{ switchPossibleExitsHumanLabel(tt.tile) }}</strong>
+          </div>
+        </div>
+      }
+
+      @if (tt.tile.marey_merge) {
+        <div class="tooltip-section">
+          <div class="tooltip-section-title">Merge information</div>
+          <div class="tooltip-row">
+            <span>Arrived from</span>
+            <strong>{{ mergeArrivedFromHumanLabel(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Other inputs</span>
+            <strong>{{ mergeOtherInputsHumanLabel(tt.tile) }}</strong>
+          </div>
+          <div class="tooltip-row">
+            <span>Possible inputs</span>
+            <strong>{{ mergePossibleInputsHumanLabel(tt.tile) }}</strong>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
 </div>

@@ -178,6 +178,7 @@ export class SessionStore {
     grid: true,
     nextDecisions: true,
     agentTrajectory: true,
+    trajectoryCellInfo: true,
     switches: false,
     signals: false,
   });

@@ -228,3 +228,187 @@ app-agent-inspector {
   overflow: hidden !important;
 }
 /* app-agent-inspector one-line host fix - end */
+
+/* Ensure the Layer Visibility web component grows with its content. */
+app-layer-visibility {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  height: auto !important;
+  min-height: max-content !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Unified side-panel separators:
+   only a bottom border, no top/left/right borders. */
+app-notifications-panel,
+app-layer-visibility,
+.left-kpi-filter,
+app-kpi-filter,
+app-scenario-panel,
+app-recommendations-panel,
+app-agents-panel,
+app-left-sidebar,
+app-agent-inspector {
+  display: block;
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2) !important;
+  border-radius: 0 !important;
+}
+
+/* Inner component panels get the same visual rule.
+   This also overrides component-local borders from encapsulated styles. */
+.notifications-panel,
+.layer-visibility,
+.kpi-filter,
+.scenario-panel,
+.recommendations-panel,
+.sidebar-content,
+.inspector {
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Avoid double border for KPI wrapper + inner panel. */
+.left-kpi-filter .kpi-filter {
+  border-bottom: 0 !important;
+}
+
+/* Avoid double border when app-agents-panel contains app-left-sidebar/sidebar-content. */
+app-agents-panel app-left-sidebar,
+app-agents-panel .sidebar-content {
+  border-bottom: 0 !important;
+}
+
+/* Keep the actual last right-pane block clean if desired by layout;
+   right-pane itself must not add side borders to children. */
+.right-pane > * {
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+/* Left pane children: no side/top borders, bottom separator only. */
+.left-pane > *,
+.left-pane app-notifications-panel,
+.left-pane app-layer-visibility,
+.left-pane .left-kpi-filter {
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2) !important;
+  border-radius: 0 !important;
+}
+
+/* Marey topology tooltip + trajectory-cell hover.
+   Global to avoid marey-chart.component.scss budget overflow. */
+.marey-topology-tooltip {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: auto;
+  max-width: 340px;
+  padding: 8px 10px;
+  color: #1f2937;
+  background: #f9fafb;
+  border: 1px solid #c7c7c7;
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.16);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.marey-topology-tooltip.pinned {
+  border-color: #8b8b8b;
+}
+
+.marey-topology-tooltip .tooltip-title,
+.marey-topology-tooltip .tooltip-section-title {
+  margin-bottom: 4px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.marey-topology-tooltip .tooltip-hint {
+  margin-bottom: 5px;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.marey-topology-tooltip .tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 2px 0;
+}
+
+.marey-topology-tooltip span {
+  color: #6b7280;
+}
+
+.marey-topology-tooltip strong {
+  max-width: 220px;
+  overflow: visible;
+  color: #111827;
+  text-align: right;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.marey-topology-tooltip .tooltip-section {
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.marey-topology-tooltip p {
+  margin: 3px 0 0;
+}
+
+.marey-topology-tooltip pre {
+  max-height: 110px;
+  margin: 4px 0 0;
+  padding: 5px;
+  overflow: auto;
+  color: #111827;
+  background: #eee;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
+.topo-cell.has-topology-tooltip,
+.topo-cell.has-topology-tooltip .topo-tile {
+  cursor: help;
+}
+
+.topo-cell.has-topology-tooltip:hover,
+.topo-cell.has-topology-tooltip.rail-cell-hovered {
+  background: rgba(120,120,120,.22);
+  outline: none;
+}
+
+.topo-cell.has-topology-tooltip:hover .topo-tile,
+.topo-cell.has-topology-tooltip.rail-cell-hovered .topo-tile {
+  opacity: 1;
+  filter: none;
+}
+
+/* UI cleanup:
+   Layer Visibility should not show a trailing separator after the last option
+   ("Trajectory cell info"). The visible line comes from the panel/host border,
+   not from the last checkbox row. */
+app-layer-visibility,
+.left-pane app-layer-visibility,
+app-layer-visibility .layer-visibility,
+.left-pane app-layer-visibility .layer-visibility {
+  border-bottom: 0 !important;
+}

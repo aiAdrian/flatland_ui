@@ -62,6 +62,14 @@
 
         <!-- Rail Tiles (always visible) -->
     @for (t of tiles(); track trackByTile($index, t)) {
+      <rect
+        class="rail-cell-hover-bg"
+        [class.visible]="trajectoryCellInfoEnabled() && railHover.hoveredCellKey() === (t.r + ',' + t.c)"
+        [attr.x]="tileX(t)"
+        [attr.y]="tileY(t)"
+        [attr.width]="cellSize"
+        [attr.height]="cellSize"
+        pointer-events="none" />
       <image
         [attr.href]="tileHref(t)"
         [attr.x]="tileX(t)"
@@ -70,7 +78,13 @@
         [attr.height]="cellSize"
         [attr.transform]="tileTransform(t)"
         [attr.opacity]="railOpacity()"
-        class="rail-tile" />
+        class="rail-tile"
+        [class.rail-cell-hovered]="trajectoryCellInfoEnabled() && railHover.hoveredCellKey() === (t.r + ',' + t.c)"
+        [class.trajectory-hover-target]="trajectoryCellInfoEnabled() && isVisibleTrajectoryCell(t.r, t.c)"
+        (mouseenter)="onRailTileMouseEnter(t, $event)"
+        (mousemove)="onRailTileMouseMove($event)"
+        (mouseleave)="onRailTileMouseLeave(t)"
+        (click)="onRailTileClick(t, $event)" />
     }
 
       <!-- Segment-exact future trajectory overlay.
@@ -349,6 +363,48 @@
       </g>
     }
   </svg>
+
+  @if (mapTrajectoryTooltip(); as tt) {
+    <div class="flatland-trajectory-tooltip"
+         [class.pinned]="tt.pinned"
+         [style.left.px]="tt.x"
+         [style.top.px]="tt.y"
+         (mousedown)="$event.stopPropagation()"
+         (click)="$event.stopPropagation()">
+      <div class="tooltip-title">{{ mapTrajectoryTooltipTitle(tt) }}</div>
+      <div class="tooltip-hint">
+        {{ tt.pinned ? 'Pinned · Esc or outside click to close' : 'Click cell to pin' }}
+      </div>
+
+      <div class="tooltip-row">
+        <span>Cell</span>
+        <strong>{{ tt.tile.r }}, {{ tt.tile.c }}</strong>
+      </div>
+      <div class="tooltip-row">
+        <span>SVG</span>
+        <strong>{{ tt.tile.svg }}</strong>
+      </div>
+      @if (tt.cell?.handle != null) {
+        <div class="tooltip-row">
+          <span>Agent</span>
+          <strong>{{ tt.cell.handle }}</strong>
+        </div>
+      }
+      @if (tt.cell?.step != null) {
+        <div class="tooltip-row">
+          <span>Step</span>
+          <strong>{{ tt.cell.step }}</strong>
+        </div>
+      }
+      @if (tt.cell?.dir != null) {
+        <div class="tooltip-row">
+          <span>Dir</span>
+          <strong>{{ tt.cell.dir }}</strong>
+        </div>
+      }
+    </div>
+  }
+
 
   <!-- Map Navigation Overlay (unten links) -->
   <div class="map-nav-overlay">

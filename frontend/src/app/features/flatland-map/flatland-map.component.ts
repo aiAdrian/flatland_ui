@@ -1,6 +1,9 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, viewChild, HostListener
+} from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
+import { RailCellHoverService } from '../../services/rail-cell-hover.service';
 import { AgentDTO, DecisionCell, RailTile, DecisionOption, NextDecision } from '../../core/models';
 
 
@@ -76,6 +79,7 @@ interface TrajectoryOverlaySegment {
 export class FlatlandMapComponent {
   store = inject(SessionStore);
   private agentColors = inject(AgentColorService);
+  readonly railHover = inject(RailCellHoverService);
 
   newWidth = signal(50);
   newHeight = signal(20);
@@ -184,6 +188,7 @@ export class FlatlandMapComponent {
 
   // Local map hover for trajectory preview. Selection wins over hover.
   private hoveredTrajectoryHandle = signal<number | null>(null);
+  readonly mapTrajectoryTooltip = signal<{ tile: any; cell: any; x: number; y: number; pinned: boolean } | null>(null);
 
   readonly focusedTrajectoryHandle = computed<number | null>(() => {
     if (!this.store.layerVisibility().agentTrajectory) return null;
@@ -1071,6 +1076,121 @@ export class FlatlandMapComponent {
   }
 
   // ========== Standard Helpers ==========
+
+  trajectoryCellInfoEnabled(): boolean {
+    return this.isTrajectoryCellInfoEnabled();
+  }
+
+  private isTrajectoryCellInfoEnabled(): boolean {
+    return this.store.layerVisibility().trajectoryCellInfo !== false;
+  }
+
+  trajectoryCellForTile(row: number, col: number): any | null {
+    if (!this.isTrajectoryCellInfoEnabled()) return null;
+    if (!this.store.layerVisibility().agentTrajectory) return null;
+
+    return this.selectedTrajectoryCells().find((cell: any) =>
+      Number(cell.row) === Number(row) && Number(cell.col) === Number(col)
+    ) ?? null;
+  }
+
+  isVisibleTrajectoryCell(row: number, col: number): boolean {
+    return this.trajectoryCellForTile(row, col) != null;
+  }
+
+  onRailTileMouseEnter(t: any, ev: MouseEvent): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    const cell = this.trajectoryCellForTile(t.r, t.c);
+    if (!cell) return;
+
+    this.railHover.setHoveredCell(`${t.r},${t.c}`, 'flatland', null);
+
+    const current = this.mapTrajectoryTooltip();
+    if (current?.pinned) return;
+
+    this.mapTrajectoryTooltip.set({
+      tile: t,
+      cell,
+      x: ev.clientX + 14,
+      y: ev.clientY + 14,
+      pinned: false,
+    });
+  }
+
+  onRailTileMouseMove(ev: MouseEvent): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    const current = this.mapTrajectoryTooltip();
+    if (!current || current.pinned) return;
+
+    this.mapTrajectoryTooltip.set({
+      ...current,
+      x: ev.clientX + 14,
+      y: ev.clientY + 14,
+    });
+  }
+
+  onRailTileMouseLeave(t?: any): void {
+    const current = this.mapTrajectoryTooltip();
+    if (current?.pinned) return;
+
+    this.railHover.clearHoveredCell();
+    this.mapTrajectoryTooltip.set(null);
+  }
+
+  onRailTileClick(t: any, ev: MouseEvent): void {
+    if (!this.isTrajectoryCellInfoEnabled()) return;
+    const cell = this.trajectoryCellForTile(t.r, t.c);
+    if (!cell) return;
+
+    // Do not let the click trigger map pan/select/deselect logic.
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    this.railHover.setHoveredCell(`${t.r},${t.c}`, 'flatland', null);
+    this.mapTrajectoryTooltip.set({
+      tile: t,
+      cell,
+      x: ev.clientX + 14,
+      y: ev.clientY + 14,
+      pinned: true,
+    });
+  }
+
+  closeMapTrajectoryTooltip(): void {
+    this.railHover.clearHoveredCell();
+    this.mapTrajectoryTooltip.set(null);
+  }
+
+  @HostListener('document:keydown.escape')
+  onMapTrajectoryTooltipEscape(): void {
+    this.closeMapTrajectoryTooltip();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onMapTrajectoryTooltipDocumentMouseDown(ev: MouseEvent): void {
+    const current = this.mapTrajectoryTooltip();
+    if (!current?.pinned) return;
+
+    const target = ev.target as HTMLElement | null;
+    if (!target) return;
+
+    if (target.closest('.flatland-trajectory-tooltip')) return;
+    if (target.closest('.rail-tile.trajectory-hover-target')) return;
+
+    this.closeMapTrajectoryTooltip();
+  }
+
+  mapTrajectoryTooltipTitle(tt: { tile: any; cell: any }): string {
+    const parts = [
+      `cell ${tt.tile.r},${tt.tile.c}`,
+      tt.tile.svg,
+    ];
+
+    if (tt.cell?.handle != null) parts.unshift(`agent ${tt.cell.handle}`);
+    if (tt.cell?.step != null) parts.push(`step ${tt.cell.step}`);
+
+    return parts.join(" · ");
+  }
 
   tileX(t: RailTile): number { return t.c * this.cellSize; }
   tileY(t: RailTile): number { return t.r * this.cellSize; }

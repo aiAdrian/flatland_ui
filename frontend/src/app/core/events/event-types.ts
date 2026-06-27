@@ -2,6 +2,7 @@ export type LayerVisibility = {
   grid: boolean;
   nextDecisions: boolean;
   agentTrajectory: boolean;
+  trajectoryCellInfo: boolean;
   switches: boolean;
   signals: boolean;
 };
@@ -55,6 +56,25 @@ export interface TrajectoryPoint {
   col: number;
   /** 0=N, 1=E, 2=S, 3=W */
   dir: number;
+
+  /** Optional backend-enriched Marey/topology metadata. */
+  handle?: number | null;
+  agent_id?: number | null;
+  marey_topology?: 'straight' | 'switch' | 'merge' | 'switch_merge' | 'diamond' | 'unknown' | string | null;
+  marey_svg?: string | null;
+  marey_debug?: Record<string, unknown> | null;
+  marey_switch?: {
+    taken?: number | null;
+    not_taken?: number[];
+    possible_exits?: number[];
+    [key: string]: unknown;
+  } | null;
+  marey_merge?: {
+    arrived_from?: number | null;
+    other_inputs?: number[];
+    possible_inputs?: number[];
+    [key: string]: unknown;
+  } | null;
 }
 
 export interface ScenarioOption {

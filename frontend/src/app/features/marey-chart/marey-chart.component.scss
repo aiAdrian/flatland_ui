@@ -204,11 +204,6 @@
   }
 }
 
-
-
-
-
-
 /* ── HTML Topology overlay ─────────────────────────────────── */
 .marey-topology-html {
   position: absolute;
@@ -604,11 +599,6 @@
   opacity: 0.25;
 }
 
-
-
-
-
-
 .topo-malfunction {
   position: absolute;
   right: -9px;
@@ -628,8 +618,6 @@
     opacity: 0.82;
   }
 }
-
-
 
 .topo-agent.notification-hover {
   border-color: #0079c7;
@@ -755,8 +743,6 @@
   opacity: 1 !important;
   filter: drop-shadow(0 0 4px var(--app-select-glow, rgba(249, 57, 233, 0.65))) !important;
 }
-
-
 
 /* marey hover-only line highlight override
    - No permanent line emphasis just because agent is selected/default.
@@ -1002,3 +988,9 @@
   border-color: #fff !important;
   color: #fff !important;
 }
+
+/* Backend Marey topology debug tooltip */
+
+/* No blue border/background. Highlight the rendered SVG itself. */
+
+/* Marey topology hover: grey cell background, no SVG tint, no frame. */
