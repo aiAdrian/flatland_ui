@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.panel-plugin-host {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-1x, 0.25rem);
+  min-width: 0;
+  color: var(--sbb-color-charcoal, #212121);
+}
+
+.panel-plugin-host__label {
+  color: var(--sbb-color-granite, #686868);
+  font-size: var(--sbb-font-size-text-xxs, 0.6875rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.panel-plugin-host__type {
+  overflow: hidden;
+  font-family: monospace;
+  font-size: var(--sbb-font-size-text-xs, 0.75rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-plugin-host__hint {
+  color: var(--sbb-color-granite, #686868);
+  font-size: var(--sbb-font-size-text-xs, 0.75rem);
+  line-height: 1.4;
+}

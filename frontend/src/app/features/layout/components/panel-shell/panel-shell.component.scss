@@ -1,0 +1,51 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.layout-panel-shell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.layout-panel-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sbb-spacing-fixed-2x, 0.5rem);
+  width: 100%;
+  min-width: 0;
+}
+
+.layout-panel-shell__title {
+  overflow: hidden;
+  color: var(--sbb-color-charcoal, #212121);
+  font-size: var(--sbb-font-size-text-xs, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.layout-panel-shell__meta {
+  flex: 0 0 auto;
+  color: var(--sbb-color-granite, #686868);
+  font-size: var(--sbb-font-size-text-xxs, 0.6875rem);
+}
+
+.layout-panel-shell__content {
+  display: block;
+}
+
+.layout-panel-shell__body {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--sbb-spacing-fixed-3x, 0.75rem);
+}

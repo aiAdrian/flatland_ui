@@ -1,0 +1,21 @@
+<div
+  class="layout-renderer"
+  [style.grid-template-columns]="gridTemplateColumns()"
+>
+  @for (zone of zones; track zone) {
+    <section
+      class="layout-renderer__column"
+      [attr.data-zone]="zone"
+    >
+      @for (panel of panelsByZone(zone); track panel.id) {
+        <app-panel-shell [panel]="panel">
+          <app-panel-plugin-host [panel]="panel"></app-panel-plugin-host>
+        </app-panel-shell>
+      } @empty {
+        <div class="layout-renderer__empty">
+          {{ zone }} zone
+        </div>
+      }
+    </section>
+  }
+</div>
