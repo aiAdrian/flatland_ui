@@ -1,4 +1,5 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
@@ -8,11 +9,19 @@ import { PolicyName } from '../../core/models';
 @Component({
   selector: 'app-scenario-panel',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './scenario-panel.component.html',
   styleUrl: './scenario-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ScenarioPanelComponent {
+  @Input() embedded = false;
+
+  @HostBinding('class.embedded')
+  get embeddedClass(): boolean {
+    return this.embedded;
+  }
+
   store = inject(SessionStore);
   api = inject(ApiService);
   bus = inject(EventBusService);
