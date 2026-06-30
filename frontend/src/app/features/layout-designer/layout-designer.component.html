@@ -1,0 +1,292 @@
+<div class="designer">
+  <header class="designer__topbar">
+    <div>
+      <div class="designer__eyebrow">Flatland</div>
+      <h1>Layout Designer</h1>
+    </div>
+
+    <div class="designer__actions">
+      <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save'" (click)="saveWithFeedback()">Save</button>
+      <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAsWithFeedback()">Save As…</button>
+      <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJsonWithFeedback()">Export JSON</button>
+
+      <label class="import-button designer-action-btn designer-import-btn" [class.is-clicked]="buttonFeedbackId === 'import'">
+        Import JSON
+        <input type="file" accept="application/json" hidden (change)="importJsonWithFeedback($event)" />
+      </label>
+
+      <button type="button" class="primary designer-action-btn designer-action-btn--primary" [class.is-clicked]="buttonFeedbackId === 'home'" (click)="goHomeWithFeedback()" >Home</button>
+      <span
+        class="designer-action-feedback"
+        [class.is-visible]="!!designerFeedbackMessage"
+        [attr.data-tone]="designerFeedbackTone">
+        {{ designerFeedbackMessage }}
+      </span>
+    </div>
+  </header>
+
+  <section class="designer__meta">
+    <label>
+      Layout
+      <select [ngModel]="design.id" (ngModelChange)="loadDesign($event)">
+        <option *ngFor="let item of designs" [value]="item.id">{{ item.name }}</option>
+      </select>
+    </label>
+
+    <label>
+      Name
+      <input [(ngModel)]="design.name" (ngModelChange)="onDesignerChanged()" (focus)="selectDesign()" />
+    </label>
+
+    <label>
+      Session
+      <input [value]="activeSessionId || 'No active session connected'" readonly>
+    </label>
+
+    <label>
+      Preview Mode
+      <select [(ngModel)]="previewRenderMode" (ngModelChange)="onDesignerChanged()">
+        <option value="live">Live UI</option>
+        <option value="wireframe">Wireframe</option>
+      </select>
+    </label>
+
+    <label>
+      Scale
+      <select [(ngModel)]="design.scale" (ngModelChange)="onDesignerChanged()">
+        <option [ngValue]="0.7">70%</option>
+        <option [ngValue]="0.75">75%</option>
+        <option [ngValue]="0.8">80%</option>
+        <option [ngValue]="1">100%</option>
+      </select>
+    </label>
+
+    <button type="button" (click)="addColumn()">+ Column</button>
+    <button type="button" (click)="removeSelectedColumn()" [disabled]="selection.kind !== 'column'">
+      - Column
+    </button>
+
+    <div class="live-preview-pill" [class.is-connected]="livePreviewConnected">
+      Live Preview:
+      <strong>{{ livePreviewConnected ? 'connected' : 'local' }}</strong>
+      <span *ngIf="livePreviewLastRun">· {{ livePreviewLastRun }}</span>
+    </div>
+  </section>
+
+  @if (!hasActiveSession) {
+    <div class="designer-session-warning">
+      Creating a new Flatland designer session. The live preview will connect as soon as the session is ready.
+    </div>
+  }
+
+  <main class="designer__body">
+    <aside class="palette">
+      <h2>Components</h2>
+      <p>Drag components into the layout.</p>
+
+      <div
+        class="palette__item"
+        *ngFor="let item of palette"
+        draggable="true"
+        (dragstart)="dragPalette(item, $event)"
+      >
+        <strong>{{ item.title }}</strong>
+        <span>{{ item.type }}</span>
+      </div>
+    </aside>
+
+    <section class="preview" (click)="selectDesign()">
+      <div class="preview__head">
+        <h2>Layout Preview</h2>
+        <span>{{ design.layout.columns.length }} columns · {{ design.scale * 100 | number:'1.0-0' }}%</span>
+      </div>
+
+      <div class="preview__scroll">
+        <div
+          class="canvas"
+          [style.width.px]="canvasWidth"
+          [style.transform]="'scale(' + design.scale + ')'"
+        >
+          <section
+            class="canvas__column"
+            *ngFor="let column of design.layout.columns; trackBy: trackByColumn"
+            [class.is-selected]="selection.kind === 'column' && selection.columnId === column.id"
+            [style.width.px]="column.width"
+            (click)="selectColumn(column, $event)"
+            (dragover)="allowDrop($event)"
+            (drop)="dropOnColumn(column, $event)"
+          >
+            <header class="canvas__column-head">
+              <strong>{{ column.name }}</strong>
+              <span>{{ column.width }}px</span>
+            </header>
+
+            <div class="canvas__dropzone">
+              <article
+                class="panel-card"
+                [attr.data-panel-type]="panel.type"
+                *ngFor="let panel of column.panels; trackBy: trackByPanel"
+                draggable="true"
+                [ngStyle]="panelStyle(panel)"
+                [class.is-selected]="selection.kind === 'panel' && selection.panelId === panel.id"
+                (click)="selectPanel(column, panel, $event)"
+                (dragstart)="dragPanel(column, panel, $event)"
+                (dragend)="dragPanelEnd(column, panel, $event)"
+              >
+                <div class="panel-card__head">
+                  <strong>{{ panel.title }}</strong>
+                  <span>{{ panel.type }}</span>
+                </div>
+                @if (previewRenderMode === 'live') {
+                  <div class="panel-card__runtime">
+                    <app-panel-shell [panel]="toRuntimePanel(column, panel)"></app-panel-shell>
+                  </div>
+                } @else {
+                  <div class="panel-card__body">
+                    <ng-container [ngSwitch]="panel.type">
+                      <div *ngSwitchCase="'flatland-map'" class="mini-preview mini-preview--map">
+                        <strong>Flatland Map</strong>
+                        <span>Live preview</span>
+                        <small>{{ design.sessionId || 'local-designer-session' }}</small>
+                      </div>
+
+                      <div *ngSwitchCase="'marey-chart'" class="mini-preview mini-preview--chart">
+                        <strong>Marey Chart</strong>
+                        <span>Live preview</span>
+                      </div>
+
+                      <div *ngSwitchCase="'graphic-timetable'" class="mini-preview mini-preview--chart">
+                        <strong>Graphic Timetable</strong>
+                        <span>Live preview</span>
+                      </div>
+
+                      <div *ngSwitchDefault class="mini-preview">
+                        <strong>{{ panel.title }}</strong>
+                        <span>Panel preview</span>
+                      </div>
+                    </ng-container>
+                  </div>
+                }
+
+                <div
+                  class="panel-card__resize"
+                  title="Drag to resize height"
+                  (pointerdown)="startPanelResize(column, panel, $event)"
+                ></div>
+              </article>
+
+              <div class="canvas__empty" *ngIf="!column.panels.length">
+                Drop components here
+              </div>
+            </div>
+
+            <div
+              class="canvas__column-resize"
+              title="Drag to resize column width"
+              (pointerdown)="startColumnResize(column, $event)"
+            ></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <aside class="settings">
+      <h2>Settings</h2>
+      <p class="settings__hint">Press Delete to remove the red selected item. Drag a panel outside the canvas and release to delete it.</p>
+
+      <ng-container [ngSwitch]="selection.kind">
+        <section *ngSwitchCase="'design'">
+          <h3>Layout</h3>
+
+          <label>
+            Name
+            <input [(ngModel)]="design.name" (ngModelChange)="onDesignerChanged()" />
+          </label>
+
+          <label>
+            Session
+            <input [value]="activeSessionId || 'No active session connected'" readonly>
+          </label>
+
+          <label>
+            Scale
+            <select [(ngModel)]="design.scale" (ngModelChange)="onDesignerChanged()">
+              <option [ngValue]="0.7">70%</option>
+              <option [ngValue]="0.75">75%</option>
+              <option [ngValue]="0.8">80%</option>
+              <option [ngValue]="1">100%</option>
+            </select>
+          </label>
+
+          <button type="button" (click)="deleteDesign()">Delete Layout</button>
+        </section>
+
+        <ng-container *ngSwitchCase="'column'">
+          <section *ngIf="selectedColumn as column">
+            <h3>Column</h3>
+
+          <label>
+            Name
+            <input [(ngModel)]="column.name" (ngModelChange)="onDesignerChanged()" />
+          </label>
+
+          <label>
+            Width px
+            <input type="number" min="160" [(ngModel)]="column.width" (ngModelChange)="onDesignerChanged()" />
+          </label>
+
+          <label>
+            Role
+            <select [(ngModel)]="column.role" (ngModelChange)="onDesignerChanged()">
+              <option value="sidebar">sidebar</option>
+              <option value="main">main</option>
+              <option value="custom">custom</option>
+            </select>
+          </label>
+
+            <button type="button" (click)="removeSelectedColumn()">Delete Column</button>
+          </section>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'panel'">
+          <section *ngIf="selectedPanel as panel">
+            <h3>Panel</h3>
+
+          <label>
+            Title
+            <input [(ngModel)]="panel.title" (ngModelChange)="onDesignerChanged()" />
+          </label>
+
+          <label>
+            Type
+            <input [ngModel]="panel.type" readonly />
+          </label>
+
+          <label>
+            Min height px
+            <input type="number" min="80" [(ngModel)]="panel.minHeight" (ngModelChange)="onDesignerChanged()" />
+          </label>
+
+          <label>
+            Fixed height px
+            <input type="number" min="80" [(ngModel)]="panel.height" (ngModelChange)="onDesignerChanged()" />
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" [(ngModel)]="panel.expanded" (ngModelChange)="onDesignerChanged()" />
+            Expanded by default
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" [(ngModel)]="panel.collapsible" (ngModelChange)="onDesignerChanged()" />
+            Collapsible
+          </label>
+
+            <button type="button" (click)="duplicateSelectedPanel()">Duplicate Panel</button>
+            <button type="button" (click)="removeSelectedPanel()">Remove Panel</button>
+          </section>
+        </ng-container>
+      </ng-container>
+    </aside>
+  </main>
+</div>

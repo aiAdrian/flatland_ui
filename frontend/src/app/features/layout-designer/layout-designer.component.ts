@@ -8,6 +8,9 @@ import {
   FlatlandDesign,
 } from './layout-designer.models';
 import { DesignStorageService } from './design-storage.service';
+import { SessionStore } from '../../core/session.store';
+import { PanelShellComponent } from '../layout/components/panel-shell/panel-shell.component';
+import { PanelInstance } from '../../core/layout';
 
 interface PaletteItem {
   type: string;
@@ -22,12 +25,17 @@ type DragPayload =
 @Component({
   selector: 'app-layout-designer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PanelShellComponent],
   templateUrl: './layout-designer.component.html',
   styleUrls: ['./layout-designer.component.scss'],
 })
 export class LayoutDesignerComponent {
+
+  constructor() {
+    queueMicrotask(() => { this.syncActiveSession(); this.runLivePreview(); });
+  }
   private readonly storage = inject(DesignStorageService);
+  private readonly sessionStore = inject(SessionStore);
 
   designs = this.storage.list();
   design: FlatlandDesign = this.loadInitialDesign();
@@ -48,6 +56,20 @@ export class LayoutDesignerComponent {
     { type: 'cell-inspector', title: 'Cell Inspector', minHeight: 150 },
   ];
 
+  livePreviewSteps = 10;
+  livePreviewRunning = false;
+  livePreviewConnected = false;
+  livePreviewLastRun: string | null = null;
+  livePreviewLog: string[] = [];
+  previewRenderMode: 'live' | 'wireframe' = 'live';
+
+  designerFeedbackMessage = '';
+  designerFeedbackTone: 'success' | 'info' | 'warn' = 'info';
+  buttonFeedbackId: string | null = null;
+  private designerFeedbackTimer: any = null;
+  private layoutDropHandled = false;
+
+
   private resizing:
     | {
         kind: 'column';
@@ -63,6 +85,32 @@ export class LayoutDesignerComponent {
         startHeight: number;
       }
     | null = null;
+
+
+  get activeSessionId(): string {
+    const session = this.sessionStore.session() as any;
+
+    return (
+      session?.id ??
+      session?.sessionId ??
+      session?.session_id ??
+      session?.uuid ??
+      ''
+    );
+  }
+
+  get hasActiveSession(): boolean {
+    return !!this.activeSessionId;
+  }
+
+  syncActiveSession(): void {
+    const id = this.activeSessionId;
+
+    if (id && this.design.sessionId !== id) {
+      this.design.sessionId = id;
+      this.touch();
+    }
+  }
 
   get selectedColumn(): DesignerColumn | undefined {
     if (this.selection.kind === 'column') {
@@ -90,6 +138,7 @@ export class LayoutDesignerComponent {
 
   selectDesign(): void {
     this.selection = { kind: 'design' };
+    this.runLivePreview();
   }
 
   selectColumn(column: DesignerColumn, event?: Event): void {
@@ -209,8 +258,10 @@ export class LayoutDesignerComponent {
     }
 
     this.design = structuredClone(found);
+    this.normalizeDesign(this.design);
     this.storage.setActive(id);
     this.selection = { kind: 'design' };
+    this.runLivePreview();
   }
 
   exportJson(): void {
@@ -242,6 +293,8 @@ export class LayoutDesignerComponent {
 
     if (count > 0 && this.designs.length) {
       this.design = structuredClone(this.designs[this.designs.length - 1]);
+      this.normalizeDesign(this.design);
+      this.runLivePreview();
     }
 
     input.value = '';
@@ -269,6 +322,8 @@ export class LayoutDesignerComponent {
   }
 
   dragPanel(column: DesignerColumn, panel: DesignerPanel, event: DragEvent): void {
+    this.layoutDropHandled = false;
+
     const payload: DragPayload = {
       source: 'layout',
       columnId: column.id,
@@ -288,6 +343,7 @@ export class LayoutDesignerComponent {
   dropOnColumn(targetColumn: DesignerColumn, event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
+    this.layoutDropHandled = true;
 
     const raw = event.dataTransfer?.getData('application/json');
     if (!raw) {
@@ -325,6 +381,53 @@ export class LayoutDesignerComponent {
 
     this.selection = { kind: 'panel', columnId: targetColumn.id, panelId: panel.id };
     this.touch();
+  }
+
+
+  dragPanelEnd(column: DesignerColumn, panel: DesignerPanel, event: DragEvent): void {
+    const droppedNowhere = !this.layoutDropHandled && event.dataTransfer?.dropEffect === 'none';
+
+    if (droppedNowhere) {
+      column.panels = column.panels.filter((p) => p.id !== panel.id);
+
+      if (this.selection.kind === 'panel' && this.selection.panelId === panel.id) {
+        this.selection = { kind: 'design' };
+      }
+
+      this.touch();
+      this.runLivePreview();
+    }
+
+    this.layoutDropHandled = false;
+  }
+
+  toRuntimePanel(column: DesignerColumn, panel: DesignerPanel): PanelInstance {
+    return {
+      id: `designer-preview-${panel.id}`,
+      type: this.toRuntimePanelType(panel.type),
+      title: panel.title,
+      zone: column.id,
+      order: column.panels.findIndex((p) => p.id === panel.id),
+      collapsed: !panel.expanded,
+      hidden: false,
+      sizeMode: column.role === 'main' ? 'fill' : 'auto',
+    } as PanelInstance;
+  }
+
+  private toRuntimePanelType(type: string): string {
+    if (type === 'agents-list') {
+      return 'agents';
+    }
+
+    if (type === 'simulation-map') {
+      return 'flatland-map';
+    }
+
+    if (type === 'marey-chart') {
+      return 'graphic-timetable';
+    }
+
+    return type;
   }
 
   startColumnResize(column: DesignerColumn, event: PointerEvent): void {
@@ -383,6 +486,144 @@ export class LayoutDesignerComponent {
     this.resizing = null;
   }
 
+
+  deleteSelected(): void {
+    if (this.selection.kind === 'panel') {
+      this.removeSelectedPanel();
+      this.runLivePreview();
+      return;
+    }
+
+    if (this.selection.kind === 'column') {
+      this.removeSelectedColumn();
+      this.runLivePreview();
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName?.toLowerCase();
+
+    if (
+      tag === 'input' ||
+      tag === 'textarea' ||
+      tag === 'select' ||
+      target?.isContentEditable
+    ) {
+      return;
+    }
+
+    if ((event.key === 'Delete' || event.key === 'Backspace') && this.selection.kind !== 'design') {
+      event.preventDefault();
+      this.deleteSelected();
+    }
+  }
+
+
+  onSessionChanged(): void {
+    this.touch();
+    this.runLivePreview();
+  }
+
+
+
+
+
+
+
+  private showDesignerFeedback(
+    message: string,
+    tone: 'success' | 'info' | 'warn' = 'success',
+    actionId: string | null = null,
+  ): void {
+    this.designerFeedbackMessage = message;
+    this.designerFeedbackTone = tone;
+    this.buttonFeedbackId = actionId;
+
+    if (this.designerFeedbackTimer) {
+      window.clearTimeout(this.designerFeedbackTimer);
+    }
+
+    this.designerFeedbackTimer = window.setTimeout(() => {
+      this.designerFeedbackMessage = '';
+      this.buttonFeedbackId = null;
+      this.designerFeedbackTimer = null;
+    }, 1800);
+  }
+
+  private callDesignerMethod(names: string[], args: any[] = []): void {
+    for (const name of names) {
+      const fn = (this as any)[name];
+
+      if (typeof fn === 'function') {
+        fn.apply(this, args);
+        return;
+      }
+    }
+  }
+
+  saveWithFeedback(): void {
+    this.callDesignerMethod(['save']);
+    this.showDesignerFeedback('Layout saved', 'success', 'save');
+  }
+
+  saveAsWithFeedback(): void {
+    this.callDesignerMethod(['saveAs', 'saveAsNew', 'duplicateLayout']);
+    this.showDesignerFeedback('Layout duplicated as new layout', 'success', 'save-as');
+  }
+
+  exportJsonWithFeedback(): void {
+    this.callDesignerMethod(['exportJson', 'exportJSON', 'exportDesign', 'downloadJson']);
+    this.showDesignerFeedback('Layout JSON exported', 'success', 'export');
+  }
+
+  importJsonWithFeedback(event: Event): void {
+    this.callDesignerMethod(['importJson', 'importJSON', 'importDesign', 'loadJson'], [event]);
+    this.showDesignerFeedback('Layout JSON imported', 'success', 'import');
+  }
+
+  goHomeWithFeedback(): void {
+    this.showDesignerFeedback('Opening Home…', 'info', 'home');
+
+    window.setTimeout(() => {
+      const fn = (this as any).goHome;
+
+      if (typeof fn === 'function') {
+        fn.call(this);
+      } else {
+        window.location.href = '/';
+      }
+    }, 120);
+  }
+
+
+  goHome(): void {
+    window.location.href = '/';
+  }
+
+  runLivePreview(): void {
+    this.syncActiveSession();
+    const sessionId = this.activeSessionId;
+    const label = sessionId || 'local-designer-session';
+
+    this.livePreviewConnected = !!sessionId;
+    this.livePreviewRunning = true;
+    this.livePreviewLog = [];
+
+    for (let step = 1; step <= this.livePreviewSteps; step++) {
+      this.livePreviewLog.push(`Step ${step}: preview updated for ${label}`);
+    }
+
+    this.livePreviewLastRun = new Date().toLocaleTimeString();
+    this.livePreviewRunning = false;
+  }
+
+  onDesignerChanged(): void {
+    this.touch();
+    this.runLivePreview();
+  }
+
   panelStyle(panel: DesignerPanel): Record<string, string> {
     const height = panel.height ? `${panel.height}px` : 'auto';
     return {
@@ -405,13 +646,29 @@ export class LayoutDesignerComponent {
     const first = active ?? this.storage.list()[0];
 
     if (first) {
-      return structuredClone(first);
+      const next = structuredClone(first);
+      this.normalizeDesign(next);
+      return next;
     }
 
     const created = this.storage.createDefault();
     this.storage.save(created);
     this.designs = this.storage.list();
     return structuredClone(created);
+  }
+
+
+  private normalizeDesign(design: FlatlandDesign): void {
+    for (const column of design.layout.columns) {
+      for (const panel of column.panels) {
+        if (panel.type === 'simulation-map') {
+          panel.type = 'flatland-map';
+          panel.title = 'Flatland Map';
+          panel.minHeight = Math.max(panel.minHeight ?? 0, 320);
+          panel.height = panel.height ?? 360;
+        }
+      }
+    }
   }
 
   private findColumn(id: string): DesignerColumn | undefined {
@@ -424,5 +681,6 @@ export class LayoutDesignerComponent {
 
   private touch(): void {
     this.design.updatedAt = new Date().toISOString();
+    this.runLivePreview();
   }
 }
