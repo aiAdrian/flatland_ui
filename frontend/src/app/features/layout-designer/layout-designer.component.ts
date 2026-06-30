@@ -67,6 +67,9 @@ export class LayoutDesignerComponent {
   designerFeedbackTone: 'success' | 'info' | 'warn' = 'info';
   buttonFeedbackId: string | null = null;
   private designerFeedbackTimer: any = null;
+
+  private undoStack: FlatlandDesign[] = [];
+  private readonly maxUndoSteps = 50;
   private layoutDropHandled = false;
 
 
@@ -180,6 +183,8 @@ export class LayoutDesignerComponent {
       return;
     }
 
+    this.pushUndoState();
+
     this.design.layout.columns = this.design.layout.columns.filter((c) => c.id !== col.id);
     this.selection = { kind: 'design' };
     this.touch();
@@ -196,6 +201,8 @@ export class LayoutDesignerComponent {
     }
 
     const panelId = this.selection.panelId;
+
+    this.pushUndoState();
 
     column.panels = column.panels.filter((p) => p.id !== panelId);
     this.selection = { kind: 'design' };
@@ -363,6 +370,8 @@ export class LayoutDesignerComponent {
         height: null,
       };
 
+    this.pushUndoState();
+
       targetColumn.panels.push(panel);
       this.selection = { kind: 'panel', columnId: targetColumn.id, panelId: panel.id };
       this.touch();
@@ -388,6 +397,8 @@ export class LayoutDesignerComponent {
     const droppedNowhere = !this.layoutDropHandled && event.dataTransfer?.dropEffect === 'none';
 
     if (droppedNowhere) {
+    this.pushUndoState();
+
       column.panels = column.panels.filter((p) => p.id !== panel.id);
 
       if (this.selection.kind === 'panel' && this.selection.panelId === panel.id) {
@@ -434,6 +445,8 @@ export class LayoutDesignerComponent {
     event.preventDefault();
     event.stopPropagation();
 
+    this.pushUndoState();
+
     this.resizing = {
       kind: 'column',
       columnId: column.id,
@@ -445,6 +458,8 @@ export class LayoutDesignerComponent {
   startPanelResize(column: DesignerColumn, panel: DesignerPanel, event: PointerEvent): void {
     event.preventDefault();
     event.stopPropagation();
+
+    this.pushUndoState();
 
     this.resizing = {
       kind: 'panel',
@@ -487,6 +502,40 @@ export class LayoutDesignerComponent {
   }
 
 
+
+  private pushUndoState(): void {
+    this.undoStack.push(structuredClone(this.design));
+
+    if (this.undoStack.length > this.maxUndoSteps) {
+      this.undoStack.shift();
+    }
+  }
+
+  undoLastLayoutChange(): void {
+    const previous = this.undoStack.pop();
+
+    if (!previous) {
+      const feedback = (this as any).showDesignerFeedback;
+
+      if (typeof feedback === 'function') {
+        feedback.call(this, 'Nothing to undo', 'info', 'undo');
+      }
+
+      return;
+    }
+
+    this.design = previous;
+    this.selection = { kind: 'design' };
+    this.runLivePreview();
+
+    const feedback = (this as any).showDesignerFeedback;
+
+    if (typeof feedback === 'function') {
+      feedback.call(this, 'Layout change undone', 'success', 'undo');
+    }
+  }
+
+
   deleteSelected(): void {
     if (this.selection.kind === 'panel') {
       this.removeSelectedPanel();
@@ -502,6 +551,24 @@ export class LayoutDesignerComponent {
 
   @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+
+      if (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      this.undoLastLayoutChange();
+      return;
+    }
+
     const target = event.target as HTMLElement | null;
     const tag = target?.tagName?.toLowerCase();
 
@@ -562,6 +629,124 @@ export class LayoutDesignerComponent {
       }
     }
   }
+
+
+  createNewLayoutFromDefault(): void {
+    this.design = this.createHardcodedRuntimeDesign();
+    this.selection = { kind: 'design' };
+
+    this.runLivePreview();
+
+    const feedback = (this as any).showDesignerFeedback;
+    if (typeof feedback === 'function') {
+      feedback.call(this, 'Hardcoded default copied. Edit and Save.', 'success', 'new-layout');
+    }
+  }
+
+  clearAllUserLayouts(): void {
+    const confirmed = window.confirm(
+      'Delete all saved user layouts? The hardcoded default layout will stay available.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const keys = [
+      'flatland.designer.designs.v1',
+      'flatland.designer.active.v1',
+      'flatland.layoutDesigner.designs.v1',
+      'flatland.layoutDesigner.active.v1',
+      'flatland.layouts.v1',
+      'flatland.runtime.selectedLayoutId.v1',
+    ];
+
+    for (const key of keys) {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Ignore storage errors.
+      }
+    }
+
+    this.designs = [];
+    this.design = this.createHardcodedRuntimeDesign();
+    this.selection = { kind: 'design' };
+
+    this.runLivePreview();
+
+    const feedback = (this as any).showDesignerFeedback;
+    if (typeof feedback === 'function') {
+      feedback.call(this, 'All user layouts cleared. Default layout kept.', 'warn', 'clear-layouts');
+    }
+  }
+
+  private createHardcodedRuntimeDesign(): FlatlandDesign {
+    const now = new Date().toISOString();
+    const suffix = Date.now().toString(36);
+
+    const panel = (
+      type: string,
+      title: string,
+      minHeight = 160,
+      height = 220,
+    ): DesignerPanel => ({
+      id: `panel-${type}-${suffix}-${Math.random().toString(36).slice(2, 7)}`,
+      type,
+      title,
+      minHeight,
+      height,
+      expanded: true,
+      collapsible: true,
+    });
+
+    return {
+      id: `layout-hardcoded-copy-${suffix}`,
+      name: `Default Layout Copy ${new Date().toLocaleTimeString()}`,
+      sessionId: '',
+      scale: 1,
+      createdAt: now,
+      updatedAt: now,
+      layout: {
+        columns: [
+          {
+            id: `left-${suffix}`,
+            name: 'Left',
+            role: 'sidebar',
+            width: 280,
+            panels: [
+              panel('situation-summary', 'Situation Summary', 140, 180),
+              panel('notifications', 'Notifications', 140, 180),
+              panel('agents-list', 'Agents', 220, 320),
+            ],
+          },
+          {
+            id: `center-${suffix}`,
+            name: 'Center',
+            role: 'main',
+            width: 720,
+            panels: [
+              panel('flatland-map', 'Flatland Map', 360, 520),
+            ],
+          },
+          {
+            id: `right-${suffix}`,
+            name: 'Right',
+            role: 'custom',
+            width: 320,
+            panels: [
+              panel('agent-inspector', 'Agent Inspector', 180, 240),
+              panel('impact', 'Impact', 150, 200),
+              panel('scenario', 'Scenario', 220, 320),
+              panel('recommendations', 'Recommendations', 160, 220),
+              panel('kpi-filter', 'KPI Filter', 160, 220),
+            ],
+          },
+        ],
+      },
+    };
+  }
+
 
   saveWithFeedback(): void {
     this.callDesignerMethod(['save']);

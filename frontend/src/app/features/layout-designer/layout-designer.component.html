@@ -6,7 +6,23 @@
     </div>
 
     <div class="designer__actions">
-      <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save'" (click)="saveWithFeedback()">Save</button>
+            <button
+        type="button"
+        class="designer-action-btn"
+        [class.is-clicked]="buttonFeedbackId === 'new-layout'"
+        (click)="createNewLayoutFromDefault()">
+        New Layout
+      </button>
+
+      <button
+        type="button"
+        class="designer-action-btn designer-action-btn--danger"
+        [class.is-clicked]="buttonFeedbackId === 'clear-layouts'"
+        (click)="clearAllUserLayouts()">
+        Clear All Layouts
+      </button>
+
+<button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save'" (click)="saveWithFeedback()">Save</button>
       <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAsWithFeedback()">Save As…</button>
       <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJsonWithFeedback()">Export JSON</button>
 
@@ -192,7 +208,7 @@
 
     <aside class="settings">
       <h2>Settings</h2>
-      <p class="settings__hint">Press Delete to remove the red selected item. Drag a panel outside the canvas and release to delete it.</p>
+      <p class="settings__hint">Press Delete to remove the red selected item. Ctrl+Z undoes the last layout change. Drag a panel outside the canvas and release to delete it. Ctrl+Z restores it.</p>
 
       <ng-container [ngSwitch]="selection.kind">
         <section *ngSwitchCase="'design'">
