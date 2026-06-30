@@ -8,9 +8,7 @@
       [attr.data-zone]="zone"
     >
       @for (panel of panelsByZone(zone); track panel.id) {
-        <app-panel-shell [panel]="panel">
-          <app-panel-plugin-host [panel]="panel"></app-panel-plugin-host>
-        </app-panel-shell>
+        <app-panel-shell [panel]="panel"></app-panel-shell>
       } @empty {
         <div class="layout-renderer__empty">
           {{ zone }} zone

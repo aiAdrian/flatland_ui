@@ -4,9 +4,6 @@ import { MareyChartComponent } from '../marey-chart/marey-chart.component';
 /**
  * Graphic-Timetable: Time-Distance-Diagramm der Zugbewegungen.
  * Aktuell duenner Wrapper um MareyChart.
- * In Phase E reagiert die Komponente auf:
- *   - SIMULATION_TIME_CHANGED (Vertikal-Linie an Zeit t)
- *   - FOCUS_INFRASTRUCTURE_ELEMENT (Train highlight)
  */
 @Component({
   selector: 'app-graphic-timetable',
@@ -18,8 +15,38 @@ import { MareyChartComponent } from '../marey-chart/marey-chart.component';
     </div>
   `,
   styles: [`
-    :host { display: flex; flex: 1; min-height: 0; min-width: 0; }
-    .timetable-host { display: flex; flex: 1; min-height: 0; min-width: 0; }
+    :host {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .timetable-host {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    app-marey-chart {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
   `],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

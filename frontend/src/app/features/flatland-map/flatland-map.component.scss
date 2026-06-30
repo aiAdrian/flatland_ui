@@ -927,38 +927,29 @@
   min-height: 0;
 }
 
-
-/* Embedded center workspace: the SVG should fill the allocated map canvas,
-   not shrink to its intrinsic viewBox aspect-ratio height. */
 :host-context(.panel-plugin-host__map) {
-  display: block;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
 :host-context(.panel-plugin-host__map) .flatland-svg {
-  display: block;
-  width: 100%;
+  display: block !important;
+  width: 100% !important;
   height: 100% !important;
-  min-width: 0;
-  min-height: 0;
-}
-
-
-/* Embedded center workspace: preserve original map control layout and only lift
-   the complete controls group so it remains visible inside the taller map panel. */
-:host-context(.panel-plugin-host__map) {
-  --embedded-map-controls-lift: 96px;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
 }
 
 :host-context(.panel-plugin-host__map) .map-nav-overlay,
 :host-context(.panel-plugin-host__map) .map-zoom-overlay,
 :host-context(.panel-plugin-host__map) .map-opacity-overlay {
-  z-index: 30;
-  transform: translateY(calc(-1 * var(--embedded-map-controls-lift)));
+  position: absolute !important;
+  z-index: 30 !important;
 }
-

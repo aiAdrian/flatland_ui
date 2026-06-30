@@ -1,22 +1,42 @@
-<sbb-expansion-panel
-  class="layout-panel-shell"
-  color="white"
-  size="s"
-  [attr.expanded]="expandedAttribute"
->
-  <sbb-expansion-panel-header>
-    <div class="layout-panel-shell__header">
+@if (isCanvasPanel) {
+  <div
+    class="layout-panel-shell layout-panel-shell--canvas"
+    [attr.data-panel-type]="panel.type"
+    [attr.data-panel-zone]="panel.zone"
+  >
+    <div class="layout-panel-shell__header layout-panel-shell__header--canvas">
       <span class="layout-panel-shell__title">{{ panel.title }}</span>
+    </div>
 
-      @if (panel.hidden) {
-        <span class="layout-panel-shell__meta">Hidden</span>
+    <div class="layout-panel-shell__body layout-panel-shell__body--canvas">
+      <app-panel-plugin-host [panel]="panel"></app-panel-plugin-host>
+    </div>
+  </div>
+} @else {
+  <sbb-expansion-panel
+    class="layout-panel-shell layout-panel-shell--expansion"
+    color="white"
+    size="s"
+    [attr.data-panel-type]="panel.type"
+    [attr.data-panel-zone]="panel.zone"
+    [attr.expanded]="expandedAttribute"
+  >
+    <sbb-expansion-panel-header (click)="toggleExpanded()">
+      <div class="layout-panel-shell__header">
+        <span class="layout-panel-shell__title">{{ panel.title }}</span>
+
+        @if (panel.hidden) {
+          <span class="layout-panel-shell__meta">Hidden</span>
+        }
+      </div>
+    </sbb-expansion-panel-header>
+
+    <sbb-expansion-panel-content class="layout-panel-shell__content">
+      @if (isExpanded()) {
+        <div class="layout-panel-shell__body layout-panel-shell__body--scroll">
+          <app-panel-plugin-host [panel]="panel"></app-panel-plugin-host>
+        </div>
       }
-    </div>
-  </sbb-expansion-panel-header>
-
-  <sbb-expansion-panel-content class="layout-panel-shell__content">
-    <div class="layout-panel-shell__body">
-      <ng-content></ng-content>
-    </div>
-  </sbb-expansion-panel-content>
-</sbb-expansion-panel>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}

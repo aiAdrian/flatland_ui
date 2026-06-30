@@ -1,4 +1,9 @@
-<div class="panel-plugin-host">
+<div
+  class="panel-plugin-host"
+  [attr.data-panel-type]="panel.type"
+  [class.panel-plugin-host--canvas]="isCanvasPanel"
+  [class.panel-plugin-host--scroll]="!isCanvasPanel"
+>
   @switch (panel.type) {
     @case ('notifications') {
       <app-notifications-panel [embedded]="true"></app-notifications-panel>

@@ -1,122 +1,69 @@
-:host {
-  display: block;
-  width: 100%;
-  min-width: 0;
-}
+/* Stable PanelPluginHost baseline. */
 
+:host,
 .panel-plugin-host {
   display: block;
+  position: relative;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.panel-plugin-host > * {
+.panel-plugin-host--canvas {
+  height: 100%;
+  overflow: hidden;
+}
+
+.panel-plugin-host--scroll {
+  overflow: visible;
+}
+
+.panel-plugin-host__map,
+.panel-plugin-host__timetable {
+  display: block;
+  position: relative;
   width: 100%;
+  height: 100%;
   min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.panel-plugin-host__map app-flatland-map,
+.panel-plugin-host__timetable app-graphic-timetable {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .panel-plugin-host__placeholder {
-  display: grid;
-  gap: var(--sbb-spacing-fixed-1x, 0.25rem);
-  min-width: 0;
-  color: var(--sbb-color-charcoal, #212121);
+  padding: 1rem;
+  border: 1px dashed var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 4px;
+  color: var(--sbb-color-granite, #686868);
+  background: var(--sbb-color-milk, #f6f6f6);
 }
 
 .panel-plugin-host__label {
-  color: var(--sbb-color-granite, #686868);
-  font-size: var(--sbb-font-size-text-xxs, 0.6875rem);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--sbb-color-charcoal, #212121);
 }
 
 .panel-plugin-host__type {
-  overflow: hidden;
+  margin-top: 0.25rem;
   font-family: monospace;
-  font-size: var(--sbb-font-size-text-xs, 0.75rem);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .panel-plugin-host__hint {
-  color: var(--sbb-color-granite, #686868);
-  font-size: var(--sbb-font-size-text-xs, 0.75rem);
-  line-height: 1.4;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
 }
-
-
-.panel-plugin-host__map {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 32rem;
-}
-
-.panel-plugin-host__map app-flatland-map {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 32rem;
-}
-
-
-/* Map plugin fills the center PanelShell body. */
-.panel-plugin-host__map {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-}
-
-.panel-plugin-host__map app-flatland-map {
-  display: block;
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-}
-
-
-/* Center map workspace: impose real height so the Lyne expansion-panel content
-   does not shrink to the SVG intrinsic aspect-ratio height. */
-.panel-plugin-host__map {
-  display: flex;
-  width: 100%;
-  height: calc(100vh - 14rem);
-  min-height: 34rem;
-  max-height: calc(100vh - 10rem);
-  min-width: 0;
-  overflow: hidden;
-}
-
-.panel-plugin-host__map app-flatland-map {
-  display: block;
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-
-.panel-plugin-host__timetable {
-  display: flex;
-  width: 100%;
-  height: 24rem;
-  min-width: 0;
-  min-height: 20rem;
-  overflow: hidden;
-}
-
-.panel-plugin-host__timetable app-graphic-timetable {
-  display: flex;
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-}
-

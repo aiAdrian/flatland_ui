@@ -6,7 +6,6 @@ import {
   LayoutZone,
   PanelInstance,
 } from '../../../../core/layout';
-import { PanelPluginHostComponent } from '../panel-plugin-host/panel-plugin-host.component';
 import { PanelShellComponent } from '../panel-shell/panel-shell.component';
 
 @Component({
@@ -15,7 +14,6 @@ import { PanelShellComponent } from '../panel-shell/panel-shell.component';
   imports: [
     CommonModule,
     PanelShellComponent,
-    PanelPluginHostComponent,
   ],
   templateUrl: './layout-renderer.component.html',
   styleUrl: './layout-renderer.component.scss',

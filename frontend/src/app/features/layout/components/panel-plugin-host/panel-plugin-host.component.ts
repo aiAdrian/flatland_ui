@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { PanelInstance } from '../../../../core/layout';
 
 import { NotificationsPanelComponent } from '../../../notifications-panel/notifications-panel.component';
@@ -28,4 +28,13 @@ import { GraphicTimetableComponent } from '../../../graphic-timetable/graphic-ti
 })
 export class PanelPluginHostComponent {
   @Input({ required: true }) panel!: PanelInstance;
+
+  @HostBinding('attr.data-panel-type')
+  get hostPanelType(): string | null {
+    return this.panel?.type ?? null;
+  }
+
+  get isCanvasPanel(): boolean {
+    return this.panel?.type === 'flatland-map' || this.panel?.type === 'graphic-timetable';
+  }
 }

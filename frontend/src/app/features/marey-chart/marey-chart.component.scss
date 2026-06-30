@@ -994,3 +994,31 @@
 /* No blue border/background. Highlight the rendered SVG itself. */
 
 /* Marey topology hover: grey cell background, no SVG tint, no frame. */
+
+:host-context(.panel-plugin-host__timetable) {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+:host-context(.panel-plugin-host__timetable) .marey-shell {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+:host-context(.panel-plugin-host__timetable) .marey-svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
