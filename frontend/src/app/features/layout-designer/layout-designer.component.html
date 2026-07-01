@@ -10,7 +10,7 @@
         <span>Load Layout</span>
         <select
           [value]="design.id"
-          (focus)="refreshDesignerLayoutList()"
+          (focus)="refreshDesignerLayoutList()" (click)="refreshDesignerLayoutList()"
           (change)="loadDesignerLayout($any($event.target).value)">
           @for (layout of designerLayoutOptions(); track layout.id) {
             <option [value]="layout.id">{{ layout.name }}</option>
@@ -42,7 +42,12 @@
         Clear All Layouts
       </button>
 
-<button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save'" (click)="saveWithFeedback()">Save</button>
+<button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save'" (click)="saveWithFeedback()"
+        [class.designer-action-btn--dirty]="isDirty"
+        [class.designer-action-btn--saved]="!isDirty"
+        [attr.title]="isDirty ? 'Save unsaved layout changes' : 'Layout already saved'">
+        {{ isDirty ? 'Save changes' : 'Saved' }}
+      </button>
       <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAsWithPrompt()">Save As…</button>
       <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJsonWithFeedback()">Export JSON</button>
 
@@ -101,6 +106,14 @@
     <button type="button" (click)="removeSelectedColumn()" [disabled]="selection.kind !== 'column'">
       - Column
     </button>
+
+    <span
+      class="designer-unsaved-pill"
+      [class.is-dirty]="isDirty"
+      [class.is-saved]="!isDirty">
+      <span class="designer-unsaved-pill__dot"></span>
+      {{ isDirty ? 'Unsaved changes' : 'Layout saved' }}
+    </span>
 
     <div class="live-preview-pill" [class.is-connected]="livePreviewConnected">
       Live Preview:

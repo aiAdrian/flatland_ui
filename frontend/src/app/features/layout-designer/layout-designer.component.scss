@@ -1174,3 +1174,163 @@ button.primary.designer-action-btn:hover,
   }
 }
 /* DESIGNER_LYNE_TOOLBAR_STYLE_END */
+
+/* DESIGNER_UX_FINAL_DIRTY_SAVE_START */
+
+/* Footer is part of the flex layout, not another viewport-height item. */
+.designer-footer-status {
+  position: relative !important;
+  bottom: auto !important;
+  flex: 0 0 auto !important;
+  min-height: 34px;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* The designer body must leave room for the fixed flex footer. */
+.designer {
+  min-height: 0 !important;
+}
+
+.designer__body {
+  min-height: 0 !important;
+}
+
+/* Stateful Save button. */
+.designer-action-btn--dirty {
+  border-color: #8bcf9a !important;
+  background: #eef8f0 !important;
+  color: #16692b !important;
+  font-weight: 800 !important;
+}
+
+.designer-action-btn--dirty::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.14);
+  vertical-align: 1px;
+}
+
+.designer-action-btn--saved {
+  border-color: #d2d2d2 !important;
+  background: #f6f6f6 !important;
+  color: #686868 !important;
+}
+
+.designer-action-btn--saved::before {
+  content: '✓';
+  display: inline-block;
+  margin-right: 6px;
+  color: #2e7d32;
+  font-weight: 900;
+}
+
+/* Unsaved/saved status pill in layout bar. */
+.designer-unsaved-pill {
+  align-self: stretch !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  border: 1px solid #e3e3e3 !important;
+  border-radius: 5px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: #686868;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.designer-unsaved-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #8d8d8d;
+  flex: 0 0 auto;
+}
+
+.designer-unsaved-pill.is-dirty {
+  border-color: #ffd36a !important;
+  background: #fff8e1 !important;
+  color: #6b4a00 !important;
+}
+
+.designer-unsaved-pill.is-dirty .designer-unsaved-pill__dot {
+  background: #ffb300;
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.18);
+}
+
+.designer-unsaved-pill.is-saved {
+  border-color: #8bcf9a !important;
+  background: #eef8f0 !important;
+  color: #16692b !important;
+}
+
+.designer-unsaved-pill.is-saved .designer-unsaved-pill__dot {
+  background: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.14);
+}
+
+/* Make the meta bar fit the extra status pill gracefully. */
+.designer__meta {
+  grid-template-columns:
+    minmax(170px, 220px)
+    minmax(210px, 1fr)
+    minmax(130px, 165px)
+    minmax(125px, 155px)
+    minmax(90px, 115px)
+    auto
+    auto
+    minmax(160px, auto)
+    minmax(190px, auto) !important;
+}
+
+/* Keep top toolbar elegant if it wraps. */
+.designer__actions {
+  row-gap: 8px !important;
+}
+
+.designer-layout-loader {
+  max-width: 260px;
+}
+
+.designer-layout-loader select {
+  text-overflow: ellipsis;
+}
+
+/* Better visual grouping for destructive action in toolbar. */
+.designer-action-btn--danger {
+  margin-left: 4px;
+}
+
+/* Home button separated as final navigation action. */
+button.primary.designer-action-btn,
+.designer-action-btn--primary {
+  margin-left: 4px;
+}
+
+/* Avoid previous nth-of-type save styling fighting with state classes. */
+.designer__actions button.designer-action-btn--saved,
+.designer__actions button.designer-action-btn--dirty {
+  min-width: 112px;
+}
+
+@media (max-width: 1360px) {
+  .designer__meta {
+    grid-template-columns: repeat(4, minmax(150px, 1fr)) !important;
+  }
+
+  .designer-unsaved-pill,
+  .live-preview-pill {
+    justify-content: flex-start !important;
+  }
+}
+
+/* DESIGNER_UX_FINAL_DIRTY_SAVE_END */

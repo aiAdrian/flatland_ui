@@ -690,6 +690,7 @@ export class LayoutDesignerComponent {
   }
 
 
+
   refreshDesignerLayoutList(): void {
     const next = this.loadDesignerLayoutsFromStorage();
     const current = JSON.stringify(this.designs ?? []);
@@ -699,6 +700,7 @@ export class LayoutDesignerComponent {
       this.designs = next;
     }
   }
+
 
 
   designerLayoutOptions(): FlatlandDesign[] {
@@ -742,6 +744,7 @@ export class LayoutDesignerComponent {
     );
   }
 
+
   private persistCurrentDesignerLayout(): void {
     const now = new Date().toISOString();
     const current = this.cloneDesignerDesign({
@@ -758,6 +761,8 @@ export class LayoutDesignerComponent {
       layouts.push(current);
     }
 
+    layouts.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
     this.design = current;
     this.designs = layouts;
 
@@ -767,8 +772,10 @@ export class LayoutDesignerComponent {
 
 
 
+
   saveWithFeedback(): void {
     this.persistCurrentDesignerLayout();
+    this.refreshDesignerLayoutList();
 
     const originalSave = (this as any).save;
     if (typeof originalSave === 'function') {
@@ -817,6 +824,7 @@ export class LayoutDesignerComponent {
 
     this.selection = { kind: 'design' };
     this.persistCurrentDesignerLayout();
+    this.refreshDesignerLayoutList();
     this.runLivePreview();
     this.markDesignerSaved(`Layout saved as “${cleanName}”`);
 
@@ -848,6 +856,7 @@ export class LayoutDesignerComponent {
     };
 
     this.persistCurrentDesignerLayout();
+    this.refreshDesignerLayoutList();
     this.markDesignerSaved(`Layout renamed to “${cleanName}”`);
 
     const feedback = (this as any).showDesignerFeedback;
@@ -911,13 +920,13 @@ export class LayoutDesignerComponent {
       this.removeDesignerStorage(key);
     }
 
-    this.designs = [];
 
     const createDefault = (this as any).createHardcodedRuntimeDesign;
     if (typeof createDefault === 'function') {
       this.design = createDefault.call(this);
     }
 
+    this.designs = [this.cloneDesignerDesign(this.design)];
     this.selection = { kind: 'design' };
     this.runLivePreview();
     this.markDesignerDirty('All user layouts cleared. Default copy ready to save.');
