@@ -1156,3 +1156,199 @@
   box-shadow: 0 0 0 3px rgba(235, 0, 0, 0.14);
 }
 /* LIGHT_STATUS_FOOTER_END */
+
+/* LAYER_VISIBILITY_ALWAYS_VISIBLE_START */
+/*
+  Layer visibility controls are global map/layer controls.
+  They must stay visible independently from the selected view:
+  - flatland-map
+  - marey
+  - map + marey
+  - map hidden by toggle-view
+  - marey hidden by toggle-view
+*/
+.center-pane > .map-controls {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.center-pane > .map-controls app-layer-visibility {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+:host ::ng-deep .center-pane > .map-controls .layer-visibility {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+:host ::ng-deep .center-pane > .map-controls .layers {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+/* LAYER_VISIBILITY_ALWAYS_VISIBLE_END */
+
+/* LAYER_VISIBILITY_INDEPENDENT_FROM_VIEW_START */
+/*
+  Layer Visibility is a global layer control. It must remain visible when the
+  Map view is toggled off and Marey stays active.
+*/
+.center-pane > .map-controls {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.center-pane > .map-controls app-layer-visibility,
+.center-pane > .map-controls .layer-visibility,
+.center-pane > .map-controls .layers {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+/* LAYER_VISIBILITY_INDEPENDENT_FROM_VIEW_END */
+
+
+/* Runtime Layout Designer column zoning */
+.runtime-design {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.runtime-design__column {
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.runtime-design__column--left,
+.runtime-design__column--right,
+.runtime-design__column--custom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--sbb-color-milk, #f6f6f6);
+}
+
+.runtime-design__column--center {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--sbb-color-white, #fff);
+}
+
+.runtime-design__column--left {
+  border-right: 1px solid var(--sbb-color-cloud, #d2d2d2);
+}
+
+.runtime-design__column--right,
+.runtime-design__column--custom {
+  border-left: 1px solid var(--sbb-color-cloud, #d2d2d2);
+}
+
+.runtime-design__column--custom {
+  border-right: 1px solid var(--sbb-color-cloud, #d2d2d2);
+}
+
+
+/* Runtime row support */
+.runtime-design--rows {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.runtime-design__row {
+  display: grid;
+  min-width: 0;
+  min-height: 72px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.runtime-design__row + .runtime-design__row {
+  border-top: 1px solid var(--sbb-color-cloud, #d2d2d2);
+}
+
+.runtime-design__row > .runtime-design__column {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* FINAL runtime row layout integration */
+.runtime-design.runtime-design--rows{display:flex!important;flex-direction:column!important;flex:1 1 auto;min-width:0;min-height:0;width:100%;height:100%;overflow:auto}
+.runtime-design__row{display:grid;min-width:0;min-height:72px;width:100%;box-sizing:border-box;overflow:hidden}
+.runtime-design__row+.runtime-design__row{border-top:1px solid var(--sbb-color-cloud,#d2d2d2)}
+.runtime-design__row>.runtime-design__column{min-width:0;min-height:0;overflow:auto}
+
+/* USER LAYOUT runtime rows final */
+.runtime-design.runtime-design--rows {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.runtime-design__row {
+  display: grid;
+  min-width: 0;
+  min-height: 72px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.runtime-design__row + .runtime-design__row {
+  border-top: 1px solid var(--sbb-color-cloud, #d2d2d2);
+}
+
+.runtime-design__row > .runtime-design__column {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Runtime relative row column widths */
+.runtime-design.runtime-design--rows {
+  width: 100%;
+}
+
+.runtime-design__row {
+  width: 100%;
+  max-width: 100%;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.runtime-design__row > .runtime-design__column,
+.runtime-design__row > .left-pane,
+.runtime-design__row > .center-pane,
+.runtime-design__row > .right-pane {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  flex: initial !important;
+  box-sizing: border-box;
+}
+

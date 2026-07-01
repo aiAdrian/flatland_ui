@@ -67,21 +67,38 @@
   </header>
 
   
-    <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()"></app-toolbar>
+    @if (!runtimeLayoutActive()) {
+  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()"></app-toolbar>
+}
 
   @if (store.session()) {
     @if (useSavedRuntimeLayout()) {
-      <div class="three-col runtime-design" [style.grid-template-columns]="runtimeGridTemplate()">
-        @for (column of activeRuntimeDesign()?.layout?.columns ?? []; track column.id; let columnIndex = $index) {
-          <section [attr.class]="runtimeColumnClass(column, columnIndex)">
-            @for (panel of column.panels ?? []; track panel.id; let panelIndex = $index) {
-              <app-panel-shell
-                [panel]="toRuntimePanel(column, panel, panelIndex)"
-                [attr.data-panel-type]="toRuntimePanel(column, panel, panelIndex).type"
-                [attr.data-panel-zone]="toRuntimePanel(column, panel, panelIndex).zone">
-              </app-panel-shell>
+      <div class="runtime-design runtime-design--rows">
+        @for (row of runtimeRows(runtimeColumns()); track row.id) {
+          <div
+            class="runtime-design__row"
+            [style.height.px]="runtimeRowHeightPx(row)"
+            [style.grid-template-columns]="runtimeRowGridTemplate(row)"
+            [attr.data-runtime-row]="row.id"
+          >
+            @for (column of row.columns; track column.id) {
+              <section
+                [class]="runtimeColumnClassString(column)"
+                [attr.data-runtime-column]="column.id"
+                [attr.data-runtime-row]="row.id"
+              >
+                @for (panel of column.panels; track panel.id) {
+                  <app-panel-shell
+                    [panel]="panel"
+                    [attr.data-panel-type]="panel.type"
+                    [attr.data-panel-zone]="runtimePanelZone(column)"
+                    [attr.data-panel-row]="row.id"
+                  >
+                  </app-panel-shell>
+                }
+              </section>
             }
-          </section>
+          </div>
         }
       </div>
     } @else {
@@ -128,10 +145,8 @@
 
         <div class="map-controls">
           <app-view-toggle></app-view-toggle>
-          @if (store.showMap()) {
-            <span class="map-controls-divider"></span>
+          <span class="map-controls-divider"></span>
             <app-layer-visibility></app-layer-visibility>
-          }
         </div>
 
         <div class="views"

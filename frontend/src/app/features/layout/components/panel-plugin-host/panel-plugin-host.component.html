@@ -5,6 +5,46 @@
   [class.panel-plugin-host--scroll]="!isCanvasPanel"
 >
   @switch (panel.type) {
+    @case ('toggle-view') {
+      <div class="panel-plugin-host__toggle-composite">
+        <div class="panel-plugin-host__controls-row">
+          <app-layout-view-toggle-panel
+            [panel]="panel"
+            [embedded]="true">
+          </app-layout-view-toggle-panel>
+
+          <app-layer-visibility></app-layer-visibility>
+        </div>
+
+        <div
+          class="panel-plugin-host__toggle-views"
+          [class.only-map]="isViewVisible('flatland-map') && !isViewVisible('marey')"
+          [class.only-marey]="!isViewVisible('flatland-map') && isViewVisible('marey')"
+          [class.split]="isViewVisible('flatland-map') && isViewVisible('marey')"
+        >
+          @if (isViewVisible('flatland-map')) {
+            <section class="panel-plugin-host__toggle-map">
+              <app-flatland-map></app-flatland-map>
+            </section>
+          }
+
+          @if (isViewVisible('marey')) {
+            <section class="panel-plugin-host__toggle-marey">
+              <app-graphic-timetable></app-graphic-timetable>
+            </section>
+          }
+        </div>
+      </div>
+    }
+
+    @case ('toolbar') {
+      <app-toolbar></app-toolbar>
+    }
+
+    @case ('layer-visibility') {
+      <app-layer-visibility></app-layer-visibility>
+    }
+
     @case ('situation-summary') {
       <app-situation-summary></app-situation-summary>
     }
@@ -14,6 +54,10 @@
     }
 
     @case ('agents') {
+      <app-agents-panel [embedded]="true"></app-agents-panel>
+    }
+
+    @case ('agents-list') {
       <app-agents-panel [embedded]="true"></app-agents-panel>
     }
 
@@ -34,15 +78,43 @@
     }
 
     @case ('flatland-map') {
-      <div class="panel-plugin-host__map">
-        <app-flatland-map></app-flatland-map>
-      </div>
+      @if (isViewVisible('flatland-map')) {
+        <div class="panel-plugin-host__map">
+          <app-flatland-map></app-flatland-map>
+        </div>
+      }
+    }
+
+    @case ('simulation-map') {
+      @if (isViewVisible('flatland-map')) {
+        <div class="panel-plugin-host__map">
+          <app-flatland-map></app-flatland-map>
+        </div>
+      }
+    }
+
+    @case ('marey') {
+      @if (isViewVisible('marey')) {
+        <div class="panel-plugin-host__timetable">
+          <app-graphic-timetable></app-graphic-timetable>
+        </div>
+      }
+    }
+
+    @case ('marey-chart') {
+      @if (isViewVisible('marey')) {
+        <div class="panel-plugin-host__timetable">
+          <app-graphic-timetable></app-graphic-timetable>
+        </div>
+      }
     }
 
     @case ('graphic-timetable') {
-      <div class="panel-plugin-host__timetable">
-        <app-graphic-timetable></app-graphic-timetable>
-      </div>
+      @if (isViewVisible('marey')) {
+        <div class="panel-plugin-host__timetable">
+          <app-graphic-timetable></app-graphic-timetable>
+        </div>
+      }
     }
 
     @case ('agent-inspector') {
@@ -54,6 +126,27 @@
         [panel]="panel"
         [embedded]="true">
       </app-goal-achievement-panel>
+    }
+
+    @case ('timeline') {
+      <div class="panel-plugin-host__placeholder">
+        <div class="panel-plugin-host__label">Timeline</div>
+        <div class="panel-plugin-host__hint">Timeline panel is available in the layout palette.</div>
+      </div>
+    }
+
+    @case ('validation') {
+      <div class="panel-plugin-host__placeholder">
+        <div class="panel-plugin-host__label">Validation</div>
+        <div class="panel-plugin-host__hint">Validation panel is available in the layout palette.</div>
+      </div>
+    }
+
+    @case ('cell-inspector') {
+      <div class="panel-plugin-host__placeholder">
+        <div class="panel-plugin-host__label">Cell Inspector</div>
+        <div class="panel-plugin-host__hint">Cell inspector panel is available in the layout palette.</div>
+      </div>
     }
 
     @default {

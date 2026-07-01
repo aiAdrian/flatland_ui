@@ -57,12 +57,6 @@
       </label>
 
       <button type="button" class="primary designer-action-btn designer-action-btn--primary" [class.is-clicked]="buttonFeedbackId === 'home'" (click)="goHomeWithFeedback()" >Home</button>
-      <span
-        class="designer-action-feedback"
-        [class.is-visible]="!!designerFeedbackMessage"
-        [attr.data-tone]="designerFeedbackTone">
-        {{ designerFeedbackMessage }}
-      </span>
     </div>
   </header>
 
@@ -101,6 +95,9 @@
         <option [ngValue]="1">100%</option>
       </select>
     </label>
+
+    <button type="button" (click)="addRow()">+ Row</button>
+
 
     <button type="button" (click)="addColumn()">+ Column</button>
     <button type="button" (click)="removeSelectedColumn()" [disabled]="selection.kind !== 'column'">
@@ -143,103 +140,144 @@
         <span>{{ item.type }}</span>
       </div>
     </aside>
-
-    <section class="preview" (click)="selectDesign()">
-      <div class="preview__head">
-        <h2>Layout Preview</h2>
-        <span>{{ design.layout.columns.length }} columns · {{ design.scale * 100 | number:'1.0-0' }}%</span>
-      </div>
-
-      <div class="preview__scroll">
-        <div
-          class="canvas"
-          [style.width.px]="canvasWidth"
-          [style.transform]="'scale(' + design.scale + ')'"
-        >
-          <section
-            class="canvas__column"
-            *ngFor="let column of design.layout.columns; trackBy: trackByColumn"
-            [class.is-selected]="selection.kind === 'column' && selection.columnId === column.id"
-            [style.width.px]="column.width"
-            (click)="selectColumn(column, $event)"
-            (dragover)="allowDrop($event)"
-            (drop)="dropOnColumn(column, $event)"
-          >
-            <header class="canvas__column-head">
-              <strong>{{ column.name }}</strong>
-              <span>{{ column.width }}px</span>
-            </header>
-
-            <div class="canvas__dropzone">
-              <article
-                class="panel-card"
-                [attr.data-panel-type]="panel.type"
-                *ngFor="let panel of column.panels; trackBy: trackByPanel"
-                draggable="true"
-                [ngStyle]="panelStyle(panel)"
-                [class.is-selected]="selection.kind === 'panel' && selection.panelId === panel.id"
-                (click)="selectPanel(column, panel, $event)"
-                (dragstart)="dragPanel(column, panel, $event)"
-                (dragend)="dragPanelEnd(column, panel, $event)"
-              >
-                <div class="panel-card__head">
-                  <strong>{{ panel.title }}</strong>
-                  <span>{{ panel.type }}</span>
-                </div>
-                @if (previewRenderMode === 'live') {
-                  <div class="panel-card__runtime">
-                    <app-panel-shell [panel]="toRuntimePanel(column, panel)"></app-panel-shell>
-                  </div>
-                } @else {
-                  <div class="panel-card__body">
-                    <ng-container [ngSwitch]="panel.type">
-                      <div *ngSwitchCase="'flatland-map'" class="mini-preview mini-preview--map">
-                        <strong>Flatland Map</strong>
-                        <span>Live preview</span>
-                        <small>{{ design.sessionId || 'local-designer-session' }}</small>
-                      </div>
-
-                      <div *ngSwitchCase="'marey-chart'" class="mini-preview mini-preview--chart">
-                        <strong>Marey Chart</strong>
-                        <span>Live preview</span>
-                      </div>
-
-                      <div *ngSwitchCase="'graphic-timetable'" class="mini-preview mini-preview--chart">
-                        <strong>Graphic Timetable</strong>
-                        <span>Live preview</span>
-                      </div>
-
-                      <div *ngSwitchDefault class="mini-preview">
-                        <strong>{{ panel.title }}</strong>
-                        <span>Panel preview</span>
-                      </div>
-                    </ng-container>
-                  </div>
-                }
-
-                <div
-                  class="panel-card__resize"
-                  title="Drag to resize height"
-                  (pointerdown)="startPanelResize(column, panel, $event)"
-                ></div>
-              </article>
-
-              <div class="canvas__empty" *ngIf="!column.panels.length">
-                Drop components here
-              </div>
-            </div>
-
-            <div
-              class="canvas__column-resize"
-              title="Drag to resize column width"
-              (pointerdown)="startColumnResize(column, $event)"
-            ></div>
-          </section>
+      <section class="preview" (click)="selectDesign()">
+        <div class="preview__head">
+          <h2>Layout Preview</h2>
+          <span>{{ layoutRowCount }} rows × {{ maxColumnsPerRow }} columns · {{ design.scale * 100 | number:'1.0-0' }}%</span>
         </div>
-      </div>
-    </section>
 
-    <aside class="settings">
+        <div class="preview__scroll">
+          <div
+            class="canvas canvas--rows"
+            [style.width.px]="canvasWidth"
+            [style.transform]="'scale(' + design.scale + ')'"
+          >
+            <section
+              class="canvas__row"
+              *ngFor="let row of layoutRows; let rowIndex = index; trackBy: trackByRow"
+              [class.is-selected]="selection.kind === 'row' && selectedRowId === rowIdForRow(row)"
+              [ngStyle]="rowStyle(row)"
+              [style.height.px]="rowHeightPx(row)"
+              [style.min-height.px]="rowMinHeightPx(row)"
+              (click)="selectRow(row, $event)"
+                (pointerdown)="startRowResizeFromBottomEdgeIfNeeded(row, $event)"
+                (pointerdown)="startRowEdgeResizeIfNearBottom(row, $event)"
+              (dragover)="allowDrop($event)"
+              (drop)="dropOnRow(row, $event)"
+            >
+                <div
+                  class="canvas__row-resize"
+                  title="Untere Row-Kante ziehen"
+                  aria-label="Untere Row-Kante ziehen"
+                  (pointerdown)="startBottomEdgeRowResize(row, $event)"
+                ></div>
+              <header
+                class="canvas__row-head"
+                draggable="true"
+                title="Drag row up/down"
+                (dragstart)="dragRow(row, $event)"
+              >
+                  <div class="canvas__row-title">
+                    <strong>Row {{ rowIndex + 1 }}</strong>
+                    <span>{{ row.length }} columns</span>
+                  </div>
+
+                  <div
+                    class="canvas__row-actions"
+                    (click)="$event.stopPropagation()"
+                    (pointerdown)="$event.stopPropagation()"
+                    (dragstart)="$event.preventDefault()"
+                  >
+                    <button
+                      type="button"
+                      class="canvas__row-delete"
+                      title="Delete selected row"
+                      aria-label="Delete selected row"
+                      draggable="false"
+                      (click)="deleteRow(row, $event)"
+                    >
+                      &#128465;
+                    </button>
+                  </div>
+                
+                
+                
+                
+              </header>
+
+              <div class="canvas__row-columns">
+                <section
+                  class="canvas__column"
+                  *ngFor="let column of row; trackBy: trackByColumn"
+                  [class.is-selected]="selection.kind === 'column' && selection.columnId === column.id"
+                  [style.width.px]="column.width"
+                  (click)="selectColumn(column, $event)"
+                  (dragover)="allowDrop($event)"
+                  (drop)="dropOnColumn(column, $event)"
+                >
+                  <header
+                    class="canvas__column-head"
+                    draggable="true"
+                    title="Drag column left/right or into another row"
+                    (dragstart)="dragColumn(column, $event)"
+                  >
+                    <strong>{{ column.name }}</strong>
+                    <span>{{ column.width }}px</span>
+                  </header>
+
+                  <div class="canvas__dropzone">
+                    <article
+                      class="panel-card"
+                      [attr.data-panel-type]="panel.type"
+                      *ngFor="let panel of column.panels; trackBy: trackByPanel"
+                      draggable="true"
+                      [ngStyle]="panelStyle(panel)"
+                      [class.is-selected]="selection.kind === 'panel' && selection.panelId === panel.id"
+                      (click)="selectPanel(column, panel, $event)"
+                      (dragstart)="dragPanel(column, panel, $event)"
+                      (dragend)="dragPanelEnd(column, panel, $event)"
+                    >
+                      <div class="panel-card__head">
+                        <strong>{{ panel.title }}</strong>
+                        <span>{{ panel.type }}</span>
+                      </div>
+
+                      @if (previewRenderMode === 'live') {
+                        <div class="panel-card__runtime">
+                          <app-panel-shell [panel]="toRuntimePanel(column, panel)"></app-panel-shell>
+                        </div>
+                      } @else {
+                        <div class="panel-card__body">
+                          <strong>{{ panel.title }}</strong>
+                          <span>{{ panel.type }}</span>
+                        </div>
+                      }
+
+                      <div
+                        class="panel-card__resize"
+                        title="Drag to resize panel height"
+                        (pointerdown)="startPanelResize(column, panel, $event)"
+                      ></div>
+                    </article>
+
+                    <div class="canvas__empty" *ngIf="!column.panels.length">
+                      Drop components here
+                    </div>
+                  </div>
+
+                  <div
+                    class="canvas__column-resize"
+                    title="Drag to resize column width"
+                    (pointerdown)="startColumnResize(column, $event)"
+                  ></div>
+                </section>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <aside class="settings">
       <h2>Settings</h2>
       <p class="settings__hint">Press Delete to remove the red selected item. Ctrl+Z undoes the last layout change. Drag a panel outside the canvas and release to delete it. Ctrl+Z restores it.</p>
 

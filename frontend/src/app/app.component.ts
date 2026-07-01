@@ -863,7 +863,7 @@ export class AppComponent implements OnInit {
       return 'agents';
     }
 
-    if (type === 'simulation-map') {
+    if (type === 'flatland-map') {
       return 'flatland-map';
     }
 
@@ -881,4 +881,410 @@ export class AppComponent implements OnInit {
     this.ensureDesignerSession();
     this.store.loadPolicies();
   }
+
+  runtimePanelZone(column: { id?: string; zone?: string } | null | undefined): string {
+    const zone = String(column?.zone ?? column?.id ?? '').trim();
+    return zone || 'custom';
+  }
+
+  runtimeColumnClassString(column: { id?: string; zone?: string } | null | undefined): string {
+    const raw = this.runtimePanelZone(column).toLowerCase();
+
+    const isLeft = raw === 'left';
+    const isCenter = raw === 'center' || raw === 'middle' || raw === 'main';
+    const isRight = raw === 'right';
+    const isKnown = isLeft || isCenter || isRight;
+
+    const classes = ['runtime-design__column'];
+
+    if (isLeft) {
+      classes.push('left-pane', 'runtime-design__column--left');
+    } else if (isCenter) {
+      classes.push('center-pane', 'runtime-design__column--center');
+    } else if (isRight) {
+      classes.push('right-pane', 'runtime-design__column--right');
+    } else {
+      classes.push('runtime-design__column--custom');
+    }
+
+    if (!isKnown) {
+      classes.push('runtime-design__column--custom');
+    }
+
+    return Array.from(new Set(classes)).join(' ');
+  }
+
+  runtimeLayoutActive(): boolean {
+    const self = this as any;
+    return !!(
+      self.activeLayout ||
+      self.activeRuntimeLayout ||
+      self.runtimeLayout ||
+      self.selectedLayout ||
+      self.currentLayout
+    );
+  }
+
+  runtimeColumns(): any[] {
+    const self = this as any;
+
+    const candidateNames = [
+      'activeRuntimeLayout',
+      'selectedRuntimeLayout',
+      'currentRuntimeLayout',
+      'runtimeLayout',
+      'savedRuntimeLayout',
+      'activeLayout',
+      'selectedLayout',
+      'currentLayout',
+      'userLayout',
+      'design',
+    ];
+
+    for (const name of candidateNames) {
+      const value = self[name];
+
+      try {
+        const resolved = typeof value === 'function' && value.length === 0
+          ? value.call(this)
+          : value;
+
+        const columns = this.runtimeColumnsFrom(resolved);
+
+        if (columns.length) {
+          return columns;
+        }
+      } catch {
+        // Ignore non-runtime candidates.
+      }
+    }
+
+    const activeId = this.runtimeActiveLayoutId();
+
+    const listCandidateNames = [
+      'runtimeLayoutOptions',
+      'designerLayoutOptions',
+      'layoutOptions',
+      'designs',
+      'layouts',
+    ];
+
+    for (const name of listCandidateNames) {
+      const value = self[name];
+
+      try {
+        const resolved = typeof value === 'function' && value.length === 0
+          ? value.call(this)
+          : value;
+
+        if (!Array.isArray(resolved)) {
+          continue;
+        }
+
+        const selected = activeId
+          ? resolved.find((item: any) => String(item?.id) === activeId)
+          : resolved.find((item: any) => item?.active || item?.selected) ?? resolved[0];
+
+        const columns = this.runtimeColumnsFrom(selected);
+
+        if (columns.length) {
+          return columns;
+        }
+      } catch {
+        // Ignore non-runtime candidates.
+      }
+    }
+
+    return this.runtimeColumnsFromLocalStorage();
+  }
+
+  private runtimeActiveLayoutId(): string {
+    const self = this as any;
+
+    const idCandidateNames = [
+      'activeRuntimeLayoutId',
+      'selectedRuntimeLayoutId',
+      'currentRuntimeLayoutId',
+      'runtimeLayoutId',
+      'selectedLayoutId',
+      'activeLayoutId',
+      'currentLayoutId',
+    ];
+
+    for (const name of idCandidateNames) {
+      const value = self[name];
+
+      try {
+        const resolved = typeof value === 'function' && value.length === 0
+          ? value.call(this)
+          : value;
+
+        if (resolved !== undefined && resolved !== null && String(resolved).trim()) {
+          return String(resolved);
+        }
+      } catch {
+        // Ignore.
+      }
+    }
+
+    return '';
+  }
+
+  private runtimeColumnsFrom(value: any): any[] {
+    const candidates = [
+      value,
+      value?.columns,
+      value?.layout?.columns,
+      value?.design?.layout?.columns,
+      value?.runtimeLayout?.columns,
+      value?.runtimeLayout?.layout?.columns,
+      value?.selectedLayout?.columns,
+      value?.selectedLayout?.layout?.columns,
+    ];
+
+    for (const candidate of candidates) {
+      if (this.isRuntimeColumnArray(candidate)) {
+        return candidate;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const columns = this.runtimeColumnsFrom(item);
+
+        if (columns.length) {
+          return columns;
+        }
+      }
+    }
+
+    return [];
+  }
+
+  private isRuntimeColumnArray(value: any): value is any[] {
+    return Array.isArray(value)
+      && value.length > 0
+      && value.some((item: any) =>
+        item &&
+        typeof item === 'object' &&
+        (
+          Array.isArray(item.panels) ||
+          item.rowId !== undefined ||
+          item.width !== undefined ||
+          item.widthPx !== undefined
+        )
+      );
+  }
+
+  private runtimeColumnsFromLocalStorage(): any[] {
+    try {
+      const storage = globalThis.localStorage;
+
+      if (!storage) {
+        return [];
+      }
+
+      const activeId = this.runtimeActiveLayoutId();
+      const parsedValues: any[] = [];
+
+      for (let index = 0; index < storage.length; index++) {
+        const key = storage.key(index);
+
+        if (!key) {
+          continue;
+        }
+
+        const raw = storage.getItem(key);
+
+        if (!raw || (!raw.includes('columns') && !raw.includes('layout'))) {
+          continue;
+        }
+
+        try {
+          parsedValues.push(JSON.parse(raw));
+        } catch {
+          // Ignore non-json values.
+        }
+      }
+
+      if (activeId) {
+        for (const value of parsedValues) {
+          const match = this.findRuntimeLayoutById(value, activeId);
+          const columns = this.runtimeColumnsFrom(match);
+
+          if (columns.length) {
+            return columns;
+          }
+        }
+      }
+
+      for (const value of parsedValues) {
+        const columns = this.runtimeColumnsFrom(value);
+
+        if (columns.length) {
+          return columns;
+        }
+      }
+    } catch {
+      // localStorage may be unavailable.
+    }
+
+    return [];
+  }
+
+  private findRuntimeLayoutById(value: any, id: string): any {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    if (String(value?.id ?? '') === id) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = this.findRuntimeLayoutById(item, id);
+
+        if (found) {
+          return found;
+        }
+      }
+
+      return null;
+    }
+
+    for (const child of Object.values(value)) {
+      const found = this.findRuntimeLayoutById(child, id);
+
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+
+  runtimeRows(layoutOrColumns: any): Array<{ id: string; columns: any[]; heightPx: number | null }> {
+    const columns: any[] = Array.isArray(layoutOrColumns)
+      ? layoutOrColumns
+      : Array.isArray(layoutOrColumns?.columns)
+        ? layoutOrColumns.columns
+        : Array.isArray(layoutOrColumns?.layout?.columns)
+          ? layoutOrColumns.layout.columns
+          : [];
+
+    const rows: Array<{ id: string; columns: any[]; heightPx: number | null; order: number }> = [];
+    const byId = new Map<string, { id: string; columns: any[]; heightPx: number | null; order: number }>();
+
+    for (const [index, column] of columns.entries()) {
+      const rowId = String(column?.rowId ?? column?.row ?? column?.rowKey ?? 'row-1');
+
+      let row = byId.get(rowId);
+
+      if (!row) {
+        row = {
+          id: rowId,
+          columns: [],
+          heightPx: this.runtimeColumnRowHeightPx(column),
+          order: index,
+        };
+
+        byId.set(rowId, row);
+        rows.push(row);
+      }
+
+      row.columns.push(column);
+
+      const columnRowHeight = this.runtimeColumnRowHeightPx(column);
+
+      if (columnRowHeight !== null) {
+        row.heightPx = columnRowHeight;
+      }
+    }
+
+    return rows.sort((a, b) => a.order - b.order);
+  }
+
+  runtimeColumnRowHeightPx(column: any): number | null {
+    const raw =
+      column?.rowHeightPx ??
+      column?.rowHeight ??
+      column?.heightPx ??
+      null;
+
+    const value = Number(raw);
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+
+    return Math.max(72, Math.round(value));
+  }
+
+  runtimeRowHeightPx(row: { heightPx?: number | null } | null | undefined): number | null {
+    const value = Number(row?.heightPx);
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+
+    return Math.max(72, Math.round(value));
+  }
+
+  runtimeRowGridTemplate(row: { columns?: any[] } | null | undefined): string {
+    const columns = row?.columns ?? [];
+
+    if (!columns.length) {
+      return 'minmax(0, 1fr)';
+    }
+
+    if (columns.length === 1) {
+      return 'minmax(0, 100%)';
+    }
+
+    const bases: number[] = columns.map((column: any) => {
+      const explicitPercent =
+        column?.widthPercent ??
+        column?.widthPct ??
+        column?.percentWidth ??
+        column?.percentageWidth;
+
+      if (explicitPercent !== undefined && explicitPercent !== null) {
+        const value = Number(explicitPercent);
+
+        if (Number.isFinite(value) && value > 0) {
+          return value;
+        }
+      }
+
+      const width = Number(column?.width ?? column?.widthPx ?? column?.basis ?? 0);
+      return Number.isFinite(width) && width > 0 ? width : 1;
+    });
+
+    const total = bases.reduce((sum: number, value: number) => sum + value, 0);
+
+    if (!Number.isFinite(total) || total <= 0) {
+      const equal = 100 / columns.length;
+      return columns.map(() => `minmax(0, ${equal.toFixed(4)}%)`).join(' ');
+    }
+
+    let used = 0;
+
+    return bases
+      .map((basis: number, index: number) => {
+        const percent =
+          index === bases.length - 1
+            ? Math.max(0, 100 - used)
+            : Math.max(0, (basis / total) * 100);
+
+        if (index !== bases.length - 1) {
+          used += percent;
+        }
+
+        return `minmax(0, ${percent.toFixed(4)}%)`;
+      })
+      .join(' ');
+  }
+
 }

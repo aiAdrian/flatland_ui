@@ -123,7 +123,7 @@ export class DesignStorageService {
             name: 'center/map',
             width: 560,
             role: 'main',
-            panels: [panel('simulation-map', 'Simulation Map', 260, 320)],
+            panels: [panel('flatland-map', 'Simulation Map', 260, 320)],
           },
           {
             id: 'right',

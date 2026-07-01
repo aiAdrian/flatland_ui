@@ -1,0 +1,45 @@
+<section class="layout-view-toggle-panel">
+  <div class="layout-view-toggle-panel__row">
+    <span class="layout-view-toggle-panel__label">View</span>
+
+    <div class="layout-view-toggle-panel__checks">
+      <button
+        type="button"
+        class="layout-view-toggle-panel__check"
+        [class.is-on]="viewToggle.flatlandMapEnabled()"
+        [class.is-disabled]="!viewToggle.flatlandMapAvailable()"
+        [attr.aria-pressed]="viewToggle.flatlandMapEnabled()"
+        [disabled]="!viewToggle.flatlandMapAvailable()"
+        (click)="toggleFlatlandMap()">
+        <span class="layout-view-toggle-panel__box">
+          @if (viewToggle.flatlandMapEnabled()) {
+            <span>✓</span>
+          }
+        </span>
+        <span>Map</span>
+      </button>
+
+      <button
+        type="button"
+        class="layout-view-toggle-panel__check"
+        [class.is-on]="viewToggle.mareyEnabled()"
+        [class.is-disabled]="!viewToggle.mareyAvailable()"
+        [attr.aria-pressed]="viewToggle.mareyEnabled()"
+        [disabled]="!viewToggle.mareyAvailable()"
+        (click)="toggleMarey()">
+        <span class="layout-view-toggle-panel__box">
+          @if (viewToggle.mareyEnabled()) {
+            <span>✓</span>
+          }
+        </span>
+        <span>Marey</span>
+      </button>
+    </div>
+  </div>
+
+  @if (!viewToggle.flatlandMapAvailable() || !viewToggle.mareyAvailable()) {
+    <p class="layout-view-toggle-panel__hint">
+      Add Flatland Map and Marey panels to enable both toggles.
+    </p>
+  }
+</section>

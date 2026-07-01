@@ -20,7 +20,9 @@ interface PaletteItem {
 
 type DragPayload =
   | { source: 'palette'; type: string; title: string; minHeight: number }
-  | { source: 'layout'; columnId: string; panelId: string };
+  | { source: 'layout'; columnId: string; panelId: string }
+  | { source: 'row'; rowId: string }
+  | { source: 'column'; columnId: string };
 
 @Component({
   selector: 'app-layout-designer',
@@ -43,17 +45,18 @@ export class LayoutDesignerComponent {
   selection: DesignerSelection = { kind: 'design' };
 
   palette: PaletteItem[] = [
-    { type: 'agents-list', title: 'Agents List', minHeight: 150 },
-    { type: 'simulation-map', title: 'Simulation Map', minHeight: 260 },
+    { type: 'toggle-view', title: 'Toggle View', minHeight: 520 },
+    { type: 'toolbar', title: 'Toolbar', minHeight: 74 },
+    { type: 'layer-visibility', title: 'Layer Visibility', minHeight: 80 },
     { type: 'flatland-map', title: 'Flatland Map', minHeight: 320 },
-    { type: 'marey-chart', title: 'Marey Chart', minHeight: 260 },
-    { type: 'graphic-timetable', title: 'Graphic Timetable', minHeight: 260 },
-    { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 170 },
-    { type: 'goal-achievement', title: 'Goal Achievement', minHeight: 150 },
-    { type: 'impact', title: 'Impact', minHeight: 150 },
-    { type: 'timeline', title: 'Timeline', minHeight: 140 },
-    { type: 'validation', title: 'Validation', minHeight: 140 },
-    { type: 'cell-inspector', title: 'Cell Inspector', minHeight: 150 },
+    { type: 'marey', title: 'Graphical Timetable', minHeight: 260 },
+    { type: 'agents-list', title: 'Agents List', minHeight: 180 },
+    { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 180 },
+    { type: 'goal-achievement', title: 'Goal Achievement', minHeight: 140 },
+    { type: 'impact', title: 'Impact', minHeight: 160 },
+    { type: 'timeline', title: 'Timeline', minHeight: 130 },
+    { type: 'validation', title: 'Validation', minHeight: 130 },
+    { type: 'cell-inspector', title: 'Cell Inspector', minHeight: 160 },
   ];
 
   livePreviewSteps = 10;
@@ -78,21 +81,7 @@ export class LayoutDesignerComponent {
   private layoutDropHandled = false;
 
 
-  private resizing:
-    | {
-        kind: 'column';
-        columnId: string;
-        startX: number;
-        startWidth: number;
-      }
-    | {
-        kind: 'panel';
-        columnId: string;
-        panelId: string;
-        startY: number;
-        startHeight: number;
-      }
-    | null = null;
+  private resizing: any = null;
 
 
   get activeSessionId(): string {
@@ -140,13 +129,136 @@ export class LayoutDesignerComponent {
     return this.findPanel(this.selection.columnId, this.selection.panelId);
   }
 
-  get canvasWidth(): number {
-    return this.design.layout.columns.reduce((sum, c) => sum + c.width, 0);
+  get layoutRows(): DesignerColumn[][] {
+    const columns = this.design?.layout?.columns ?? [];
+    const rows: DesignerColumn[][] = [];
+    const rowOrder: string[] = [];
+    const rowMap = new Map<string, DesignerColumn[]>();
+
+    for (const [index, column] of columns.entries()) {
+      const rowId = column.rowId || `row-${Math.floor(index / 3) + 1}`;
+      column.rowId = rowId;
+
+      if (!rowMap.has(rowId)) {
+        rowMap.set(rowId, []);
+        rowOrder.push(rowId);
+      }
+
+      rowMap.get(rowId)!.push(column);
+    }
+
+    for (const rowId of rowOrder) {
+      rows.push(rowMap.get(rowId)!);
+    }
+
+    return rows;
   }
+
+  get layoutRowCount(): number {
+    return this.layoutRows.length;
+  }
+
+  get maxColumnsPerRow(): number {
+    return this.layoutRows.reduce((max, row) => Math.max(max, row.length), 0);
+  }
+
+  get selectedRowId(): string | null {
+    if (this.selection.kind === 'row') {
+      return this.selection.rowId;
+    }
+
+    if (this.selection.kind === 'column' || this.selection.kind === 'panel') {
+      const column = this.findColumn(this.selection.columnId);
+      return column?.rowId ?? null;
+    }
+
+    return null;
+  }
+
+  get canvasWidth(): number {
+    return this.layoutRows.reduce(
+      (max, row) => Math.max(max, row.reduce((sum, column) => sum + column.width, 0)),
+      0,
+    );
+  }
+
+  private rowIdForColumn(column: DesignerColumn): string {
+    if (column.rowId) {
+      return column.rowId;
+    }
+
+    const index = this.design.layout.columns.findIndex((candidate) => candidate.id === column.id);
+    const rowId = `row-${Math.floor(Math.max(0, index) / 3) + 1}`;
+    column.rowId = rowId;
+    return rowId;
+  }
+
+  rowIdForRow(row: DesignerColumn[]): string {
+    return row?.[0] ? this.rowIdForColumn(row[0]) : `row-${Date.now()}`;
+  }
+
+  private selectedOrLastRowId(): string {
+    if (this.selection.kind === 'row') {
+      return this.selection.rowId;
+    }
+
+    if (this.selection.kind === 'column' || this.selection.kind === 'panel') {
+      const column = this.findColumn(this.selection.columnId);
+      if (column) {
+        return this.rowIdForColumn(column);
+      }
+    }
+
+    const lastRow = this.layoutRows[this.layoutRows.length - 1];
+    return lastRow?.[0] ? this.rowIdForRow(lastRow) : `row-${Date.now()}`;
+  }
+
+  private columnsInRow(rowId: string): DesignerColumn[] {
+    return this.design.layout.columns.filter((column) => this.rowIdForColumn(column) === rowId);
+  }
+
+  private distributeWidthAcrossRow(rowId: string, targetWidth?: number): void {
+    const columns = this.columnsInRow(rowId);
+    if (!columns.length) {
+      return;
+    }
+
+    const width = targetWidth ?? columns.reduce((sum, column) => sum + column.width, 0);
+    const base = Math.max(160, Math.floor(width / columns.length));
+    let rest = Math.max(0, width - base * columns.length);
+
+    for (const column of columns) {
+      column.width = base + (rest > 0 ? 1 : 0);
+      rest = Math.max(0, rest - 1);
+    }
+  }
+
+  rowStyle(row: DesignerColumn[]): Record<string, string> {
+    const h = row?.[0]?.rowHeight;
+    return h ? { minHeight: `${h}px`, height: `${h}px` } : {};
+  }
+
+
+
+
+
+
+
+
 
   selectDesign(): void {
     this.selection = { kind: 'design' };
     this.runLivePreview();
+  }
+
+  selectRow(row: DesignerColumn[], event?: Event): void {
+    event?.stopPropagation();
+
+    if (!row?.length) {
+      return;
+    }
+
+    this.selection = { kind: 'row', rowId: this.rowIdForRow(row) };
   }
 
   selectColumn(column: DesignerColumn, event?: Event): void {
@@ -160,17 +272,151 @@ export class LayoutDesignerComponent {
   }
 
   addColumn(): void {
-    const index = this.design.layout.columns.length + 1;
+    const rowId = this.selectedOrLastRowId();
+    const rowColumns = this.columnsInRow(rowId);
+    const previousRowWidth = rowColumns.reduce((sum, column) => sum + column.width, 0) || 1320;
+    const index = rowColumns.length + 1;
+
     const col: DesignerColumn = {
       id: `column_${Date.now()}`,
-      name: `column ${index}`,
+      rowId,
+      name: `Column ${index}`,
       width: 280,
       role: 'custom',
       panels: [],
     };
 
-    this.design.layout.columns.push(col);
+    this.pushUndoState();
+
+    const insertAfterIndex = this.design.layout.columns.reduce((lastIndex, column, currentIndex) => (
+      this.rowIdForColumn(column) === rowId ? currentIndex : lastIndex
+    ), -1);
+
+    if (insertAfterIndex >= 0) {
+      this.design.layout.columns.splice(insertAfterIndex + 1, 0, col);
+    } else {
+      this.design.layout.columns.push(col);
+    }
+
+    this.distributeWidthAcrossRow(rowId, previousRowWidth);
     this.selection = { kind: 'column', columnId: col.id };
+    this.touch();
+  }
+
+
+
+  addRow(): void {
+    const sourceRowId = this.selectedOrLastRowId();
+    const sourceColumns = this.columnsInRow(sourceRowId);
+    const newRowId = `row-${Date.now()}`;
+    const newRowIndex = this.layoutRows.length + 1;
+    const template = sourceColumns.length ? sourceColumns : [
+      { width: 280 },
+      { width: 720 },
+      { width: 320 },
+    ];
+
+    const newColumns: DesignerColumn[] = template.map((source: any, index: number) => ({
+      id: `column_${Date.now()}_${index}`,
+      rowId: newRowId,
+      rowHeight: null,
+      name: `Row ${newRowIndex} · Column ${index + 1}`,
+      width: Math.max(160, source.width ?? 280),
+      role: 'custom',
+      panels: [],
+    }));
+
+    this.pushUndoState();
+
+    const insertAfterIndex = this.design.layout.columns.reduce((lastIndex, column, currentIndex) => (
+      this.rowIdForColumn(column) === sourceRowId ? currentIndex : lastIndex
+    ), -1);
+
+    if (insertAfterIndex >= 0) {
+      this.design.layout.columns.splice(insertAfterIndex + 1, 0, ...newColumns);
+    } else {
+      this.design.layout.columns.push(...newColumns);
+    }
+
+    this.selection = { kind: 'row', rowId: newRowId };
+    this.touch();
+  }
+
+
+
+
+
+
+  addRowBelow(sourceRowId?: string): void {
+    const selectedRowId = sourceRowId || this.selectedOrLastRowId();
+    const sourceColumns = this.columnsInRow(selectedRowId);
+    const newRowId = `row-${Date.now()}`;
+    const newRowIndex = this.layoutRows.length + 1;
+    const columnsToCopy = sourceColumns.length ? sourceColumns : [
+      { width: 280 },
+      { width: 720 },
+      { width: 320 },
+    ];
+
+    const newColumns: DesignerColumn[] = columnsToCopy.map((sourceColumn: any, index: number) => ({
+      id: `column_${Date.now()}_${index}`,
+      rowId: newRowId,
+      rowHeight: sourceColumn.rowHeight ?? null,
+      name: `Row ${newRowIndex} · Column ${index + 1}`,
+      width: Math.max(160, sourceColumn.width ?? 280),
+      role: 'custom',
+      panels: [],
+    }));
+
+    this.pushUndoState();
+
+    const insertAfterIndex = this.design.layout.columns.reduce((lastIndex, column, currentIndex) => (
+      this.rowIdForColumn(column) === selectedRowId ? currentIndex : lastIndex
+    ), -1);
+
+    if (insertAfterIndex >= 0) {
+      this.design.layout.columns.splice(insertAfterIndex + 1, 0, ...newColumns);
+    } else {
+      this.design.layout.columns.push(...newColumns);
+    }
+
+    this.selection = { kind: 'row', rowId: newRowId };
+    this.touch();
+  }
+
+
+
+
+
+
+
+  removeSelectedRow(): void {
+    if (this.selection.kind !== 'row') {
+      return;
+    }
+
+    this.removeRow(this.selection.rowId);
+  }
+
+  removeRow(rowId: string): void {
+    const rowColumns = this.columnsInRow(rowId);
+
+    if (!rowColumns.length) {
+      return;
+    }
+
+    this.pushUndoState();
+
+    this.design.layout.columns = this.design.layout.columns.filter(
+      (column) => this.rowIdForColumn(column) !== rowId,
+    );
+
+    const firstRemainingRow = this.layoutRows[0];
+
+    this.selection = firstRemainingRow?.[0]
+      ? { kind: 'row', rowId: this.rowIdForRow(firstRemainingRow) }
+      : { kind: 'design' };
+
     this.touch();
   }
 
@@ -184,16 +430,25 @@ export class LayoutDesignerComponent {
       return;
     }
 
-    if (col.panels.length && !confirm('Column contains panels. Delete anyway?')) {
-      return;
-    }
+    const rowId = this.rowIdForColumn(col);
+    const widthBefore = this.columnsInRow(rowId).reduce((sum, column) => sum + column.width, 0);
 
     this.pushUndoState();
+    this.design.layout.columns = this.design.layout.columns.filter((column) => column.id !== col.id);
 
-    this.design.layout.columns = this.design.layout.columns.filter((c) => c.id !== col.id);
-    this.selection = { kind: 'design' };
+    const remaining = this.columnsInRow(rowId);
+    if (remaining.length) {
+      this.distributeWidthAcrossRow(rowId, widthBefore);
+      this.selection = { kind: 'row', rowId };
+    } else {
+      this.selection = { kind: 'design' };
+    }
+
     this.touch();
   }
+
+
+
 
   removeSelectedPanel(): void {
     if (this.selection.kind !== 'panel') {
@@ -253,15 +508,16 @@ export class LayoutDesignerComponent {
   }
 
   deleteDesign(): void {
-    if (!confirm(`Delete layout "${this.design.name}"?`)) {
-      return;
-    }
-
     this.storage.delete(this.design.id);
     this.designs = this.storage.list();
     this.design = this.loadInitialDesign();
     this.selection = { kind: 'design' };
+    this.isDirty = false;
+    this.designerFooterStatusMessage = 'Layout deleted';
+    this.designerFooterStatusTone = 'info';
+    this.runLivePreview();
   }
+
 
   loadDesign(id: string): void {
     const found = this.storage.get(id);
@@ -334,6 +590,7 @@ export class LayoutDesignerComponent {
   }
 
   dragPanel(column: DesignerColumn, panel: DesignerPanel, event: DragEvent): void {
+    event.stopPropagation();
     this.layoutDropHandled = false;
 
     const payload: DragPayload = {
@@ -352,17 +609,237 @@ export class LayoutDesignerComponent {
     event.preventDefault();
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  dragRow(row: DesignerColumn[], event: DragEvent): void {
+    event.stopPropagation();
+
+    const rowId = this.rowIdForRow(row);
+
+    event.dataTransfer?.setData(
+      'application/json',
+      JSON.stringify({ source: 'row', rowId } satisfies DragPayload),
+    );
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  dropOnRow(targetRow: DesignerColumn[], event: DragEvent): void {
+    const raw = event.dataTransfer?.getData('application/json');
+
+    if (!raw) {
+      return;
+    }
+
+    let payload: DragPayload;
+
+    try {
+      payload = JSON.parse(raw) as DragPayload;
+    } catch {
+      return;
+    }
+
+    if (payload.source !== 'row' && payload.source !== 'column') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const targetRowId = this.rowIdForRow(targetRow);
+
+    if (payload.source === 'row') {
+      if (payload.rowId === targetRowId) {
+        return;
+      }
+
+      this.pushUndoState();
+      this.moveRow(payload.rowId, targetRowId);
+      this.selection = { kind: 'row', rowId: payload.rowId };
+      this.touch();
+      return;
+    }
+
+    if (payload.source === 'column') {
+      this.pushUndoState();
+      this.appendColumnToRow(payload.columnId, targetRowId);
+      this.selection = { kind: 'column', columnId: payload.columnId };
+      this.touch();
+    }
+  }
+
+  private moveRow(sourceRowId: string, targetRowId: string): void {
+    const rows = this.layoutRows.map((row) => ({
+      rowId: this.rowIdForRow(row),
+      columns: row,
+    }));
+
+    const sourceIndex = rows.findIndex((row) => row.rowId === sourceRowId);
+    const targetIndex = rows.findIndex((row) => row.rowId === targetRowId);
+
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+      return;
+    }
+
+    const [sourceRow] = rows.splice(sourceIndex, 1);
+    const insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+
+    rows.splice(insertIndex, 0, sourceRow);
+
+    this.design.layout.columns = rows.flatMap((row) => row.columns);
+  }
+
+  dragColumn(column: DesignerColumn, event: DragEvent): void {
+    event.stopPropagation();
+
+    event.dataTransfer?.setData(
+      'application/json',
+      JSON.stringify({ source: 'column', columnId: column.id } satisfies DragPayload),
+    );
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  private moveColumnBefore(sourceColumnId: string, targetColumnId: string): void {
+    if (sourceColumnId === targetColumnId) {
+      return;
+    }
+
+    const sourceColumn = this.findColumn(sourceColumnId);
+    const targetColumn = this.findColumn(targetColumnId);
+
+    if (!sourceColumn || !targetColumn) {
+      return;
+    }
+
+    const sourceRowId = this.rowIdForColumn(sourceColumn);
+    const targetRowId = this.rowIdForColumn(targetColumn);
+    const sourceRowWidthBefore = this.columnsInRow(sourceRowId).reduce((sum, column) => sum + column.width, 0);
+    const targetRowWidthBefore = this.columnsInRow(targetRowId).reduce((sum, column) => sum + column.width, 0);
+
+    this.design.layout.columns = this.design.layout.columns.filter((column) => column.id !== sourceColumnId);
+    sourceColumn.rowId = targetRowId;
+
+    const targetIndex = this.design.layout.columns.findIndex((column) => column.id === targetColumnId);
+
+    if (targetIndex >= 0) {
+      this.design.layout.columns.splice(targetIndex, 0, sourceColumn);
+    } else {
+      this.design.layout.columns.push(sourceColumn);
+    }
+
+    if (sourceRowId === targetRowId) {
+      return;
+    }
+
+    if (this.columnsInRow(sourceRowId).length) {
+      this.distributeWidthAcrossRow(sourceRowId, sourceRowWidthBefore);
+    }
+
+    this.distributeWidthAcrossRow(targetRowId, targetRowWidthBefore);
+  }
+
+  private appendColumnToRow(sourceColumnId: string, targetRowId: string): void {
+    const sourceColumn = this.findColumn(sourceColumnId);
+
+    if (!sourceColumn) {
+      return;
+    }
+
+    const sourceRowId = this.rowIdForColumn(sourceColumn);
+
+    if (sourceRowId === targetRowId) {
+      const columns = this.design.layout.columns.filter((column) => column.id !== sourceColumnId);
+      const lastTargetIndex = columns.reduce((lastIndex, column, index) => (
+        this.rowIdForColumn(column) === targetRowId ? index : lastIndex
+      ), -1);
+
+      sourceColumn.rowId = targetRowId;
+
+      if (lastTargetIndex >= 0) {
+        columns.splice(lastTargetIndex + 1, 0, sourceColumn);
+      } else {
+        columns.push(sourceColumn);
+      }
+
+      this.design.layout.columns = columns;
+      return;
+    }
+
+    const sourceRowWidthBefore = this.columnsInRow(sourceRowId).reduce((sum, column) => sum + column.width, 0);
+    const targetRowWidthBefore = this.columnsInRow(targetRowId).reduce((sum, column) => sum + column.width, 0);
+
+    this.design.layout.columns = this.design.layout.columns.filter((column) => column.id !== sourceColumnId);
+    sourceColumn.rowId = targetRowId;
+
+    const insertAfterIndex = this.design.layout.columns.reduce((lastIndex, column, index) => (
+      this.rowIdForColumn(column) === targetRowId ? index : lastIndex
+    ), -1);
+
+    if (insertAfterIndex >= 0) {
+      this.design.layout.columns.splice(insertAfterIndex + 1, 0, sourceColumn);
+    } else {
+      this.design.layout.columns.push(sourceColumn);
+    }
+
+    if (this.columnsInRow(sourceRowId).length) {
+      this.distributeWidthAcrossRow(sourceRowId, sourceRowWidthBefore);
+    }
+
+    this.distributeWidthAcrossRow(targetRowId, targetRowWidthBefore);
+  }
+
   dropOnColumn(targetColumn: DesignerColumn, event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.layoutDropHandled = true;
 
     const raw = event.dataTransfer?.getData('application/json');
+
     if (!raw) {
       return;
     }
 
-    const payload = JSON.parse(raw) as DragPayload;
+    let payload: DragPayload;
+
+    try {
+      payload = JSON.parse(raw) as DragPayload;
+    } catch {
+      return;
+    }
+
+    if (payload.source === 'row') {
+      // Rows are moved by dropOnRow().
+      return;
+    }
+
+    if (payload.source === 'column') {
+      this.pushUndoState();
+      this.moveColumnBefore(payload.columnId, targetColumn.id);
+      this.selection = { kind: 'column', columnId: payload.columnId };
+      this.touch();
+      return;
+    }
 
     if (payload.source === 'palette') {
       const panel: DesignerPanel = {
@@ -375,7 +852,7 @@ export class LayoutDesignerComponent {
         height: null,
       };
 
-    this.pushUndoState();
+      this.pushUndoState();
 
       targetColumn.panels.push(panel);
       this.selection = { kind: 'panel', columnId: targetColumn.id, panelId: panel.id };
@@ -390,12 +867,19 @@ export class LayoutDesignerComponent {
       return;
     }
 
+    this.pushUndoState();
+
     sourceColumn.panels = sourceColumn.panels.filter((p) => p.id !== panel.id);
     targetColumn.panels.push(panel);
 
     this.selection = { kind: 'panel', columnId: targetColumn.id, panelId: panel.id };
     this.touch();
   }
+
+
+
+
+
 
 
   dragPanelEnd(column: DesignerColumn, panel: DesignerPanel, event: DragEvent): void {
@@ -435,18 +919,17 @@ export class LayoutDesignerComponent {
       return 'agents';
     }
 
-    if (type === 'simulation-map') {
+    if (type === 'flatland-map') {
       return 'flatland-map';
     }
 
-    if (type === 'marey-chart') {
-      return 'graphic-timetable';
+    if (type === 'marey') {
+      return 'marey';
     }
 
     return type;
   }
-
-  startColumnResize(column: DesignerColumn, event: PointerEvent): void {
+startColumnResize(column: DesignerColumn, event: PointerEvent): void {
     event.preventDefault();
     event.stopPropagation();
 
@@ -476,6 +959,8 @@ export class LayoutDesignerComponent {
   }
 
   @HostListener('window:pointermove', ['$event'])
+  @HostListener('window:pointermove', ['$event'])
+  @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent): void {
     if (!this.resizing) {
       return;
@@ -492,14 +977,18 @@ export class LayoutDesignerComponent {
       return;
     }
 
-    const panel = this.findPanel(this.resizing.columnId, this.resizing.panelId);
-    if (!panel) {
-      return;
-    }
+    if (this.resizing.kind === 'panel') {
+      const panel = this.findPanel(this.resizing.columnId, this.resizing.panelId);
+      if (!panel) {
+        return;
+      }
 
-    panel.height = Math.max(panel.minHeight, this.resizing.startHeight + event.clientY - this.resizing.startY);
-    this.touch();
+      panel.height = Math.max(panel.minHeight, this.resizing.startHeight + event.clientY - this.resizing.startY);
+      this.touch();
+    }
   }
+
+
 
   @HostListener('window:pointerup')
   onPointerUp(): void {
@@ -940,16 +1429,17 @@ export class LayoutDesignerComponent {
 
   createNewLayoutFromDefault(): void {
     this.design = this.createHardcodedRuntimeDesign();
+    this.storage.save(this.design);
+    this.designs = this.storage.list();
+    this.storage.setActive(this.design.id);
     this.selection = { kind: 'design' };
-
+    this.isDirty = false;
+    this.designerFooterStatusMessage = 'New 2×3 layout created';
+    this.designerFooterStatusTone = 'saved';
     this.runLivePreview();
-    this.markDesignerDirty('New default copy ready to edit');
-
-    const feedback = (this as any).showDesignerFeedback;
-    if (typeof feedback === 'function') {
-      feedback.call(this, 'Hardcoded default copied. Edit and Save.', 'success', 'new-layout');
-    }
   }
+
+
 
   clearAllUserLayouts(): void {
     this.clearAllUserLayoutsClean();
@@ -957,69 +1447,76 @@ export class LayoutDesignerComponent {
 
   private createHardcodedRuntimeDesign(): FlatlandDesign {
     const now = new Date().toISOString();
-    const suffix = Date.now().toString(36);
+    const suffix = Math.random().toString(36).slice(2, 10);
 
     const panel = (
       type: string,
       title: string,
-      minHeight = 160,
-      height = 220,
+      minHeight: number,
+      height: number | null = null,
     ): DesignerPanel => ({
-      id: `panel-${type}-${suffix}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `${type}_${Math.random().toString(36).slice(2, 9)}`,
       type,
       title,
-      minHeight,
-      height,
       expanded: true,
       collapsible: true,
+      minHeight,
+      height,
+    });
+
+    const column = (
+      rowId: string,
+      id: string,
+      name: string,
+      width: number,
+      panels: DesignerPanel[],
+    ): DesignerColumn => ({
+      id,
+      rowId,
+      rowHeight: null,
+      name,
+      width,
+      role: 'custom',
+      panels,
     });
 
     return {
-      id: `layout-hardcoded-copy-${suffix}`,
-      name: `Default Layout Copy ${new Date().toLocaleTimeString()}`,
-      sessionId: '',
-      scale: 1,
+      id: `layout-2x3-${suffix}`,
+      name: `Layout ${new Date().toLocaleString()}`,
+      sessionId: this.activeSessionId,
+      scale: 0.7,
       createdAt: now,
       updatedAt: now,
       layout: {
         columns: [
-          {
-            id: `left-${suffix}`,
-            name: 'Left',
-            role: 'sidebar',
-            width: 280,
-            panels: [
-              panel('situation-summary', 'Situation Summary', 140, 180),
-              panel('notifications', 'Notifications', 140, 180),
-              panel('agents-list', 'Agents', 220, 320),
-            ],
-          },
-          {
-            id: `center-${suffix}`,
-            name: 'Center',
-            role: 'main',
-            width: 720,
-            panels: [
-              panel('flatland-map', 'Flatland Map', 360, 520),
-            ],
-          },
-          {
-            id: `right-${suffix}`,
-            name: 'Right',
-            role: 'custom',
-            width: 320,
-            panels: [
-              panel('agent-inspector', 'Agent Inspector', 180, 240),
-              panel('impact', 'Impact', 150, 200),
-              panel('scenario', 'Scenario', 220, 320),
-              panel('recommendations', 'Recommendations', 160, 220),
-              panel('kpi-filter', 'KPI Filter', 160, 220),
-            ],
-          },
+          column('row-1', 'row1_col1_toolbar', 'Row 1 · Toolbar', 520, [
+            panel('toolbar', 'Toolbar', 74, 90),
+          ]),
+          column('row-1', 'row1_col2_layers', 'Row 1 · Layers', 520, [
+            panel('layer-visibility', 'Layer Visibility', 80, 100),
+          ]),
+          column('row-1', 'row1_col3_goal', 'Row 1 · Goal', 520, [
+            panel('goal-achievement', 'Goal Achievement', 140, 160),
+          ]),
+          column('row-2', 'row2_col1_agents', 'Row 2 · Left', 280, [
+            panel('agents-list', 'Agents List', 180, 260),
+          ]),
+          column('row-2', 'row2_col2_visuals', 'Row 2 · Center', 720, [
+            panel('toggle-view', 'Toggle View', 520, 640),
+          ]),
+          column('row-2', 'row2_col3_details', 'Row 2 · Right', 320, [
+            panel('agent-inspector', 'Agent Inspector', 180, 220),
+            panel('impact', 'Impact', 160, 180),
+            panel('timeline', 'Timeline', 130, 150),
+            panel('validation', 'Validation', 130, 150),
+          ]),
         ],
       },
     };
   }
+
+
+
 
 
 
@@ -1090,9 +1587,251 @@ export class LayoutDesignerComponent {
     return column.id;
   }
 
+  trackByRow(index: number, row: DesignerColumn[]): string {
+    return row?.[0]?.rowId || `row-${index}`;
+  }
+
   trackByPanel(_: number, panel: DesignerPanel): string {
     return panel.id;
   }
+
+  deleteRow(row: DesignerColumn[], event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (!row?.length) {
+      return;
+    }
+
+    const rowId = this.rowIdForRow(row);
+
+    const confirmed = window.confirm(
+      `Delete this row and all ${row.length} column(s) in it?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.design.layout.columns = this.design.layout.columns.filter(
+      (column) => column.rowId !== rowId
+    );
+
+    // Reset selection safely after deleting selected row/column/panel.
+    (this as any).selection = { kind: 'design' };
+    (this as any).selectedRowId = undefined;
+
+    // Keep designer usable if the last row was removed.
+    if (!this.design.layout.columns.length) {
+      this.addRow();
+    } else {
+      this.onDesignerChanged();
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleSelectedRowDeleteKey(event: KeyboardEvent): void {
+    if (event.key !== 'Delete' && event.key !== 'Backspace') {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+
+    if (target) {
+      const tag = target.tagName?.toLowerCase();
+
+      if (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+    }
+
+    const currentSelection = (this as any).selection;
+
+    if (currentSelection?.kind !== 'row') {
+      return;
+    }
+
+    const rowId = String(
+      (this as any).selectedRowId ??
+      currentSelection.rowId ??
+      ''
+    );
+
+    if (!rowId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    (event as any).stopImmediatePropagation?.();
+
+    this.deleteSelectedRowById(rowId);
+  }
+
+  private deleteSelectedRowById(rowId: string): void {
+    const before = this.design.layout.columns.length;
+
+    this.design.layout.columns = this.design.layout.columns.filter(
+      (column) => column.rowId !== rowId
+    );
+
+    if (this.design.layout.columns.length === before) {
+      return;
+    }
+
+    (this as any).selection = { kind: 'design' };
+    (this as any).selectedRowId = undefined;
+
+    if (!this.design.layout.columns.length) {
+      this.addRow();
+      return;
+    }
+
+    this.onDesignerChanged();
+  }
+
+  startRowEdgeResizeIfNearBottom(row: DesignerColumn[], event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+
+    // Do not start row-resize from buttons, inputs, headers, panels or columns.
+    if (
+      target?.closest('button, input, textarea, select, .canvas__row-head, .canvas__column, .panel-card')
+    ) {
+      return;
+    }
+
+    const rowElement = (event.currentTarget as HTMLElement | null)?.closest('.canvas__row') as HTMLElement | null;
+
+    if (!rowElement) {
+      return;
+    }
+
+    const rect = rowElement.getBoundingClientRect();
+    const distanceFromBottom = rect.bottom - event.clientY;
+
+    // Bottom edge hit zone: lower 16px of the row.
+    if (distanceFromBottom < 0 || distanceFromBottom > 16) {
+      return;
+    }
+
+    this.startRowResize(row, event);
+  }
+
+  private rowResizeV2State: {
+    row: DesignerColumn[];
+    rowElement: HTMLElement;
+    startY: number;
+    startHeight: number;
+  } | null = null;
+
+  startRowResizeFromBottomEdgeIfNeeded(row: DesignerColumn[], event: PointerEvent): void {
+    const target = event.target as HTMLElement | null;
+
+    if (target?.closest('button, input, textarea, select, a, .canvas__row-head')) {
+      return;
+    }
+
+    const rowElement = event.currentTarget as HTMLElement | null;
+
+    if (!rowElement?.classList.contains('canvas__row')) {
+      return;
+    }
+
+    const rect = rowElement.getBoundingClientRect();
+    const distanceFromBottom = rect.bottom - event.clientY;
+
+    // The lower 28px of the row are the resize hit-zone.
+    if (distanceFromBottom < 0 || distanceFromBottom > 28) {
+      return;
+    }
+
+    this.startBottomEdgeRowResize(row, event);
+  }
+
+  startBottomEdgeRowResize(row: DesignerColumn[], event: PointerEvent): void {
+    if (!row?.length) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const eventTarget = event.currentTarget as HTMLElement | null;
+    const rowElement =
+      eventTarget?.classList.contains('canvas__row')
+        ? eventTarget
+        : eventTarget?.closest('.canvas__row') as HTMLElement | null;
+
+    if (!rowElement) {
+      return;
+    }
+
+    eventTarget?.setPointerCapture?.(event.pointerId);
+
+    const measuredHeight = rowElement.getBoundingClientRect().height;
+    const currentHeight = this.rowHeightPx(row) ?? measuredHeight;
+    const startHeight = Math.max(this.rowMinHeightPx(row), Math.round(currentHeight));
+
+    this.rowResizeV2State = {
+      row,
+      rowElement,
+      startY: event.clientY,
+      startHeight,
+    };
+
+    document.body.classList.add('canvas-row-resizing');
+
+    window.addEventListener('pointermove', this.onBottomEdgeRowResizeMove, { passive: false });
+    window.addEventListener('pointerup', this.stopBottomEdgeRowResize, { once: true });
+    window.addEventListener('pointercancel', this.stopBottomEdgeRowResize, { once: true });
+  }
+
+  private readonly onBottomEdgeRowResizeMove = (event: PointerEvent): void => {
+    const state = this.rowResizeV2State;
+
+    if (!state) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const delta = event.clientY - state.startY;
+    const nextHeight = Math.max(
+      this.rowMinHeightPx(state.row),
+      Math.round(state.startHeight + delta)
+    );
+
+    // Immediate visual feedback.
+    state.rowElement.style.height = `${nextHeight}px`;
+    state.rowElement.style.minHeight = `${this.rowMinHeightPx(state.row)}px`;
+
+    // Persist on every column in this row, because current model stores rows via rowId on columns.
+    for (const column of state.row) {
+      (column as any).rowHeightPx = nextHeight;
+      (column as any).rowHeight = nextHeight;
+    }
+  };
+
+  readonly stopBottomEdgeRowResize = (): void => {
+    if (!this.rowResizeV2State) {
+      return;
+    }
+
+    this.rowResizeV2State = null;
+    document.body.classList.remove('canvas-row-resizing');
+
+    window.removeEventListener('pointermove', this.onBottomEdgeRowResizeMove);
+    window.removeEventListener('pointerup', this.stopBottomEdgeRowResize);
+    window.removeEventListener('pointercancel', this.stopBottomEdgeRowResize);
+
+    this.onDesignerChanged();
+  };
+
 
   private loadInitialDesign(): FlatlandDesign {
     const activeId = this.storage.activeId();
@@ -1112,10 +1851,19 @@ export class LayoutDesignerComponent {
   }
 
 
+  private normalizeLegacyRowIds(design: FlatlandDesign): void {
+    for (const [index, column] of (design.layout.columns ?? []).entries()) {
+      column.rowId = column.rowId || `legacy-row-${Math.floor(index / 3)}`;
+    }
+  }
+
   private normalizeDesign(design: FlatlandDesign): void {
+    /* LEGACY_ROW_ID_NORMALIZATION_START */
+    this.normalizeLegacyRowIds(design);
+    /* LEGACY_ROW_ID_NORMALIZATION_END */
     for (const column of design.layout.columns) {
       for (const panel of column.panels) {
-        if (panel.type === 'simulation-map') {
+        if (panel.type === 'flatland-map') {
           panel.type = 'flatland-map';
           panel.title = 'Flatland Map';
           panel.minHeight = Math.max(panel.minHeight ?? 0, 320);
@@ -1138,4 +1886,101 @@ export class LayoutDesignerComponent {
     this.design.updatedAt = new Date().toISOString();
     this.runLivePreview();
   }
+
+  private readonly rowResizeDefaultMinHeight = 120;
+  private rowResizeState: {
+    row: DesignerColumn[];
+    startY: number;
+    startHeight: number;
+  } | null = null;
+
+  rowMinHeightPx(row: DesignerColumn[] | null | undefined): number {
+    const firstColumn = row?.[0] as any;
+    const configured = Number(
+      firstColumn?.rowMinHeightPx ??
+      firstColumn?.rowMinHeight ??
+      this.rowResizeDefaultMinHeight
+    );
+
+    return Number.isFinite(configured) && configured > 0
+      ? Math.max(72, Math.round(configured))
+      : this.rowResizeDefaultMinHeight;
+  }
+
+  rowHeightPx(row: DesignerColumn[] | null | undefined): number | null {
+    const firstColumn = row?.[0] as any;
+    const raw = firstColumn?.rowHeightPx ?? firstColumn?.rowHeight;
+    const height = Number(raw);
+
+    if (!Number.isFinite(height) || height <= 0) {
+      return null;
+    }
+
+    return Math.max(this.rowMinHeightPx(row), Math.round(height));
+  }
+
+  startRowResize(row: DesignerColumn[], event: PointerEvent): void {
+    if (!row?.length) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const handle = event.currentTarget as HTMLElement | null;
+    handle?.setPointerCapture?.(event.pointerId);
+
+    const rowElement = handle?.closest('.canvas__row') as HTMLElement | null;
+    const measuredHeight = rowElement?.getBoundingClientRect().height ?? this.rowResizeDefaultMinHeight;
+    const currentHeight = this.rowHeightPx(row) ?? measuredHeight;
+
+    this.rowResizeState = {
+      row,
+      startY: event.clientY,
+      startHeight: Math.max(this.rowMinHeightPx(row), Math.round(currentHeight)),
+    };
+
+    document.body.classList.add('canvas-row-resizing');
+
+    window.addEventListener('pointermove', this.onRowResizeMove, { passive: false });
+    window.addEventListener('pointerup', this.stopRowResize, { once: true });
+    window.addEventListener('pointercancel', this.stopRowResize, { once: true });
+  }
+
+  private readonly onRowResizeMove = (event: PointerEvent): void => {
+    const state = this.rowResizeState;
+
+    if (!state) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const delta = event.clientY - state.startY;
+    const nextHeight = Math.max(
+      this.rowMinHeightPx(state.row),
+      Math.round(state.startHeight + delta)
+    );
+
+    for (const column of state.row) {
+      (column as any).rowHeightPx = nextHeight;
+      (column as any).rowHeight = nextHeight;
+    }
+  };
+
+  readonly stopRowResize = (): void => {
+    if (!this.rowResizeState) {
+      return;
+    }
+
+    this.rowResizeState = null;
+    document.body.classList.remove('canvas-row-resizing');
+
+    window.removeEventListener('pointermove', this.onRowResizeMove);
+    window.removeEventListener('pointerup', this.stopRowResize);
+    window.removeEventListener('pointercancel', this.stopRowResize);
+
+    this.onDesignerChanged();
+  };
+
 }

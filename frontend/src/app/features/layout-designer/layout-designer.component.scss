@@ -455,7 +455,7 @@ h3 {
 }
 
 .panel-card[data-panel-type='flatland-map'] .panel-card__runtime,
-.panel-card[data-panel-type='simulation-map'] .panel-card__runtime {
+.panel-card[data-panel-type='flatland-map'] .panel-card__runtime {
   min-height: 260px;
 }
 
@@ -1334,3 +1334,510 @@ button.primary.designer-action-btn,
 }
 
 /* DESIGNER_UX_FINAL_DIRTY_SAVE_END */
+
+/* DESIGNER_NO_TOPBAR_ACTION_FEEDBACK_START */
+/*
+  Save/dirty status is shown in the meta/status area via .designer-unsaved-pill.
+  The topbar must not show a second "Layout saved" feedback pill.
+*/
+.designer__topbar .designer-action-feedback {
+  display: none !important;
+}
+/* DESIGNER_NO_TOPBAR_ACTION_FEEDBACK_END */
+
+/* DESIGNER_LAYER_VISIBILITY_ALWAYS_VISIBLE_START */
+/*
+  In designer preview, layer controls should also remain visible if the map
+  runtime preview renders map-controls. The view toggle can be separate,
+  but app-layer-visibility must not disappear because of Map/Marey state.
+*/
+:host ::ng-deep .map-controls {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+:host ::ng-deep .map-controls app-layer-visibility,
+:host ::ng-deep .map-controls .layer-visibility,
+:host ::ng-deep .map-controls .layers {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+/* DESIGNER_LAYER_VISIBILITY_ALWAYS_VISIBLE_END */
+
+/* DESIGNER_ROWS_2X3_START */
+.canvas.canvas--rows {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  min-height: 860px;
+  background: #f7f7f7;
+}
+
+.canvas__row {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 390px;
+  border-bottom: 2px solid #bdbdbd;
+  background: #fdfdfd;
+}
+
+.canvas__row:last-child {
+  border-bottom: 0;
+}
+
+.canvas__row-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #d2d2d2;
+  background: linear-gradient(180deg, #f6f6f6 0%, #eeeeee 100%);
+  color: #444;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.canvas__row-head span {
+  color: #686868;
+  font-weight: 700;
+}
+
+.canvas__row-columns {
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.canvas.canvas--rows .canvas__column {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.canvas.canvas--rows .canvas__dropzone {
+  min-height: 300px;
+}
+/* DESIGNER_ROWS_2X3_END */
+
+/* DESIGNER_REAL_ROWS_START */
+.canvas.canvas--rows {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.canvas__row {
+  flex: 0 0 auto;
+}
+
+.canvas__row-columns {
+  display: flex;
+  min-width: 0;
+}
+
+.canvas.canvas--rows .canvas__column {
+  flex: 0 0 auto;
+}
+
+.canvas.canvas--rows .canvas__column-resize {
+  z-index: 8;
+}
+/* DESIGNER_REAL_ROWS_END */
+
+/* DESIGNER_ROW_INTERACTIONS_START */
+.canvas__row {
+  position: relative;
+  outline: 0 solid transparent;
+  outline-offset: -2px;
+  transition: outline-color 120ms ease, box-shadow 120ms ease;
+}
+
+.canvas__row.is-selected {
+  outline: 2px solid #eb0000;
+  box-shadow: inset 0 0 0 1px rgba(235, 0, 0, 0.25);
+}
+
+.canvas__row-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.canvas__row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.canvas__row-actions button {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid #d2d2d2;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #212121;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.canvas__row-actions button:hover {
+  border-color: #8d8d8d;
+  background: #fafafa;
+}
+
+.canvas__row-actions button.danger {
+  border-color: #f0a0a0;
+  background: #fff5f5;
+  color: #eb0000;
+}
+
+.canvas__row-drag-hint {
+  color: #686868;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: grab;
+}
+
+.canvas__row-resize {
+  flex: 0 0 auto;
+  height: 10px;
+  cursor: row-resize;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #d2d2d2,
+      #d2d2d2 8px,
+      transparent 8px,
+      transparent 14px);
+  border-top: 1px solid #d2d2d2;
+}
+
+.canvas__row-resize:hover {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #eb0000,
+      #eb0000 8px,
+      transparent 8px,
+      transparent 14px);
+}
+/* DESIGNER_ROW_INTERACTIONS_END */
+
+/* DESIGNER_STABLE_ROWS_REPAIR_START */
+.canvas.canvas--rows {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  min-height: 860px;
+  background: #f7f7f7;
+}
+
+.canvas__row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 390px;
+  border-bottom: 2px solid #bdbdbd;
+  background: #fdfdfd;
+  outline: 0 solid transparent;
+  outline-offset: -2px;
+}
+
+.canvas__row.is-selected {
+  outline: 2px solid #eb0000;
+  box-shadow: inset 0 0 0 1px rgba(235, 0, 0, 0.25);
+}
+
+.canvas__row-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #d2d2d2;
+  background: linear-gradient(180deg, #f6f6f6 0%, #eeeeee 100%);
+  color: #444;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.canvas__row-columns {
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.canvas.canvas--rows .canvas__column {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.canvas.canvas--rows .canvas__dropzone {
+  min-height: 300px;
+}
+/* DESIGNER_STABLE_ROWS_REPAIR_END */
+
+/* DESIGNER_ROW_COLUMN_DRAGDROP_START */
+.canvas__row-head {
+  cursor: grab;
+}
+
+.canvas__row-head:active {
+  cursor: grabbing;
+}
+
+.canvas__column-head {
+  cursor: grab;
+}
+
+.canvas__column-head:active {
+  cursor: grabbing;
+}
+
+.canvas__row.is-selected {
+  outline: 2px solid #eb0000;
+  outline-offset: -2px;
+}
+
+.canvas__column.is-selected {
+  outline: 2px solid #eb0000;
+  outline-offset: -2px;
+}
+/* DESIGNER_ROW_COLUMN_DRAGDROP_END */
+
+/* FINAL row bottom-edge resize */
+.canvas__row{position:relative!important;overflow:visible!important}
+.canvas__row-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
+.canvas__row-title{display:flex!important;align-items:baseline!important;gap:8px!important;min-width:0}
+.canvas__row-actions{display:inline-flex!important;align-items:center!important;gap:6px;margin-left:auto;z-index:20}
+.canvas__row-resize-grip{display:none!important}
+.canvas__row-delete{display:none!important;align-items:center;justify-content:center;width:30px;height:26px;border:1px solid var(--sbb-color-cloud,#d2d2d2);border-radius:6px;background:var(--sbb-color-white,#fff);color:var(--sbb-color-red,#eb0000);font-size:16px;font-weight:800;line-height:1;cursor:pointer}
+.canvas__row.is-selected .canvas__row-delete{display:inline-flex!important}
+.canvas__row-delete:hover{border-color:var(--sbb-color-red,#eb0000);background:rgba(235,0,0,.08)}
+.canvas__row-resize{position:absolute!important;left:8px!important;right:8px!important;bottom:-7px!important;height:14px!important;z-index:80!important;cursor:row-resize!important;touch-action:none!important;background:transparent!important;border:0!important;color:transparent!important;pointer-events:auto!important}
+.canvas__row-resize:before{content:'';position:absolute;left:0;right:0;top:6px;height:2px;border-radius:999px;background:transparent}
+.canvas__row.is-selected .canvas__row-resize:before,.canvas__row:hover .canvas__row-resize:before{height:3px;background:var(--sbb-color-red,#eb0000);box-shadow:0 0 0 4px rgba(235,0,0,.12)}
+.canvas-row-resizing,.canvas-row-resizing *{cursor:row-resize!important;user-select:none!important}
+
+/* ABSOLUTE FINAL: row bottom edge resize only */
+.canvas__row{position:relative!important;overflow:visible!important}
+.canvas__row-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding-right:0!important}
+.canvas__row-title{display:flex!important;align-items:baseline!important;gap:8px!important;min-width:0!important}
+.canvas__row-actions{display:inline-flex!important;align-items:center!important;gap:6px!important;margin-left:auto!important;position:static!important;transform:none!important;z-index:30!important}
+
+/* Remove old Resize button completely */
+.canvas__row-resize-grip,
+button.canvas__row-resize-grip,
+.canvas__row-actions .canvas__row-resize-grip{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  pointer-events:none!important;
+}
+
+/* Trash only when row selected */
+.canvas__row-delete{
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:30px!important;
+  height:26px!important;
+  border:1px solid var(--sbb-color-cloud,#d2d2d2)!important;
+  border-radius:6px!important;
+  background:var(--sbb-color-white,#fff)!important;
+  color:var(--sbb-color-red,#eb0000)!important;
+  font-size:16px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  cursor:pointer!important;
+}
+.canvas__row.is-selected .canvas__row-delete{display:inline-flex!important}
+.canvas__row-delete:hover{border-color:var(--sbb-color-red,#eb0000)!important;background:rgba(235,0,0,.08)!important}
+
+/* Bottom edge is the ONLY resize handle */
+.canvas__row-resize{
+  position:absolute!important;
+  left:6px!important;
+  right:6px!important;
+  bottom:-8px!important;
+  height:16px!important;
+  z-index:9999!important;
+  display:block!important;
+  cursor:row-resize!important;
+  touch-action:none!important;
+  background:transparent!important;
+  border:0!important;
+  color:transparent!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+.canvas__row-resize:before{
+  content:''!important;
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  top:7px!important;
+  height:2px!important;
+  border-radius:999px!important;
+  background:transparent!important;
+}
+.canvas__row:hover .canvas__row-resize:before,
+.canvas__row.is-selected .canvas__row-resize:before,
+.canvas-row-resizing .canvas__row-resize:before{
+  height:4px!important;
+  background:var(--sbb-color-red,#eb0000)!important;
+  box-shadow:0 0 0 5px rgba(235,0,0,.14)!important;
+}
+.canvas-row-resizing,
+.canvas-row-resizing *{
+  cursor:row-resize!important;
+  user-select:none!important;
+}
+
+/* DIRECT bottom edge row resize */
+.canvas__row{
+  position:relative!important;
+  overflow:visible!important;
+}
+
+.canvas__row-resize-grip,
+button.canvas__row-resize-grip{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+
+.canvas__row-resize{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  bottom:-8px!important;
+  height:18px!important;
+  z-index:9999!important;
+  cursor:row-resize!important;
+  touch-action:none!important;
+  background:transparent!important;
+  border:0!important;
+  pointer-events:auto!important;
+}
+
+.canvas__row-resize::before{
+  content:''!important;
+  position:absolute!important;
+  left:8px!important;
+  right:8px!important;
+  top:7px!important;
+  height:2px!important;
+  border-radius:999px!important;
+  background:transparent!important;
+}
+
+.canvas__row:hover .canvas__row-resize::before,
+.canvas__row.is-selected .canvas__row-resize::before,
+.canvas-row-resizing .canvas__row-resize::before{
+  height:4px!important;
+  background:#eb0000!important;
+  box-shadow:0 0 0 5px rgba(235,0,0,.14)!important;
+}
+
+.canvas__row.is-selected{
+  cursor:default;
+}
+
+.canvas__row.is-selected .canvas__row-resize,
+.canvas__row:hover .canvas__row-resize{
+  cursor:row-resize!important;
+}
+
+.canvas-row-resizing,
+.canvas-row-resizing *{
+  cursor:row-resize!important;
+  user-select:none!important;
+}
+
+/* FINAL V2 bottom-edge row resize only */
+.canvas__row{position:relative!important;overflow:visible!important}
+.canvas__row-resize-grip,button.canvas__row-resize-grip{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+.canvas__row-resize{position:absolute!important;left:0!important;right:0!important;bottom:-10px!important;height:22px!important;z-index:9999!important;display:block!important;cursor:row-resize!important;touch-action:none!important;background:transparent!important;border:0!important;pointer-events:auto!important}
+.canvas__row-resize:before{content:''!important;position:absolute!important;left:8px!important;right:8px!important;top:9px!important;height:2px!important;border-radius:999px!important;background:transparent!important}
+.canvas__row:hover .canvas__row-resize:before,.canvas__row.is-selected .canvas__row-resize:before,.canvas-row-resizing .canvas__row-resize:before{height:4px!important;background:#eb0000!important;box-shadow:0 0 0 5px rgba(235,0,0,.14)!important}
+.canvas__row.is-selected{outline:2px solid rgba(235,0,0,.35)}
+.canvas__row-delete{display:none!important}
+.canvas__row.is-selected .canvas__row-delete{display:inline-flex!important}
+.canvas-row-resizing,.canvas-row-resizing *{cursor:row-resize!important;user-select:none!important}
+
+/* WORKING bottom edge row resize handle */
+.canvas__row {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.canvas__row-resize-grip,
+button.canvas__row-resize-grip {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.canvas__row-resize {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: -12px !important;
+  height: 24px !important;
+  z-index: 2147483647 !important;
+  display: block !important;
+  cursor: row-resize !important;
+  touch-action: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  pointer-events: auto !important;
+}
+
+.canvas__row-resize::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 8px !important;
+  right: 8px !important;
+  top: 10px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+}
+
+.canvas__row:hover .canvas__row-resize::before,
+.canvas__row.is-selected .canvas__row-resize::before,
+.canvas-row-resizing .canvas__row-resize::before {
+  height: 4px !important;
+  background: #eb0000 !important;
+  box-shadow: 0 0 0 5px rgba(235, 0, 0, .14) !important;
+}
+
+.canvas-row-resizing,
+.canvas-row-resizing * {
+  cursor: row-resize !important;
+  user-select: none !important;
+}
+

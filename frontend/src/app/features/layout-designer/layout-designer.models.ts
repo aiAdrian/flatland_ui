@@ -1,5 +1,6 @@
 export type DesignerSelection =
   | { kind: 'design' }
+  | { kind: 'row'; rowId: string }
   | { kind: 'column'; columnId: string }
   | { kind: 'panel'; columnId: string; panelId: string };
 
@@ -15,7 +16,9 @@ export interface DesignerPanel {
 
 export interface DesignerColumn {
   id: string;
-  name: string;
+    rowId?: string;
+  rowHeight?: number | null;
+name: string;
   width: number;
   role: 'sidebar' | 'main' | 'custom';
   panels: DesignerPanel[];
