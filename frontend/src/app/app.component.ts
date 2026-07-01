@@ -17,6 +17,7 @@ import { GoalAchievementComponent } from './features/goal-achievement/goal-achie
 import { DirectorDirectiveComponent } from './features/director-directive/director-directive.component';
 import { SurveyComponent } from './features/survey/survey.component';
 import { ImpactPanelComponent } from './features/impact-panel/impact-panel.component';
+import { ModeIntroComponent } from './features/mode-intro/mode-intro.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
 import { SessionStore } from './core/session.store';
@@ -54,6 +55,7 @@ type RuntimeLayoutOption = {
     AgentInspectorComponent,
     AgentsPanelComponent,
     ViewToggleComponent,
+    ModeIntroComponent,
 PanelShellComponent,
   ],
   templateUrl: './app.component.html',

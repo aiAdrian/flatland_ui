@@ -14,9 +14,13 @@ import { ApiService } from '../../core/api.service';
 export class ToolbarComponent {
   @Input() settingsActive = false;
   @Input() scenarioPolicyActive = false;
+  @Input() demoActive = false;
+  @Input() demoIsLast = false;
   @Output() openSettings = new EventEmitter<void>();
   @Output() openScenarioPolicy = new EventEmitter<void>();
   @Output() resetRequested = new EventEmitter<void>();
+  @Output() finishDemoMode = new EventEmitter<void>();
+  @Output() exitDemoRequested = new EventEmitter<void>();
   store = inject(SessionStore);
   private api = inject(ApiService);
   newWidth = signal(50);
@@ -95,6 +99,14 @@ export class ToolbarComponent {
 
   requestReset() {
     this.resetRequested.emit();
+  }
+
+  requestFinishDemoMode() {
+    this.finishDemoMode.emit();
+  }
+
+  requestExitDemo() {
+    this.exitDemoRequested.emit();
   }
 
   step(n: number) {

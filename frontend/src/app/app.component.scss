@@ -401,6 +401,16 @@
 
 .footer-interventions strong { color: var(--sbb-color-orange, #ffaa00); }
 
+.footer-demo-progress {
+  padding: 2px 9px;
+  border-radius: 9px;
+  background: var(--sbb-color-milk, #f6f6f6) !important;
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  font-weight: 600;
+  color: var(--sbb-color-granite, #686868) !important;
+}
+.footer-demo-progress strong { color: var(--sbb-color-charcoal, #212121) !important; }
+
 .footer-survey-btn {
   border: 1px solid var(--sbb-color-orange, #ffaa00);
   background: var(--sbb-color-orange, #ffaa00);

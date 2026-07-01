@@ -62,11 +62,14 @@
   </header>
 
   
-    @if (!runtimeLayoutActive()) {
-  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()"></app-toolbar>
+    @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending())) {
+  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()" (exitDemoRequested)="exitDemo()"></app-toolbar>
 }
 
   @if (store.session()) {
+    @if (store.demoActive() && store.demoIntroPending()) {
+      <app-mode-intro></app-mode-intro>
+    } @else {
     @if (useSavedRuntimeLayout()) {
       <div class="runtime-design runtime-design--rows">
         @for (row of runtimeRows(runtimeColumns()); track row.id) {
@@ -105,22 +108,11 @@
       </aside>
 
       <section class="center-pane">
-        @if (store.demoActive() || demoComplete()) {
-          <div class="demo-bar" [class.done]="demoComplete()">
-            @if (demoComplete()) {
-              <span class="demo-text"><strong>Guided Demo complete</strong> — thanks! Surveys saved per mode.</span>
-              <button class="demo-btn" type="button" (click)="startDemoSession()">Restart</button>
-              <button class="demo-btn ghost" type="button" (click)="exitDemo()">Exit</button>
-            } @else {
-              <span class="demo-step">Step {{ store.demoStepIndex() + 1 }}/3</span>
-              <span class="demo-text">
-                <strong>{{ currentModeLabel() }}</strong> — resolve the conflict, then finish to give feedback.
-              </span>
-              <button class="demo-btn" type="button" (click)="finishDemoMode()">
-                {{ store.demoIsLast() ? 'Finish & survey' : 'Finish mode & survey →' }}
-              </button>
-              <button class="demo-btn ghost" type="button" (click)="exitDemo()">Exit demo</button>
-            }
+        @if (demoComplete()) {
+          <div class="demo-bar done">
+            <span class="demo-text"><strong>Guided Demo complete</strong> — thanks! Surveys saved per mode.</span>
+            <button class="demo-btn" type="button" (click)="startDemoSession()">Restart</button>
+            <button class="demo-btn ghost" type="button" (click)="exitDemo()">Exit</button>
           </div>
         }
 
@@ -212,6 +204,7 @@
         }
       </aside>
     </div>
+    }
     }
   } @else {
     <main class="welcome">
@@ -502,6 +495,11 @@
   <footer class="footer">
     <div class="footer-left">
       @if (store.session()) {
+        @if (store.demoActive()) {
+          <span class="footer-demo-progress" title="Guided demo progress">
+            Guided demo · mode {{ store.demoStepIndex() + 1 }}/3 · <strong>{{ currentModeLabel() }}</strong>
+          </span>
+        }
         <span>Step: <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>
         <span>Agents: <strong>{{ store.agents().length }}</strong></span>
         @if (store.isCoLearning()) {
