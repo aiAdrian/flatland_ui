@@ -202,8 +202,10 @@
   align-items: center;
   gap: 10px;
   padding: 8px 16px;
-  background: var(--sbb-color-charcoal, #212121);
-  color: #fff;
+  background: var(--sbb-color-white, #fff);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-left: 4px solid var(--sbb-color-orange, #ffaa00);
+  color: var(--sbb-color-charcoal, #212121);
   font-size: 13px;
   flex-shrink: 0;
 }
@@ -211,7 +213,7 @@
 .ai-control-text em {
   font-style: normal;
   font-weight: 600;
-  color: var(--sbb-color-orange, #ffaa00);
+  color: #b36b00;
 }
 
 .ai-control-dot {
@@ -862,46 +864,6 @@
   accent-color: var(--sbb-color-red, #eb0000);
   cursor: pointer;
 }
-
-/* Guided demo bar (center pane top) + locked mode label. */
-.demo-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: var(--sbb-color-charcoal, #212121);
-  color: #fff;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-.demo-bar.done { background: #00973b; }
-.demo-step {
-  font-weight: 700;
-  background: rgba(255,255,255,0.18);
-  border-radius: 9px;
-  padding: 1px 9px;
-  flex-shrink: 0;
-}
-.demo-text { flex: 1; }
-.demo-btn {
-  flex-shrink: 0;
-  border: 0;
-  background: var(--sbb-color-orange, #ffaa00);
-  color: var(--sbb-color-charcoal, #212121);
-  font: inherit;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.demo-btn:hover { background: #ffbb33; }
-.demo-btn.ghost {
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.4);
-}
-.demo-btn.ghost:hover { background: rgba(255,255,255,0.12); }
 
 .header-mode-locked {
   display: inline-flex;

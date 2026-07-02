@@ -18,6 +18,7 @@ import { DirectorDirectiveComponent } from './features/director-directive/direct
 import { SurveyComponent } from './features/survey/survey.component';
 import { ImpactPanelComponent } from './features/impact-panel/impact-panel.component';
 import { ModeIntroComponent } from './features/mode-intro/mode-intro.component';
+import { DemoCompleteComponent } from './features/demo-complete/demo-complete.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
 import { SessionStore } from './core/session.store';
@@ -56,6 +57,7 @@ type RuntimeLayoutOption = {
     AgentsPanelComponent,
     ViewToggleComponent,
     ModeIntroComponent,
+    DemoCompleteComponent,
 PanelShellComponent,
   ],
   templateUrl: './app.component.html',

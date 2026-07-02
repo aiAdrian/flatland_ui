@@ -62,13 +62,15 @@
   </header>
 
   
-    @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending())) {
+    @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending()) && !demoComplete()) {
   <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()" (exitDemoRequested)="exitDemo()"></app-toolbar>
 }
 
   @if (store.session()) {
     @if (store.demoActive() && store.demoIntroPending()) {
       <app-mode-intro></app-mode-intro>
+    } @else if (demoComplete()) {
+      <app-demo-complete (restart)="startDemoSession()" (exit)="exitDemo()"></app-demo-complete>
     } @else {
     @if (useSavedRuntimeLayout()) {
       <div class="runtime-design runtime-design--rows">
@@ -108,14 +110,6 @@
       </aside>
 
       <section class="center-pane">
-        @if (demoComplete()) {
-          <div class="demo-bar done">
-            <span class="demo-text"><strong>Guided Demo complete</strong> — thanks! Surveys saved per mode.</span>
-            <button class="demo-btn" type="button" (click)="startDemoSession()">Restart</button>
-            <button class="demo-btn ghost" type="button" (click)="exitDemo()">Exit</button>
-          </div>
-        }
-
         @if (store.aiInControl()) {
           @if (store.playing()) {
             <div class="ai-control-banner" role="status">
