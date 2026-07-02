@@ -10,9 +10,9 @@
     <ng-container [ngTemplateOutlet]="impactContent"></ng-container>
   </div>
 } @else {
-  <sbb-expansion-panel class="impact-panel" color="white" size="s">
+  <sbb-expansion-panel class="lyne-feature-panel impact-panel-lyne-panel impact-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header class="ip-panel-head">
-      <span class="panel-title" title="Trains whose route is blocked by another train's malfunction before it clears — not the malfunctioning trains themselves (those appear in Notifications).">
+      <span class="lyne-panel-title panel-title" title="Trains whose route is blocked by another train's malfunction before it clears — not the malfunctioning trains themselves (those appear in Notifications).">
         Disruption Conflicts
       </span>
       <span class="ip-count" [class.zero]="items().length === 0">{{ items().length }}</span>
