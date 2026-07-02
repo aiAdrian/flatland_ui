@@ -88,13 +88,24 @@
                 [attr.data-runtime-row]="row.id"
               >
                 @for (panel of column.panels; track panel.id) {
-                  <app-panel-shell
-                    [panel]="panel"
-                    [attr.data-panel-type]="panel.type"
-                    [attr.data-panel-zone]="runtimePanelZone(column)"
-                    [attr.data-panel-row]="row.id"
-                  >
-                  </app-panel-shell>
+                  @if (isToggleCompositeRuntimePanel(panel)) {
+                    <app-panel-plugin-host
+                      class="runtime-toggle-composite"
+                      [panel]="panel"
+                      [attr.data-panel-type]="panel.type"
+                      [attr.data-panel-zone]="runtimePanelZone(column)"
+                      [attr.data-panel-row]="row.id"
+                    >
+                    </app-panel-plugin-host>
+                  } @else {
+                    <app-panel-shell
+                      [panel]="panel"
+                      [attr.data-panel-type]="panel.type"
+                      [attr.data-panel-zone]="runtimePanelZone(column)"
+                      [attr.data-panel-row]="row.id"
+                    >
+                    </app-panel-shell>
+                  }
                 }
               </section>
             }

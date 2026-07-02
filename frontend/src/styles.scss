@@ -718,3 +718,71 @@ app-panel-shell[data-panel-type="agent-inspector"]:has(sbb-expansion-panel-conte
   overflow: hidden !important;
 }
 /* AGENT_INSPECTOR_COLLAPSED_SIZE_FIX_END */
+
+/* >>> FINAL custom toggle-view vertical split */
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split
+  > .panel-plugin-host__toggle-map {
+  grid-area: 1 / 1 / 2 / 2 !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split
+  > .panel-plugin-host__toggle-marey {
+  grid-area: 2 / 1 / 3 / 2 !important;
+}
+/* <<< FINAL custom toggle-view vertical split */
+
+
+/* >>> GLOBAL toggle-view split orientation support */
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split.split-vertical {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split.split-vertical
+  > .panel-plugin-host__toggle-map {
+  grid-area: 1 / 1 / 2 / 2 !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split.split-vertical
+  > .panel-plugin-host__toggle-marey {
+  grid-area: 2 / 1 / 3 / 2 !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split.split-horizontal {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  grid-auto-flow: column !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split.split-horizontal
+  > .panel-plugin-host__toggle-map {
+  grid-area: 1 / 1 / 2 / 2 !important;
+}
+
+app-panel-plugin-host.runtime-toggle-composite[data-panel-type='toggle-view']
+  .panel-plugin-host__toggle-views.split.split-horizontal
+  > .panel-plugin-host__toggle-marey {
+  grid-area: 1 / 2 / 2 / 3 !important;
+}
+
+/* <<< GLOBAL toggle-view split orientation support */
+

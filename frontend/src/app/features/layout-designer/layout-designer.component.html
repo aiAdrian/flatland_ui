@@ -349,6 +349,28 @@
             <input [ngModel]="panel.type" readonly />
           </label>
 
+
+          @if (panel.type === 'toggle-view') {
+            <div class="settings__group settings__group--toggle-view">
+              <h4>Toggle View</h4>
+
+              <label>
+                Split direction
+                <select
+                  [ngModel]="toggleSplitOrientationForPanel(panel)"
+                  (ngModelChange)="setToggleSplitOrientationForPanel(panel, $event)"
+                >
+                  <option value="vertical">Top / Bottom</option>
+                  <option value="horizontal">Left / Right</option>
+                </select>
+              </label>
+
+              <p class="settings__hint">
+                Controls how Map and Marey are arranged when both views are active.
+              </p>
+            </div>
+          }
+
           <label>
             Min height px
             <input type="number" min="80" [(ngModel)]="panel.minHeight" (ngModelChange)="onDesignerChanged()" />

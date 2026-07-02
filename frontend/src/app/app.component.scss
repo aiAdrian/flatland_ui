@@ -1352,3 +1352,17 @@
   box-sizing: border-box;
 }
 
+/* runtime direct toggle composite */
+.runtime-design__column {
+  min-height: 0;
+}
+
+.runtime-design__column > .runtime-toggle-composite,
+.runtime-design__column > app-panel-plugin-host.runtime-toggle-composite {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+}
+

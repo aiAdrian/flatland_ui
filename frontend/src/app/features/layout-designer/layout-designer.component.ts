@@ -850,6 +850,9 @@ export class LayoutDesignerComponent {
         collapsible: true,
         minHeight: payload.minHeight,
         height: null,
+        settings: payload.type === 'toggle-view'
+          ? { toggleSplitOrientation: 'vertical', splitOrientation: 'vertical' }
+          : undefined,
       };
 
       this.pushUndoState();
@@ -901,6 +904,29 @@ export class LayoutDesignerComponent {
     this.layoutDropHandled = false;
   }
 
+
+  toggleSplitOrientationForPanel(panel: DesignerPanel): 'vertical' | 'horizontal' {
+    const value =
+      panel.settings?.toggleSplitOrientation ??
+      panel.settings?.splitOrientation ??
+      'vertical';
+
+    return value === 'horizontal' ? 'horizontal' : 'vertical';
+  }
+
+  setToggleSplitOrientationForPanel(
+    panel: DesignerPanel,
+    value: 'vertical' | 'horizontal',
+  ): void {
+    panel.settings = {
+      ...(panel.settings ?? {}),
+      toggleSplitOrientation: value,
+      splitOrientation: value,
+    };
+
+    this.onDesignerChanged();
+  }
+
   toRuntimePanel(column: DesignerColumn, panel: DesignerPanel): PanelInstance {
     return {
       id: `designer-preview-${panel.id}`,
@@ -911,6 +937,9 @@ export class LayoutDesignerComponent {
       collapsed: !panel.expanded,
       hidden: false,
       sizeMode: column.role === 'main' ? 'fill' : 'auto',
+      settings: panel.settings ? structuredClone(panel.settings) : undefined,
+      toggleSplitOrientation: panel.settings?.toggleSplitOrientation,
+      splitOrientation: panel.settings?.toggleSplitOrientation,
     } as PanelInstance;
   }
 

@@ -1,3 +1,11 @@
+export type ToggleSplitOrientation = 'vertical' | 'horizontal';
+
+export interface DesignerPanelSettings {
+  toggleSplitOrientation?: ToggleSplitOrientation;
+  splitOrientation?: ToggleSplitOrientation;
+  [key: string]: unknown;
+}
+
 export type DesignerSelection =
   | { kind: 'design' }
   | { kind: 'row'; rowId: string }
@@ -12,6 +20,7 @@ export interface DesignerPanel {
   collapsible: boolean;
   minHeight: number;
   height?: number | null;
+  settings?: DesignerPanelSettings;
 }
 
 export interface DesignerColumn {

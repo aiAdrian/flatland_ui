@@ -7,29 +7,30 @@
   @switch (panel.type) {
     @case ('toggle-view') {
       <div class="panel-plugin-host__toggle-composite">
-        <div class="panel-plugin-host__controls-row">
-          <app-layout-view-toggle-panel
-            [panel]="panel"
-            [embedded]="true">
-          </app-layout-view-toggle-panel>
+        <div class="panel-plugin-host__controls-row map-controls">
+          <app-view-toggle></app-view-toggle>
+
+          <span class="map-controls-divider"></span>
 
           <app-layer-visibility></app-layer-visibility>
         </div>
 
         <div
           class="panel-plugin-host__toggle-views"
-          [class.only-map]="isViewVisible('flatland-map') && !isViewVisible('marey')"
-          [class.only-marey]="!isViewVisible('flatland-map') && isViewVisible('marey')"
-          [class.split]="isViewVisible('flatland-map') && isViewVisible('marey')"
+          [class.only-map]="store.showMap() && !store.showMarey()"
+          [class.only-marey]="!store.showMap() && store.showMarey()"
+          [class.split]="store.showMap() && store.showMarey()"
+          [class.split-vertical]="store.showMap() && store.showMarey() && toggleSplitOrientation() === 'vertical'"
+          [class.split-horizontal]="store.showMap() && store.showMarey() && toggleSplitOrientation() === 'horizontal'"
         >
-          @if (isViewVisible('flatland-map')) {
-            <section class="panel-plugin-host__toggle-map">
+          @if (store.showMap()) {
+            <section class="panel-plugin-host__toggle-map map-section">
               <app-flatland-map></app-flatland-map>
             </section>
           }
 
-          @if (isViewVisible('marey')) {
-            <section class="panel-plugin-host__toggle-marey">
+          @if (store.showMarey()) {
+            <section class="panel-plugin-host__toggle-marey marey-section">
               <app-graphic-timetable></app-graphic-timetable>
             </section>
           }
@@ -94,27 +95,21 @@
     }
 
     @case ('marey') {
-      @if (isViewVisible('marey')) {
-        <div class="panel-plugin-host__timetable">
-          <app-graphic-timetable></app-graphic-timetable>
-        </div>
-      }
+      <div class="panel-plugin-host__timetable">
+        <app-graphic-timetable></app-graphic-timetable>
+      </div>
     }
 
     @case ('marey-chart') {
-      @if (isViewVisible('marey')) {
-        <div class="panel-plugin-host__timetable">
-          <app-graphic-timetable></app-graphic-timetable>
-        </div>
-      }
+      <div class="panel-plugin-host__timetable">
+        <app-graphic-timetable></app-graphic-timetable>
+      </div>
     }
 
     @case ('graphic-timetable') {
-      @if (isViewVisible('marey')) {
-        <div class="panel-plugin-host__timetable">
-          <app-graphic-timetable></app-graphic-timetable>
-        </div>
-      }
+      <div class="panel-plugin-host__timetable">
+        <app-graphic-timetable></app-graphic-timetable>
+      </div>
     }
 
     @case ('agent-inspector') {
