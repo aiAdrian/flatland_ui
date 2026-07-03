@@ -793,54 +793,67 @@ button.primary.designer-action-btn:hover,
   position: relative;
   isolation: isolate;
   min-height: 72px;
-  padding: 12px 18px 12px 22px !important;
+  padding: 12px 18px 12px 24px !important;
   background: var(--designer-white) !important;
-  border-bottom: 1px solid var(--designer-cloud) !important;
+  /* Match the main page header: red underline, no left accent bar. */
+  border-bottom: 2px solid var(--designer-red) !important;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
 }
 
 .designer__topbar::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  background: var(--designer-red);
-  z-index: 1;
+  content: none;
 }
 
+/* Brand block mirrors app.component.html's .header-brand + .header-title. */
 .designer__topbar > div:first-child {
-  display: grid;
-  gap: 2px;
-  min-width: 210px;
-}
-
-.designer__eyebrow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  width: fit-content;
-  color: var(--designer-muted) !important;
-  font-size: 11px !important;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  gap: 20px;
+  min-width: 0;
 }
 
-.designer__eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--designer-red);
+.designer__logo {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 
-.designer__topbar h1 {
+.designer__title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
   color: var(--designer-text);
-  font-size: 23px !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.02em;
+}
+
+.designer__title-main {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.designer__title-sub {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--designer-muted);
+}
+
+/* Header holds only the app menu on the right (no functional buttons). */
+.designer__menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The former header buttons live here, one row below the header. */
+.designer__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--designer-white);
+  border-bottom: 1px solid var(--designer-cloud);
 }
 
 /* Actions become a clean Lyne-like toolbar. */

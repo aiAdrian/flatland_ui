@@ -1,64 +1,62 @@
 <div class="designer">
   <header class="designer__topbar">
-    <div>
-      <div class="designer__eyebrow">Flatland</div>
-      <h1>Layout Designer</h1>
+    <div class="designer__brand">
+      <img class="designer__logo" src="/ai4realnet_logo.svg" alt="AI4REALNET" />
+      <span class="designer__title">
+        <span class="designer__title-main">Flatland Dispatcher</span>
+        <span class="designer__title-sub">– Layout Designer</span>
+      </span>
     </div>
 
-    <div class="designer__actions">
-                  <label class="designer-layout-loader">
-        <span>Load Layout</span>
-        <select
-          [value]="design.id"
-          (focus)="refreshDesignerLayoutList()" (click)="refreshDesignerLayoutList()"
-          (change)="loadDesignerLayout($any($event.target).value)">
-          @for (layout of designerLayoutOptions(); track layout.id) {
-            <option [value]="layout.id">{{ layout.name }}</option>
-          }
-        </select>
-      </label>
-
-      <button
-        type="button"
-        class="designer-action-btn"
-        [class.is-clicked]="buttonFeedbackId === 'rename'"
-        (click)="renameCurrentLayout()">
-        Rename
-      </button>
-
-<button
-        type="button"
-        class="designer-action-btn"
-        [class.is-clicked]="buttonFeedbackId === 'new-layout'"
-        (click)="createNewLayoutFromDefault()">
-        New Layout
-      </button>
-
-      <button
-        type="button"
-        class="designer-action-btn designer-action-btn--danger"
-        [class.is-clicked]="buttonFeedbackId === 'clear-layouts'"
-        (click)="clearAllUserLayoutsClean()">
-        Clear All Layouts
-      </button>
-
-<button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save'" (click)="saveWithFeedback()"
-        [class.designer-action-btn--dirty]="isDirty"
-        [class.designer-action-btn--saved]="!isDirty"
-        [attr.title]="isDirty ? 'Save unsaved layout changes' : 'Layout already saved'">
-        {{ isDirty ? 'Save changes' : 'Saved' }}
-      </button>
-      <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAsWithPrompt()">Save As…</button>
-      <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJsonWithFeedback()">Export JSON</button>
-
-      <label class="import-button designer-action-btn designer-import-btn" [class.is-clicked]="buttonFeedbackId === 'import'">
-        Import JSON
-        <input type="file" accept="application/json" hidden (change)="importJsonWithFeedback($event)" />
-      </label>
-
-      <button type="button" class="primary designer-action-btn designer-action-btn--primary" [class.is-clicked]="buttonFeedbackId === 'home'" (click)="goHomeWithFeedback()" >Home</button>
+    <div class="designer__menu">
+      <sbb-transparent-button
+        id="designer-menu-trigger"
+        size="m"
+        icon-name="hamburger-menu-small">
+        Menu
+      </sbb-transparent-button>
+      <sbb-menu trigger="designer-menu-trigger">
+        <sbb-menu-button (click)="runSession()">Apply &amp; open dispatcher</sbb-menu-button>
+        <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
+      </sbb-menu>
     </div>
   </header>
+
+  <!-- Functions live in a row below the header, not in the header itself.
+       Rename removed (the Name field below is inline-editable); the duplicate
+       "Load Layout" select is gone (the meta row already has one). -->
+  <div class="designer__toolbar">
+    <button
+      type="button"
+      class="designer-action-btn"
+      [class.is-clicked]="buttonFeedbackId === 'new-layout'"
+      (click)="createNewLayoutFromDefault()">
+      New Layout
+    </button>
+    <button
+      type="button"
+      class="designer-action-btn"
+      [class.is-clicked]="buttonFeedbackId === 'save'"
+      (click)="saveWithFeedback()"
+      [class.designer-action-btn--dirty]="isDirty"
+      [class.designer-action-btn--saved]="!isDirty"
+      [attr.title]="isDirty ? 'Save unsaved layout changes' : 'Layout already saved'">
+      {{ isDirty ? 'Save changes' : 'Saved' }}
+    </button>
+    <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAsWithPrompt()">Save As…</button>
+    <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJsonWithFeedback()">Export JSON</button>
+    <label class="import-button designer-action-btn designer-import-btn" [class.is-clicked]="buttonFeedbackId === 'import'">
+      Import JSON
+      <input type="file" accept="application/json" hidden (change)="importJsonWithFeedback($event)" />
+    </label>
+    <button
+      type="button"
+      class="designer-action-btn designer-action-btn--danger"
+      [class.is-clicked]="buttonFeedbackId === 'clear-layouts'"
+      (click)="clearAllUserLayoutsClean()">
+      Clear All Layouts
+    </button>
+  </div>
 
   <section class="designer__meta">
     <label>
