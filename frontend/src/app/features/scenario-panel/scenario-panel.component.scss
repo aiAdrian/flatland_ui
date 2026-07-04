@@ -38,7 +38,7 @@
 }
 
 .scenario-card.recommended {
-  border-color: #00973b;
+  border-color: var(--app-positive);
   border-width: 2px;
   padding: 9px;
 }
@@ -47,7 +47,7 @@
   position: absolute;
   top: -8px;
   right: 8px;
-  background: #00973b;
+  background: var(--app-positive);
   color: white;
   font-size: 9px;
   font-weight: 700;
@@ -88,8 +88,8 @@
   white-space: nowrap;
 }
 .pill.good {
-  background: rgba(0, 151, 59, 0.12);
-  color: #00973b;
+  background: color-mix(in srgb, var(--app-positive) 12%, var(--sbb-color-white));
+  color: var(--app-positive);
 }
 .pill.bad {
   background: rgba(235, 0, 0, 0.10);
@@ -135,7 +135,7 @@
   background: #f0f4f8;
 }
 .scenario-card.recommended {
-  border-color: #00973b;
+  border-color: var(--app-positive);
   border-width: 2px;
   background: linear-gradient(180deg, #e8f7ee 0%, #ffffff 100%);
 }
@@ -161,7 +161,7 @@
 .scenario-card.recommended:hover,
 .scenario-card.recommended:focus-within {
   border-color: #008a35;
-  box-shadow: 0 4px 18px rgba(0, 151, 59, 0.36);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--app-positive) 36%, transparent);
 }
 
 .scenario-card.baseline:hover,
@@ -201,7 +201,7 @@
   color: white;
 }
 .badge.current      { background: #686868; }
-.badge.recommended  { background: #00973b; }
+.badge.recommended  { background: var(--app-positive); }
 .badge.avoid        { background: #c5341e; }
 
 .kpi-grid {
@@ -235,7 +235,7 @@
   font-weight: 600;
   margin-top: 2px;
 }
-.kpi-delta.good { color: #00973b; }
+.kpi-delta.good { color: var(--app-positive); }
 .kpi-delta.bad  { color: #c5341e; }
 
 .actions {

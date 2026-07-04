@@ -133,9 +133,13 @@
         *ngFor="let item of palette"
         draggable="true"
         (dragstart)="dragPalette(item, $event)"
+        [attr.title]="item.title + ' (' + item.type + ') — ' + item.description"
       >
-        <strong>{{ item.title }}</strong>
-        <span>{{ item.type }}</span>
+        <span class="palette__item-head">
+          <strong>{{ item.title }}</strong>
+          <span class="palette__kind" [attr.data-kind]="item.kind">{{ item.kind }}</span>
+        </span>
+        <span class="palette__desc">{{ item.description }}</span>
       </div>
     </aside>
       <section class="preview" (click)="selectDesign()">

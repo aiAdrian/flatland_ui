@@ -99,7 +99,7 @@
 .agent-state.state-moving { background: #00973b; color: white; }
 .agent-state.state-done { background: #0079c7; color: white; }
 .agent-state.state-stopped { background: #ffaa00; color: white; }
-.agent-state.state-malfunction { background: #ffaa00; color: white; }
+.agent-state.state-malfunction { background: var(--app-severity-warn); color: var(--sbb-color-white); }
 .agent-state.state-waiting { background: #d2d2d2; color: #212121; }
 .agent-state.state-ready_to_depart { background: #d2d2d2; color: #212121; }
 
@@ -501,7 +501,7 @@
 
 /* Malfunction badge remains red, independent from selection/hover. */
 .agent-malfunction.malfunction-indicator {
-  background: #eb0000 !important;
+  background: var(--app-severity-error) !important;
   color: #ffffff !important;
   border-color: #ffffff !important;
   margin-left: -2px;
@@ -529,7 +529,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #fff;
-  background: var(--sbb-color-red, #eb0000);
+  background: var(--app-severity-error);
   border-radius: 9px;
   padding: 0 7px;
   line-height: 18px;

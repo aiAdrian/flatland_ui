@@ -139,6 +139,59 @@ h3 {
   color: #686868;
 }
 
+/* Title row + kind badge. New code: bare tokens, no hex fallback
+   (per frontend-lyne-conventions §1; this file is legacy debt but new
+   additions stay token-only). Kind colours are the --app-kind-* tokens
+   defined in styles.scss (one per interaction-framework §2 function class). */
+.palette__item-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.palette__kind {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border: 1px solid var(--sbb-color-cloud);
+}
+/* Kind is carried by the dot, not by a full-fill background — full-fill
+   solid brand hues behind small uppercase text failed contrast for several
+   kinds (e.g. green/blue/red on white were 3.8-4.6:1, below WCAG AA 4.5:1
+   for small text) and read as 7 competing brand colours rather than a
+   restrained Lyne-style tag. Neutral pill + accent dot keeps text contrast
+   fixed at ~15:1 regardless of kind. */
+.palette__kind::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--app-kind-context);
+}
+.palette__kind[data-kind="event"]::before             { background: var(--app-kind-event); }
+.palette__kind[data-kind="context"]::before           { background: var(--app-kind-context); }
+.palette__kind[data-kind="prediction"]::before        { background: var(--app-kind-prediction); }
+.palette__kind[data-kind="decision-support"]::before  { background: var(--app-kind-decision-support); }
+.palette__kind[data-kind="control"]::before           { background: var(--app-kind-control); }
+.palette__kind[data-kind="capitalization"]::before    { background: var(--app-kind-capitalization); }
+.palette__kind[data-kind="trust"]::before             { background: var(--app-kind-trust); }
+
+.palette__desc {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
 .preview {
   min-width: 0;
   padding: 14px;
@@ -185,7 +238,7 @@ h3 {
 }
 
 .canvas__column.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: -2px;
 }
 
@@ -238,7 +291,7 @@ h3 {
 }
 
 .panel-card.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
 }
 
 .panel-card__head {
@@ -460,7 +513,7 @@ h3 {
 }
 
 .panel-card.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: 0;
 }
 
@@ -1371,7 +1424,7 @@ input[readonly] {
 }
 
 .canvas__row.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   box-shadow: inset 0 0 0 1px rgba(235, 0, 0, 0.25);
 }
 
@@ -1466,7 +1519,7 @@ input[readonly] {
 }
 
 .canvas__row.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   box-shadow: inset 0 0 0 1px rgba(235, 0, 0, 0.25);
 }
 
@@ -1520,12 +1573,12 @@ input[readonly] {
 }
 
 .canvas__row.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: -2px;
 }
 
 .canvas__column.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: -2px;
 }
 /* DESIGNER_ROW_COLUMN_DRAGDROP_END */

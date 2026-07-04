@@ -1,5 +1,5 @@
 import '@sbb-esta/lyne-elements/toggle-check.js';
-import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, HostListener, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { ToolbarComponent } from './features/toolbar/toolbar.component';
 import { AgentInspectorComponent } from './features/agent-inspector/agent-inspector.component';
 import { AgentsPanelComponent } from './features/agents-panel/agents-panel.component';
@@ -23,6 +23,11 @@ import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
 import { SessionStore } from './core/session.store';
+import {
+  DEFAULT_VISUAL_ENCODING,
+  VISUAL_ENCODING_PRESETS,
+  VisualEncodingPresetId,
+} from './core/visual-encoding';
 import { InteractionMode } from './core/events/event-types';
 import { INTERACTION_MODES } from './core/interaction-modes';
 import { PanelInstance, isPanelAvailableInMode } from './core/layout';
@@ -259,6 +264,21 @@ export class AppComponent implements OnInit {
   /** Session Settings dialog tab: Basic (grid only) vs Advanced (everything else). */
   settingsTab = signal<'basic' | 'advanced'>('basic');
   scenarioPolicyMode = signal(false);
+
+  /** True while a round is running → Visual Encoding is locked (pre-session only).
+   *  No existing settings field uses a disable-when-active convention, so this is
+   *  the simple explicit check the colour-cleanup task asked for (no new gating). */
+  readonly sessionActive = computed(() => !!this.store.session());
+  /** Visual-Encoding preset presets (Default + one high-contrast alternate). */
+  readonly visualEncodingPresets = VISUAL_ENCODING_PRESETS;
+  /** Draft preset id (applied to the store on Save, like every other settings field). */
+  draftVisualEncodingPreset = signal<VisualEncodingPresetId>('default');
+  /** The encoding currently previewed in the dialog (derived from the draft). */
+  readonly draftVisualEncoding = computed(() =>
+    VISUAL_ENCODING_PRESETS.find((p) => p.id === this.draftVisualEncodingPreset())?.encoding
+    ?? DEFAULT_VISUAL_ENCODING,
+  );
+
   surveyActive = signal(false);
   helpActive = signal(false);
   demoComplete = signal(false);
@@ -563,6 +583,7 @@ export class AppComponent implements OnInit {
     this.draftDecisionCountdown.set(this.store.decisionCountdownSeconds());
     this.draftRecommendationDuration.set(this.store.recommendationDurationSeconds());
     this.draftAutoPauseOnConflict.set(this.store.autoPauseOnConflict());
+    this.draftVisualEncodingPreset.set(this.store.visualEncodingPreset());
     this.scenarioPolicyMode.set(false);
     this.settingsTab.set('basic');
     this.settingsMode.set(true);
@@ -596,6 +617,7 @@ export class AppComponent implements OnInit {
     this.store.setDecisionCountdownSeconds(this.draftDecisionCountdown());
     this.store.setRecommendationDurationSeconds(this.draftRecommendationDuration());
     this.store.setAutoPauseOnConflict(this.draftAutoPauseOnConflict());
+    this.store.setVisualEncodingPreset(this.draftVisualEncodingPreset());
     this.persistSessionSettings();
     this.settingsMode.set(false);
     this.blurActiveElement();

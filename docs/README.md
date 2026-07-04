@@ -12,6 +12,7 @@ The authoritative specs and guides for how the app works today.
 - [mode-guide.md](reference/mode-guide.md) — the same task walked through all three modes
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
+- [colour-usage-audit.md](reference/colour-usage-audit.md) — colour concepts grouped into semantic families; consistency, collisions, global-config readiness (input to a future visual-encoding registry)
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
 - [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model tile ideas (convergence), grounding for the tile catalog

@@ -72,8 +72,8 @@
   color: var(--sbb-color-granite, #686868);
 }
 
-.sit-cell.warn .sit-num { color: var(--sbb-color-orange, #cc8800); }
-.sit-cell.bad .sit-num { color: var(--sbb-color-red, #eb0000); }
+.sit-cell.warn .sit-num { color: var(--app-severity-warn); }
+.sit-cell.bad .sit-num { color: var(--app-severity-error); }
 
 /* layout-panel-embed-fix:situation-summary */
 :host {

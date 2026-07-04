@@ -1,6 +1,14 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ApiService } from './api.service';
 import {
+  VISUAL_ENCODING_PRESETS,
+  VisualEncoding,
+  VisualEncodingPresetId,
+  loadVisualEncoding,
+  matchingPresetId,
+  saveVisualEncoding,
+} from './visual-encoding';
+import {
   AppNotification,
   ImpactItem,
   InteractionMode,
@@ -188,6 +196,26 @@ export class SessionStore {
     platformRouting: 0.5,
     trainRouting: 0.5,
   });
+
+  /**
+   * Visual-Encoding Registry (v1 — authorship only). Sibling to
+   * `layerVisibility`, but persisted to localStorage (pre-session, locked
+   * during a run via the Session Settings UI). Seam-first: no tile renders
+   * authorship yet (B1 what-if will be the first consumer). See
+   * `visual-encoding.ts` + the `visual-encoding-registry` memory.
+   */
+  readonly visualEncoding = signal<VisualEncoding>(loadVisualEncoding());
+
+  /** Preset id matching the current encoding (for the settings radio). */
+  readonly visualEncodingPreset = computed<VisualEncodingPresetId>(() =>
+    matchingPresetId(this.visualEncoding()),
+  );
+
+  /** Apply a named preset. Callers (Session Settings) gate this to pre-session. */
+  setVisualEncodingPreset(presetId: VisualEncodingPresetId): void {
+    const preset = VISUAL_ENCODING_PRESETS.find((p) => p.id === presetId);
+    if (preset) this.visualEncoding.set(preset.encoding);
+  }
 
   /**
    * Single consumption surface for the KPI filter. Raw slider values are
@@ -452,6 +480,10 @@ export class SessionStore {
         }
       });
     });
+
+    // Persist the Visual-Encoding registry to localStorage on every change.
+    // `loadVisualEncoding()` ran at signal init; this keeps storage in sync.
+    effect(() => saveVisualEncoding(this.visualEncoding()));
   }
 
   private _trajectoryPosition(a: AgentDTO): [number, number] | null {

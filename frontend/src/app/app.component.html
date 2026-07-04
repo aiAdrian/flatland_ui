@@ -92,7 +92,7 @@
 
   
     @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending()) && !demoComplete()) {
-  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()" (exitDemoRequested)="exitDemo()"></app-toolbar>
+  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()"></app-toolbar>
 }
 
   @if (store.session()) {
@@ -396,6 +396,48 @@
                    [checked]="draftDemoMalfunctionTypes()"
                    (change)="draftDemoMalfunctionTypes.set($any($event.target).checked)">
           </label>
+        </section>
+
+        <section class="settings-section ve-section" [class.ve-locked]="sessionActive()">
+          <h3>Visual Encoding</h3>
+          <p class="ve-hint">
+            How human vs AI contributions are rendered (what-if view, and future tiles).
+            @if (sessionActive()) { Locked during a running session — set it before starting a round. }
+          </p>
+          <div class="ve-presets" role="radiogroup" aria-label="Visual encoding preset">
+            @for (preset of visualEncodingPresets; track preset.id) {
+              <label class="ve-preset" [class.is-active]="draftVisualEncodingPreset() === preset.id">
+                <input type="radio" name="ve-preset"
+                       [value]="preset.id"
+                       [checked]="draftVisualEncodingPreset() === preset.id"
+                       [disabled]="sessionActive()"
+                       (change)="draftVisualEncodingPreset.set($any($event.target).value)">
+                <span class="ve-preset-label">{{ preset.label }}</span>
+                <span class="ve-preset-desc">{{ preset.description }}</span>
+              </label>
+            }
+          </div>
+
+          @if (draftVisualEncoding(); as ve) {
+            <div class="ve-roles">
+              <div class="ve-role">
+                <span class="ve-swatch"
+                      [style.backgroundColor]="ve.authorship.human.color"
+                      [class.ve-dashed]="ve.authorship.human.lineStyle === 'dashed'"></span>
+                <span class="ve-icon">{{ ve.authorship.human.icon }}</span>
+                <span class="ve-role-label">{{ ve.authorship.human.label }}</span>
+                <span class="ve-role-key">human</span>
+              </div>
+              <div class="ve-role">
+                <span class="ve-swatch"
+                      [style.backgroundColor]="ve.authorship.ai.color"
+                      [class.ve-dashed]="ve.authorship.ai.lineStyle === 'dashed'"></span>
+                <span class="ve-icon">{{ ve.authorship.ai.icon }}</span>
+                <span class="ve-role-label">{{ ve.authorship.ai.label }}</span>
+                <span class="ve-role-key">AI</span>
+              </div>
+            </div>
+          }
         </section>
 
         <section class="settings-section">

@@ -16,6 +16,12 @@ interface PaletteItem {
   type: string;
   title: string;
   minHeight: number;
+  /** One short sentence of what the tile shows/does (≤80 chars). */
+  description: string;
+  /** interaction-framework §2 function class: event | context | prediction |
+   *  decision-support | control | capitalization | trust. Drives the kind badge
+   *  colour (see --app-kind-* tokens in styles.scss). */
+  kind: string;
 }
 
 type DragPayload =
@@ -50,21 +56,51 @@ export class LayoutDesignerComponent {
   // mode-specific and standalone view panels. Placeholder-only entries
   // (timeline/validation/cell-inspector) were removed.
   palette: PaletteItem[] = [
-    { type: 'situation-summary', title: 'Situation Summary', minHeight: 120 },
-    { type: 'notifications', title: 'Notifications', minHeight: 140 },
-    { type: 'agents', title: 'Trains', minHeight: 180 },
-    { type: 'toggle-view', title: 'Track Layout & Timetable', minHeight: 520 },
-    { type: 'flatland-map', title: 'Track Layout (Map)', minHeight: 320 },
-    { type: 'marey', title: 'Graphic Timetable', minHeight: 260 },
-    { type: 'layer-visibility', title: 'Layer Visibility', minHeight: 80 },
-    { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 180 },
-    { type: 'impact', title: 'Impact', minHeight: 160 },
-    { type: 'risk-uncertainty', title: 'Risk & Uncertainty', minHeight: 160 },
-    { type: 'scenario', title: 'Scenario', minHeight: 160 },
-    { type: 'recommendations', title: 'Recommendations', minHeight: 160 },
-    { type: 'kpi-filter', title: 'KPI Filter', minHeight: 160 },
-    { type: 'goal-achievement', title: 'Goal Achievement', minHeight: 140 },
-    { type: 'toolbar', title: 'Toolbar', minHeight: 74 },
+    { type: 'situation-summary', title: 'Situation Summary', minHeight: 120,
+      description: 'Headline counts: arrived/active/delayed/malfunctioning trains + progress.',
+      kind: 'event' },
+    { type: 'notifications', title: 'Notifications', minHeight: 140,
+      description: 'Event feed: notifications with kind, title, message, related train.',
+      kind: 'event' },
+    { type: 'agents', title: 'Trains', minHeight: 180,
+      description: 'Train roster grouped by state: position, arrival, deadline, actions.',
+      kind: 'context' },
+    { type: 'toggle-view', title: 'Track Layout & Timetable', minHeight: 520,
+      description: 'Composite: track map + graphic timetable with view & layer controls.',
+      kind: 'event' },
+    { type: 'flatland-map', title: 'Track Layout (Map)', minHeight: 320,
+      description: 'SVG network map: rails, trains, trajectories, switches, signals, decisions.',
+      kind: 'event' },
+    { type: 'marey', title: 'Graphic Timetable', minHeight: 260,
+      description: 'Time-distance train-movement diagram (graphic timetable).',
+      kind: 'prediction' },
+    { type: 'layer-visibility', title: 'Layer Visibility', minHeight: 80,
+      description: 'Toggle map layers: grid, decisions, trajectory, switches, signals.',
+      kind: 'control' },
+    { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 180,
+      description: 'Train detail: position, destination, delay, malfunction, override actions.',
+      kind: 'context' },
+    { type: 'impact', title: 'Impact', minHeight: 160,
+      description: 'Trains blocked by a malfunction: ETA, severity, options, what-if hover.',
+      kind: 'context' },
+    { type: 'risk-uncertainty', title: 'Risk & Uncertainty', minHeight: 160,
+      description: 'Reliability, confidence & uncertainty band; Accept/Override with reasons.',
+      kind: 'trust' },
+    { type: 'scenario', title: 'Scenario', minHeight: 160,
+      description: 'Scenario cards compared by KPIs (done/deadlock/delay) with policy switch.',
+      kind: 'decision-support' },
+    { type: 'recommendations', title: 'Recommendations', minHeight: 160,
+      description: 'AI recommendations: confidence, countdown, accept/reject, route preview.',
+      kind: 'decision-support' },
+    { type: 'kpi-filter', title: 'KPI Filter', minHeight: 160,
+      description: 'KPI weight sliders (time/energy/platform/train routing) as dot meters.',
+      kind: 'control' },
+    { type: 'goal-achievement', title: 'Goal Achievement', minHeight: 140,
+      description: 'Progress toward the operational goal with status badge & progress bar.',
+      kind: 'context' },
+    { type: 'toolbar', title: 'Toolbar', minHeight: 74,
+      description: 'Play/pause, speed, step, policy selector, demo finish controls.',
+      kind: 'control' },
   ];
 
   livePreviewSteps = 10;
