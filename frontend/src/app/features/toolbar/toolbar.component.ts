@@ -20,7 +20,6 @@ export class ToolbarComponent {
   @Output() openScenarioPolicy = new EventEmitter<void>();
   @Output() resetRequested = new EventEmitter<void>();
   @Output() finishDemoMode = new EventEmitter<void>();
-  @Output() exitDemoRequested = new EventEmitter<void>();
   store = inject(SessionStore);
   private api = inject(ApiService);
   newWidth = signal(50);
@@ -103,10 +102,6 @@ export class ToolbarComponent {
 
   requestFinishDemoMode() {
     this.finishDemoMode.emit();
-  }
-
-  requestExitDemo() {
-    this.exitDemoRequested.emit();
   }
 
   step(n: number) {

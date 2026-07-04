@@ -12,16 +12,6 @@
       </sbb-button>
     }
 
-    @if (demoActive) {
-      <sbb-divider orientation="vertical"></sbb-divider>
-      <sbb-secondary-button size="s" (click)="requestFinishDemoMode()">
-        {{ demoIsLast ? 'Finish & survey' : 'Finish mode & survey →' }}
-      </sbb-secondary-button>
-      <sbb-transparent-button size="s" (click)="requestExitDemo()">
-        Exit demo
-      </sbb-transparent-button>
-    }
-
     <div class="speed-control">
       <label>Simulation speed</label>
       <input
@@ -88,5 +78,12 @@
 
   @if (store.message(); as msg) {
     <span class="info-msg">{{ msg }}</span>
+  }
+
+  @if (store.session() && demoActive) {
+    <sbb-divider orientation="vertical"></sbb-divider>
+    <sbb-secondary-button size="s" (click)="requestFinishDemoMode()">
+      {{ demoIsLast ? 'Finish & survey' : 'Finish mode & survey →' }}
+    </sbb-secondary-button>
   }
 </div>

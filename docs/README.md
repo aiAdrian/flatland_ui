@@ -13,6 +13,7 @@ The authoritative specs and guides for how the app works today.
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
 - [colour-usage-audit.md](reference/colour-usage-audit.md) — colour concepts grouped into semantic families; consistency, collisions, global-config readiness (input to a future visual-encoding registry)
+- [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub + Railway KPI catalog (confirmed in AI4REALNET org) — re-check at real WP 4.3 requirements
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
 - [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model tile ideas (convergence), grounding for the tile catalog
@@ -23,6 +24,7 @@ Designs and roadmaps not yet (fully) built.
 
 - [tile-catalog.md](plans/tile-catalog.md) — candidate tiles: sources (D3.1/D3.2/UIX/owner), effort, changes, contribution to core questions
 - [tile-a1-risk-uncertainty.md](plans/tile-a1-risk-uncertainty.md) — spec: Risk & Uncertainty (Trust kind) — first tile
+- [tile-a2-decision-log.md](plans/tile-a2-decision-log.md) — spec: Decision Log & Accountability Strip (Capitalization kind) — incl. WP4 validation-KPI alignment
 - [mode-scoped-layouts-plan.md](plans/mode-scoped-layouts-plan.md)
 - [interaction-logging-plan.md](plans/interaction-logging-plan.md)
 - [scripted-events-plan.md](plans/scripted-events-plan.md)

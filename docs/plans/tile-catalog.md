@@ -40,12 +40,22 @@ model — epistemic/aleatoric per INESC framework as far as backend allows).
 `kind` **Capitalization** · detail. Decisions as owned events
 (`accountableOwner`, lifecycle), rendered as a session strip: who decided what,
 when, response time, override vs accept; JSON export.
+- **Status:** spec written — see [tile-a2-decision-log.md](tile-a2-decision-log.md).
 - **Effort:** M (rides on [interaction-logging-plan](interaction-logging-plan.md)
   — realises its first slice). **Change:** frontend store already sees decisions
   (`setOverride`, applyOption, auto-decide); add an event record + tile; backend
   optional at first.
 - **Contributes:** Q3 (core — override rate, friction asymmetry, decision-time ÷
   acceptance), Q5 (the study instrument), Q4 (owner comes from `allocation`).
+- **AI4REALNET check — confirmed WP4 validation-KPI alignment:**
+  [`ai4realnet-orchestrators`](https://github.com/AI4REALNET/ai4realnet-orchestrators)
+  (the WP4 Validation Campaign Hub / "FAB" integration) has a Railway module
+  with a named human-factors KPI catalog (HS-003 intervention frequency,
+  AS-005 agreement score, HS-023 response time, RS-091..096 reflection on
+  trust/agency/de-skilling/over-reliance/biases) that overlaps almost
+  one-to-one with this tile's fields — no code to reuse (those KPIs are
+  uncoded, collected via survey/interactive-loop), but the schema should be
+  named to map onto these IDs later without a rename. See tile-a2 spec §5b.
 
 ### A3. AI track record / reliability history — [DB]+[D3.1]
 `kind` **Trust** · overview. Rolling record: how often were AI suggestions
