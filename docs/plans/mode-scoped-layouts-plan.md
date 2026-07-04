@@ -131,7 +131,56 @@ palette + `panel-plugin-host`:
 
 ---
 
-## 9. Open questions (for feedback)
+## 9. Extension — guide screens (mode-intro / demo-complete) via the designer
+
+> **Status:** Sketch only, not scheduled. Depends on P1 above.
+
+Today the guided-demo's per-mode intro screens and the final completion screen
+are hand-authored Angular components, not designer layouts:
+
+- `ModeIntroComponent` — already data-driven (one generic template bound to
+  `MODE_INTROS: ModeIntro[]` in `frontend/src/app/core/demo/mode-intro-configs.ts`),
+  but the "screen" itself is still code, not a design.
+- `DemoCompleteComponent` — fully hardcoded copy in
+  `frontend/src/app/features/demo-complete/demo-complete.component.html`.
+
+**Idea:** let facilitators compose these screens in the Layout Designer instead,
+the same way they compose the live dashboard — one more case of "the layout *is*
+the content," consistent with §2's core idea, just applied outside a live
+session.
+
+**Why it doesn't fit today's designer as-is:**
+
+1. **No content-only tiles.** Every panel type in the palette
+   (`layout-designer.component.ts` palette array) renders through
+   `panel-plugin-host.component.ts`, and every one of those components injects
+   `SessionStore` for live data. There's no "text/copy" or "action button" tile —
+   both would be new primitives (title/tagline/body tile; CTA-button tile that
+   emits designer-defined events like `startScenario` / `exit` / `restart`).
+2. **No session-less rendering host.** Intro/complete screens render full-pane,
+   before a session exists (intro) or after it ends (complete). Reusing
+   `panel-plugin-host` means adding a "no live data" mode to it, or building a
+   second, lightweight host for non-session designs — not a big host, but a real
+   fork point since today's host assumes a `SessionStore` is always there.
+3. **Needs the `mode` field + resolver from P1.** A guide screen is inherently
+   per-mode (or per-lifecycle-stage: pre-session / post-session), so this only
+   becomes addressable once designs can be tagged and resolved by mode —
+   extending the resolver's scope from "which live dashboard" to "which screen,
+   for which stage."
+
+**Effort estimate:** per the tile catalog's S/M/L scale, roughly **M**
+(150–400k tokens / 1–3 days) — two new tile types + a session-independent host
++ wiring the demo-flow lifecycle events (`dismissDemoIntro()`, `restart`/`exit`)
+into designer-emitted actions — layered on top of P1, which must land first.
+
+**Open question:** is it worth generalizing this far, or is hand-authoring two
+screens (mode-intro, demo-complete) simply cheaper than building content-tiles
++ a session-less host for a two-screen use case? Revisit once P1–P3 above are
+built and the designer's tile vocabulary has grown for other reasons anyway.
+
+---
+
+## 10. Open questions (for feedback)
 
 1. **Sets vs. loose tagging** — is the "layout set" abstraction (P3) worth it,
    or is per-mode tagging (P1) enough for the studies?

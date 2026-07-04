@@ -52,6 +52,16 @@ consortium convention and note the divergence in the PR.
   change (brief §4.4) — don't assume it exists.
 - Frontend stays Angular standalone + signals + SBB Lyne; backend stays FastAPI +
   Flatland. Prefer gating presentation in the frontend over reshaping payloads.
+- **No hardcoded colours.** Never write raw hex / `rgb()` / `rgba()` in component
+  SCSS or templates. Use Lyne semantic tokens (`--sbb-color-*`), the app tokens in
+  `styles.scss` (`--app-*`, `--color-*`, `--layer-color-*`), or `light-dark(a, b)`
+  for theme-aware values. New colours → add a token, don't inline. This keeps a
+  future **dark mode** (Lyne `.sbb-dark` / `color-scheme`) a config flip instead of
+  a repo-wide rewrite. Agent colours stay in `AgentColorService`, not SCSS. The
+  ~1085 existing hardcoded colours are legacy debt — don't add to them; migrate
+  opportunistically when you touch a file. Full frontend/Lyne rules:
+  `docs/reference/frontend-lyne-conventions.md` (also mirrored for other AI tools
+  in `AGENTS.md` and `.github/copilot-instructions.md`).
 - Keep existing tests green (`backend/tests/`); add coverage for new backend gating.
 
 ## Not yet available

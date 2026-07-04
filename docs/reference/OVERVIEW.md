@@ -107,6 +107,10 @@ Backend / agents wave (pending the RL decision):
   **matched difficulty** calibration for the study.
 
 Later / optional:
+- **Guide screens (mode-intro / demo-complete) via the Layout Designer** —
+  compose them as designer layouts instead of hand-authored components; needs
+  content-only tiles + a session-less rendering host + the mode-scoped-layouts
+  resolver (§9 of [mode-scoped-layouts-plan.md](../plans/mode-scoped-layouts-plan.md)).
 - **LLM-driven reflection dialogue** (Socratic/Animation mode).
 - **Event-based architecture** (adopt InteractiveAI's event *pattern*, not the platform).
 - **Web deployment** (VPS/Docker + Caddy; fix hardcoded backend URL first).
