@@ -1,7 +1,10 @@
 # Tile A1 — Risk & Uncertainty
 
 > Spec following [tile-authoring-process.md](../reference/tile-authoring-process.md).
-> Status: **spec / not built.**
+> Status: **first cut built (frontend-only, not calibrated).** See
+> `frontend/src/app/features/risk-uncertainty/risk-uncertainty-panel.component.ts`
+> and the matrix row in `docs/reference/panel-mode-matrix.md`. Backend UQ /
+> calibration remains a flagged extension (§4).
 
 ## 1. Identity
 - **Name:** Risk & Uncertainty
@@ -46,12 +49,15 @@ Actions **out:** none that mutate sim state (informational). May set
 accepts/overrides *in the presence of a shown reliability* → for accountability
 logging (§5).
 
-Backend — **to build (flagged extensions, not faked):**
+Backend — **to build (flagged extensions, not faked). Per CLAUDE.md's
+"reuse, don't reinvent" rule: integrate AI4REALNET's A3S for these rather than
+building our own UQ/calibration — a from-scratch build would need an explicit,
+stated decision, not a default.**
 
-| Need | Why | First cut without it |
-|---|---|---|
-| Epistemic vs. aleatoric split | D3.2 UQ; "data noise" vs "model out-of-distribution" | show a single calibrated band from confidence + alternative-dispersion |
-| Calibration data (reliability vs. actual outcome) | to prove the number is *appropriate*, not decorative | label as "model-reported confidence", not "reliability", until calibrated |
+| Need | Why | Reuse target | First cut without it |
+|---|---|---|---|
+| Epistemic vs. aleatoric split | D3.2 UQ; "data noise" vs "model out-of-distribution" | **A3S** (T3.1) | show a single calibrated band from confidence + alternative-dispersion |
+| Calibration data (reliability vs. actual outcome) | to prove the number is *appropriate*, not decorative | **A3S** (T3.1) | label as "model-reported confidence", not "reliability", until calibrated |
 
 ## 5. Allocation & accountability touchpoints
 - **Loop stage:** Decide (Trust is the reliance judgement feeding Control).

@@ -23,9 +23,14 @@
 4. **Honest backend scoping.** Start with data the backend already exposes; mark
    anything richer (e.g. epistemic/aleatoric uncertainty) as a *flagged backend
    extension*, never faked.
-5. **Wire into the seams, don't fork them.** A finished tile touches a known set
+5. **Reuse the AI4REALNET algorithm, don't rebuild it** (CLAUDE.md §Cross-reference).
+   When a flagged backend extension has a consortium reference implementation —
+   e.g. **A3S** for A1's uncertainty/calibration — integrate it by default.
+   Building our own algorithm is the exception; if we do, say so explicitly in
+   the spec's Open questions/risks section, not by silently diverging.
+6. **Wire into the seams, don't fork them.** A finished tile touches a known set
    of registration points (below) — never a parallel mechanism.
-6. **No hardcoded colours** (CLAUDE.md / frontend-lyne-conventions) — Lyne tokens
+7. **No hardcoded colours** (CLAUDE.md / frontend-lyne-conventions) — Lyne tokens
    or `light-dark()`, agent colours via `AgentColorService`.
 
 ## The Tile Spec template

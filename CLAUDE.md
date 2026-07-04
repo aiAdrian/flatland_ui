@@ -43,6 +43,16 @@ the **`AI4REALNET` GitHub org** and align naming/semantics with them:
 If a referenced repo's API or naming differs from this repo, prefer the
 consortium convention and note the divergence in the PR.
 
+**Reuse, don't reinvent, the algorithms.** For anything with an AI4REALNET
+reference implementation — e.g. **A3S** for what-if / uncertainty (the basis for
+tile A1, `docs/plans/tile-a1-risk-uncertainty.md`), or the Tokener negotiation
+proxy for Director — integrate the consortium's code/approach by default.
+Building our own algorithm from scratch is the exception, not the default: only
+do it as an explicit, stated decision (e.g. in the tile spec's Open
+questions/risks section), not by omission. This applies to the algorithms
+themselves (UQ, calibration, policy negotiation, …); presentation/HMI framing
+around them stays ours.
+
 ## Guardrails (full list in brief §6)
 - Keep mode semantics in the `InteractionMode` union — no parallel flags.
 - Don't change trajectory compression (`session.store.ts _recordTrajectory`) or
