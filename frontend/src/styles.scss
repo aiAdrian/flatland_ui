@@ -101,6 +101,18 @@ body {
   --app-hover-ring-soft: rgba(104, 104, 104, 0.18);
   --app-hover-glow: rgba(104, 104, 104, 0.55);
 }
+
+/* Reliability / uncertainty semantic colours (Tile A1, Trust kind).
+   NOT calibrated trust — they colour the *level of shown reliability* and the
+   *width of the uncertainty band*. Green = high & tight; amber = medium;
+   red = low and/or wide. Keep aligned with SBB signal colours. */
+:root {
+  --app-reliability-high:   var(--sbb-color-green,  #00973b);
+  --app-reliability-medium: var(--sbb-color-orange, #ffaa00);
+  --app-reliability-low:    var(--sbb-color-red,    #eb0000);
+  --app-reliability-band:   var(--sbb-color-cloud,  #d2d2d2);
+  --app-reliability-band-wide: var(--sbb-color-red, #eb0000);
+}
 /* app interaction color concept overrides - end */
 
 

@@ -39,6 +39,18 @@ export interface PanelDefinition {
    * building a mode's default layout. See docs/reference/panel-mode-matrix.md.
    */
   availableModes?: InteractionMode[] | 'all';
+  /**
+   * Function class of the panel (e.g. 'trust', 'prediction', 'control',
+   * 'capitalization', 'event', 'context'). From the interaction-framework
+   * taxonomy; a tile's `kind` is set in its spec
+   * (docs/plans/tile-<id>-<slug>.md). Sketch — not yet consumed by a resolver.
+   */
+  kind?: string;
+  /**
+   * Detail level the panel offers: 'overview' (at-a-glance), 'detail'
+   * (drill-down), or 'overview-detail' (a badge that expands). Sketch.
+   */
+  granularity?: 'overview' | 'detail' | 'overview-detail';
 }
 
 export interface PanelInstance {

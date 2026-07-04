@@ -59,6 +59,7 @@ export class LayoutDesignerComponent {
     { type: 'layer-visibility', title: 'Layer Visibility', minHeight: 80 },
     { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 180 },
     { type: 'impact', title: 'Impact', minHeight: 160 },
+    { type: 'risk-uncertainty', title: 'Risk & Uncertainty', minHeight: 160 },
     { type: 'scenario', title: 'Scenario', minHeight: 160 },
     { type: 'recommendations', title: 'Recommendations', minHeight: 160 },
     { type: 'kpi-filter', title: 'KPI Filter', minHeight: 160 },

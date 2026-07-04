@@ -78,6 +78,10 @@
       <app-impact-panel [embedded]="true"></app-impact-panel>
     }
 
+    @case ('risk-uncertainty') {
+      <app-risk-uncertainty-panel [embedded]="true"></app-risk-uncertainty-panel>
+    }
+
     @case ('flatland-map') {
       @if (isViewVisible('flatland-map')) {
         <div class="panel-plugin-host__map">
