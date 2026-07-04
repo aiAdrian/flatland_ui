@@ -73,8 +73,11 @@ If a referenced repo's API or naming differs from this repo, prefer the
 consortium convention and note the divergence in the PR.
 
 **Reuse, don't reinvent, the algorithms.** For anything with an AI4REALNET
-reference implementation — e.g. **A3S** for what-if / uncertainty (the basis for
-tile A1, `docs/plans/tile-a1-risk-uncertainty.md`), or the Tokener negotiation
+reference implementation — e.g. **`agent-as-a-service-trace-rl`** (A3S/TraceRL)
+for what-if/branch-compare (tile B1), **`RL_agent_failure_forecast`** (INESC,
+evidential NN) for uncertainty/calibration (tile A1,
+`docs/plans/tile-a1-risk-uncertainty.md` — do not conflate this with A3S, they
+are two different repos for two different tiles), or the Tokener negotiation
 proxy for Director — integrate the consortium's code/approach by default.
 Building our own algorithm from scratch is the exception, not the default: only
 do it as an explicit, stated decision (e.g. in the tile spec's Open
