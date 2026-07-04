@@ -36,6 +36,17 @@ prerequisites. Co-Learning has two halves:
   - **Timing / focus**: when to surface something, which train to flag, when to
     stay quiet.
 
+**AI4REALNET check:** [`Tokener`](https://github.com/AI4REALNET/Tokener)'s
+Co-Learning approach is explicitly this — a "human-in-the-loop learning system"
+that "enables transparent adaptation through interaction" — check it before
+building Level B's model-of-the-operator from scratch. Its Hybrid (CBS+PP,
+token-based) approach is the separate reuse target for Level A / the PP
+planner (see `recommender-roadmap.md`). For the HMI side of Level A (real RL,
+e.g. PPO), [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) and
+[`T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) are existing
+Co-Learning + Director reference HMIs on Flatland — worth comparing our mode
+framing against before the (currently paused) RL-agent decision is revisited.
+
 ## Why Level B fits our infrastructure especially well
 
 - It does **not** require heavy task-RL. It learns from the interaction signals we

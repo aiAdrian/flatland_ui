@@ -33,6 +33,7 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `graphic-timetable` (`marey`) | ● | ● | ● |
 | `agent-inspector` | ● | ● | ● |
 | `impact` | ● | ● | ◐ overview only |
+| `risk-uncertainty` | ● | ● | ● read-only |
 | `scenario` | ◐ collapsed | ◐ collapsed | ● expanded |
 | `kpi-filter` | ◐ | ◐ | ● expanded |
 | `recommendations` | ● | ○ | ○ |
@@ -53,6 +54,23 @@ render identically everywhere.
   decides. Empty-state handled explicitly (`isCoLearning() && items().length === 0`).
 - **Director** — **overview only**; per-decision hooks are suppressed
   (`interactionMode() !== 'director'`) because the AI handles it.
+
+### `risk-uncertainty` (Tile A1 — Trust)
+- **Recommendation** — reliability shown **with** the ranked recommendation:
+  `confidence` from `store.recommendations()` + a spread band derived from
+  `store.scenarios()` score dispersion. Low-and-wide → amber + invites scrutiny.
+- **Co-Learning** — uncertainty shown **neutrally per option** (Evaluative AI):
+  each scenario gets an "evidence for / against / mixed" tag from its score
+  position; no single trust-score winner.
+- **Director** — **aggregate** policy reliability (mean confidence), read-only;
+  a low-confidence aggregate surfaces as the **exception trigger** for
+  adjustable autonomy. No accept/override instrumentation (supervisory).
+- Availability is **all modes** (omitted from `PANEL_MODE_AVAILABILITY` = 'all');
+  only the *behaviour* branches, inside `risk-uncertainty-panel.component.ts`.
+  First cut is frontend-only and **not calibrated** — the label reads
+  "model-reported confidence" until the backend UQ/calibration extension lands
+  (spec §4). Not in the hardcoded default layout; available via the designer
+  palette.
 
 ### `scenario`
 - **Recommendation** — alternatives **ranked by the operator's KPI priorities**

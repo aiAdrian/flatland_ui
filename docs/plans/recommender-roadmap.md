@@ -40,6 +40,11 @@ for Recommendation / Co-Learning).
    cell for its duration, run Prioritized Planning on the affected trains only →
    coherent multi-train reroute/hold/reorder set. First real use of our own PP
    planner ([[cbs-pp-planner-integration]]), scoped locally. CBS variant later.
+   **AI4REALNET check:** [`Tokener`](https://github.com/AI4REALNET/Tokener)'s
+   Hybrid approach already combines CBS+PP with token-based interaction —
+   check it (and note any Flatland-version divergence, per
+   [[cbs-pp-planner-integration]]'s 4.0.3-vs-4.2.6 mismatch) before writing our
+   own PP/CBS logic from scratch, per CLAUDE.md's "reuse, don't reinvent" rule.
 3. **Impact panel: up to 3 ranked intervention options** + mode-aware apply
    (recommendation = highlighted + apply; co-learning = neutral / inspect;
    director = overview).

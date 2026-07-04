@@ -27,18 +27,47 @@ RP2 Part B** report (2nd EU review) — see its §7 for the source quotes.
 Before reinventing behaviour, check the consortium reference implementations on
 the **`AI4REALNET` GitHub org** and align naming/semantics with them:
 
-- **Director / token-based directives (T3.4):** `AI4REALNET/Tokener` — the
-  human "director" supplies high-level **token-based inputs**; conflicts handled
-  by a **negotiation proxy** optimising **global** long-term reward. Mirror these
-  concepts for our Director mode (brief §4.2b).
-- **What-if analysis (T3.1, EnliteAI A3S / TraceRL):** override a decision in a
-  trajectory and simulate forward. **Convention: human-influenced steps = blue,
-  AI-simulated steps = yellow.** Reuse for our Co-Learning compare (brief §3.3).
+- **Director / token-based directives (T3.4):**
+  [`AI4REALNET/Tokener`](https://github.com/AI4REALNET/Tokener) — two approaches:
+  **Hybrid** (CBS+PP planning, token-based interaction) and **Co-Learning**
+  (human-in-the-loop, transparent adaptation). The Hybrid approach is the
+  reuse target for our own planned PP/CBS planner (brief §4.2b; see
+  `recommender-roadmap.md`'s PP-replan-recommender item) — check it before
+  building token/negotiation logic from scratch. Also see
+  [`AI4REALNET/T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) —
+  a PPO controller + HMI that injects high-level decisions at runtime while the
+  controller stays the base decision layer (same seam as our Policy registry +
+  Director directives).
+- **What-if analysis (T3.1, EnliteAI A3S / TraceRL):**
+  [`AI4REALNET/agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a-service-trace-rl) —
+  confirmed: a Redis-backed service that restores/simulates-forward/reports
+  action spaces (Flatland-configured already), plus a Dash tree-visualisation
+  app for branching trajectories (override → alternative future). **Convention:
+  human-influenced steps = blue, AI-simulated steps = yellow.** Reuse for our
+  Co-Learning compare (brief §3.3) and tile B1 (`tile-catalog.md`).
 - **Co-Learning HMI (T3.3, FHNW / Flatland):** the dedicated learning-support
   HMI — formulate-own vs. AI-recommended solutions, impact comparison, and a
   post-run **statistical + open-question reflection** module (brief §3.2/§3.3).
+  See also [`AI4REALNET/T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) —
+  a full PyQt reference HMI covering **both** Co-Learning and Director/Autonomous
+  interaction on Flatland; skim it before designing new Co-Learning/Director
+  widgets (e.g. tile D1, C2).
 - **CDRTrainer (TUD):** human feedback + action shielding + expert demonstrations
   (the one WP3 artefact with a DOI) — reference for the "AI learns from human" loop.
+- **Explaining action alternatives (T2.3, D2.3):**
+  [`AI4REALNET/T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives) —
+  generates accurate *expected-outcome* explanations per action alternative
+  without assuming the operator's reward weights. This is the concrete
+  AI4REALNET grounding for our **Assessment** framing (Evaluative AI,
+  `interaction-framework.md` §2) — the reuse target for tile C1.
+- **Validated HMI surveys (Q5 study instruments):**
+  [`AI4REALNET/hmisurveys`](https://github.com/AI4REALNET/hmisurveys) (TU Delft) —
+  a modular, **validated** human-factors/cognitive-engineering survey framework
+  for human-AI teaming, standalone HTML + JSON export. Check this before
+  writing new survey questions from scratch (`features/survey/`,
+  `core/survey/survey-configs.ts`); it's an instrument, not an algorithm, but
+  the same "don't reinvent" rule applies — validated items beat home-grown ones
+  for a study.
 
 If a referenced repo's API or naming differs from this repo, prefer the
 consortium convention and note the divergence in the PR.

@@ -31,6 +31,11 @@ Two AI capabilities are treated as **distinct** and are the novel core:
   intervention.*
 - **Assessment (Evaluative AI)** — *providing evidence for and against a range of
   options* rather than a single directive (present trade-offs, don't prescribe).
+  Concrete AI4REALNET grounding (not just Miller in the abstract):
+  [`AI4REALNET/T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives)
+  (D2.3) — generates accurate *expected-outcome* explanations per action
+  alternative without assuming the operator's reward weights; the reuse target
+  for tile C1.
 
 ## 2. Tile `kind` — function in the human-AI loop
 
@@ -155,13 +160,13 @@ Two tensions we must hold, not smooth over:
 D3.1 names **five solution families**. They map cleanly onto the kinds and seams
 above — a good sign the taxonomy is consortium-aligned:
 
-| D3.1 solution family | Our mapping |
-|----------------------|-------------|
-| **Uncertainty-aware decision support** — epistemic vs. aleatoric; reliability indicators, probabilistic forecasts, failure-risk, uncertainty intervals → *calibrated trust* | **Trust** kind (+ **Prediction** for probabilistic forecasts) |
-| **Multi-objective reasoning & trade-off transparency** — Pareto sets, reveal objective conflicts, situational priorities | **Decision Support / Assessment** (Evaluative AI, evidence for/against) |
-| **Interactive & co-learning architectures** — explicit/implicit feedback, IRL, explanation, persistent state | **Capitalization** kind |
-| **Agent-as-a-Service (A3S)** — see below | Architecture pattern for the **seams** |
-| **Trustworthy autonomous operation** — director system, high-level directives, interpretable primitives from hierarchical task analysis, MARL + negotiation + supervision | **Control** kind (director-directive) + Human-in-Control |
+| D3.1 solution family | Our mapping | Consortium repo(s) checked |
+|----------------------|-------------|------------------------------|
+| **Uncertainty-aware decision support** — epistemic vs. aleatoric; reliability indicators, probabilistic forecasts, failure-risk, uncertainty intervals → *calibrated trust* | **Trust** kind (+ **Prediction** for probabilistic forecasts) | [`RL_agent_failure_forecast`](https://github.com/AI4REALNET/RL_agent_failure_forecast) (INESC, evidential NN — tile A1's reuse target); [`RL-agent-uncertainty-prediction-module`](https://github.com/AI4REALNET/RL-agent-uncertainty-prediction-module) (Conformal Prediction, alternative); [`failure_prediction`](https://github.com/AI4REALNET/failure_prediction) (D2.2, classical models) |
+| **Multi-objective reasoning & trade-off transparency** — Pareto sets, reveal objective conflicts, situational priorities | **Decision Support / Assessment** (Evaluative AI, evidence for/against) | [`T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives) (D2.3, tile C1's reuse target); [`Grid2Op_MORL`](https://github.com/AI4REALNET/Grid2Op_MORL) (Pareto/MORL, domain caveat) |
+| **Interactive & co-learning architectures** — explicit/implicit feedback, IRL, explanation, persistent state | **Capitalization** kind | [`Tokener`](https://github.com/AI4REALNET/Tokener)'s Co-Learning approach (human-in-the-loop, transparent adaptation); [`CDRTrainer`](https://github.com/AI4REALNET/CDRTrainer) (TUD, feedback + shielding) |
+| **Agent-as-a-Service (A3S)** — see below | Architecture pattern for the **seams** | [`agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a-service-trace-rl) — confirmed, Flatland-configured already; tile B1's reuse target |
+| **Trustworthy autonomous operation** — director system, high-level directives, interpretable primitives from hierarchical task analysis, MARL + negotiation + supervision | **Control** kind (director-directive) + Human-in-Control | [`Tokener`](https://github.com/AI4REALNET/Tokener)'s Hybrid approach (CBS+PP, token-based); [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) (PPO + runtime decision injection); [`T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) (full reference HMI, both modes) — reuse targets for tile D1 |
 
 **A3S is not a tile — it is the architecture stance** that makes our seams real.
 It wraps an autonomous agent in a human-centred service that *exposes* recommended

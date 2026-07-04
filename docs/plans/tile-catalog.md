@@ -26,6 +26,10 @@ Effort scale: **S** ≈ ≤150k tokens / ≤1 day · **M** ≈ 150–400k / 1–
 `kind` **Trust** · overview→detail. Per recommendation/option: reliability
 indicator + uncertainty interval; detail view separates *why uncertain* (data vs
 model — epistemic/aleatoric per INESC framework as far as backend allows).
+- **Status:** **first cut built** — `risk-uncertainty-panel.component.ts`,
+  frontend-only, registered at the seams (plugin-host, palette, matrix). Not
+  calibrated; label reads "model-reported confidence" until the UQ/calibration
+  backend extension lands. See [tile-a1-risk-uncertainty.md](tile-a1-risk-uncertainty.md).
 - **Effort:** M. **Change:** frontend tile + backend proxy first (scenario-KPI
   spread, forecast variance across rollouts = cheap ensemble); true epistemic/
   aleatoric = later backend extension (flagged, not faked).
@@ -50,6 +54,15 @@ taken / overridden, and how did followed vs overridden decisions turn out
 - **Effort:** M–L (needs outcome attribution per decision → depends on A2).
 - **Contributes:** Q2 (appropriate reliance, Weyer-vs-Grote tension made
   visible), Q3, Q5.
+- **AI4REALNET check:** two alternative/complementary UQ approaches to A1's
+  evidential-NN target, both power-grid domain (semantic alignment, not
+  drop-in) —
+  [`RL-agent-uncertainty-prediction-module`](https://github.com/AI4REALNET/RL-agent-uncertainty-prediction-module)
+  (Conformal Prediction — distribution-free intervals, arguably simpler than
+  evidential NN) and
+  [`failure_prediction`](https://github.com/AI4REALNET/failure_prediction)
+  (D2.2, classical RF/XGBoost/LightGBM failure-prediction models — the
+  "calibration data" reuse candidate for this tile's follow-up-outcome need).
 
 ## B. Prediction & what-if (A3S/TraceRL line)
 
@@ -64,6 +77,16 @@ Action-space / Simulate ≈ our session + overrides + what-if APIs — mostly th
   convenience endpoint.
 - **Contributes:** Q1 (Co-Learning dual-path §3.3!), Q2 (simulation-backed
   interpretability instead of static XAI), Q4 (A3S pattern), Q5.
+- **AI4REALNET check — confirmed, exact reuse target:**
+  [`agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a-service-trace-rl)
+  is A3S itself (Task 3.1 + Task 2.3), and it already has a **Flatland** config
+  (`agent-as-a-service/conf/env/flatland/flatland.yaml`). Two parts:
+  `agent-as-a-service` (Redis-backed: restore / simulate-forward / report action
+  spaces) and `trace-rl` (Dash app rendering the episode as a **branching tree**
+  of decision blocks, override → alternative future). Per CLAUDE.md's "reuse,
+  don't reinvent" rule: this is the target, not a from-scratch what-if engine —
+  the "convenience endpoint" above should wrap/mirror this rather than diverge
+  from its restore/simulate/action-space vocabulary.
 
 ### B2. Conflict-aware Marey (ribbons + predicted lines) — [UIX 6/6]
 `kind` **Prediction/Context** · overview→detail. Marey with conflict ribbons,
@@ -71,6 +94,10 @@ predicted trajectories, plan-vs-actual. Strongest cross-model UIX bet; central
 to §3.3 (see marey-rethink note).
 - **Effort:** L (graphic-timetable is complex; prediction overlay needs care).
 - **Contributes:** Q1 (Co-Learning), Q5; less directly Q2/Q3.
+- **AI4REALNET check:** no direct match found (org repos are algorithm/HMI-shell
+  focused, not timetable-visualisation specific). `T3.3-3.4-HMI` (PyQt) may still
+  be worth a glance for how it renders the Flatland network/schedule, but it is
+  not a Marey-style time-distance view — this stays a from-scratch UI build.
 
 ## C. Decision support (Evaluative AI)
 
@@ -84,6 +111,19 @@ per-scenario KPIs.
   deltas); true multi-policy Pareto = backend/policy extension later.
 - **Contributes:** Q1 (Assessment framing = Co-Learning; ranked = Recommendation
   — the mode switch made visible in one tile), Q2 (trade-off transparency), Q5.
+- **AI4REALNET check — strong match for the Assessment framing itself:**
+  [`T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives)
+  (D2.3) generates accurate *expected-outcome* explanations per action
+  alternative without assuming the operator's reward weights — this is the
+  concrete grounding for "evidence for/against options" (better than citing
+  Miller alone; see `interaction-framework.md` §2). For the Pareto/multi-policy
+  half:
+  [`Grid2Op_MORL`](https://github.com/AI4REALNET/Grid2Op_MORL) confirms a real
+  multi-objective-RL/Pareto implementation exists (power-grid domain, semantic
+  alignment only). Also see
+  [`KPIs-cards`](https://github.com/AI4REALNET/KPIs-cards) (WP4) for the
+  consortium's own filterable KPI-card convention — worth aligning small-multiple
+  styling with.
 
 ### C2. Triage'd event feed (act-now sorting, lead-time bars) — [UIX 6/6]
 `kind` **Event** · overview. Notifications sorted by required action time, not
@@ -91,6 +131,8 @@ chronology; lead-time bars; grouping (EEMUA 191 alarm practice).
 - **Effort:** S–M (notifications-panel refactor + eta data mostly present).
 - **Contributes:** Q5, situation awareness; indirectly Q3 (what did the operator
   see when deciding).
+- **AI4REALNET check:** no direct match found; EEMUA 191 is external
+  control-room practice, not a consortium artefact. Stays a from-scratch build.
 
 ## D. Allocation & autonomy (seams made visible)
 
@@ -103,6 +145,17 @@ First step: **display only** (derived from mode) — already valuable as the
 - **Effort:** S (display) → L (true runtime reallocation).
 - **Contributes:** Q4 (core), Q3 (control-before-responsibility made visible),
   Q1.
+- **AI4REALNET check — direct matches for the runtime-reallocation half:**
+  [`Tokener`](https://github.com/AI4REALNET/Tokener) (Hybrid: CBS+PP,
+  token-based interaction — matches "who owns what right now" made explicit
+  via tokens) and
+  [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) (PPO
+  controller + HMI that **injects high-level decisions at runtime while the
+  controller stays the base decision layer** — literally the display-then-dial
+  progression this tile plans). Skim
+  [`T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI)'s
+  `HMI_overview.png` for how they render the allocation/mode state before
+  designing this tile's UI from scratch.
 
 ### D2. Partial Non-Control zones — [DB]
 `kind` **Trust/Context** · detail. Explicitly mark what the operator *cannot*
@@ -110,6 +163,9 @@ influence right now (e.g. malfunction duration, other trains under AI control)
 — honest boundary per Grote, precondition for fair accountability.
 - **Effort:** S–M (mostly framing/presentation of existing state).
 - **Contributes:** Q3 (novel, owner's research contribution), Q2.
+- **AI4REALNET check:** no match found — this is the owner's own research
+  contribution (Grote's Partial Non-Control), not in any consortium deliverable
+  found. Stays a from-scratch build, deliberately.
 
 ## Not tiles (kept off this list deliberately)
 - **Full A3S adoption** — architecture stance (service wrapper, Redis/Hydra),

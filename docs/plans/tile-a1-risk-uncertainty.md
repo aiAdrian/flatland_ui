@@ -50,14 +50,26 @@ accepts/overrides *in the presence of a shown reliability* → for accountabilit
 logging (§5).
 
 Backend — **to build (flagged extensions, not faked). Per CLAUDE.md's
-"reuse, don't reinvent" rule: integrate AI4REALNET's A3S for these rather than
-building our own UQ/calibration — a from-scratch build would need an explicit,
-stated decision, not a default.**
+"reuse, don't reinvent" rule, the UQ reuse target is AI4REALNET's own UQ
+building block — [`AI4REALNET/RL_agent_failure_forecast`](https://github.com/AI4REALNET/RL_agent_failure_forecast)
+(INESC, D3.2) — not a from-scratch build. A from-scratch UQ would need an
+explicit, stated decision, not the default.**
 
-| Need | Why | Reuse target | First cut without it |
+Concrete AI4REALNET UQ vocabulary to align our backend fields with (from
+`RL_agent_failure_forecast/src/enn_models.py` + `rule_predictor.py`):
+
+| Need | Why | AI4REALNET reuse target (exact identifiers) | First cut without it |
 |---|---|---|---|
-| Epistemic vs. aleatoric split | D3.2 UQ; "data noise" vs "model out-of-distribution" | **A3S** (T3.1) | show a single calibrated band from confidence + alternative-dispersion |
-| Calibration data (reliability vs. actual outcome) | to prove the number is *appropriate*, not decorative | **A3S** (T3.1) | label as "model-reported confidence", not "reliability", until calibrated |
+| Epistemic vs. aleatoric split | "data noise" vs "model out-of-distribution" | `EvidentialNetwork.forward()` → `{alpha, evidence, S, prob, uncertainty}`; **epistemic = vacuity = `num_classes / sum_alpha`**; aleatoric = forecast-residual variance (`aleatoric_load_p_mean`, `aleatoric_gen_p_mean`) | show a single calibrated band from confidence + alternative-dispersion |
+| "What is uncertain & why" NL layer | the detail drill-down's reason lines | `translate_rule_to_sentence(rule_code, line_name)` (Dual-LLM Generator-Evaluator → symbolic rule → sentence) | hand-written reason strings from dispersion/score |
+| Calibration data (reliability vs. actual outcome) | to prove the number is *appropriate*, not decorative | the repo's failure-prediction classifier (probability of agent failure under contingency) | label as "model-reported confidence", not "reliability", until calibrated |
+
+**Domain divergence (note in the PR):** `RL_agent_failure_forecast` targets
+power grids (Grid2Op / l2rpn_icaps_2021_small), not railways. It is a
+**semantic alignment** — same UQ vocabulary and split — not a drop-in library.
+The Flatland backend would host an equivalent Evidential NN over *our* agent's
+action space. A3S (EnliteAI/TraceRL, T3.1) is the reuse target for Tile **B1**
+(what-if branch compare), not A1's UQ.
 
 ## 5. Allocation & accountability touchpoints
 - **Loop stage:** Decide (Trust is the reliance judgement feeding Control).
