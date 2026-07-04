@@ -8,7 +8,7 @@
 >
 > Sources: **[D3.1]** AI4REALNET solutions deliverable · **[D3.2]** beta software
 > (A3S/TraceRL, T3.2 Pareto, INESC UQ, FHNW MARL) · **[UIX]**
-> [ui-exploration-synthesis](../archive/ui-exploration-synthesis.md) (cross-model
+> [ui-exploration-synthesis](../reference/ui-exploration-synthesis.md) (cross-model
 > convergence) · **[DB]** owner's research line (accountability / trust /
 > allocation).
 >

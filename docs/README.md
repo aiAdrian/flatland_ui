@@ -13,6 +13,8 @@ The authoritative specs and guides for how the app works today.
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
+- [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model tile ideas (convergence), grounding for the tile catalog
+- [ui-exploration-prompt.md](reference/ui-exploration-prompt.md) — reusable prompt for generating/refining tile ideas
 
 ## plans/ — planned work
 Designs and roadmaps not yet (fully) built.
@@ -42,8 +44,6 @@ Prompt and exploration notes kept for provenance; not maintained.
 - [UI_LAYOUT_DESIGNER_IMPLEMENTATION_PROMPT.md](archive/UI_LAYOUT_DESIGNER_IMPLEMENTATION_PROMPT.md)
 - [layout-designer-prompt-guide.md](archive/layout-designer-prompt-guide.md)
 - [layout-preset-and-designer-alignment.md](archive/layout-preset-and-designer-alignment.md)
-- [ui-exploration-prompt.md](archive/ui-exploration-prompt.md)
-- [ui-exploration-synthesis.md](archive/ui-exploration-synthesis.md)
 - [component-agent-build-guide.md](archive/component-agent-build-guide.md)
 - [event-based-architecture-analysis.md](archive/event-based-architecture-analysis.md)
 - [variant-visualisation.md](archive/variant-visualisation.md)

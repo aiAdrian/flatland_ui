@@ -111,6 +111,15 @@ Later / optional:
 - **Event-based architecture** (adopt InteractiveAI's event *pattern*, not the platform).
 - **Web deployment** (VPS/Docker + Caddy; fix hardcoded backend URL first).
 
+Tooling / process debt (small):
+- **Stylelint colour gate covers hex/named only** (`frontend/.stylelintrc.cjs`) —
+  `rgba()`/`rgb()` literals aren't auto-linted yet (would need a custom rule to
+  avoid false positives on shadows); still forbidden by convention
+  (`docs/reference/frontend-lyne-conventions.md` §1).
+- **Colour gate isn't wired to CI or a pre-commit hook** — currently a manual
+  `npm run lint:styles`, documented in CLAUDE.md/AGENTS.md/copilot-instructions.
+  Revisit if new hardcoded colours keep slipping through.
+
 ## Guided demo — how it works (for facilitators)
 
 Same environment (fixed seed) is replayed for each mode via `reset()`; the survey

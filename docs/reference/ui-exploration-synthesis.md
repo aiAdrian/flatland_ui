@@ -12,7 +12,7 @@
 > Empty/failed on the first run: qwen3.7-max, sonar (retried OK), deepseek-v4-pro.
 >
 > Companion docs: `docs/interaction-modes-brief.md` (mode behaviour) and
-> `docs/ui-exploration-prompt.md` (the prompt that generated these).
+> `docs/reference/ui-exploration-prompt.md` (the prompt that generated these).
 
 ---
 
@@ -470,5 +470,5 @@ models quoted from memory — useful for the "fundiert" angle and for a paper:
 Point Claude Code at this file + `docs/interaction-modes-brief.md` + `CLAUDE.md`.
 Suggested first build: **shortlist #1 (conflict-aware Marey)** and **#2 (triage'd
 notifications)** — highest impact, mostly reuse existing data. The mini-round
-prompt in `docs/ui-exploration-prompt.md` (and below) can turn any single tile
+prompt in `docs/reference/ui-exploration-prompt.md` (and below) can turn any single tile
 into a build-ready Angular component spec first.
