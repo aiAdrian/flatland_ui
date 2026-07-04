@@ -94,28 +94,88 @@ autonomy") is **runtime** reallocation — per situation, per agent, negotiated.
 this later means changing *when/what sets it*, not the model. Do not couple
 allocation logic irreversibly to the mode union.
 
+Why this matters for dispatching specifically: complexity does not just differ
+between scenarios, it **shifts within a single shift** (routine → disruption →
+crisis). Fixed per-mode allocation (ALIGN: low/medium/high complexity → user /
+shared / developer) cannot track that; the domain itself argues for
+runtime-adjustable allocation, with expertise-priority in the crisis band (HRO).
+
 ### 5b. Accountability (responsibility-taking)
-Distinct from liability: this is about the operator's **readiness and ability to
-take on delegated responsibility**, and what a system must provide so that
-responsibility is *fair and real* — see **Meaningful Human Control** (Santoni de
-Sio & van den Hoven 2018) and the **"moral crumple zone"** failure mode (Elish
-2019), where a human is nominally responsible but not actually in a position to
-act.
+Framed after the project owner's research line (Boos 2013, *Controllable
+Accountabilities*; Grote, control–accountability alignment): accountability is
+**not** moral attribution but a **fit question**. A person can only carry
+responsibility when their **control capabilities** match the **accountability
+demands** placed on them:
+
+| Control capability (Grote) | ↔ | Accountability demand (Boos et al. 2013) |
+|----------------------------|---|------------------------------------------|
+| Transparency (understand state) | ↔ | Visibility (answerable to others) |
+| Predictability (anticipate behaviour) | ↔ | Responsibility (duty to perform) |
+| Influence (act on the situation) | ↔ | Liability (legal / contractual) |
+
+Mismatch either way — accountability without control, or control without
+accountability — is a **design fault** (an "impossible role", Bainbridge/Grote),
+not an individual failing. Hard rule for our mode design: **first establish who
+actually holds the control means in a mode, then assign responsibility — never
+the reverse** — and name explicit **Partial Non-Control** zones (where the human
+genuinely cannot control and therefore must not be held liable).
+
+Failure modes to instrument against: **HITL-as-alibi / buck-passing** (Kapoor &
+Narayanan) — nominal responsibility without real intervention capability (the
+owner's "Verantwortungs-Fassade"); **uncontrollable accountabilities**;
+**responsibility void** (so diffuse no one is concretely in charge).
 
 **Seam (measurement-ready):** model decisions as **first-class events with an
 `accountableOwner`** (derived from `allocation`) and a lifecycle
 (`detected → acknowledged → decision → resolved → logged`, per InteractiveAI +
-the [interaction-logging-plan](../plans/interaction-logging-plan.md)). Then the
-behavioural signals that indicate responsibility-taking fall out for free:
-acceptance / override / deferral / reaction time / non-action. Building none of
-this now; but if decisions are logged as owned events, accountability becomes
-**analysable later without a refactor**.
+the [interaction-logging-plan](../plans/interaction-logging-plan.md)). The
+signals of responsibility-taking then fall out: **override frequency** (never
+overridden ⇒ HITL is decorative), **friction asymmetry** (is rejecting as easy as
+accepting?), **decision-time ÷ acceptance-rate** as an overtrust proxy (owner
+marks this an explicitly falsifiable hypothesis), **skill-maintenance
+performance** over AI-free intervals. Build none of it now; but owned decision
+events make accountability **analysable later without a refactor**.
 
-> **Operator's own framing — to integrate.** This section will be deepened from
-> the project owner's accountability notes (definitions, enabling conditions,
-> failure modes, observable signals, references). Placeholder until then.
+Two tensions we must hold, not smooth over:
+- **Trust — design goal or warning sign?** Calibrated trust as a goal (Weyer)
+  vs. *"trust may be a consequence of lack of control"* (Grote). This is why
+  **Trust** is its own kind, and why a trust tile must expose *appropriateness of
+  reliance*, not just a confidence number.
+- **Guardian-system paradox.** The preferred architecture (system extends
+  perception, human keeps control) reproduces the automation irony at second
+  order: the better it protects, the rarer the edge case, the more intervention
+  competence erodes. The sim should actively create competence-maintenance
+  opportunities (edge-case exposure, AI-free practice).
 
-## 6. What this means for the build
+> Essence only — the full briefing (enabling conditions, all failure modes, open
+> questions, sources) lives in the owner's notes.
+
+## 6. AI4REALNET D3.1 → this framework
+
+D3.1 names **five solution families**. They map cleanly onto the kinds and seams
+above — a good sign the taxonomy is consortium-aligned:
+
+| D3.1 solution family | Our mapping |
+|----------------------|-------------|
+| **Uncertainty-aware decision support** — epistemic vs. aleatoric; reliability indicators, probabilistic forecasts, failure-risk, uncertainty intervals → *calibrated trust* | **Trust** kind (+ **Prediction** for probabilistic forecasts) |
+| **Multi-objective reasoning & trade-off transparency** — Pareto sets, reveal objective conflicts, situational priorities | **Decision Support / Assessment** (Evaluative AI, evidence for/against) |
+| **Interactive & co-learning architectures** — explicit/implicit feedback, IRL, explanation, persistent state | **Capitalization** kind |
+| **Agent-as-a-Service (A3S)** — see below | Architecture pattern for the **seams** |
+| **Trustworthy autonomous operation** — director system, high-level directives, interpretable primitives from hierarchical task analysis, MARL + negotiation + supervision | **Control** kind (director-directive) + Human-in-Control |
+
+**A3S is not a tile — it is the architecture stance** that makes our seams real.
+It wraps an autonomous agent in a human-centred service that *exposes* recommended
+actions **with uncertainty, context, and traceable decision pathways**, supports
+**adjustable autonomy**, and enables **auditing / logging / what-if**. In our terms:
+- adjustable autonomy → **dynamic allocation** (§5a),
+- traceable decisions + auditing/logging → the **accountability** seam (§5b, decisions-as-events-with-owner),
+- uncertainty exposure → the **Trust** kind,
+- what-if roll-out (A3S roll-out layer + TraceRL) → **Prediction**.
+
+So "adopting A3S" means shaping *how the AI is exposed to the UI* (a supervised
+service with uncertainty + traceability + an autonomy dial), not building one panel.
+
+## 7. What this means for the build
 
 Materialise now: **`kind` + `granularity`** on `PanelDefinition`, and **Trust** as
 a first-class kind. Introduce **`allocation`** as a concept derived from the mode
@@ -130,4 +190,5 @@ out), then the grounding reference + acceptance scenario.
 - InteractiveAI (IRT SystemX) — https://github.com/IRT-SystemX/InteractiveAI
 - Situation awareness — Endsley (1995). Levels/types of automation — Sheridan & Verplank (1978); Parasuraman, Sheridan & Wickens (2000).
 - Meaningful Human Control — Santoni de Sio & van den Hoven (2018). Moral crumple zone — Elish (2019).
-- Trust calibration — Lee & See (2004); Parasuraman & Riley (1997). Information-seeking mantra — Shneiderman (1996).
+- Trust calibration — Lee & See (2004); Parasuraman & Riley (1997); Weyer (appropriate trust). Information-seeking mantra — Shneiderman (1996).
+- Control–accountability alignment — Boos, Günter, Grote & Kinder (2013), *Controllable Accountabilities*; Grote (control–accountability alignment). HITL-as-buck-passing — Kapoor & Narayanan (2024). Ironies of automation — Bainbridge (1983).
