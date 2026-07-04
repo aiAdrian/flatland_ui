@@ -7,6 +7,7 @@ The authoritative specs and guides for how the app works today.
 
 - [interaction-modes-brief.md](reference/interaction-modes-brief.md) — **authoritative** mode spec (WP 3.1/3.3/3.4)
 - [interaction-framework.md](reference/interaction-framework.md) — tile taxonomy (kind × granularity), function allocation, Human-in-Control, accountability seam
+- [tile-authoring-process.md](reference/tile-authoring-process.md) — how we develop a tile (spec template + build workflow)
 - [architecture.md](reference/architecture.md) — system architecture
 - [mode-guide.md](reference/mode-guide.md) — the same task walked through all three modes
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
@@ -20,6 +21,7 @@ The authoritative specs and guides for how the app works today.
 Designs and roadmaps not yet (fully) built.
 
 - [tile-catalog.md](plans/tile-catalog.md) — candidate tiles: sources (D3.1/D3.2/UIX/owner), effort, changes, contribution to core questions
+- [tile-a1-risk-uncertainty.md](plans/tile-a1-risk-uncertainty.md) — spec: Risk & Uncertainty (Trust kind) — first tile
 - [mode-scoped-layouts-plan.md](plans/mode-scoped-layouts-plan.md)
 - [interaction-logging-plan.md](plans/interaction-logging-plan.md)
 - [scripted-events-plan.md](plans/scripted-events-plan.md)
