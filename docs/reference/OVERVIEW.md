@@ -105,6 +105,10 @@ Backend / agents wave (pending the RL decision):
   real RL, not just heuristics.
 - **Custom scenario builder** (consortium JSON; train names/destinations) with
   **matched difficulty** calibration for the study.
+- **Cities = stations** — surface Flatland's generated city/station data
+  (currently discarded after `reset()`) as named stations, feeding richer
+  train origin/destination info and the reserved `city` visual-encoding role.
+  See [cities-stations-plan.md](../plans/cities-stations-plan.md).
 
 Later / optional:
 - **Guide screens (mode-intro / demo-complete) via the Layout Designer** —
