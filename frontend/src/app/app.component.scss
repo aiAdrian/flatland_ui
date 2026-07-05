@@ -214,7 +214,12 @@
   display: flex;
   flex-direction: column;
   background: var(--sbb-color-white, #fff);
-  overflow: hidden;
+  /* Scroll the whole centre column when its stacked children (banner +
+     dashboard + map-controls + views + reflection) exceed the viewport,
+     instead of clipping the bottom silently. x stays hidden so the map/marey
+     pan/zoom never produces a horizontal scrollbar. */
+  overflow-x: hidden;
+  overflow-y: auto;
   min-width: 0;
   min-height: 0;
 }
@@ -274,7 +279,8 @@
   flex: 1;
   display: grid;
   overflow: hidden;
-  min-height: 0;
+  /* Keep a usable map/marey footprint even when the centre pane scrolls. */
+  min-height: 220px;
 
   &.only-map {
     grid-template-rows: 1fr;
@@ -1003,7 +1009,7 @@
 
 .views {
   min-width: 0;
-  min-height: 0;
+  min-height: 220px;
 }
 
 .views.split {
@@ -1110,7 +1116,10 @@
 .runtime-design__column--center app-panel-shell[data-panel-type='flatland-map'],
 .runtime-design__column--center app-panel-shell[data-panel-type='graphic-timetable'] {
   flex: 1 1 0;
-  min-height: 0;
+  /* Keep a usable map/marey footprint in a bounded centre column instead of
+     letting it collapse to 0 when stacked panels compete for space; the
+     column itself scrolls (overflow:auto) if the total still overflows. */
+  min-height: 220px;
 }
 /* LAYOUT_DESIGNER_RUNTIME_FLOW_END */
 
