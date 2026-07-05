@@ -87,6 +87,7 @@ them can change freely. Distinguish **policy change (system-wide)** from
 - [heterogeneous-tracks.md](../plans/heterogeneous-tracks.md) — track classes/costs so reroute becomes a real trade-off
 - [localized-blocking-decisions.md](../plans/localized-blocking-decisions.md) — hold the affected trains/area (not the whole sim) until the human decides; + autonomy agreement idea
 - [scenario-variants.md](../plans/scenario-variants.md) — controlled study vs. dynamic "simulated wild" (real algorithms, emergent events); variant axes
+- [onboarding-tickets-2026-06.md](../plans/onboarding-tickets-2026-06.md) — curated discussion tickets for the June/July onboarding kickoff (RL/vibecoding, interaction design, experiment setup, Co-Learning)
 
 ## Roadmap / further ideas
 
