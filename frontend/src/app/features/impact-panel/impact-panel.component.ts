@@ -151,6 +151,12 @@ export class ImpactPanelComponent implements OnDestroy {
           && this.store.autoPauseOnConflict();
 
         if (engage) {
+          // Open the decision-dwell window for each affected train so the
+          // Decision Log can record decisionTimeMs when the human (or AI
+          // auto-decide) eventually acts on it.
+          for (const item of this.items()) {
+            this.store.openDecisionWindow(item.handle);
+          }
           if (strategy === 'hold') {
             // Localized blocking (Co-Learning): hold the affected trains, keep the
             // world running. The human releases them by deciding (no global pause,
@@ -228,14 +234,16 @@ export class ImpactPanelComponent implements OnDestroy {
   }
 
   /** Time's up: apply each train's recommended option (hold = safe default) and
-   *  resume the run. */
+   *  resume the run. Owner = 'ai' (the policy auto-applied because the human
+   *  didn't intervene in time) — surfaces in the Decision Log as an autonomous
+   *  decision, distinct from a human accept/override. */
   private _autoDecide(): void {
     for (const item of this.items()) {
       // Apply the recommended option; reroute uses the alternative-branch
       // override when available, otherwise hold is the safe fallback.
       const rec = item.recommended_action;
-      if (!(rec === 'reroute' && this._apply(item, 'reroute'))) {
-        this.store.setOverride(item.handle, ImpactPanelComponent.STOP);
+      if (!(rec === 'reroute' && this._apply(item, 'reroute', 'ai'))) {
+        this.store.setOverride(item.handle, ImpactPanelComponent.STOP, 'ai');
       }
       this.dismiss(item.handle);
     }
@@ -356,19 +364,25 @@ export class ImpactPanelComponent implements OnDestroy {
   }
 
   /** Apply an action's override. Returns false if reroute had no branch action
-   *  (so the caller can fall back to manual selection without dismissing). */
-  private _apply(item: ImpactItem, action: 'hold' | 'reroute' | 'proceed'): boolean {
+   *  (so the caller can fall back to manual selection without dismissing).
+   *  `owner` threads the decision-log attribution: 'human' for a click, 'ai'
+   *  for the countdown auto-decide path. */
+  private _apply(
+    item: ImpactItem,
+    action: 'hold' | 'reroute' | 'proceed',
+    owner: 'human' | 'ai' = 'human',
+  ): boolean {
     if (action === 'hold') {
-      this.store.setOverride(item.handle, ImpactPanelComponent.STOP);
+      this.store.setOverride(item.handle, ImpactPanelComponent.STOP, owner);
       return true;
     }
     if (action === 'proceed') {
-      this.store.clearOverride(item.handle);
+      this.store.clearOverride(item.handle, owner);
       return true;
     }
     // reroute: apply the alternative-branch override (fires at the next switch).
     if (item.reroute_action != null) {
-      this.store.setOverride(item.handle, item.reroute_action);
+      this.store.setOverride(item.handle, item.reroute_action, owner);
       return true;
     }
     return false;

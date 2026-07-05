@@ -10,6 +10,7 @@ import {
 import { DesignStorageService } from './design-storage.service';
 import { SessionStore } from '../../core/session.store';
 import { PanelShellComponent } from '../layout/components/panel-shell/panel-shell.component';
+import { ConfigShellComponent } from '../config-shell/config-shell.component';
 import { PanelInstance } from '../../core/layout';
 
 interface PaletteItem {
@@ -33,7 +34,7 @@ type DragPayload =
 @Component({
   selector: 'app-layout-designer',
   standalone: true,
-  imports: [CommonModule, FormsModule, PanelShellComponent],
+  imports: [CommonModule, FormsModule, PanelShellComponent, ConfigShellComponent],
   templateUrl: './layout-designer.component.html',
   styleUrls: ['./layout-designer.component.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -86,6 +87,9 @@ export class LayoutDesignerComponent {
     { type: 'risk-uncertainty', title: 'Risk & Uncertainty', minHeight: 160,
       description: 'Reliability, confidence & uncertainty band; Accept/Override with reasons.',
       kind: 'trust' },
+    { type: 'decision-log', title: 'Decision Log', minHeight: 160,
+      description: 'Session decision strip: who decided, when, dwell, accept vs. override.',
+      kind: 'capitalization' },
     { type: 'scenario', title: 'Scenario', minHeight: 160,
       description: 'Scenario cards compared by KPIs (done/deadlock/delay) with policy switch.',
       kind: 'decision-support' },

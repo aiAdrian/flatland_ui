@@ -1,26 +1,17 @@
 <div class="designer">
-  <header class="designer__topbar">
-    <div class="designer__brand">
-      <img class="designer__logo" src="/ai4realnet_logo.svg" alt="AI4REALNET" />
-      <span class="designer__title">
-        <span class="designer__title-main">Flatland Dispatcher</span>
-        <span class="designer__title-sub">– Layout Designer</span>
-      </span>
-    </div>
-
-    <div class="designer__menu">
-      <sbb-transparent-button
-        id="designer-menu-trigger"
-        size="m"
-        icon-name="hamburger-menu-small">
-        Menu
-      </sbb-transparent-button>
-      <sbb-menu trigger="designer-menu-trigger">
-        <sbb-menu-button (click)="runSession()">Apply &amp; open dispatcher</sbb-menu-button>
-        <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
-      </sbb-menu>
-    </div>
-  </header>
+  <app-config-shell active="designer">
+    <sbb-transparent-button
+      configActions
+      id="designer-menu-trigger"
+      size="m"
+      icon-name="hamburger-menu-small">
+      Menu
+    </sbb-transparent-button>
+    <sbb-menu configActions trigger="designer-menu-trigger">
+      <sbb-menu-button (click)="runSession()">Apply &amp; open dispatcher</sbb-menu-button>
+      <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
+    </sbb-menu>
+  </app-config-shell>
 
   <!-- Functions live in a row below the header, not in the header itself.
        Rename removed (the Name field below is inline-editable); the duplicate

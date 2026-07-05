@@ -1,0 +1,90 @@
+@if (embedded) {
+  <div class="dl-panel dl-panel--embedded">
+    <div class="dl-panel-head dl-panel-head--embedded">
+      <span class="panel-title" title="Every decision this session — who decided, when, how long, accept vs. override.">
+        Decision Log
+      </span>
+      <span class="dl-count" [class.zero]="entries().length === 0">{{ entries().length }}</span>
+    </div>
+    <ng-container [ngTemplateOutlet]="dlContent"></ng-container>
+  </div>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel dl-panel-lyne-panel dl-panel" color="white" size="s" expanded>
+    <sbb-expansion-panel-header class="dl-panel-head">
+      <span class="lyne-panel-title panel-title" title="Every decision this session — who decided, when, how long, accept vs. override.">
+        Decision Log
+      </span>
+      <span class="dl-count" [class.zero]="entries().length === 0">{{ entries().length }}</span>
+    </sbb-expansion-panel-header>
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="dlContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #dlContent>
+  @if (!collapsed()) {
+    <!-- Summary readout: override rate + mean decision time directly readable. -->
+    <div class="dl-summary">
+      <span class="dl-sum-cell">
+        <span class="dl-sum-num">{{ humanCount() }}</span><span class="dl-sum-lbl">you</span>
+      </span>
+      <span class="dl-sum-cell">
+        <span class="dl-sum-num">{{ aiCount() }}</span><span class="dl-sum-lbl">AI</span>
+      </span>
+      <span class="dl-sum-cell">
+        <span class="dl-sum-num">{{ systemCount() }}</span><span class="dl-sum-lbl">system</span>
+      </span>
+      <span class="dl-sum-cell">
+        <span class="dl-sum-num">{{ overrideRate() === null ? '—' : overrideRate() + '%' }}</span>
+        <span class="dl-sum-lbl">override</span>
+      </span>
+      <span class="dl-sum-cell">
+        <span class="dl-sum-num">{{ meanDecisionMs() === null ? '—' : formatMs(meanDecisionMs()) }}</span>
+        <span class="dl-sum-lbl">Ø decide</span>
+      </span>
+    </div>
+
+    @if (store.interactionMode() === 'director' && humanCount() > 0) {
+      <div class="dl-director-note">
+        You stepped in {{ humanCount() }} time(s) — exception interventions on top of an autonomous policy.
+      </div>
+    }
+
+    @if (entries().length === 0) {
+      <p class="dl-empty">No decisions yet this session.</p>
+    } @else {
+      <ul class="dl-list">
+        @for (e of entries(); track e.seq) {
+          <li class="dl-entry" [class.dl-system]="e.accountableOwner === 'system'">
+            <span class="dl-seq">#{{ e.seq }}</span>
+            <span class="dl-dot" [style.background]="agentColor(e.handle)"></span>
+            <span class="dl-handle">T{{ e.handle }}</span>
+            <span class="dl-owner" [class]="ownerClass(e.accountableOwner)">
+              {{ ownerLabel(e.accountableOwner) }}
+            </span>
+            <span class="dl-action">{{ e.action }}</span>
+            @if (decisionVerb(e) !== '—') {
+              <span class="dl-verb" [class.override]="decisionVerb(e) === 'override'">
+                {{ decisionVerb(e) }}
+              </span>
+            }
+            <span class="dl-time">{{ formatMs(e.decisionTimeMs) }}</span>
+            @if (e.aiSuggestion) {
+              <span class="dl-ai-sugg" title="AI suggestion at decision time">↳ {{ e.aiSuggestion }}</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="dl-actions">
+      <button type="button" class="dl-btn" (click)="exportJson()" [disabled]="entries().length === 0">
+        Export JSON
+      </button>
+      <button type="button" class="dl-btn dl-btn--ghost" (click)="clear()" [disabled]="entries().length === 0">
+        Clear
+      </button>
+    </div>
+  }
+</ng-template>

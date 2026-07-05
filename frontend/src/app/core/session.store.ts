@@ -9,6 +9,12 @@ import {
   saveVisualEncoding,
 } from './visual-encoding';
 import {
+  DECISION_LOG_CAP,
+  DecisionLogEntry,
+  DecisionOwner,
+  actionLabelFor,
+} from './decision-log';
+import {
   AppNotification,
   ImpactItem,
   InteractionMode,
@@ -215,6 +221,55 @@ export class SessionStore {
   setVisualEncodingPreset(presetId: VisualEncodingPresetId): void {
     const preset = VISUAL_ENCODING_PRESETS.find((p) => p.id === presetId);
     if (preset) this.visualEncoding.set(preset.encoding);
+  }
+
+  /**
+   * Decision Log (Tile A2, Capitalization kind). Owned, timestamped record of
+   * every decision in a session — human / ai / system. Reuses existing capture
+   * choke-points (setOverride / clearOverride / systemHold) in all modes; the
+   * coLearningFeedback signal (Co-Learning only) is left untouched so the
+   * reflection panel is unaffected. See `core/decision-log.ts` +
+   * `docs/plans/tile-a2-decision-log.md`.
+   */
+  readonly decisionLog = signal<DecisionLogEntry[]>([]);
+
+  /** Per-handle decision-window open time (ms), for decisionTimeMs. */
+  private readonly _decisionWindowStart = signal<Record<number, number>>({});
+
+  /** Open the decision window for a handle (idempotent). Called by the
+   *  impact panel when a conflict engages. */
+  openDecisionWindow(handle: number): void {
+    this._decisionWindowStart.update((m) =>
+      m[handle] ? m : { ...m, [handle]: Date.now() },
+    );
+  }
+
+  /** Close the window for a handle; return dwell ms, or null if none was open. */
+  private _closeDecisionWindow(handle: number): number | null {
+    const start = this._decisionWindowStart()[handle];
+    if (start == null) return null;
+    this._decisionWindowStart.update((m) => {
+      const next = { ...m };
+      delete next[handle];
+      return next;
+    });
+    return Date.now() - start;
+  }
+
+  /** Append a decision entry (auto-assigns seq, trims to the rolling cap). */
+  private _appendDecision(entry: Omit<DecisionLogEntry, 'seq'>): void {
+    this.decisionLog.update((list) => {
+      const seq = list.length ? list[list.length - 1].seq + 1 : 1;
+      const next = [...list, { ...entry, seq }];
+      return next.length > DECISION_LOG_CAP
+        ? next.slice(next.length - DECISION_LOG_CAP)
+        : next;
+    });
+  }
+
+  /** Clear the log (e.g. on session reset). */
+  clearDecisionLog(): void {
+    this.decisionLog.set([]);
   }
 
   /**
@@ -484,6 +539,24 @@ export class SessionStore {
     // Persist the Visual-Encoding registry to localStorage on every change.
     // `loadVisualEncoding()` ran at signal init; this keeps storage in sync.
     effect(() => saveVisualEncoding(this.visualEncoding()));
+
+    // Apply severity/positive as `:root` CSS custom-property overrides so a
+    // chosen preset actually re-colours the app (malfunction indicator,
+    // impact/left-sidebar severity, scenario/impact "recommended"), not just
+    // the Session Settings preview. Session Settings only allows editing this
+    // while no session is active (radios disabled via `sessionActive()`), so
+    // a change can only happen before the next "New session"/"Restart run" —
+    // this effect firing immediately on change already satisfies "takes
+    // effect at the next run start" without extra gating. Authorship has no
+    // consumer yet (seam-first, unchanged from before).
+    effect(() => {
+      const ve = this.visualEncoding();
+      if (typeof document === 'undefined') return;
+      const root = document.documentElement.style;
+      root.setProperty('--app-severity-warn', ve.severity.warn);
+      root.setProperty('--app-severity-error', ve.severity.error);
+      root.setProperty('--app-positive', ve.positive);
+    });
   }
 
   private _trajectoryPosition(a: AgentDTO): [number, number] | null {
@@ -677,6 +750,7 @@ export class SessionStore {
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
     this.impact.set([]);
+    this.clearDecisionLog();
     this.reflectionRequested.set(false);
     const payload: any = {};
     if (opts.width != null) payload.width = opts.width;
@@ -819,6 +893,7 @@ export class SessionStore {
     this.selectedHandle.set(null);
     this._resetTrajectories();
     this.impact.set([]);
+    this.clearDecisionLog();
     this.scenarios.set([]);
     this.recommendations.set([]);
     this.notifications.set([]);
@@ -838,6 +913,7 @@ export class SessionStore {
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
     this.impact.set([]);
+    this.clearDecisionLog();
     this.reflectionRequested.set(false);
     this.api.reset(s.id).subscribe({
       next: () => this.refreshState(true),
@@ -939,7 +1015,7 @@ export class SessionStore {
     });
   }
 
-  setOverride(handle: number, action: number) {
+  setOverride(handle: number, action: number, owner: DecisionOwner = 'human') {
     const s = this.session();
     if (!s) return;
 
@@ -960,6 +1036,20 @@ export class SessionStore {
         },
       ]);
     }
+
+    // Decision Log (Tile A2): capture every override in ALL modes (not just
+    // Co-Learning). `owner` distinguishes a human click from the AI auto-decide
+    // (countdown expiry). systemHold is logged separately (owner 'system').
+    this._appendDecision({
+      t: Date.now(),
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      handle,
+      accountableOwner: owner,
+      action: actionLabelFor(action),
+      aiSuggestion: this._currentTopRecommendation(),
+      decisionTimeMs: owner === 'human' ? this._closeDecisionWindow(handle) : null,
+    });
 
     this.api.setOverride(s.id, handle, action as any).subscribe({
       next: () => {
@@ -984,18 +1074,44 @@ export class SessionStore {
     const s = this.session();
     if (!s) return;
     this._setLocalOverride(handle, 4); // STOP_MOVING
+    // Decision Log: a system safe-default hold is NOT a human intervention
+    // (per the comment above) — tagged 'system' so the strip never lets an
+    // operator mistake it for their own decision.
+    this._appendDecision({
+      t: Date.now(),
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      handle,
+      accountableOwner: 'system',
+      action: 'hold',
+      aiSuggestion: null,
+      decisionTimeMs: null,
+    });
     this.api.setOverride(s.id, handle, 4 as any).subscribe({
       next: () => this.refreshState(),
       error: () => {},
     });
   }
 
-  clearOverride(handle: number) {
+  clearOverride(handle: number, owner: DecisionOwner = 'human') {
     const s = this.session();
     if (!s) return;
 
     // Optimistic UI update: release/clear reacts immediately.
     this._setLocalOverride(handle, null);
+
+    // Decision Log (Tile A2): releasing a hold = the human decided to let the
+    // train proceed. Logged as 'proceed' (owner 'human' by default).
+    this._appendDecision({
+      t: Date.now(),
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      handle,
+      accountableOwner: owner,
+      action: 'proceed',
+      aiSuggestion: this._currentTopRecommendation(),
+      decisionTimeMs: owner === 'human' ? this._closeDecisionWindow(handle) : null,
+    });
 
     this.api.clearOverride(s.id, handle).subscribe({
       next: () => {

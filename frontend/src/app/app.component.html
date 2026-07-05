@@ -1,4 +1,6 @@
-@if (showLayoutDesigner) {
+@if (showTilesGallery) {
+  <app-tiles-gallery></app-tiles-gallery>
+} @else if (showLayoutDesigner) {
   <app-layout-designer></app-layout-designer>
 } @else {
   <header class="header"><div class="header-brand">
@@ -7,46 +9,56 @@
     </div>
     <span class="header-title">
       <span class="header-title-main">Flatland Dispatcher</span>
-      <span class="header-title-sub">- A Human-AI Teaming Playground</span>
+      <span class="header-title-sub">A Human-AI Teaming Playground</span>
     </span>
 
     @if (store.session()) {
-      <div class="header-meta">
-        <span class="grid_info-id">Grid: {{ store.state()?.width }} × {{ store.state()?.height }}</span>
-        <span class="anzahl_Agents-id">Agents: {{ store.agents().length }}</span>
+      <div class="mode-tabs" role="tablist" aria-label="Interaction mode">
+        @for (m of interactionModes; track m.id) {
+          <button
+            type="button"
+            class="mode-tab"
+            role="tab"
+            [class.is-active]="store.interactionMode() === m.id"
+            [attr.data-mode]="m.id"
+            [attr.aria-selected]="store.interactionMode() === m.id"
+            [attr.aria-disabled]="store.demoActive() || null"
+            [disabled]="store.demoActive()"
+            [title]="m.wp + ' — ' + m.description"
+            (click)="store.setInteractionMode(m.id)">
+            @switch (m.id) {
+              @case ('recommendation') {
+                <svg class="mode-tab__ico" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 18h6" />
+                  <path d="M10 21h4" />
+                  <path d="M12 3a6 6 0 0 0-3.6 10.8c.5.4.6 1 .6 1.6V18h6v-2.6c0-.6.1-1.2.6-1.6A6 6 0 0 0 12 3Z" />
+                </svg>
+              }
+              @case ('co-learning') {
+                <svg class="mode-tab__ico" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 5h8v6H6l-3 2.5z" />
+                  <path d="M21 11h-8v6h5l3 2.5z" />
+                </svg>
+              }
+              @case ('director') {
+                <svg class="mode-tab__ico" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8.5" />
+                  <circle cx="12" cy="12" r="2.5" />
+                  <path d="M12 3.5v6" />
+                  <path d="M4.6 16l5.2-3" />
+                  <path d="M19.4 16l-5.2-3" />
+                </svg>
+              }
+            }
+            {{ m.label }}
+            @if (store.demoActive() && store.interactionMode() === m.id) {
+              <span class="mode-locked-tag">demo</span>
+            }
+          </button>
+        }
       </div>
 
       <div class="header-actions">
-        @if (store.demoActive()) {
-          <span class="header-mode-locked" [attr.data-mode]="store.interactionMode()">
-            <span class="mode-dot" aria-hidden="true"></span>
-            Mode: {{ currentModeLabel() }} <span class="mode-locked-tag">demo</span>
-          </span>
-        } @else {
-          <sbb-transparent-button
-            id="mode-trigger"
-            size="m"
-            class="header-mode-trigger"
-            [attr.data-mode]="store.interactionMode()">
-            <span class="mode-dot" aria-hidden="true"></span>
-            Mode: {{ currentModeLabel() }}
-            <span class="mode-caret" aria-hidden="true">▾</span>
-          </sbb-transparent-button>
-          <sbb-menu trigger="mode-trigger">
-            @for (m of interactionModes; track m.id) {
-              <sbb-menu-button (click)="store.setInteractionMode(m.id)">
-                <span class="mode-option">
-                  <span class="mode-option-title">
-                    {{ m.label }} <span class="mode-option-wp">{{ m.wp }}</span>
-                    @if (store.interactionMode() === m.id) { <span class="menu-current">· current</span> }
-                  </span>
-                  <span class="mode-option-desc">{{ m.description }}</span>
-                </span>
-              </sbb-menu-button>
-            }
-          </sbb-menu>
-        }
-
         <sbb-transparent-button
           id="app-menu-trigger"
           size="m"
@@ -54,14 +66,19 @@
           Menu
         </sbb-transparent-button>
         <sbb-menu trigger="app-menu-trigger">
-          <!-- System: configuration that shapes a run + the workspace designer. -->
+          <!-- Setup & Configuration: everything that shapes the system / workspace,
+               grouped as one section (settings + policies + the config surfaces). -->
+          <span class="menu-section">Setup &amp; Configuration</span>
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
+          <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
+          <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
           <sbb-divider></sbb-divider>
           <!-- This run: interventions on the live session. Plain action items
                (no icons), matching the SBB pattern for action-only entries. -->
+          <span class="menu-section">This run</span>
           <sbb-menu-button (click)="resetWithSettings()">Restart run</sbb-menu-button>
           <sbb-menu-button (click)="exitToStart()">End session</sbb-menu-button>
         </sbb-menu>
@@ -77,11 +94,13 @@
           Menu
         </sbb-transparent-button>
         <sbb-menu trigger="app-menu-trigger">
-          <!-- No active session: only System configuration + the designer;
+          <!-- No active session: only Setup & Configuration + Help;
                "This run" interventions have nothing to act on yet. -->
+          <span class="menu-section">Setup &amp; Configuration</span>
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
+          <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
         </sbb-menu>
@@ -326,7 +345,89 @@
         <div class="settings-tabs" role="tablist">
           <button type="button" role="tab" [class.is-active]="settingsTab() === 'basic'" (click)="settingsTab.set('basic')">Basic</button>
           <button type="button" role="tab" [class.is-active]="settingsTab() === 'advanced'" (click)="settingsTab.set('advanced')">Advanced</button>
+          <button type="button" role="tab" [class.is-active]="settingsTab() === 'colours'" (click)="settingsTab.set('colours')">Colours</button>
         </div>
+
+        @if (settingsTab() === 'colours') {
+        <section class="settings-section ve-section" [class.ve-locked]="sessionActive()">
+          <h3>Visual Encoding</h3>
+          <p class="ve-hint">
+            A preset changes severity, "recommended", and authorship (who did
+            it — human vs AI) colours together, so they stay distinguishable
+            from each other.
+            @if (sessionActive()) { Locked during a running session — set it before starting a round; it takes effect from the next "New session" / "Restart run". } @else { Takes effect from the next "New session" / "Restart run". }
+          </p>
+          <div class="ve-presets" role="radiogroup" aria-label="Visual encoding preset">
+            @for (preset of visualEncodingPresets; track preset.id) {
+              <label class="ve-preset" [class.is-active]="draftVisualEncodingPreset() === preset.id">
+                <input type="radio" name="ve-preset"
+                       [value]="preset.id"
+                       [checked]="draftVisualEncodingPreset() === preset.id"
+                       [disabled]="sessionActive()"
+                       (change)="draftVisualEncodingPreset.set($any($event.target).value)">
+                <span class="ve-preset-label">{{ preset.label }}</span>
+                <span class="ve-preset-desc">{{ preset.description }}</span>
+              </label>
+            }
+          </div>
+
+          @if (draftVisualEncoding(); as ve) {
+            <div class="ve-group">
+              <span class="ve-group-label">Authorship (who did it)</span>
+              <div class="ve-roles">
+                <div class="ve-role">
+                  <span class="ve-swatch"
+                        [style.backgroundColor]="ve.authorship.human.color"
+                        [class.ve-dashed]="ve.authorship.human.lineStyle === 'dashed'"></span>
+                  <span class="ve-icon">{{ ve.authorship.human.icon }}</span>
+                  <span class="ve-role-label">{{ ve.authorship.human.label }}</span>
+                  <span class="ve-role-key">human</span>
+                </div>
+                <div class="ve-role">
+                  <span class="ve-swatch"
+                        [style.backgroundColor]="ve.authorship.ai.color"
+                        [class.ve-dashed]="ve.authorship.ai.lineStyle === 'dashed'"></span>
+                  <span class="ve-icon">{{ ve.authorship.ai.icon }}</span>
+                  <span class="ve-role-label">{{ ve.authorship.ai.label }}</span>
+                  <span class="ve-role-key">AI</span>
+                </div>
+              </div>
+              <span class="ve-group-note">not yet used anywhere — seam for the planned what-if tile</span>
+            </div>
+
+            <div class="ve-group">
+              <span class="ve-group-label">Severity (malfunctions, alerts)</span>
+              <div class="ve-roles">
+                <div class="ve-role">
+                  <span class="ve-swatch" [style.backgroundColor]="ve.severity.warn"></span>
+                  <span class="ve-role-label">Warning</span>
+                </div>
+                <div class="ve-role">
+                  <span class="ve-swatch" [style.backgroundColor]="ve.severity.error"></span>
+                  <span class="ve-role-label">Error / malfunction</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ve-group">
+              <span class="ve-group-label">Recommended / positive</span>
+              <div class="ve-roles">
+                <div class="ve-role">
+                  <span class="ve-swatch" [style.backgroundColor]="ve.positive"></span>
+                  <span class="ve-role-label">Recommended option, good KPI delta</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <p class="ve-hint ve-group-note">
+            Train/agent colours are not part of this preset yet — that needs
+            a dedicated colour-blind-safe replacement for the 6-type SBB
+            palette, which is a separate, larger decision (see
+            colour-usage-audit.md, open question 4).
+          </p>
+        </section>
+        }
 
         @if (settingsTab() === 'basic') {
         <section class="settings-section">
@@ -396,48 +497,6 @@
                    [checked]="draftDemoMalfunctionTypes()"
                    (change)="draftDemoMalfunctionTypes.set($any($event.target).checked)">
           </label>
-        </section>
-
-        <section class="settings-section ve-section" [class.ve-locked]="sessionActive()">
-          <h3>Visual Encoding</h3>
-          <p class="ve-hint">
-            How human vs AI contributions are rendered (what-if view, and future tiles).
-            @if (sessionActive()) { Locked during a running session — set it before starting a round. }
-          </p>
-          <div class="ve-presets" role="radiogroup" aria-label="Visual encoding preset">
-            @for (preset of visualEncodingPresets; track preset.id) {
-              <label class="ve-preset" [class.is-active]="draftVisualEncodingPreset() === preset.id">
-                <input type="radio" name="ve-preset"
-                       [value]="preset.id"
-                       [checked]="draftVisualEncodingPreset() === preset.id"
-                       [disabled]="sessionActive()"
-                       (change)="draftVisualEncodingPreset.set($any($event.target).value)">
-                <span class="ve-preset-label">{{ preset.label }}</span>
-                <span class="ve-preset-desc">{{ preset.description }}</span>
-              </label>
-            }
-          </div>
-
-          @if (draftVisualEncoding(); as ve) {
-            <div class="ve-roles">
-              <div class="ve-role">
-                <span class="ve-swatch"
-                      [style.backgroundColor]="ve.authorship.human.color"
-                      [class.ve-dashed]="ve.authorship.human.lineStyle === 'dashed'"></span>
-                <span class="ve-icon">{{ ve.authorship.human.icon }}</span>
-                <span class="ve-role-label">{{ ve.authorship.human.label }}</span>
-                <span class="ve-role-key">human</span>
-              </div>
-              <div class="ve-role">
-                <span class="ve-swatch"
-                      [style.backgroundColor]="ve.authorship.ai.color"
-                      [class.ve-dashed]="ve.authorship.ai.lineStyle === 'dashed'"></span>
-                <span class="ve-icon">{{ ve.authorship.ai.icon }}</span>
-                <span class="ve-role-label">{{ ve.authorship.ai.label }}</span>
-                <span class="ve-role-key">AI</span>
-              </div>
-            </div>
-          }
         </section>
 
         <section class="settings-section">
@@ -593,6 +652,7 @@
           </span>
         }
         <span>Step: <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>
+        <span>Grid: <strong>{{ store.state()?.width }} × {{ store.state()?.height }}</strong></span>
         <span>Agents: <strong>{{ store.agents().length }}</strong></span>
         @if (store.isCoLearning()) {
           <span class="footer-interventions" title="Manual interventions captured this run">

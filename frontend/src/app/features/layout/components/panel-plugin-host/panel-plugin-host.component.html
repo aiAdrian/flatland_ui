@@ -82,6 +82,10 @@
       <app-risk-uncertainty-panel [embedded]="true"></app-risk-uncertainty-panel>
     }
 
+    @case ('decision-log') {
+      <app-decision-log-panel [embedded]="true"></app-decision-log-panel>
+    }
+
     @case ('flatland-map') {
       @if (isViewVisible('flatland-map')) {
         <div class="panel-plugin-host__map">

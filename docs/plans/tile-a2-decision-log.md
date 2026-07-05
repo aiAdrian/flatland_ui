@@ -1,11 +1,11 @@
 # Tile A2 — Decision Log & Accountability Strip
 
 > Spec following [tile-authoring-process.md](../reference/tile-authoring-process.md).
-> Status: **not yet built.** Rides on
-> [interaction-logging-plan.md](interaction-logging-plan.md) — this tile is the
-> first visible slice of that plan (the `intervention`/`decision` event types +
-> a rendered strip), not a parallel logging mechanism. Read that plan first;
-> this spec adds the *tile* (UI + accountability framing) on top of it.
+> Status: **first cut built.** See
+> `frontend/src/app/features/decision-log/decision-log-panel.component.ts` +
+> `frontend/src/app/core/decision-log.ts` and the `decisionLog` signal in
+> `SessionStore`; the row in `docs/reference/panel-mode-matrix.md`. Backend
+> `POST /sessions/{id}/log` mirror remains deferred (§4).
 
 ## 1. Identity
 - **Name:** Decision Log & Accountability Strip

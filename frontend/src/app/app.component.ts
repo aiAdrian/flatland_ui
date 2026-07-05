@@ -34,6 +34,7 @@ import { PanelInstance, isPanelAvailableInMode } from './core/layout';
 import { PanelShellComponent } from './features/layout/components/panel-shell/panel-shell.component';
 
 import { LayoutDesignerComponent } from './features/layout-designer/layout-designer.component';
+import { TilesGalleryComponent } from './features/tiles-gallery/tiles-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 type RuntimeLayoutOption = {
   id: string;
@@ -48,6 +49,7 @@ type RuntimeLayoutOption = {
   imports: [
     PanelPluginHostComponent,
     LayoutDesignerComponent,
+    TilesGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
     GraphicTimetableComponent,
@@ -81,6 +83,14 @@ export class AppComponent implements OnInit {
       window.location.pathname === '/designer' ||
       window.location.hash === '#/designer' ||
       window.location.hash.endsWith('/designer')
+    );
+  }
+
+  get showTilesGallery(): boolean {
+    return (
+      window.location.pathname === '/gallery' ||
+      window.location.hash === '#/gallery' ||
+      window.location.hash.endsWith('/gallery')
     );
   }
 
@@ -261,8 +271,8 @@ export class AppComponent implements OnInit {
   newMalfunctionMaxDuration = signal(20);
 
   settingsMode = signal(false);
-  /** Session Settings dialog tab: Basic (grid only) vs Advanced (everything else). */
-  settingsTab = signal<'basic' | 'advanced'>('basic');
+  /** Session Settings dialog tab: Basic (grid only), Advanced (everything else), Colours. */
+  settingsTab = signal<'basic' | 'advanced' | 'colours'>('basic');
   scenarioPolicyMode = signal(false);
 
   /** True while a round is running → Visual Encoding is locked (pre-session only).

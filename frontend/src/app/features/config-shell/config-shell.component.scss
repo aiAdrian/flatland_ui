@@ -1,0 +1,110 @@
+:host {
+  display: block;
+}
+
+.config-shell {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: block;
+  background: var(--sbb-color-white);
+}
+
+/* ── Top bar: brand left, flat icon+label actions right (SBB pattern) ── */
+.config-shell__bar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  min-height: 64px;
+  padding: 10px 32px;
+}
+
+.config-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  text-decoration: none;
+  color: var(--sbb-color-charcoal);
+}
+
+.config-shell__logo {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.config-shell__title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.config-shell__title-main {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.config-shell__title-sub {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--sbb-color-granite);
+}
+
+.config-shell__nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex: 1 1 auto;
+}
+
+.config-shell__spacer {
+  flex: 1 1 auto;
+}
+
+.config-shell__slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Flat action/nav item — icon + label, no border, black medium text. */
+.config-shell__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 2px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  color: var(--sbb-color-charcoal);
+  border-bottom: 3px solid transparent;
+  transition: color 0.12s;
+
+  &:hover { color: var(--sbb-color-red); }
+
+  &.is-active {
+    border-bottom-color: var(--sbb-color-red);
+  }
+}
+
+.config-shell__ico {
+  width: 21px;
+  height: 21px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 760px) {
+  .config-shell__bar { flex-wrap: wrap; gap: 12px 20px; padding: 10px 18px; }
+  .config-shell__nav { gap: 18px; flex-wrap: wrap; }
+  .config-shell__title-sub { display: none; }
+}

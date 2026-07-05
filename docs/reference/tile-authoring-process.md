@@ -6,6 +6,15 @@
 > existing tiles; here we *author* new ones. Grounded in
 > [interaction-framework.md](interaction-framework.md) (the taxonomy) and
 > tracked in [tile-catalog.md](../plans/tile-catalog.md) (the backlog).
+>
+> **Tooling:** run the [`/create-tile`](../../.claude/skills/create-tile/SKILL.md)
+> skill to walk this process (visual kind-picker, spec template, seam checklist).
+> Browse existing tiles — kind, per-mode behaviour, live preview — in the in-app
+> **Tile Gallery** at `/gallery`, backed by the machine-readable registry
+> [`core/tiles/tile-catalog.ts`](../../frontend/src/app/core/tiles/tile-catalog.ts).
+> That registry is the **single source of truth** for tile metadata (kind,
+> granularity, status, per-mode behaviour, grounding, availability); register
+> every new tile there.
 
 ## Principles
 
@@ -64,6 +73,10 @@ Every tile spec (`docs/plans/tile-<id>-<slug>.md`) has these sections:
    - `panel-plugin-host.component.ts` (+ `.html` `@switch`) — type → component
    - `layout-designer.component.ts` `palette` — make it draggable
    - `core/layout/panel-mode-availability.ts` `PANEL_MODE_AVAILABILITY` — mode gating
+   - **`core/tiles/tile-catalog.ts` `TILE_CATALOG`** — the registry the Tile
+     Gallery reads: `kind`, `granularity`, `status`, `perMode` behaviour,
+     `grounding`, `availableModes` (must match the availability seam — the
+     gallery flags drift)
    - `PanelDefinition` — set `kind` + `granularity` (once those fields land)
    - hardcoded default layout in `app.component.html`/`.ts` only if it ships by default
 4. **Backend** (only if the spec's table needs it): add the endpoint/field; keep
@@ -72,6 +85,8 @@ Every tile spec (`docs/plans/tile-<id>-<slug>.md`) has these sections:
    acceptance scenario.
 6. **Document**: update [panel-mode-matrix.md](panel-mode-matrix.md) with the new
    row, and flip the tile's status in [tile-catalog.md](../plans/tile-catalog.md).
+   The in-app [Tile Gallery](../../frontend/src/app/features/tiles-gallery) picks
+   up the change automatically from the `tile-catalog.ts` registry.
 
 ## Definition of done
 

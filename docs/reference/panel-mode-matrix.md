@@ -34,6 +34,7 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `agent-inspector` | ● | ● | ● |
 | `impact` | ● | ● | ◐ overview only |
 | `risk-uncertainty` | ● | ● | ● read-only |
+| `decision-log` | ● | ● | ● |
 | `scenario` | ◐ collapsed | ◐ collapsed | ● expanded |
 | `kpi-filter` | ◐ | ◐ | ● expanded |
 | `recommendations` | ● | ○ | ○ |
@@ -71,6 +72,23 @@ render identically everywhere.
   "model-reported confidence" until the backend UQ/calibration extension lands
   (spec §4). Not in the hardcoded default layout; available via the designer
   palette.
+
+### `decision-log` (Tile A2 — Capitalization)
+- **Recommendation** — each strip entry shows the AI suggestion alongside what
+  the human chose (accept vs. override is the point).
+- **Co-Learning** — entries show the human's chosen option neutrally; feeds the
+  reflection prompt.
+- **Director** — mostly AI auto-decisions (owner = AI); the operator's entries
+  are the rarer **exception interventions** — the strip surfaces this asymmetry
+  ("You stepped in N times").
+- Capture is **mode-agnostic at the choke-points**: `setOverride` /
+  `clearOverride` / `systemHold` log to `store.decisionLog` in all three modes
+  (tagged `accountableOwner: human | ai | system`); the Co-Learning-only
+  `coLearningFeedback` signal is left untouched so the reflection panel is
+  unaffected. Availability is all modes (omitted from
+  `PANEL_MODE_AVAILABILITY` = 'all'). Frontend read-model + localStorage
+  persistence per `interaction-logging-plan.md`; backend `POST /log` mirror
+  deferred. Not in the default layout; available via the designer palette.
 
 ### `scenario`
 - **Recommendation** — alternatives **ranked by the operator's KPI priorities**

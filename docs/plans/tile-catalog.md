@@ -1,5 +1,12 @@
 # Tile catalog — candidates, sources, effort, contribution
 
+> **This doc is the backlog narrative** (sources, effort, contribution). The
+> machine-readable counterpart — kind, granularity, status, per-mode behaviour,
+> grounding, availability for every tile (built *and* planned) — lives in
+> [`core/tiles/tile-catalog.ts`](../../frontend/src/app/core/tiles/tile-catalog.ts)
+> and renders in the in-app **Tile Gallery** (`/gallery`). Keep the two in sync;
+> author new tiles with the [`/create-tile`](../../.claude/skills/create-tile/SKILL.md) skill.
+>
 > Working collection of candidate tiles, classified per
 > [interaction-framework.md](../reference/interaction-framework.md). Each entry:
 > **source(s)**, `kind`, **effort** (Claude-Code tokens ≈ working sessions, and
@@ -40,7 +47,13 @@ model — epistemic/aleatoric per INESC framework as far as backend allows).
 `kind` **Capitalization** · detail. Decisions as owned events
 (`accountableOwner`, lifecycle), rendered as a session strip: who decided what,
 when, response time, override vs accept; JSON export.
-- **Status:** spec written — see [tile-a2-decision-log.md](tile-a2-decision-log.md).
+- **Status:** **first cut built** — `features/decision-log/` component + a
+  `decisionLog` signal in `SessionStore` fed by the existing choke-points
+  (`setOverride` / `clearOverride` / `systemHold`) in all three modes, tagged
+  `accountableOwner: human | ai | system`. `coLearningFeedback` (Co-Learning
+  only) left untouched. JSON export + override-rate / mean-decision-time
+  readout. Registered at the seams (plugin-host, palette, matrix). See
+  [tile-a2-decision-log.md](tile-a2-decision-log.md).
 - **Effort:** M (rides on [interaction-logging-plan](interaction-logging-plan.md)
   — realises its first slice). **Change:** frontend store already sees decisions
   (`setOverride`, applyOption, auto-decide); add an event record + tile; backend
@@ -110,6 +123,33 @@ to §3.3 (see marey-rethink note).
   not a Marey-style time-distance view — this stays a from-scratch UI build.
 
 ## C. Decision support (Evaluative AI)
+
+### B3. Network correlation graph — [DB]
+`kind` **Context** · overview→detail. Force-directed graph of trains/stations
+(nodes = circles, severity-coloured, sized on focus) connected by
+correlation-strength edges — a relational abstraction of the network
+alongside the geographic Track Layout map, so "what else does this touch?" is
+answered by proximity/edge-weight instead of scanning the map.
+- **Effort:** M. **Change:** frontend only to start (KPI-delta correlation
+  proxy, same "cheap proxy before real backend" move as A1); new D3
+  dependency (`d3-force`/`d3-selection`/`d3-drag`/`d3-zoom` subset).
+- **Contributes:** Q1 (Context tile behaves differently per mode's focus
+  logic), situational awareness beyond the geographic map; a testable Q5
+  comparison (does the graph surface correlated-but-distant trains the map
+  misses?).
+- **AI4REALNET check — confirmed, exact reuse target:**
+  [`AI4REALNET/InteractiveAI`](https://github.com/AI4REALNET/InteractiveAI) —
+  the consortium's own multi-use-case HMI (PowerGrid **and Railway** share one
+  frontend). Its `frontend/src/components/organisms/Graph.vue` +
+  `stores/components/graph.ts` is a D3 force-directed graph with exactly this
+  pattern: severity-coloured circle nodes (`criticality` classes
+  `LOW/MEDIUM/HIGH`), correlation-weighted edges, focus/zoom/tooltip on
+  click — and its `Map.vue` uses the same `criticalityToColor` helper for
+  `LCircleMarker` status dots, i.e. the consortium already treats "severity as
+  a coloured circle" as a shared idiom across their graph *and* map views. See
+  [tile-b3-network-correlation-graph.md](tile-b3-network-correlation-graph.md).
+  Domain note: their hex-hardcoded CSS vars (`--red-500: #f55`, …) must **not**
+  be ported — reimplement with our Lyne/`visual-encoding.ts` token seam.
 
 ### C1. Trade-off frontier / scenario small-multiples — [D3.2 T3.2]+[UIX 6/6]+[D3.1]
 `kind` **Decision Support (Assessment)** · overview. Scenario alternatives

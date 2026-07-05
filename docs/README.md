@@ -18,6 +18,7 @@ The authoritative specs and guides for how the app works today.
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
 - [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model tile ideas (convergence), grounding for the tile catalog
 - [ui-exploration-prompt.md](reference/ui-exploration-prompt.md) — reusable prompt for generating/refining tile ideas
+- [ux-design-topics.md](reference/ux-design-topics.md) — deferred UX/UI backlog (open topics with change lists; not yet implemented)
 
 ## plans/ — planned work
 Designs and roadmaps not yet (fully) built.
