@@ -64,9 +64,16 @@ export class TilesGalleryComponent {
     { id: 'director', label: 'Director', wp: 'WP 3.4' },
   ];
 
+  readonly statusColumns: { id: TileStatus; label: string }[] = [
+    { id: 'shipped', label: 'Shipped' },
+    { id: 'first-cut', label: 'First cut' },
+    { id: 'planned', label: 'Planned' },
+  ];
+
   /** Filter state. */
   readonly kindFilter = signal<TileKind | 'all'>('all');
   readonly modeFilter = signal<InteractionMode | 'all'>('all');
+  readonly statusFilter = signal<TileStatus | 'all'>('shipped');
   readonly query = signal<string>('');
 
   /** Tiles whose live preview the user opted into (by panel type). */
@@ -75,6 +82,7 @@ export class TilesGalleryComponent {
   readonly groups = computed<GalleryGroup[]>(() => {
     const kindF = this.kindFilter();
     const modeF = this.modeFilter();
+    const statusF = this.statusFilter();
     const q = this.query().trim().toLowerCase();
 
     return tilesByKind()
@@ -83,6 +91,7 @@ export class TilesGalleryComponent {
         kind: g.kind,
         meta: KIND_META[g.kind],
         tiles: g.tiles.filter((t) => {
+          if (statusF !== 'all' && t.status !== statusF) return false;
           if (modeF !== 'all' && !tileAvailableInMode(t, modeF)) return false;
           if (q && !`${t.title} ${t.description} ${t.grounding}`.toLowerCase().includes(q)) {
             return false;
@@ -106,9 +115,14 @@ export class TilesGalleryComponent {
     this.modeFilter.set(mode);
   }
 
+  setStatusFilter(status: TileStatus | 'all'): void {
+    this.statusFilter.set(status);
+  }
+
   resetFilters(): void {
     this.kindFilter.set('all');
     this.modeFilter.set('all');
+    this.statusFilter.set('shipped');
     this.query.set('');
   }
 
