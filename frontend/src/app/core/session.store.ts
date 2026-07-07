@@ -770,9 +770,9 @@ export class SessionStore {
     if (opts.scenarioPolicyIds != null) payload.enabled_scenario_policy_ids = opts.scenarioPolicyIds;
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
     if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
-    const requestedScene = payload.infrastructure_scene as { id?: string; name?: string } | undefined;
+    const requestedScene = payload.infrastructure_scene as { id?: string; name?: string; cells?: unknown[]; agents?: unknown[] } | undefined;
     this.message.set(requestedScene
-      ? `Creating session from infrastructure: ${requestedScene.name || requestedScene.id || 'selected scene'}`
+      ? `Creating session from infrastructure: ${requestedScene.name || requestedScene.id || 'selected scene'} · sending ${requestedScene.cells?.length ?? 0} cells · ${requestedScene.agents?.length ?? 0} trains`
       : 'Creating session from random infrastructure');
     this.api.createSession(payload).subscribe({
       next: (s) => {
@@ -802,6 +802,9 @@ export class SessionStore {
     this.api.getState(s.id).subscribe({
       next: (st) => {
         this.state.set(st);
+        if (autoAdvanceFirstAgent && st.infrastructure_scene_id && st.infrastructure_scene_diagnostics) {
+          this.message.set(this.formatInfrastructureLoadMessage(st));
+        }
         this._recordTrajectory(st);
         if (autoAdvanceFirstAgent) {
           this._autoAdvanceUntilFirstAgentReady();
@@ -814,6 +817,17 @@ export class SessionStore {
         this.loading.set(false);
       },
     });
+  }
+
+  private formatInfrastructureLoadMessage(st: SessionState): string {
+    const diagnostics = st.infrastructure_scene_diagnostics;
+    if (!diagnostics) {
+      return `Loaded infrastructure scene: ${st.infrastructure_scene_id}`;
+    }
+
+    const mismatches = diagnostics.mismatched_cell_count ? ` · mismatches ${diagnostics.mismatched_cell_count}` : '';
+    const unknown = diagnostics.unknown_tile_count ? ` · unknown tiles ${diagnostics.unknown_tile_count}` : '';
+    return `Loaded infrastructure scene: ${st.infrastructure_scene_id} · cells ${diagnostics.rail_cell_count}/${diagnostics.scene_cell_count} · switches ${diagnostics.rail_switch_tile_count}/${diagnostics.scene_switch_count} · trains ${diagnostics.routable_agent_count}/${diagnostics.scene_agent_count}${mismatches}${unknown}`;
   }
 
   step(policy: PolicyName, n_steps: number = 1) {

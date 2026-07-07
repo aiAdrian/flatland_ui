@@ -7,6 +7,7 @@ import time
 from typing import Any, List
 
 from app.core.session_manager import session_manager
+from app.core.infrastructure_scene_adapter import build_scene_diagnostics, count_routable_agents
 from app.core.serializer import serialize_env
 from app.core.ws_manager import ws_manager
 from app.core.override_manager import override_manager
@@ -149,14 +150,51 @@ def _build_policy(session_id: str, env, policy_name: str):
     return wrapped
 
 
+def _scene_counts(infrastructure_scene: dict[str, Any]) -> dict[str, int]:
+    cells = [cell for cell in infrastructure_scene.get("cells", []) if isinstance(cell, dict)]
+    agents = [agent for agent in infrastructure_scene.get("agents", []) if isinstance(agent, dict)]
+    return {
+        "cells": len(cells),
+        "switches": sum(1 for cell in cells if cell.get("kind") == "switch"),
+        "agents": len(agents),
+        "routable_agents": count_routable_agents(infrastructure_scene),
+    }
+
+
 @router.post("", response_model=SessionInfo)
 def create_session(req: SessionCreateRequest):
     infrastructure_scene = req.infrastructure_scene or None
     infrastructure_grid = infrastructure_scene.get("grid", {}) if isinstance(infrastructure_scene, dict) else {}
-    infrastructure_agents = infrastructure_scene.get("agents", []) if isinstance(infrastructure_scene, dict) else []
     width = int(infrastructure_grid.get("width", req.width)) if infrastructure_grid else req.width
     height = int(infrastructure_grid.get("height", req.height)) if infrastructure_grid else req.height
-    number_of_agents = len(infrastructure_agents) if infrastructure_agents else req.number_of_agents
+    if isinstance(infrastructure_scene, dict):
+        number_of_agents = count_routable_agents(infrastructure_scene)
+        if number_of_agents < 1:
+            raise HTTPException(400, "Selected infrastructure scene has no trains with start and target.")
+    else:
+        number_of_agents = req.number_of_agents
+
+    if isinstance(infrastructure_scene, dict):
+        counts = _scene_counts(infrastructure_scene)
+        _perf_log.info(
+            "[INFRA] create requested mode=scene id=%s name=%s grid=%sx%s cells=%s switches=%s agents=%s routable=%s",
+            infrastructure_scene.get("id"),
+            infrastructure_scene.get("name"),
+            width,
+            height,
+            counts["cells"],
+            counts["switches"],
+            counts["agents"],
+            counts["routable_agents"],
+        )
+    else:
+        _perf_log.info(
+            "[INFRA] create requested mode=random grid=%sx%s agents=%s seed=%s",
+            width,
+            height,
+            number_of_agents,
+            req.seed,
+        )
 
     session = session_manager.create(
         width=width,
@@ -178,6 +216,31 @@ def create_session(req: SessionCreateRequest):
         infrastructure_scene=infrastructure_scene,
     )
     _capture_marey_history_snapshot(session)
+
+    diagnostics = build_scene_diagnostics(infrastructure_scene, session.env)
+    if diagnostics is not None:
+        _perf_log.info(
+            "[INFRA] create built session=%s scene=%s env=%sx%s agents=%s cells=%s/%s switches=%s/%s mismatches=%s unknown_tiles=%s",
+            session.id,
+            getattr(session, "infrastructure_scene_id", None),
+            session.env.width,
+            session.env.height,
+            len(session.env.agents),
+            diagnostics.get("rail_cell_count"),
+            diagnostics.get("scene_cell_count"),
+            diagnostics.get("rail_switch_tile_count"),
+            diagnostics.get("scene_switch_count"),
+            diagnostics.get("mismatched_cell_count"),
+            diagnostics.get("unknown_tile_count"),
+        )
+    else:
+        _perf_log.info(
+            "[INFRA] create built session=%s mode=random env=%sx%s agents=%s",
+            session.id,
+            session.env.width,
+            session.env.height,
+            len(session.env.agents),
+        )
 
     return SessionInfo(
         id=session.id,
@@ -202,6 +265,10 @@ def get_state(session_id: str):
     state = serialize_env(session.env, overrides=overrides)
     state["episode_done"] = _is_done(session.env)
     state["infrastructure_scene_id"] = getattr(session, "infrastructure_scene_id", None)
+    state["infrastructure_scene_diagnostics"] = build_scene_diagnostics(
+        getattr(session, "infrastructure_scene", None),
+        session.env,
+    )
     return state
 
 

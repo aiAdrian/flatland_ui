@@ -5,7 +5,7 @@
     [sessionGridWidth]="newWidth()"
     [sessionGridHeight]="newHeight()"
     (openSettingsRequested)="openSettings()"
-    (newSessionRequested)="onNewSession()">
+    (newSessionRequested)="onInfrastructureBuilderSession($event)">
   </app-infrastructure-builder>
 } @else if (showLayoutDesigner) {
   <app-layout-designer></app-layout-designer>

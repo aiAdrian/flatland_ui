@@ -100,6 +100,59 @@ The runtime selector refreshes saved scenes when opened so scenes saved in the
 Builder are available before pressing `+ New Session`.
 The Infrastructure Builder toolbar also exposes `Delete Scene` for deleting the
 currently loaded saved infrastructure scene. It is disabled for unsaved scenes.
+Only saved scene data is available to the dispatcher welcome screen. If the user
+draws or edits infrastructure in the Builder, they must press `Save changes`
+before selecting that infrastructure for simulation.
+
+## Runtime Integration Status
+
+Implemented runtime behaviour:
+
+- The dispatcher welcome screen offers an inline `Infrastructure` selector next
+  to the runtime layout selector.
+- The Infrastructure Builder offers `Run Current Scene`, which saves the current
+  editor scene and sends that exact in-memory scene directly to simulation. This
+  avoids accidentally simulating an older saved version from the welcome-screen
+  selector.
+- `Random` remains the default. Selecting `Random` uses the existing sparse
+  Flatland generation path.
+- Selecting a saved infrastructure loads the saved scene from local storage and
+  sends it in the `/session` request as `infrastructure_scene`.
+- The backend `/session` endpoint detects `infrastructure_scene` and derives the
+  session width, height, and number of routable trains from that scene instead
+  of using the random-session settings.
+- `SessionManager.create()` forwards the selected scene to `create_env()`, so
+  `env_factory` uses `scene_to_rail_generator()` and `scene_to_line_generator()`
+  rather than the sparse random rail/line generators.
+- The backend stores `infrastructure_scene_id` on the session and returns it in
+  both `SessionInfo` and session state responses.
+
+Implemented scene-to-Flatland conversion details:
+
+- Builder cells are converted into a `RailGridTransitionMap`.
+- Single-connection cells are exported as Flatland dead-end transitions so start
+  and target endpoints remain visible and traversable.
+- Builder `switch` cells are exported as known Flatland switch transitions that
+  resolve to `Weiche_*.svg` tiles in the runtime map view.
+- Draft/incomplete trains are not simulated. Only trains with both start and
+  target are counted as routable and receive compact Flatland handles `0..n-1`.
+- If a selected scene contains no routable train, the backend rejects session
+  creation with a clear 400 error instead of creating a broken Flatland env.
+
+Implemented diagnostics:
+
+- While creating a custom-infrastructure session, the frontend message includes
+  how many scene cells and trains are being sent, for example
+  `sending 42 cells · 3 trains`.
+- After the first state load, the frontend message includes backend conversion
+  diagnostics, for example `cells 42/42 · switches 3/3 · trains 2/3`.
+- The backend state includes `infrastructure_scene_diagnostics` with source scene
+  counts, generated rail/tile counts, switch tile counts, routable train counts,
+  and unknown tile samples.
+- Regression coverage lives in
+  `backend/tests/test_infrastructure_scene_session.py` for custom scene loading,
+  draft-train handling, switch tile export, and the `/session` payload contract
+  where the environment has FastAPI available.
 
 ### Left Sidebar
 

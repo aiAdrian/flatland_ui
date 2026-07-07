@@ -59,7 +59,7 @@ class SessionManager:
         infrastructure_scene = env_kwargs.pop("infrastructure_scene", None)
         enabled_scenario_policy_set = set(enabled_scenario_policy_ids or []) if enabled_scenario_policy_ids is not None else None
         enabled_policy_set = set(enabled_policy_ids or []) if enabled_policy_ids is not None else None
-        env = create_env(**env_kwargs)
+        env = create_env(**env_kwargs, infrastructure_scene=infrastructure_scene)
         session = Session(sid, env, enabled_scenario_policy_set, enabled_policy_set)
         session.infrastructure_scene = infrastructure_scene
         session.infrastructure_scene_id = (

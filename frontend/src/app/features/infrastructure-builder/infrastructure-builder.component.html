@@ -10,6 +10,7 @@
     <sbb-menu configActions trigger="infrastructure-builder-menu-trigger">
       <sbb-menu-button icon-name="gear-small" (click)="openSettingsRequested.emit()">Session Settings…</sbb-menu-button>
       <sbb-menu-button icon-name="plus-small" (click)="openInfrastructureStartChoice()">New infrastructure session</sbb-menu-button>
+      <sbb-menu-button icon-name="play-small" (click)="runCurrentScene()">Run current infrastructure</sbb-menu-button>
       <sbb-menu-button (click)="useSessionGrid()">Use session grid {{ sessionGridWidth }} × {{ sessionGridHeight }}</sbb-menu-button>
       <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
     </sbb-menu>
@@ -24,7 +25,8 @@
     </label>
     <button type="button" (click)="useSessionGrid()">Use Session Grid</button>
     <button type="button" (click)="openSettingsRequested.emit()">Session Settings</button>
-      <button type="button" (click)="openInfrastructureStartChoice()">New Session</button>
+    <button type="button" (click)="openInfrastructureStartChoice()">New Scene</button>
+    <button type="button" (click)="runCurrentScene()">Run Current Scene</button>
   </section>
 
     @if (startChoiceOpen()) {

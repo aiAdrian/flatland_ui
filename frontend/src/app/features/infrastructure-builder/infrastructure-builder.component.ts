@@ -6,6 +6,7 @@ import { BuilderInspectorComponent } from './components/builder-inspector/builde
 import { BuilderLeftSidebarComponent } from './components/builder-left-sidebar/builder-left-sidebar.component';
 import { BuilderSceneManagerComponent } from './components/builder-scene-manager/builder-scene-manager.component';
 import { ConfigShellComponent } from '../config-shell/config-shell.component';
+import { InfrastructureScene } from './models/scene.model';
 import { InfrastructureBuilderStoreService } from './services/infrastructure-builder-store.service';
 import { InfrastructureSceneStorageService } from './services/infrastructure-scene-storage.service';
 
@@ -29,7 +30,7 @@ export class InfrastructureBuilderComponent implements OnChanges {
   @Input() sessionGridHeight = 12;
 
   @Output() openSettingsRequested = new EventEmitter<void>();
-  @Output() newSessionRequested = new EventEmitter<void>();
+  @Output() newSessionRequested = new EventEmitter<InfrastructureScene>();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes['sessionGridWidth'] && !changes['sessionGridHeight']) {
@@ -72,6 +73,13 @@ export class InfrastructureBuilderComponent implements OnChanges {
 
     this.store.loadScene(scene);
     this.startChoiceOpen.set(false);
+  }
+
+  runCurrentScene(): void {
+    const scene = this.store.scene();
+    this.storage.save(scene);
+    this.savedInfrastructureScenes.set(this.storage.listScenes());
+    this.newSessionRequested.emit(this.store.scene());
   }
 
   goHome(): void {
