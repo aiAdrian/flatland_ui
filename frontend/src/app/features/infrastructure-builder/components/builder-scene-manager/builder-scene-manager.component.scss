@@ -30,6 +30,11 @@
   border-color: var(--sbb-color-charcoal);
 }
 
+.designer-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .designer-action-btn--saved {
   border-color: var(--sbb-color-green);
 }

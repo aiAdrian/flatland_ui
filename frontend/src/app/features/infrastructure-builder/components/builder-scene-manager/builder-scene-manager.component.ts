@@ -26,6 +26,10 @@ export class BuilderSceneManagerComponent {
     return this.sceneComparable(saved) !== this.sceneComparable(this.store.scene());
   }
 
+  get hasSavedCurrentScene(): boolean {
+    return !!this.storage.get(this.store.scene().id);
+  }
+
   newScene(): void {
     const grid = this.store.scene().grid;
     this.store.newScene(grid.width, grid.height);
@@ -108,6 +112,16 @@ export class BuilderSceneManagerComponent {
     }
 
     this.setFeedback('Scene deleted', 'info');
+  }
+
+  deleteCurrentScene(): void {
+    if (!this.hasSavedCurrentScene) {
+      this.setFeedback('Delete unavailable: scene is not saved yet', 'warn');
+      return;
+    }
+
+    this.delete(this.store.scene().id);
+    this.flash('delete-scene');
   }
 
   exportJson(): void {

@@ -100,6 +100,8 @@ The runtime selector refreshes saved scenes when opened so scenes saved in the
 Builder are available before pressing `+ New Session`.
 Saved infrastructure scenes can also be deleted from the dispatcher welcome
 screen. Deleting resets the selector to `Random`.
+The Infrastructure Builder toolbar also exposes `Delete Scene` for deleting the
+currently loaded saved infrastructure scene. It is disabled for unsaved scenes.
 
 ### Left Sidebar
 

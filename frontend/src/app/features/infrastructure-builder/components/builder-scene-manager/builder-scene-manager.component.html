@@ -11,6 +11,14 @@
     {{ isDirty ? 'Save changes' : 'Saved' }}
   </button>
   <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAs()">Save As…</button>
+  <button
+    type="button"
+    class="designer-action-btn designer-action-btn--danger"
+    [class.is-clicked]="buttonFeedbackId === 'delete-scene'"
+    [disabled]="!hasSavedCurrentScene"
+    (click)="deleteCurrentScene()">
+    Delete Scene
+  </button>
   <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJson()">Export JSON</button>
   <label class="import-button designer-action-btn designer-import-btn" [class.is-clicked]="buttonFeedbackId === 'import'">
     Import JSON
