@@ -742,7 +742,7 @@ export class SessionStore {
     run();
   }
 
-  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[] } = {}) {
+  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown } = {}) {
     this.loading.set(true);
     this.error.set(null);
     this.message.set(null);
@@ -769,6 +769,7 @@ export class SessionStore {
     if (opts.malfunctionMaxDuration != null) payload.malfunction_max_duration = opts.malfunctionMaxDuration;
     if (opts.scenarioPolicyIds != null) payload.enabled_scenario_policy_ids = opts.scenarioPolicyIds;
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
+    if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
     this.api.createSession(payload).subscribe({
       next: (s) => {
         this.session.set(s);

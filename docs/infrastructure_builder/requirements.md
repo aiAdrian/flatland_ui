@@ -90,6 +90,13 @@ This choice dialog must not open automatically when the Infrastructure Builder
 page is opened; opening the Builder should preserve the current/default scene
 until the user explicitly starts a new infrastructure session.
 
+The dispatcher welcome screen exposes infrastructure selection inline next to
+the runtime layout selector. The default option is `Random`. If a saved scene is
+selected, the runtime create-session request sends the scene as
+`infrastructure_scene`; the backend uses it for the new Flatland session.
+Single-connection Builder cells are exported as Flatland dead-end transitions so
+scene start/target endpoints remain part of the simulated rail map.
+
 ### Left Sidebar
 
 - Grid Settings

@@ -35,6 +35,8 @@ import { PanelShellComponent } from './features/layout/components/panel-shell/pa
 
 import { LayoutDesignerComponent } from './features/layout-designer/layout-designer.component';
 import { InfrastructureBuilderComponent } from './features/infrastructure-builder/infrastructure-builder.component';
+import { InfrastructureScene, InfrastructureSceneSummary } from './features/infrastructure-builder/models/scene.model';
+import { InfrastructureSceneStorageService } from './features/infrastructure-builder/services/infrastructure-scene-storage.service';
 import { TilesGalleryComponent } from './features/tiles-gallery/tiles-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 type RuntimeLayoutOption = {
@@ -130,12 +132,15 @@ export class AppComponent implements OnInit {
 
   store = inject(SessionStore);
   private api = inject(ApiService);
+  private infrastructureStorage = inject(InfrastructureSceneStorageService);
 
   readonly systemRuntimeLayoutId = 'system-default-runtime-layout';
 
   readonly selectedRuntimeLayoutId = signal<string>(this.systemRuntimeLayoutId);
 
   readonly runtimeLayoutOptions = signal<RuntimeLayoutOption[]>(this.loadRuntimeLayoutOptions());
+  readonly runtimeInfrastructureScenes = signal<InfrastructureSceneSummary[]>(this.infrastructureStorage.listScenes());
+  readonly selectedRuntimeInfrastructureId = signal('random');
 
   private designerSessionRequested = false;
 
@@ -548,14 +553,34 @@ export class AppComponent implements OnInit {
     });
   }
 
-  onNewSession() {
+  refreshRuntimeInfrastructures(): void {
+    const scenes = this.infrastructureStorage.listScenes();
+    this.runtimeInfrastructureScenes.set(scenes);
+    if (this.selectedRuntimeInfrastructureId() !== 'random' && !scenes.some((scene) => scene.id === this.selectedRuntimeInfrastructureId())) {
+      this.selectedRuntimeInfrastructureId.set('random');
+    }
+  }
+
+  setSelectedRuntimeInfrastructure(id: string): void {
+    this.selectedRuntimeInfrastructureId.set(id || 'random');
+  }
+
+  onWelcomeNewSession(): void {
+    const infrastructureId = this.selectedRuntimeInfrastructureId();
+    const infrastructureScene = infrastructureId === 'random'
+      ? undefined
+      : this.infrastructureStorage.loadScene(infrastructureId) ?? undefined;
+    this.onNewSession(infrastructureScene);
+  }
+
+  onNewSession(infrastructureScene?: InfrastructureScene) {
     this.persistSessionSettings();
     this.pendingScenarioPreviousSessionId.set(null);
     this.pendingScenarioPolicyIds.set(null);
     this.store.newSession({
-      width: this.newWidth(),
-      height: this.newHeight(),
-      agents: this.newAgents(),
+      width: infrastructureScene ? undefined : this.newWidth(),
+      height: infrastructureScene ? undefined : this.newHeight(),
+      agents: infrastructureScene ? undefined : this.newAgents(),
       maxSteps: this.newMaxSteps(),
       seed: this.newSeed(),
       maxNumCities: this.newMaxNumCities(),
@@ -569,6 +594,7 @@ export class AppComponent implements OnInit {
       malfunctionMaxDuration: this.normalizedMalfunctionMaxDuration(),
       scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
       policyControlIds: this.welcomeControlPolicyIds(),
+      infrastructureScene,
     });
   }
 
@@ -973,6 +999,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.ensureDesignerSession();
+    this.refreshRuntimeInfrastructures();
     this.store.loadPolicies();
   }
 

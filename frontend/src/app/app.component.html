@@ -293,7 +293,22 @@
               </select>
             </label>
 
-            <sbb-button size="l" (click)="onNewSession()">
+            <label class="welcome-layout-choice">
+              <span>Infrastructure</span>
+              <select
+                [value]="selectedRuntimeInfrastructureId()"
+                (focus)="refreshRuntimeInfrastructures()"
+                (change)="setSelectedRuntimeInfrastructure($any($event.target).value)">
+                <option value="random">Random</option>
+                @for (scene of runtimeInfrastructureScenes(); track scene.id) {
+                  <option [value]="scene.id">
+                    {{ scene.name }} · {{ scene.gridWidth }} × {{ scene.gridHeight }} · {{ scene.agentCount }} trains
+                  </option>
+                }
+              </select>
+            </label>
+
+            <sbb-button size="l" (click)="onWelcomeNewSession()">
               + New Session
             </sbb-button>
             <sbb-secondary-button size="l" (click)="startDemoSession()">

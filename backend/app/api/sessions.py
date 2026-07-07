@@ -151,10 +151,17 @@ def _build_policy(session_id: str, env, policy_name: str):
 
 @router.post("", response_model=SessionInfo)
 def create_session(req: SessionCreateRequest):
+    infrastructure_scene = req.infrastructure_scene or None
+    infrastructure_grid = infrastructure_scene.get("grid", {}) if isinstance(infrastructure_scene, dict) else {}
+    infrastructure_agents = infrastructure_scene.get("agents", []) if isinstance(infrastructure_scene, dict) else []
+    width = int(infrastructure_grid.get("width", req.width)) if infrastructure_grid else req.width
+    height = int(infrastructure_grid.get("height", req.height)) if infrastructure_grid else req.height
+    number_of_agents = len(infrastructure_agents) if infrastructure_agents else req.number_of_agents
+
     session = session_manager.create(
-        width=req.width,
-        height=req.height,
-        number_of_agents=req.number_of_agents,
+        width=width,
+        height=height,
+        number_of_agents=number_of_agents,
         seed=req.seed,
         max_num_cities=req.max_num_cities,
         max_rails_between_cities=req.max_rails_between_cities,
@@ -168,6 +175,7 @@ def create_session(req: SessionCreateRequest):
         malfunction_max_duration=req.malfunction_max_duration,
         enabled_policy_ids=req.enabled_policy_ids,
         enabled_scenario_policy_ids=req.enabled_scenario_policy_ids,
+        infrastructure_scene=infrastructure_scene,
     )
     _capture_marey_history_snapshot(session)
 
