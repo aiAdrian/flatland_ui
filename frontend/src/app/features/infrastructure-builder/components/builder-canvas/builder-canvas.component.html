@@ -1,0 +1,97 @@
+<div class="canvas-header">
+  <div>
+    <strong>{{ store.scene().name }}</strong>
+    <span>{{ store.scene().grid.width }} × {{ store.scene().grid.height }}</span>
+  </div>
+  <div class="canvas-stats">
+    <span>{{ store.scene().graph.nodes.length }} nodes</span>
+    <span>{{ store.scene().graph.edges.length }} edges</span>
+    <span>{{ zoomPercent() }}%</span>
+  </div>
+</div>
+
+<div
+  class="canvas-scroll"
+  [class.is-panning]="isPanning()"
+  (mousedown)="onCanvasMouseDown($event)"
+  (mousemove)="onCanvasMouseMove($event)"
+  (mouseup)="onCanvasMouseUp()"
+  (mouseleave)="onCanvasMouseUp()"
+  (wheel)="onWheel($event)">
+  <div
+    class="grid"
+    [style.grid-template-columns]="'repeat(' + store.scene().grid.width + ', ' + store.scene().grid.cellSizePx + 'px)'"
+    [style.transform]="'translate(' + panX() + 'px, ' + panY() + 'px) scale(' + zoom() + ')'"
+  >
+    @for (position of positions(); track positionId(position)) {
+      @let cell = cellAt(position);
+      <div
+        role="button"
+        tabindex="0"
+        class="grid-cell"
+        [class.has-track]="!!cell"
+        [class.is-station]="cell?.kind === 'station'"
+        [class.is-selected]="store.selectedCellId() === positionId(position)"
+        [class.is-agent-route-preview]="isAgentRoutePreview(position)"
+        [style.width.px]="store.scene().grid.cellSizePx"
+        [style.height.px]="store.scene().grid.cellSizePx"
+        [attr.aria-label]="'Cell ' + position.x + ', ' + position.y"
+        (mousedown)="onCellMouseDown($event, position)"
+        (mouseenter)="onCellMouseEnter(position)"
+        (mouseup)="onCellMouseUp(position)"
+        (click)="onCellClick(position)"
+        (keydown)="onCellKeydown($event, position)"
+        (contextmenu)="onCellContextMenu($event, position)">
+        <img class="cell-tile" [src]="tileHref(cell)" alt="" draggable="false" />
+        @if (cell) {
+          <span class="cell-label">{{ cellLabel(position) }}</span>
+        }
+        @for (agent of targetAgents(cell); track agent.id) {
+          <svg
+            class="agent-target-highlight"
+            viewBox="0 0 32 32"
+            [title]="agentMarkerTitle(agent, 'target')"
+            aria-hidden="true">
+            <title>{{ agentMarkerTitle(agent, 'target') }}</title>
+            <circle class="agent-target-ring" cx="16" cy="16" r="13" />
+            <circle class="agent-target-dot" cx="16" cy="16" r="3" />
+            <path class="agent-target-cross" d="M 8 16 L 24 16 M 16 8 L 16 24" />
+          </svg>
+        }
+        @for (agent of startAgents(cell); track agent.id) {
+          <svg
+            class="agent flatland-agent-marker"
+            viewBox="0 0 32 32"
+            [title]="agentMarkerTitle(agent, 'start')"
+            aria-hidden="true">
+            <title>{{ agentMarkerTitle(agent, 'start') }}</title>
+            <circle class="agent-main-circle" cx="16" cy="16" r="9" />
+            <text
+              x="16"
+              y="20"
+              text-anchor="middle"
+              font-size="11"
+              font-weight="bold"
+              class="flatland-agent-id-text agent-handle-text">
+              {{ agentHandle(agent) }}
+            </text>
+          </svg>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="map-nav-overlay">
+    <button class="nav-btn nav-up" (click)="panStep(0, 1)" title="Pan up">↑</button>
+    <button class="nav-btn nav-left" (click)="panStep(1, 0)" title="Pan left">←</button>
+    <button class="nav-btn nav-center" (click)="resetPan()" title="Center / Reset zoom">⌂</button>
+    <button class="nav-btn nav-right" (click)="panStep(-1, 0)" title="Pan right">→</button>
+    <button class="nav-btn nav-down" (click)="panStep(0, -1)" title="Pan down">↓</button>
+  </div>
+
+  <div class="map-zoom-overlay">
+    <button class="nav-btn" (click)="zoomIn()" title="Zoom in">+</button>
+    <span class="zoom-value">{{ zoomPercent() }}%</span>
+    <button class="nav-btn" (click)="zoomOut()" title="Zoom out">−</button>
+  </div>
+</div>

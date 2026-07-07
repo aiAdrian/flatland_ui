@@ -1,0 +1,10 @@
+<section class="panel">
+  <div class="panel-title">
+    <span>Export</span>
+    <select [value]="exportFormat()" (change)="exportFormat.set($any($event.target).value)">
+      <option value="json">JSON</option>
+      <option value="mermaid">Mermaid</option>
+    </select>
+  </div>
+  <textarea readonly [value]="exportText()"></textarea>
+</section>

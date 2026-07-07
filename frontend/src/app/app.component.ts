@@ -34,6 +34,7 @@ import { PanelInstance, isPanelAvailableInMode } from './core/layout';
 import { PanelShellComponent } from './features/layout/components/panel-shell/panel-shell.component';
 
 import { LayoutDesignerComponent } from './features/layout-designer/layout-designer.component';
+import { InfrastructureBuilderComponent } from './features/infrastructure-builder/infrastructure-builder.component';
 import { TilesGalleryComponent } from './features/tiles-gallery/tiles-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 type RuntimeLayoutOption = {
@@ -49,6 +50,7 @@ type RuntimeLayoutOption = {
   imports: [
     PanelPluginHostComponent,
     LayoutDesignerComponent,
+    InfrastructureBuilderComponent,
     TilesGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
@@ -83,6 +85,14 @@ export class AppComponent implements OnInit {
       window.location.pathname === '/designer' ||
       window.location.hash === '#/designer' ||
       window.location.hash.endsWith('/designer')
+    );
+  }
+
+  get showInfrastructureBuilder(): boolean {
+    return (
+      window.location.pathname === '/infrastructure-builder' ||
+      window.location.hash === '#/infrastructure-builder' ||
+      window.location.hash.endsWith('/infrastructure-builder')
     );
   }
 

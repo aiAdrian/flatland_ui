@@ -1,0 +1,31 @@
+.panel {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+select,
+textarea {
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+}
+
+select {
+  padding: var(--sbb-spacing-fixed-1x);
+}
+
+textarea {
+  min-height: 180px;
+  resize: vertical;
+  padding: var(--sbb-spacing-fixed-2x);
+  font-family: monospace;
+  font-size: 0.78rem;
+}

@@ -1,0 +1,51 @@
+.panel,
+.agent-list {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.panel-title,
+.random-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.panel-title {
+  font-weight: 700;
+}
+
+input {
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+}
+
+input {
+  width: 64px;
+  padding: var(--sbb-spacing-fixed-1x);
+}
+
+label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sbb-spacing-fixed-2x);
+  font-size: 0.85rem;
+}
+
+.agent-row {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-1x);
+  text-align: left;
+  justify-content: stretch;
+}
+
+.agent-row.is-active {
+  box-shadow: inset 3px 0 0 var(--sbb-color-blue);
+}
+
+.agent-row small {
+  color: var(--sbb-color-granite);
+}

@@ -1,5 +1,12 @@
 @if (showTilesGallery) {
   <app-tiles-gallery></app-tiles-gallery>
+} @else if (showInfrastructureBuilder) {
+  <app-infrastructure-builder
+    [sessionGridWidth]="newWidth()"
+    [sessionGridHeight]="newHeight()"
+    (openSettingsRequested)="openSettings()"
+    (newSessionRequested)="onNewSession()">
+  </app-infrastructure-builder>
 } @else if (showLayoutDesigner) {
   <app-layout-designer></app-layout-designer>
 } @else {
@@ -72,6 +79,7 @@
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
+          <sbb-menu-link icon-name="map-small" href="/infrastructure-builder">Infrastructure Builder</sbb-menu-link>
           <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
@@ -100,6 +108,7 @@
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
+          <sbb-menu-link icon-name="map-small" href="/infrastructure-builder">Infrastructure Builder</sbb-menu-link>
           <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
