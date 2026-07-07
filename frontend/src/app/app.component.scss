@@ -652,27 +652,6 @@
   width: 100%;
 }
 
-.welcome-infrastructure-delete {
-  min-height: 44px;
-  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
-  border-radius: 4px;
-  background: var(--sbb-color-white, #fff);
-  color: var(--sbb-color-charcoal, #212121);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.welcome-infrastructure-delete:not(:disabled) {
-  border-color: var(--sbb-color-red, #eb0000);
-}
-
-.welcome-infrastructure-delete:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 .welcome-actions sbb-toggle-check {
   --sbb-toggle-check-background-color: var(--sbb-color-milk, #f6f6f6);
   --sbb-toggle-check-border-color: var(--sbb-color-cloud, #d2d2d2);

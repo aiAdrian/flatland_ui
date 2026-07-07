@@ -309,14 +309,6 @@
               </select>
             </label>
 
-            <button
-              type="button"
-              class="welcome-infrastructure-delete"
-              [disabled]="selectedRuntimeInfrastructureId() === 'random'"
-              (click)="deleteSelectedRuntimeInfrastructure()">
-              Delete infrastructure
-            </button>
-
             <sbb-button size="l" (click)="onWelcomeNewSession()">
               + New Session
             </sbb-button>

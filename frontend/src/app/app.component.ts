@@ -565,23 +565,6 @@ export class AppComponent implements OnInit {
     this.selectedRuntimeInfrastructureId.set(id || 'random');
   }
 
-  deleteSelectedRuntimeInfrastructure(): void {
-    const id = this.selectedRuntimeInfrastructureId();
-    if (!id || id === 'random') {
-      return;
-    }
-
-    const scene = this.runtimeInfrastructureScenes().find((candidate) => candidate.id === id);
-    const name = scene?.name ?? id;
-    if (!window.confirm(`Delete infrastructure scene "${name}"?`)) {
-      return;
-    }
-
-    this.infrastructureStorage.deleteScene(id);
-    this.selectedRuntimeInfrastructureId.set('random');
-    this.refreshRuntimeInfrastructures();
-  }
-
   onWelcomeNewSession(): void {
     const infrastructureId = this.selectedRuntimeInfrastructureId();
     const infrastructureScene = infrastructureId === 'random'
