@@ -7,6 +7,8 @@ import { KpiFilterComponent } from '../../../kpi-filter/kpi-filter.component';
 import { ScenarioPanelComponent } from '../../../scenario-panel/scenario-panel.component';
 import { RecommendationsPanelComponent } from '../../../recommendations-panel/recommendations-panel.component';
 import { ImpactPanelComponent } from '../../../impact-panel/impact-panel.component';
+import { RiskUncertaintyPanelComponent } from '../../../risk-uncertainty/risk-uncertainty-panel.component';
+import { DecisionLogPanelComponent } from '../../../decision-log/decision-log-panel.component';
 import { FlatlandMapComponent } from '../../../flatland-map/flatland-map.component';
 import { GraphicTimetableComponent } from '../../../graphic-timetable/graphic-timetable.component';
 import { SituationSummaryComponent } from '../../../situation-summary/situation-summary.component';
@@ -37,6 +39,8 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     ScenarioPanelComponent,
     RecommendationsPanelComponent,
     ImpactPanelComponent,
+    RiskUncertaintyPanelComponent,
+    DecisionLogPanelComponent,
     FlatlandMapComponent,
     GraphicTimetableComponent,
     SituationSummaryComponent,

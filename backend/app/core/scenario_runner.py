@@ -21,7 +21,7 @@ Usage
 Design notes
 ------------
 * The env is forked via RailEnvPersister.save/load_new — that path is
-  the supported way in Flatland 4.2.5 to clone an env deterministically
+  the supported way in Flatland 4.2.6 to clone an env deterministically
   without deepcopy headaches.
 * The detector is driven directly via on_episode_start/_step/_end (no
   PolicyRunner wrapper) so we keep full control of the step loop and

@@ -1,0 +1,47 @@
+<div class="intro">
+  <div class="intro-card">
+    <span class="intro-step">Mode {{ store.demoStepIndex() + 1 }} of {{ totalModes }}</span>
+
+    <span class="intro-wp">{{ intro().wp }}</span>
+    <h2 class="intro-title">{{ intro().title }}</h2>
+    <p class="intro-tagline">{{ intro().tagline }}</p>
+
+    <div class="intro-section">
+      <h3>What happens</h3>
+      <p>{{ intro().whatHappens }}</p>
+    </div>
+
+    <div class="intro-section">
+      <h3>Your role</h3>
+      <p>{{ intro().yourRole }}</p>
+    </div>
+
+    <div class="intro-section">
+      <h3>What you can control</h3>
+      <ul>
+        @for (item of intro().whatYouCanControl; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </div>
+
+    <div class="intro-section">
+      <h3>What to watch for</h3>
+      <ul>
+        @for (item of intro().watchFor; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </div>
+
+    <div class="intro-section intro-goal">
+      <h3>Goal</h3>
+      <p>{{ intro().goal }}</p>
+    </div>
+
+    <div class="intro-actions">
+      <sbb-button size="l" (click)="startScenario()">Start scenario</sbb-button>
+      <sbb-transparent-button size="m" (click)="exit()">Exit demo</sbb-transparent-button>
+    </div>
+  </div>
+</div>

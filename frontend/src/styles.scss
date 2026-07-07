@@ -70,7 +70,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #eb0000;
+  background: var(--app-severity-error);
   color: #ffffff;
   border: 1.5px solid #ffffff;
   box-shadow:
@@ -100,6 +100,57 @@ body {
   --app-hover-ring: rgba(104, 104, 104, 0.28);
   --app-hover-ring-soft: rgba(104, 104, 104, 0.18);
   --app-hover-glow: rgba(104, 104, 104, 0.55);
+}
+
+/* Reliability / uncertainty semantic colours (Tile A1, Trust kind).
+   NOT calibrated trust — they colour the *level of shown reliability* and the
+   *width of the uncertainty band*. Green = high & tight; amber = medium;
+   red = low and/or wide. Keep aligned with SBB signal colours. */
+:root {
+  --app-reliability-high:   var(--sbb-color-green,  #00973b);
+  --app-reliability-medium: var(--sbb-color-orange, #ffaa00);
+  --app-reliability-low:    var(--sbb-color-red,    #eb0000);
+  --app-reliability-band:   var(--sbb-color-cloud,  #d2d2d2);
+  --app-reliability-band-wide: var(--sbb-color-red, #eb0000);
+}
+
+/* Tile `kind` colours — the seven interaction-framework function classes
+   (docs/reference/interaction-framework.md §2). Used by the Layout Designer
+   palette to tag each panel by what it does in the human-AI loop. One distinct
+   SBB semantic colour per kind; bare-token consumers, no fallback. */
+:root {
+  --app-kind-event:           var(--sbb-color-red,    #eb0000);
+  --app-kind-context:         var(--sbb-color-iron,   #444444);
+  --app-kind-prediction:      var(--sbb-color-violet, #762c8f);
+  --app-kind-decision-support:var(--sbb-color-blue,   #0079c7);
+  --app-kind-control:         var(--sbb-color-charcoal,#212121);
+  --app-kind-capitalization:  var(--sbb-color-green,  #00973b);
+  --app-kind-trust:           var(--sbb-color-orange, #ffaa00);
+}
+
+/* Severity ramp — "how bad is this" (malfunction / error / warn). Two levels
+   today: the app distinguishes warn (orange) and error/malfunction (red); no
+   separate critical level exists yet, so none is defined here (add when a
+   consumer needs it). Replaces the previously scattered raw #eb0000 /
+   --sbb-color-red severity definitions (colour-usage-audit.md §3 item 5) so a
+   future colour-blind-safe variant changes one place. Distinct from
+   --app-reliability-* (Trust/model-confidence, A1 tile) which reuses the same
+   hue language but a different concept — do not merge. */
+:root {
+  --app-severity-warn:  var(--sbb-color-orange, #ffaa00);
+  --app-severity-error: var(--sbb-color-red,    #eb0000);
+}
+
+/* "Positive / recommended" — the thing to favour (recommended option/scenario,
+   good KPI delta). Green is the coherent positive cluster (Co-Learning mode,
+   --app-reliability-high). Unifies scenario-panel's hardcoded #00973b and
+   impact-panel's recommended-blue onto one token so "recommended" means one
+   colour (colour-usage-audit.md §3 item 1). Blue was avoided: it already
+   carries Recommendation-mode identity + the decision-support kind badge.
+   Distinct from --app-reliability-high (model-confidence) — same hue, different
+   concept; kept separate so each can diverge without touching the other. */
+:root {
+  --app-positive: var(--sbb-color-green, #00973b);
 }
 /* app interaction color concept overrides - end */
 

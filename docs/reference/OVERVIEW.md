@@ -1,7 +1,7 @@
 # Flatland Dispatcher Playground — overview & roadmap
 
 A single entry point: **what this is**, **what's built**, **how to try it**, and the
-**further ideas** to follow. (For the raw change list see [PLAYGROUND.md](../PLAYGROUND.md).)
+**further ideas** to follow. (For the raw change list see [PLAYGROUND.md](../../PLAYGROUND.md).)
 
 ## What this is
 
@@ -17,7 +17,7 @@ Stack: Angular (standalone + signals) + SBB Lyne · FastAPI + Flatland-RL.
 
 ## How to try it
 
-Two terminals (see the main [README](../README.md) Quick start). Then open
+Two terminals (see the main [README](../../README.md) Quick start). Then open
 http://localhost:4200.
 
 - **Free play:** "+ New Session" → pick a mode in the header → step / play.
@@ -75,18 +75,19 @@ them can change freely. Distinguish **policy change (system-wide)** from
 
 - [interaction-modes-brief.md](interaction-modes-brief.md) — the mode spec (§3.1–3.4)
 - [mode-guide.md](mode-guide.md) — same task walked through all three modes
-- [experiment-storyboard.md](experiment-storyboard.md) — study storyboard, 3 conditions, scenario-difficulty matching
-- [railway-scenarios.md](railway-scenarios.md) — AI4REALNET D1.1/D4.1 scenarios + malfunction taxonomies
-- [recommender-roadmap.md](recommender-roadmap.md) — policy vs intervention seams, phases
-- [variant-visualisation.md](variant-visualisation.md) — ways to show alternatives (beyond the Marey)
-- [co-learning-direction.md](co-learning-direction.md) — Level A (task) vs Level B (AI learns to work with the human)
-- [event-based-architecture-analysis.md](event-based-architecture-analysis.md) — relationship to InteractiveAI
+- [experiment-storyboard.md](../scenarios/experiment-storyboard.md) — study storyboard, 3 conditions, scenario-difficulty matching
+- [railway-scenarios.md](../scenarios/railway-scenarios.md) — AI4REALNET D1.1/D4.1 scenarios + malfunction taxonomies
+- [recommender-roadmap.md](../plans/recommender-roadmap.md) — policy vs intervention seams, phases
+- [variant-visualisation.md](../archive/variant-visualisation.md) — ways to show alternatives (beyond the Marey)
+- [co-learning-direction.md](../plans/co-learning-direction.md) — Level A (task) vs Level B (AI learns to work with the human)
+- [event-based-architecture-analysis.md](../archive/event-based-architecture-analysis.md) — relationship to InteractiveAI
 - [visual-concept.md](visual-concept.md) — canonical names for our surfaces, the 3 zones, and the InteractiveAI lineage
-- [scripted-events-plan.md](scripted-events-plan.md) — deterministic scenario events for User Study 2
-- [recommendation-reliability.md](recommendation-reliability.md) — guaranteeing a decision moment (variants A–D)
-- [heterogeneous-tracks.md](heterogeneous-tracks.md) — track classes/costs so reroute becomes a real trade-off
-- [localized-blocking-decisions.md](localized-blocking-decisions.md) — hold the affected trains/area (not the whole sim) until the human decides; + autonomy agreement idea
-- [scenario-variants.md](scenario-variants.md) — controlled study vs. dynamic "simulated wild" (real algorithms, emergent events); variant axes
+- [scripted-events-plan.md](../plans/scripted-events-plan.md) — deterministic scenario events for User Study 2
+- [recommendation-reliability.md](../plans/recommendation-reliability.md) — guaranteeing a decision moment (variants A–D)
+- [heterogeneous-tracks.md](../plans/heterogeneous-tracks.md) — track classes/costs so reroute becomes a real trade-off
+- [localized-blocking-decisions.md](../plans/localized-blocking-decisions.md) — hold the affected trains/area (not the whole sim) until the human decides; + autonomy agreement idea
+- [scenario-variants.md](../plans/scenario-variants.md) — controlled study vs. dynamic "simulated wild" (real algorithms, emergent events); variant axes
+- [onboarding-tickets-2026-06.md](../plans/onboarding-tickets-2026-06.md) — curated discussion tickets for the June/July onboarding kickoff (RL/vibecoding, interaction design, experiment setup, Co-Learning)
 
 ## Roadmap / further ideas
 
@@ -105,11 +106,28 @@ Backend / agents wave (pending the RL decision):
   real RL, not just heuristics.
 - **Custom scenario builder** (consortium JSON; train names/destinations) with
   **matched difficulty** calibration for the study.
+- **Cities = stations** — surface Flatland's generated city/station data
+  (currently discarded after `reset()`) as named stations, feeding richer
+  train origin/destination info and the reserved `city` visual-encoding role.
+  See [cities-stations-plan.md](../plans/cities-stations-plan.md).
 
 Later / optional:
+- **Guide screens (mode-intro / demo-complete) via the Layout Designer** —
+  compose them as designer layouts instead of hand-authored components; needs
+  content-only tiles + a session-less rendering host + the mode-scoped-layouts
+  resolver (§9 of [mode-scoped-layouts-plan.md](../plans/mode-scoped-layouts-plan.md)).
 - **LLM-driven reflection dialogue** (Socratic/Animation mode).
 - **Event-based architecture** (adopt InteractiveAI's event *pattern*, not the platform).
 - **Web deployment** (VPS/Docker + Caddy; fix hardcoded backend URL first).
+
+Tooling / process debt (small):
+- **Stylelint colour gate covers hex/named only** (`frontend/.stylelintrc.cjs`) —
+  `rgba()`/`rgb()` literals aren't auto-linted yet (would need a custom rule to
+  avoid false positives on shadows); still forbidden by convention
+  (`docs/reference/frontend-lyne-conventions.md` §1).
+- **Colour gate isn't wired to CI or a pre-commit hook** — currently a manual
+  `npm run lint:styles`, documented in CLAUDE.md/AGENTS.md/copilot-instructions.
+  Revisit if new hardcoded colours keep slipping through.
 
 ## Guided demo — how it works (for facilitators)
 

@@ -82,7 +82,7 @@ which is fuzzier and less controllable.
   a substantive option, not just "Hold or n/a".
 - [scripted-events-plan.md](scripted-events-plan.md) — curated layouts + events
   (an event could mark a track temporarily "exception only").
-- [visual-concept.md](visual-concept.md) — track classes as a Network Map layer.
+- [visual-concept.md](../reference/visual-concept.md) — track classes as a Network Map layer.
 - Co-learning / calibrated trust — the exception track as a trust-calibration
   decision.
 

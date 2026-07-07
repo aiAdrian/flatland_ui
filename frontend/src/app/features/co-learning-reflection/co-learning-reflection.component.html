@@ -1,10 +1,10 @@
-<sbb-expansion-panel class="lyne-feature-panel co-learning-reflection-lyne-panel" color="white" size="s">
-  <sbb-expansion-panel-header>
+<sbb-expansion-panel class="lyne-feature-panel co-learning-reflection-lyne-panel" color="white" size="s"
+  [attr.expanded]="reflectionOpen() ? '' : null">
+  <sbb-expansion-panel-header (click)="store.toggleReflectionRequested()">
     <span class="lyne-panel-title">Co-Learning reflection</span>
   </sbb-expansion-panel-header>
 
   <sbb-expansion-panel-content class="lyne-panel-content">
-  @if (!dismissed()) {
     <div class="reflection-panel">
       <div class="rp-head">
         <h3 class="panel-title">Co-Learning Reflection</h3>
@@ -72,9 +72,8 @@
       </div>
 
       <div class="actions">
-        <sbb-button size="m" (click)="finish()">Finish reflection</sbb-button>
+        <sbb-button size="m" (click)="close()">Done — reflect again later</sbb-button>
       </div>
     </div>
-  }
   </sbb-expansion-panel-content>
 </sbb-expansion-panel>

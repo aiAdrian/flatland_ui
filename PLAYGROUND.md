@@ -22,7 +22,7 @@ a round of UI cleanup toward the SBB design system and the InteractiveAI
 event-centric direction.
 
 The full design rationale (grounded in AI4REALNET RP2 Part B) lives in
-[`docs/interaction-modes-brief.md`](docs/interaction-modes-brief.md).
+[`docs/interaction-modes-brief.md`](docs/reference/interaction-modes-brief.md).
 
 ---
 
@@ -112,7 +112,7 @@ Adrian's `aiAdrian/Designer` branch specifies a **configurable layout *designer*
 **fixed** three-zone layout instead — intended to become one `LayoutDefinition`
 **preset** inside that future system. The feature work (modes, KPI, Hypervision,
 reflection) is independent of the layout system and can be adopted on its own.
-See [`docs/layout-preset-and-designer-alignment.md`](docs/layout-preset-and-designer-alignment.md)
+See [`docs/layout-preset-and-designer-alignment.md`](docs/archive/layout-preset-and-designer-alignment.md)
 for a panel-by-panel mapping and a feature-layer vs. layout-layer split.
 
 ## 7. Cleanup

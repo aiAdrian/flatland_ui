@@ -23,7 +23,7 @@ Detects: blocked-streaks, swap attempts, deadlock cycles, malfunctions,
 
 Reference
 ---------
-Flatland 4.2.5 FlatlandCallbacks API (on_episode_start/step/end).
+Flatland 4.2.6 FlatlandCallbacks API (on_episode_start/step/end).
 """
 from __future__ import annotations
 
@@ -162,7 +162,7 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
 
     @staticmethod
     def _malfunction_counter(agent) -> int:
-        # Flatland 4.2.5: agent.malfunction_handler.malfunction_down_counter
+        # Flatland 4.2.6: agent.malfunction_handler.malfunction_down_counter
         mh = getattr(agent, "malfunction_handler", None)
         if mh is None:
             return 0

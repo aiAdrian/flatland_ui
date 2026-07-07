@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { SessionState } from './models';
+import { backendWsBase } from './backend-origin';
 
 export interface WSMessage {
   type: 'state' | 'episode_done' | 'error' | 'pong';
@@ -33,9 +34,9 @@ export class WebSocketService {
   private _open() {
     if (!this.currentSessionId) return;
 
-    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Wir gehen direkt aufs Backend (Port 8000), nicht ueber den Angular-Proxy
-    const url = `${proto}//${window.location.hostname}:8000/ws/session/${this.currentSessionId}`;
+    // Same-origin (wss inherited) in production, localhost:8000 during local
+    // dev — see backend-origin. No hardcoded host/port.
+    const url = `${backendWsBase()}/ws/session/${this.currentSessionId}`;
 
     try {
       this.socket = new WebSocket(url);

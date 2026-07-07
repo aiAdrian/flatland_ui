@@ -1,11 +1,11 @@
 # Build Brief — Tile #1: Conflict-aware Marey
 
 > For Claude Code. Implements the highest-convergence idea from
-> `docs/ui-exploration-synthesis.md` (6/6 models). Turns the Marey from a passive
+> `docs/reference/ui-exploration-synthesis.md` (6/6 models). Turns the Marey from a passive
 > replay into a **predictive conflict instrument**. Written to satisfy the Fusion
 > review's build-readiness gaps (resource semantics, rollout-based numbers,
 > honest uncertainty). Read `docs/interaction-modes-brief.md` (modes) and
-> `docs/ui-exploration-synthesis.md` (§Fusion review) first.
+> `docs/reference/ui-exploration-synthesis.md` (§Fusion review) first.
 
 ## Goal
 On the existing Marey (`features/marey-chart/`), add three optional layers:

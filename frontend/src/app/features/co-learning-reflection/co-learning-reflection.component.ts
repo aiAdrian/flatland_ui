@@ -27,7 +27,14 @@ interface ReflectionQuestion {
 export class CoLearningReflectionComponent {
   store = inject(SessionStore);
 
-  readonly dismissed = signal(false);
+
+  /**
+   * Single source of truth for the panel's open/closed state. Driven by
+   * `reflectionRequested` (toggled from the panel header, and set by the
+   * impact-panel nudge after a resolved decision) and forced open once the
+   * episode is done. Mirrors the app's panel-shell collapse pattern.
+   */
+  readonly reflectionOpen = computed(() => this.store.reflectionRequested() || this.store.episodeDone());
 
   // ── Mirroring [MR]: the operator's own run, reflected back ──────────
   readonly interventions = computed(() => this.store.coLearningFeedback());
@@ -122,7 +129,13 @@ export class CoLearningReflectionComponent {
     });
   }
 
-  finish(): void {
-    this.dismissed.set(true);
+  /**
+   * Collapse the reflection. It is NOT a one-shot: Co-Learning expects
+   * several reflection moments per run (after an intervention, or whenever
+   * the operator chooses), so this only closes the panel — it can be
+   * reopened anytime and the answers persist per session.
+   */
+  close(): void {
+    this.store.reflectionRequested.set(false);
   }
 }

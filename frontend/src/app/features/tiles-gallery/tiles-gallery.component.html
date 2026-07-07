@@ -1,0 +1,182 @@
+<app-config-shell active="gallery">
+  <sbb-transparent-button
+    configActions
+    id="gallery-menu-trigger"
+    size="m"
+    icon-name="hamburger-menu-small">
+    Menu
+  </sbb-transparent-button>
+  <sbb-menu configActions trigger="gallery-menu-trigger">
+    <sbb-menu-link icon-name="grid-small" href="/designer">Open Layout Designer</sbb-menu-link>
+    <sbb-divider></sbb-divider>
+    <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
+  </sbb-menu>
+</app-config-shell>
+
+<div class="gallery">
+  <div class="gallery__intro">
+    <h1>Tile Gallery</h1>
+    <p class="gallery__lead">
+      Every HMI tile, grouped by its function in the human-AI loop
+      (<a href="docs/reference/interaction-framework.md">interaction-framework</a>).
+      Pick a <em>kind</em>, see how it behaves per mode, preview it, then author a
+      new one with the <code>/create-tile</code> skill.
+    </p>
+  </div>
+
+  <!-- Kind legend / picker: the "which kind do I need?" decision aid -->
+  <section class="gallery__legend">
+    <button
+      class="legend-chip"
+      type="button"
+      [class.is-active]="kindFilter() === 'all'"
+      (click)="setKindFilter('all')">
+      All kinds
+    </button>
+    @for (k of kindOrder; track k) {
+      <button
+        class="legend-chip"
+        type="button"
+        [class.is-active]="kindFilter() === k"
+        [style.--chip-color]="kindVar(k)"
+        (click)="setKindFilter(k)">
+        <span class="legend-chip__dot"></span>
+        {{ kindMeta[k].label }}
+        @if (kindMeta[k].aiNovel) { <span class="legend-chip__star" title="AI-novel core capability">★</span> }
+      </button>
+    }
+  </section>
+
+  <!-- Secondary controls: mode filter + status filter + search -->
+  <section class="gallery__controls">
+    <div class="control-group">
+      <span class="control-label">Mode</span>
+      <div class="segmented">
+        <button type="button" [class.is-active]="modeFilter() === 'all'" (click)="setModeFilter('all')">All</button>
+        @for (m of modeColumns; track trackByMode($index, m)) {
+          <button type="button" [class.is-active]="modeFilter() === m.id" (click)="setModeFilter(m.id)">
+            {{ m.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label">Status</span>
+      <div class="segmented">
+        <button type="button" [class.is-active]="statusFilter() === 'all'" (click)="setStatusFilter('all')">All</button>
+        @for (s of statusColumns; track s.id) {
+          <button type="button" [class.is-active]="statusFilter() === s.id" (click)="setStatusFilter(s.id)">
+            {{ s.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <label class="control-group control-group--search">
+      <span class="control-label">Search</span>
+      <input type="search" placeholder="title, description, grounding…" [ngModel]="query()" (ngModelChange)="query.set($event)" />
+    </label>
+
+    <div class="gallery__count">
+      {{ totalShown() }} tile{{ totalShown() === 1 ? '' : 's' }}
+      @if (kindFilter() !== 'all' || modeFilter() !== 'all' || statusFilter() !== 'shipped' || query()) {
+        <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
+      }
+    </div>
+  </section>
+
+  <!-- Grouped tiles -->
+  @for (group of groups(); track trackByKind($index, group)) {
+    <section class="kind-section">
+      <div class="kind-section__head" [style.--kind-color]="kindVar(group.kind)">
+        <span class="kind-section__badge">{{ group.meta.label }}</span>
+        <span class="kind-section__answers">“{{ group.meta.answers }}”</span>
+        @if (group.meta.aiNovel) { <span class="kind-section__novel">AI-novel ★</span> }
+        <p class="kind-section__blurb">{{ group.meta.blurb }}</p>
+      </div>
+
+      <div class="tile-grid">
+        @for (tile of group.tiles; track trackByType($index, tile)) {
+          <article class="tile-card" [style.--kind-color]="kindVar(tile.kind)">
+            <div class="tile-card__top">
+              <h3 class="tile-card__title">{{ tile.title }}</h3>
+              <span class="tile-card__status" [attr.data-status]="tile.status">{{ statusLabel(tile.status) }}</span>
+            </div>
+
+            <div class="tile-card__meta">
+              <span class="tile-card__kind">{{ kindMeta[tile.kind].label }}</span>
+              <span class="tile-card__gran">{{ tile.granularity }}</span>
+              @if (tile.catalogId) { <span class="tile-card__id">{{ tile.catalogId }}</span> }
+            </div>
+
+            <p class="tile-card__desc">{{ tile.description }}</p>
+            <p class="tile-card__promise"><strong>You can:</strong> {{ tile.promise }}</p>
+
+            <!-- Preview -->
+            <div class="tile-card__preview">
+              @if (isLive(tile)) {
+                <div class="preview-frame preview-frame--live">
+                  <app-panel-plugin-host [panel]="previewPanel(tile)"></app-panel-plugin-host>
+                </div>
+              } @else {
+                <div class="preview-frame preview-frame--schematic" [attr.data-kind]="tile.kind">
+                  <span class="schematic__bar schematic__bar--head"></span>
+                  <span class="schematic__bar"></span>
+                  <span class="schematic__bar schematic__bar--short"></span>
+                  <span class="schematic__label">{{ tile.type || tile.catalogId }}</span>
+                </div>
+              }
+              @if (canPreviewLive(tile)) {
+                <button class="preview-toggle" type="button" (click)="toggleLive(tile)">
+                  {{ isLive(tile) ? 'Show schematic' : 'Live preview' }}
+                </button>
+              } @else {
+                <span class="preview-toggle preview-toggle--disabled">no component yet</span>
+              }
+            </div>
+
+            <!-- Per-mode behaviour -->
+            <div class="tile-card__modes">
+              @for (m of modeColumns; track trackByMode($index, m)) {
+                <div
+                  class="mode-row"
+                  [class.is-emphasis]="isEmphasisedMode(m.id)"
+                  [class.is-unavailable]="!availableIn(tile, m.id)">
+                  <span class="mode-row__name">
+                    {{ m.label }} <span class="mode-row__wp">{{ m.wp }}</span>
+                  </span>
+                  <span class="mode-row__body">
+                    @if (availableIn(tile, m.id) && behaviourFor(tile, m.id)) {
+                      {{ behaviourFor(tile, m.id) }}
+                    } @else {
+                      <span class="mode-row__na">not offered in this mode</span>
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Grounding + links -->
+            <div class="tile-card__foot">
+              <p class="tile-card__grounding"><span>Grounded in:</span> {{ tile.grounding }}</p>
+              @if (tile.spec) {
+                <a class="tile-card__spec" [href]="tile.spec">spec ↗</a>
+              }
+              @if (availabilityMismatch(tile)) {
+                <span class="tile-card__warn" title="Registry availability disagrees with panel-mode-availability.ts">⚠ availability drift</span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  @if (totalShown() === 0) {
+    <div class="gallery__empty">
+      No tiles match these filters.
+      <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
+    </div>
+  }
+</div>

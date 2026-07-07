@@ -73,7 +73,7 @@
   padding: 64px;
 
   strong {
-    color: var(--sbb-color-red, #eb0000);
+    color: var(--app-severity-error);
   }
 }
 
@@ -418,7 +418,7 @@
 }
 
 .malfunction-badge-bg {
-  fill: #eb0000;
+  fill: var(--app-severity-error);
   stroke: #ffffff;
   stroke-width: 1.5;
   pointer-events: none;
@@ -458,7 +458,7 @@
 
 /* Do not recolor malfunction badge during notification hover. */
 .agent.notification-hover .malfunction-badge-bg {
-  fill: #eb0000;
+  fill: var(--app-severity-error);
   stroke: #ffffff;
   stroke-width: 1.5;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
@@ -505,7 +505,7 @@
 .malfunction-badge-bg,
 .agent.selected .malfunction-badge-bg,
 .agent.notification-hover .malfunction-badge-bg {
-  fill: #eb0000 !important;
+  fill: var(--app-severity-error) !important;
   stroke: #ffffff !important;
   stroke-width: 1.5 !important;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55)) !important;

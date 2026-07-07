@@ -83,7 +83,7 @@
   color: var(--sbb-color-granite, #686868);
 }
 
-.recap-cell.warn .recap-num { color: var(--sbb-color-orange, #cc8800); }
+.recap-cell.warn .recap-num { color: var(--app-severity-warn); }
 
 .intervention-list {
   list-style: none;

@@ -8,8 +8,10 @@
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
-  background: var(--sbb-color-charcoal, #212121);
-  color: #fff;
+  background: var(--sbb-color-white, #fff);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-left: 4px solid var(--sbb-color-orange, #ffaa00);
+  color: var(--sbb-color-charcoal, #212121);
 }
 
 .dir-text {
@@ -32,7 +34,7 @@
 .dir-desc {
   margin: 4px 0 8px;
   font-size: 12px;
-  color: #d2d2d2;
+  color: var(--sbb-color-granite, #686868);
   line-height: 1.4;
 }
 
@@ -44,11 +46,13 @@
 
 .dir-chip {
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--sbb-color-milk, #f6f6f6);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
   border-radius: 9px;
   padding: 2px 10px;
+  color: var(--sbb-color-charcoal, #212121);
 }
-.dir-chip strong { color: var(--sbb-color-orange, #ffaa00); }
+.dir-chip strong { color: #b36b00; }
 
 .dir-start {
   flex-shrink: 0;

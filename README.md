@@ -70,8 +70,8 @@ behaviourally distinct and switchable from the header:
 | **Director** | WP 3.4 | AI runs autonomously on high-level directives; the human supervises (adjustable autonomy). |
 
 A **guided demo** walks through all three modes on the same conflict-rich
-environment. See [docs/interaction-modes-brief.md](docs/interaction-modes-brief.md)
-for the authoritative spec and [docs/mode-guide.md](docs/mode-guide.md) for a
+environment. See [docs/interaction-modes-brief.md](docs/reference/interaction-modes-brief.md)
+for the authoritative spec and [docs/mode-guide.md](docs/reference/mode-guide.md) for a
 quick tour.
 
 ---
@@ -87,7 +87,7 @@ quick tour.
 **Backend:** FastAPI + Flatland-RL
 **Frontend:** Angular (standalone components, signals) + SBB Lyne Elements
 
-A more detailed write-up is in [docs/architecture.md](docs/architecture.md).
+A more detailed write-up is in [docs/architecture.md](docs/reference/architecture.md).
 Project conventions and guardrails live in [CLAUDE.md](CLAUDE.md).
 
 ---

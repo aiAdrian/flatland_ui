@@ -1,11 +1,14 @@
 # Localized blocking decisions — hold the affected, not the world
 
-> **Status:** Concept + first prototype. In Co-Learning the guided-demo now
-> holds the affected trains (STOP) on a new conflict instead of globally pausing;
-> the rest of the network keeps running, and the human releases them by deciding
-> (option buttons). Recommendation mode keeps the old gentle global pause.
+> **Status:** Concept + prototype. In Co-Learning the guided-demo holds the
+> affected trains (STOP) on a new conflict instead of globally pausing; the
+> rest of the network keeps running, and the human releases them by deciding
+> (option buttons). Recommendation mode keeps the old gentle global pause. The
+> reflection panel now also opens automatically once a decision is resolved
+> and nothing else is pending (§6.3) — in addition to the manual trigger.
 > Still open: event-type-dependent scope (area/sector), the autonomy agreement
-> panel (§5.3), and the post-decision outcome feedback (§6.2).
+> panel (§5.3), post-decision outcome feedback (§6.2), the explicit two-step
+> confirm, and the end-of-scenario sandbox (both §8).
 > **Origin:** Came out of the question "when do I have to find a solution and get
 > feedback?" The realisation: today the decision moment auto-resolves, so a
 > passive human gets a fully AI-driven run — a *disguised director mode*. The fix
@@ -81,11 +84,17 @@ deliberate" is the right model, not a stopwatch.
 
 Three stages at a blocking decision:
 
-1. **Before** the decision — what-if feedback (built): "Hold → +3 steps; Reroute
-   → deadlock risk." You see the consequence of your proposal before committing.
-2. **After** the decision — outcome: did it play out as predicted? (not built)
-3. **Reflection** (later / on demand) — the AI reflects back on your decisions
-   and patterns (building block D).
+1. **Before** the decision — what-if feedback (**built**): hovering an option
+   forward-simulates it and shows the consequence ("Hold → +3 steps; Reroute →
+   deadlock risk") before committing (`what-if-override` endpoint).
+2. **After** the decision — outcome: did it play out as predicted? (**not
+   built** — see §9.1 below, the explicit confirm step is a related gap.)
+3. **Reflection** (**built, first pass**) — once a decision is implemented and
+   nothing else is pending, the reflection panel opens automatically
+   (*in addition to* the manual "Reflect now" trigger, which stays available
+   any time). Scoped to Co-Learning; only triggers via the impact-panel's
+   `applyOption()` today — direct map/agent-inspector overrides don't (yet)
+   trigger it.
 
 ## 7. This redefines "A-mini"
 
@@ -94,7 +103,31 @@ blocking decision the human must resolve**, scoped to the affected trains/area" 
 a scripted event flagged `blocking: true` that (a) reliably occurs and (b) holds
 the affected resources until the human decides.
 
-## 8. Connections
+## 8. Two noted extensions (direction, not yet built)
+
+From refining the Co-Learning decision loop further:
+
+**a) Explicit two-step confirm.** Today, hover = preview (what-if feedback) and
+click = commit, in one motion. The refined design wants these split into two
+distinct steps: see the AI's impact analysis for your chosen option, *then* an
+explicit "Confirm" action applies it. This makes the "propose → get feedback →
+commit" loop visible as three separate moments instead of two, and creates a
+natural place to change your mind after seeing the consequence, before it's
+locked in.
+
+**b) End-of-scenario sandbox.** At the end of a Co-Learning run, a sandbox
+screen lets the human replay the run's key decisions and see the impact of
+each across the whole simulation — not just the single forward-sim at the
+moment of choice (§6.1), but a full look-back over the decisions that mattered
+most. This is the "what if I had chosen differently" idea from
+`interaction-modes-brief.md` §3.3 (human-chosen = blue, AI-simulated = yellow
+on the Marey), but scoped to a **post-hoc, run-wide review** rather than a
+single what-if at decision time. Buildable from what already exists — the
+`coLearningFeedback` intervention log (step + handle + choice), the
+what-if-override endpoint, and stored trajectories — but is a standalone new
+UI (a list of key decisions → pick one → compare), not a small addition.
+
+## 9. Connections
 
 - [scripted-events-plan.md](scripted-events-plan.md) — events carry the blocking
   scope (train vs. area) and the `blocking` flag.
@@ -105,7 +138,7 @@ the affected resources until the human decides.
 - Adjustable autonomy / LoA — the autonomy agreement (§5.3) is the operator-set
   control variable.
 
-## 9. Open questions
+## 10. Open questions
 
 1. How is the autonomy agreement (§5.3) represented and edited — a per-incident-
    type slider/toggle panel next to the KPI filter?

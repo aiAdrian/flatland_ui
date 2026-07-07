@@ -1,5 +1,5 @@
 import '@sbb-esta/lyne-elements/toggle-check.js';
-import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, HostListener, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { ToolbarComponent } from './features/toolbar/toolbar.component';
 import { AgentInspectorComponent } from './features/agent-inspector/agent-inspector.component';
 import { AgentsPanelComponent } from './features/agents-panel/agents-panel.component';
@@ -17,14 +17,24 @@ import { GoalAchievementComponent } from './features/goal-achievement/goal-achie
 import { DirectorDirectiveComponent } from './features/director-directive/director-directive.component';
 import { SurveyComponent } from './features/survey/survey.component';
 import { ImpactPanelComponent } from './features/impact-panel/impact-panel.component';
+import { ModeIntroComponent } from './features/mode-intro/mode-intro.component';
+import { DemoCompleteComponent } from './features/demo-complete/demo-complete.component';
+import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
 import { SessionStore } from './core/session.store';
+import {
+  DEFAULT_VISUAL_ENCODING,
+  VISUAL_ENCODING_PRESETS,
+  VisualEncodingPresetId,
+} from './core/visual-encoding';
 import { InteractionMode } from './core/events/event-types';
-import { PanelInstance } from './core/layout';
+import { INTERACTION_MODES } from './core/interaction-modes';
+import { PanelInstance, isPanelAvailableInMode } from './core/layout';
 import { PanelShellComponent } from './features/layout/components/panel-shell/panel-shell.component';
 
 import { LayoutDesignerComponent } from './features/layout-designer/layout-designer.component';
+import { TilesGalleryComponent } from './features/tiles-gallery/tiles-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 type RuntimeLayoutOption = {
   id: string;
@@ -39,6 +49,7 @@ type RuntimeLayoutOption = {
   imports: [
     PanelPluginHostComponent,
     LayoutDesignerComponent,
+    TilesGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
     GraphicTimetableComponent,
@@ -56,6 +67,9 @@ type RuntimeLayoutOption = {
     AgentInspectorComponent,
     AgentsPanelComponent,
     ViewToggleComponent,
+    ModeIntroComponent,
+    DemoCompleteComponent,
+    HelpAboutComponent,
 PanelShellComponent,
   ],
   templateUrl: './app.component.html',
@@ -69,6 +83,14 @@ export class AppComponent implements OnInit {
       window.location.pathname === '/designer' ||
       window.location.hash === '#/designer' ||
       window.location.hash.endsWith('/designer')
+    );
+  }
+
+  get showTilesGallery(): boolean {
+    return (
+      window.location.pathname === '/gallery' ||
+      window.location.hash === '#/gallery' ||
+      window.location.hash.endsWith('/gallery')
     );
   }
 
@@ -209,12 +231,20 @@ export class AppComponent implements OnInit {
     sizeMode: 'auto',
   };
 
-  /** Human-AI collaboration modes shown in the header switcher (WP 3.1/3.3/3.4). */
-  readonly interactionModes: { id: InteractionMode; label: string; wp: string; description: string }[] = [
-    { id: 'recommendation', label: 'Recommendation', wp: 'WP 3.1', description: 'AI suggests, you decide.' },
-    { id: 'co-learning', label: 'Co-Learning', wp: 'WP 3.3', description: 'You and the AI adapt to each other.' },
-    { id: 'director', label: 'Director', wp: 'WP 3.4', description: 'AI acts autonomously on your high-level directives.' },
-  ];
+  /** Human-AI collaboration modes shown in the header switcher (WP 3.1/3.3/3.4).
+   *  Single source of truth in core/interaction-modes so the switcher and the
+   *  Help/About overlay can't drift apart. */
+  readonly interactionModes = INTERACTION_MODES;
+
+  /**
+   * Whether a panel type is offered in the current interaction mode. Single
+   * source of truth is PANEL_MODE_AVAILABILITY (see docs/reference/panel-mode-matrix.md);
+   * reading interactionMode() here keeps it reactive in the template. Replaces
+   * scattered isCoLearning()/aiInControl() gating for the mode-specific panels.
+   */
+  panelAvailable(type: string): boolean {
+    return isPanelAvailableInMode(type, this.store.interactionMode());
+  }
 
   /** Label of the currently active collaboration mode (for the header dropdown). */
   currentModeLabel(): string {
@@ -241,8 +271,26 @@ export class AppComponent implements OnInit {
   newMalfunctionMaxDuration = signal(20);
 
   settingsMode = signal(false);
+  /** Session Settings dialog tab: Basic (grid only), Advanced (everything else), Colours. */
+  settingsTab = signal<'basic' | 'advanced' | 'colours'>('basic');
   scenarioPolicyMode = signal(false);
+
+  /** True while a round is running → Visual Encoding is locked (pre-session only).
+   *  No existing settings field uses a disable-when-active convention, so this is
+   *  the simple explicit check the colour-cleanup task asked for (no new gating). */
+  readonly sessionActive = computed(() => !!this.store.session());
+  /** Visual-Encoding preset presets (Default + one high-contrast alternate). */
+  readonly visualEncodingPresets = VISUAL_ENCODING_PRESETS;
+  /** Draft preset id (applied to the store on Save, like every other settings field). */
+  draftVisualEncodingPreset = signal<VisualEncodingPresetId>('default');
+  /** The encoding currently previewed in the dialog (derived from the draft). */
+  readonly draftVisualEncoding = computed(() =>
+    VISUAL_ENCODING_PRESETS.find((p) => p.id === this.draftVisualEncodingPreset())?.encoding
+    ?? DEFAULT_VISUAL_ENCODING,
+  );
+
   surveyActive = signal(false);
+  helpActive = signal(false);
   demoComplete = signal(false);
   showLayoutSandbox = signal(false);
 
@@ -290,6 +338,16 @@ export class AppComponent implements OnInit {
     this.demoComplete.set(false);
   }
 
+  /** Menu action: end the session and return to the welcome screen (no reload). */
+  exitToStart() {
+    this.store.stopDemo();
+    this.demoComplete.set(false);
+    this.settingsMode.set(false);
+    this.scenarioPolicyMode.set(false);
+    this.surveyActive.set(false);
+    this.store.endSession();
+  }
+
   /** Available survey building blocks + the draft selection edited in Settings. */
   readonly surveyParts = SURVEY_PARTS;
   draftSurveyParts = signal<string[]>([...DEFAULT_SURVEY_PARTS]);
@@ -311,7 +369,21 @@ export class AppComponent implements OnInit {
     this.draftSurveyParts.set(next);
   }
 
+  openHelp() {
+    this.helpActive.set(true);
+    this.blurActiveElement();
+  }
+
+  closeHelp() {
+    this.helpActive.set(false);
+    this.blurActiveElement();
+  }
+
   openSurvey() {
+    // Answering is gated to the end of a run. In the guided demo, "Finish mode
+    // & survey" is itself the deliberate end of that mode, so it is allowed even
+    // before episodeDone; a regular session must have finished its episode.
+    if (!this.store.episodeDone() && !this.store.demoActive()) return;
     this.surveyActive.set(true);
     this.blurActiveElement();
   }
@@ -521,7 +593,9 @@ export class AppComponent implements OnInit {
     this.draftDecisionCountdown.set(this.store.decisionCountdownSeconds());
     this.draftRecommendationDuration.set(this.store.recommendationDurationSeconds());
     this.draftAutoPauseOnConflict.set(this.store.autoPauseOnConflict());
+    this.draftVisualEncodingPreset.set(this.store.visualEncodingPreset());
     this.scenarioPolicyMode.set(false);
+    this.settingsTab.set('basic');
     this.settingsMode.set(true);
     this.blurActiveElement();
   }
@@ -553,6 +627,7 @@ export class AppComponent implements OnInit {
     this.store.setDecisionCountdownSeconds(this.draftDecisionCountdown());
     this.store.setRecommendationDurationSeconds(this.draftRecommendationDuration());
     this.store.setAutoPauseOnConflict(this.draftAutoPauseOnConflict());
+    this.store.setVisualEncodingPreset(this.draftVisualEncodingPreset());
     this.persistSessionSettings();
     this.settingsMode.set(false);
     this.blurActiveElement();
@@ -668,6 +743,13 @@ export class AppComponent implements OnInit {
     // ESC priority:
     // 1) close open settings dialogs/panels
     // 2) only if no dialog/panel was open, deselect selected agent
+
+    if (this.helpActive()) {
+      this.closeHelp();
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
 
     if (this.surveyActive()) {
       this.closeSurvey();

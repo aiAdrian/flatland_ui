@@ -1,6 +1,6 @@
 """Hybrid Policy interface for the Flatland HMI backend.
 
-Compatible with Flatland 4.2.5:
+Compatible with Flatland 4.2.6:
 - act_many(handles, observations) matches flatland.core.policy.Policy,
   so policies can be used directly with PolicyRunner.create_from_policy
   and TrajectoryEvaluator.

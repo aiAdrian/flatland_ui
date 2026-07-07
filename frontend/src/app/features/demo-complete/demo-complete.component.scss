@@ -1,0 +1,67 @@
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.intro {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sbb-color-milk, #f6f6f6);
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.intro-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 40px 48px;
+  background: var(--sbb-color-white, #fff);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 4px;
+  max-width: 560px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.intro-step {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #fff;
+  background: #00973b;
+  border-radius: 9px;
+  padding: 2px 10px;
+  margin-bottom: 12px;
+}
+
+.intro-wp {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--sbb-color-blue, #0079c7);
+}
+
+.intro-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal, #212121);
+  margin: 2px 0 0;
+}
+
+.intro-tagline {
+  font-size: 15px;
+  color: var(--sbb-color-granite, #686868);
+  margin: 4px 0 20px;
+}
+
+.intro-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}

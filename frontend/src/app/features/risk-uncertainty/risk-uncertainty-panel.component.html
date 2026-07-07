@@ -1,0 +1,132 @@
+@if (embedded) {
+  <div class="ru-panel ru-panel--embedded">
+    <div class="ru-panel-head ru-panel-head--embedded">
+      <span class="panel-title" title="How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.">
+        Risk &amp; Uncertainty
+      </span>
+      <span class="ru-level-chip" [class.high]="level() === 'high'" [class.medium]="level() === 'medium'" [class.low]="level() === 'low'">
+        {{ level() }}
+      </span>
+    </div>
+
+    <ng-container [ngTemplateOutlet]="ruContent"></ng-container>
+  </div>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel ru-panel-lyne-panel ru-panel" color="white" size="s" expanded>
+    <sbb-expansion-panel-header class="ru-panel-head">
+      <span class="lyne-panel-title panel-title" title="How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.">
+        Risk &amp; Uncertainty
+      </span>
+      <span class="ru-level-chip" [class.high]="level() === 'high'" [class.medium]="level() === 'medium'" [class.low]="level() === 'low'">
+        {{ level() }}
+      </span>
+    </sbb-expansion-panel-header>
+
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="ruContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #ruContent>
+  @if (!hasData()) {
+    <p class="ru-empty">No AI output to assess right now.</p>
+  } @else {
+    <!-- Recommendation / Director: a single reliability badge + band -->
+    @if (modeBehavior().framing !== 'assessment') {
+      <div class="ru-badge-row">
+        <div class="ru-confidence" [class.high]="level() === 'high'" [class.medium]="level() === 'medium'" [class.low]="level() === 'low'">
+          @if (primaryRecommendation(); as rec) {
+            <span class="ru-conf-label">model-reported confidence</span>
+            <span class="ru-conf-value">{{ rec.confidence | number: '1.0-2' }}</span>
+          } @else if (aggregateConfidence(); as agg) {
+            <span class="ru-conf-label">aggregate confidence (policy)</span>
+            <span class="ru-conf-value">{{ agg | number: '1.0-2' }}</span>
+          }
+        </div>
+
+        <div class="ru-band" [class.wide]="bandWidth() === 'wide'" [class.medium]="bandWidth() === 'medium'" [class.tight]="bandWidth() === 'tight'">
+          <span class="ru-band-label">uncertainty band</span>
+          <span class="ru-band-value">
+            @if (bandWidth(); as bw) {
+              {{ bw }}
+              @if (dispersionPct(); as pct) { · ±{{ pct }}% }
+            } @else {
+              n/a
+            }
+          </span>
+        </div>
+      </div>
+
+      @if (directorException()) {
+        <div class="ru-exception">
+          Low-confidence policy event — adjustable-autonomy handback point.
+          Consider taking manual control.
+        </div>
+      }
+
+      <button type="button" class="ru-expand" (click)="toggleExpanded()">
+        {{ expanded() ? 'Hide detail' : 'What is uncertain?' }}
+      </button>
+
+      @if (expanded()) {
+        <ul class="ru-reasons">
+          @for (reason of reasons(); track reason) {
+            <li>{{ reason }}</li>
+          }
+          <li class="ru-reason-muted">
+            Label is “model-reported confidence”, not “reliability” — not yet calibrated against outcomes.
+          </li>
+        </ul>
+      }
+
+      @if (modeBehavior().interactive) {
+        <div class="ru-actions">
+          <button type="button" class="ru-btn ru-btn--accept" (click)="recordReliance('accept')">
+            Accept
+          </button>
+          <button type="button" class="ru-btn ru-btn--override" (click)="recordReliance('override')">
+            Override
+          </button>
+          <span class="ru-actions-hint">records the decision you’d make given this reliability (study instrument only)</span>
+        </div>
+      }
+    }
+
+    <!-- Co-Learning: neutral per-option evidence (Evaluative AI) -->
+    @if (modeBehavior().framing === 'assessment') {
+      @if (optionReliabilities().length === 0) {
+        <p class="ru-empty">No options to evaluate yet.</p>
+      } @else {
+        <ul class="ru-options">
+          @for (opt of optionReliabilities(); track opt.id) {
+            <li class="ru-option" [class.baseline]="opt.isBaseline">
+              <span class="ru-opt-title">{{ opt.title }}</span>
+              @if (opt.score !== null) {
+                <span class="ru-opt-score">score {{ opt.score | number: '1.0-2' }}</span>
+              }
+              <span class="ru-opt-evidence" [class.for]="opt.evidence === 'evidence for'" [class.against]="opt.evidence === 'evidence against'">
+                {{ opt.evidence }}
+              </span>
+            </li>
+          }
+        </ul>
+        <p class="ru-reason-muted">Neutral per-option evidence — no single trust-score winner. Reflect: which option would you take, and why?</p>
+      }
+    }
+
+    <!-- Accountability readout (overtrust proxy) -->
+    @if (overtrustProxy(); as proxy) {
+      <div class="ru-proxy">
+        <span class="ru-proxy-title">Overtrust proxy</span>
+        <span class="ru-proxy-row">
+          low&amp;wide: {{ proxy.lowWide.overrideRate ?? '–' }}% override (n={{ proxy.lowWide.n }})
+        </span>
+        <span class="ru-proxy-row">
+          high&amp;tight: {{ proxy.highTight.overrideRate ?? '–' }}% override (n={{ proxy.highTight.n }})
+        </span>
+        <button type="button" class="ru-proxy-clear" (click)="clearRelianceEvents()">clear</button>
+      </div>
+    }
+  }
+</ng-template>

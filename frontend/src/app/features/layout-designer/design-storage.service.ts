@@ -102,6 +102,13 @@ export class DesignStorageService {
       height,
     });
 
+    // Mirrors the hardcoded three-column main layout (see app.component.html):
+    // LEFT = situation/notifications/trains, CENTER = the map+timetable toggle
+    // composite, RIGHT = inspector/impact/scenario/KPI. Uses only panel types
+    // the plugin host actually renders. Mode-specific center panels
+    // (goal-achievement, co-learning-reflection, director-directive) and the
+    // rec-only recommendations panel are intentionally left out of the default —
+    // they are available from the palette.
     return {
       id: `design_${Date.now()}`,
       name,
@@ -113,27 +120,37 @@ export class DesignStorageService {
         columns: [
           {
             id: 'left',
-            name: 'left',
+            name: 'Left',
             width: 280,
             role: 'sidebar',
-            panels: [panel('agents-list', 'Agents List')],
+            panels: [
+              panel('situation-summary', 'Situation Summary', 120),
+              panel('notifications', 'Notifications', 140),
+              panel('agents', 'Trains', 180),
+            ],
           },
           {
             id: 'center',
-            name: 'center/map',
-            width: 560,
+            name: 'Center',
+            width: 720,
             role: 'main',
-            panels: [panel('flatland-map', 'Simulation Map', 260, 320)],
+            panels: [
+              {
+                ...panel('toggle-view', 'Track Layout & Timetable', 520, 600),
+                settings: { toggleSplitOrientation: 'vertical', splitOrientation: 'vertical' },
+              },
+            ],
           },
           {
             id: 'right',
-            name: 'right',
+            name: 'Right',
             width: 340,
             role: 'sidebar',
             panels: [
-              panel('agent-inspector', 'Agent Inspector', 170),
-              panel('goal-achievement', 'Goal Achievement', 150),
-              panel('impact', 'Impact', 150),
+              panel('agent-inspector', 'Agent Inspector', 180),
+              panel('impact', 'Impact', 160),
+              panel('scenario', 'Scenario', 160),
+              panel('kpi-filter', 'KPI Filter', 160),
             ],
           },
         ],

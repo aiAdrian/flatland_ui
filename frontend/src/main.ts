@@ -12,6 +12,7 @@ import '@sbb-esta/lyne-elements/divider.js';
 import '@sbb-esta/lyne-elements/tag.js';
 import '@sbb-esta/lyne-elements/menu.js';
 import '@sbb-esta/lyne-elements/menu/menu-button.js';
+import '@sbb-esta/lyne-elements/menu/menu-link.js';
 import '@sbb-esta/lyne-elements/loading-indicator.js';
 import '@sbb-esta/lyne-elements/loading-indicator-circle.js';
 

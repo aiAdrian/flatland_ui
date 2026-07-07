@@ -1,0 +1,98 @@
+.help-card {
+  width: min(560px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--sbb-color-white, #fff);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.24);
+  padding: 24px;
+}
+
+.help-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 2px solid var(--sbb-color-red, #eb0000);
+  padding-bottom: 12px;
+}
+
+.help-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal, #212121);
+}
+
+.help-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--sbb-color-granite, #686868);
+}
+
+.help-close {
+  border: none;
+  background: none;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--sbb-color-granite, #686868);
+}
+
+.help-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0;
+}
+
+.help-tabs button {
+  border: none;
+  background: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--sbb-color-granite, #686868);
+  border-bottom: 2px solid transparent;
+}
+
+.help-tabs button.is-active {
+  color: var(--sbb-color-charcoal, #212121);
+  border-bottom-color: var(--sbb-color-red, #eb0000);
+}
+
+.help-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sbb-color-charcoal, #212121);
+}
+
+.help-body h3 {
+  margin: 18px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.help-body ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.help-body li {
+  margin: 4px 0;
+}
+
+.help-wp {
+  font-size: 12px;
+  color: var(--sbb-color-granite, #686868);
+}
+
+.help-links a {
+  color: var(--sbb-color-blue, #0079c7);
+}
+
+.help-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}

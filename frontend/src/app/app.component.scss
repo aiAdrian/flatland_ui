@@ -46,7 +46,7 @@
   align-items: baseline;
   gap: 8px;
   margin-left: 20px;
-  margin-right: auto;
+  margin-right: 0;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -56,21 +56,15 @@
   color: var(--sbb-color-charcoal, #212121);
 }
 
-.header-meta {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  font-size: 13px;
-  color: var(--sbb-color-granite, #686868);
-  flex-shrink: 0;
-}
-
-/* Header right-hand actions: mode dropdown (WP 3.1/3.3/3.4) + app menu. */
+/* Header right-hand actions: mode dropdown (WP 3.1/3.3/3.4) + app menu. Always
+   pushed to the far right — .mode-tabs supplies its own margin-right: auto
+   when a session is active, but the welcome screen (no session, no mode-tabs)
+   needs this margin-left: auto directly or the menu sits glued to the title. */
 .header-actions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-left: 16px;
+  margin-left: auto;
   flex-shrink: 0;
   z-index: 1;
 }
@@ -78,35 +72,64 @@
 @media (max-width: 1100px) {
   .header-title-sub { display: none; }
 }
-@media (max-width: 900px) {
-  .header-meta { display: none; }
+
+/* Mode switcher: flat tabs (per-mode icon + label, red underline on the active
+   mode) — mirrors the config-shell nav (Layout Designer / Tile Gallery). Sits
+   left of the header (after the title); margin-right:auto pushes the Menu to
+   the right edge. */
+.mode-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: 24px;
+  margin-right: auto;
 }
 
-.header-mode-trigger {
-  white-space: nowrap;
+.mode-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--sbb-color-charcoal, #212121);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: color 0.12s;
+
+  &:hover { color: var(--sbb-color-red, #eb0000); }
+  &.is-active { border-bottom-color: var(--sbb-color-red, #eb0000); }
+  &:disabled { cursor: not-allowed; opacity: 0.65; }
 }
 
-.mode-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 7px;
-  vertical-align: middle;
-  background: var(--sbb-color-granite, #686868);
+.mode-tab__ico {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: var(--mode-ico, var(--sbb-color-charcoal, #212121));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.header-mode-trigger[data-mode='recommendation'] .mode-dot { background: var(--sbb-color-blue, #0079c7); }
-.header-mode-trigger[data-mode='co-learning'] .mode-dot   { background: var(--sbb-color-green, #00973b); }
-.header-mode-trigger[data-mode='director'] .mode-dot      { background: var(--sbb-color-orange, #ffaa00); }
+.mode-tab[data-mode='recommendation'] { --mode-ico: var(--sbb-color-blue, #0079c7); }
+.mode-tab[data-mode='co-learning']   { --mode-ico: var(--sbb-color-green, #00973b); }
+.mode-tab[data-mode='director']      { --mode-ico: var(--sbb-color-orange, #ffaa00); }
 
-.mode-caret {
-  margin-left: 7px;
+/* Non-interactive section label inside the app menu — groups the config
+   entries under "Setup & Configuration" without a nested submenu. */
+.menu-section {
+  display: block;
+  padding: 8px 16px 4px;
   font-size: 11px;
-}
-
-.menu-current {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--sbb-color-granite, #686868);
-  font-size: 12px;
+  pointer-events: none;
 }
 
 .header-title-main {
@@ -191,7 +214,12 @@
   display: flex;
   flex-direction: column;
   background: var(--sbb-color-white, #fff);
-  overflow: hidden;
+  /* Scroll the whole centre column when its stacked children (banner +
+     dashboard + map-controls + views + reflection) exceed the viewport,
+     instead of clipping the bottom silently. x stays hidden so the map/marey
+     pan/zoom never produces a horizontal scrollbar. */
+  overflow-x: hidden;
+  overflow-y: auto;
   min-width: 0;
   min-height: 0;
 }
@@ -202,8 +230,10 @@
   align-items: center;
   gap: 10px;
   padding: 8px 16px;
-  background: var(--sbb-color-charcoal, #212121);
-  color: #fff;
+  background: var(--sbb-color-white, #fff);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-left: 4px solid var(--sbb-color-orange, #ffaa00);
+  color: var(--sbb-color-charcoal, #212121);
   font-size: 13px;
   flex-shrink: 0;
 }
@@ -211,7 +241,7 @@
 .ai-control-text em {
   font-style: normal;
   font-weight: 600;
-  color: var(--sbb-color-orange, #ffaa00);
+  color: #b36b00;
 }
 
 .ai-control-dot {
@@ -249,7 +279,8 @@
   flex: 1;
   display: grid;
   overflow: hidden;
-  min-height: 0;
+  /* Keep a usable map/marey footprint even when the centre pane scrolls. */
+  min-height: 220px;
 
   &.only-map {
     grid-template-rows: 1fr;
@@ -279,6 +310,30 @@
 .views.only-map .map-section,
 .views.only-marey .marey-section {
   border-bottom: none;
+}
+
+/* Director (WP 3.4): large goal-achievement dashboard above the map. The
+   supervision overview dominates the centre; the map sits below it. */
+.center-dashboard {
+  flex: 1 1 auto;
+  min-height: 220px;
+  max-height: 58%;
+  overflow: auto;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  background: var(--sbb-color-milk, #f6f6f6);
+}
+
+/* Co-Learning (WP 3.3): reflection tile below the map. Its own Lyne feature
+   panel is the single collapse surface (consistent with the other panels):
+   collapsed = just the header, open = content that scrolls within a capped
+   share of the centre. */
+.center-reflection {
+  flex: 0 0 auto;
+  max-height: 50%;
+  overflow: auto;
+  border-top: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  background: var(--sbb-color-milk, #f6f6f6);
 }
 
 .footer {
@@ -400,6 +455,16 @@
 .footer-mode[data-mode='director'] { background: var(--sbb-color-orange, #ffaa00); color: var(--sbb-color-charcoal, #212121); }
 
 .footer-interventions strong { color: var(--sbb-color-orange, #ffaa00); }
+
+.footer-demo-progress {
+  padding: 2px 9px;
+  border-radius: 9px;
+  background: var(--sbb-color-milk, #f6f6f6) !important;
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  font-weight: 600;
+  color: var(--sbb-color-granite, #686868) !important;
+}
+.footer-demo-progress strong { color: var(--sbb-color-charcoal, #212121) !important; }
 
 .footer-survey-btn {
   border: 1px solid var(--sbb-color-orange, #ffaa00);
@@ -638,6 +703,30 @@
   color: var(--sbb-color-charcoal, #212121);
 }
 
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--sbb-color-cloud, #e5e5e5);
+}
+
+.settings-tabs button {
+  border: none;
+  background: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--sbb-color-granite, #686868);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.settings-tabs button.is-active {
+  color: var(--sbb-color-charcoal, #212121);
+  border-bottom-color: var(--sbb-color-red, #eb0000);
+}
+
 .settings-section {
   margin-top: 22px;
 }
@@ -853,57 +942,6 @@
   cursor: pointer;
 }
 
-/* Guided demo bar (center pane top) + locked mode label. */
-.demo-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: var(--sbb-color-charcoal, #212121);
-  color: #fff;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-.demo-bar.done { background: #00973b; }
-.demo-step {
-  font-weight: 700;
-  background: rgba(255,255,255,0.18);
-  border-radius: 9px;
-  padding: 1px 9px;
-  flex-shrink: 0;
-}
-.demo-text { flex: 1; }
-.demo-btn {
-  flex-shrink: 0;
-  border: 0;
-  background: var(--sbb-color-orange, #ffaa00);
-  color: var(--sbb-color-charcoal, #212121);
-  font: inherit;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.demo-btn:hover { background: #ffbb33; }
-.demo-btn.ghost {
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.4);
-}
-.demo-btn.ghost:hover { background: rgba(255,255,255,0.12); }
-
-.header-mode-locked {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--sbb-color-charcoal, #212121);
-}
-.header-mode-locked[data-mode='recommendation'] .mode-dot { background: var(--sbb-color-blue, #0079c7); }
-.header-mode-locked[data-mode='co-learning'] .mode-dot { background: var(--sbb-color-green, #00973b); }
-.header-mode-locked[data-mode='director'] .mode-dot { background: var(--sbb-color-orange, #ffaa00); }
 .mode-locked-tag {
   font-size: 10px;
   font-weight: 700;
@@ -971,7 +1009,7 @@
 
 .views {
   min-width: 0;
-  min-height: 0;
+  min-height: 220px;
 }
 
 .views.split {
@@ -1078,7 +1116,10 @@
 .runtime-design__column--center app-panel-shell[data-panel-type='flatland-map'],
 .runtime-design__column--center app-panel-shell[data-panel-type='graphic-timetable'] {
   flex: 1 1 0;
-  min-height: 0;
+  /* Keep a usable map/marey footprint in a bounded centre column instead of
+     letting it collapse to 0 when stacked panels compete for space; the
+     column itself scrolls (overflow:auto) if the total still overflows. */
+  min-height: 220px;
 }
 /* LAYOUT_DESIGNER_RUNTIME_FLOW_END */
 
@@ -1364,5 +1405,117 @@
   min-height: 0;
   height: 100%;
   width: 100%;
+}
+
+/* Visual Encoding section (Session Settings → Advanced). New code: bare tokens,
+   no fallback (frontend-lyne-conventions §1). Colours on .ve-swatch come from
+   runtime data via [style.background], not from these rules. */
+.ve-section {
+  display: grid;
+  gap: 10px;
+}
+
+.ve-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.ve-presets {
+  display: grid;
+  gap: 8px;
+}
+
+.ve-preset {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 5px;
+  background: var(--sbb-color-milk);
+  cursor: pointer;
+}
+.ve-preset input[type="radio"] {
+  grid-row: 1;
+  margin: 0;
+}
+.ve-preset-label {
+  grid-row: 1;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+}
+.ve-preset-desc {
+  grid-column: 2;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+.ve-preset.is-active {
+  border-color: var(--app-select-color);
+  box-shadow: 0 0 0 2px var(--app-select-ring);
+}
+
+.ve-roles {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--sbb-color-cloud);
+}
+
+.ve-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sbb-color-charcoal);
+}
+.ve-swatch {
+  width: 24px;
+  height: 12px;
+  border-radius: 2px;
+  border: 2px solid var(--sbb-color-charcoal);
+  flex: none;
+}
+.ve-swatch.ve-dashed {
+  border-style: dashed;
+}
+.ve-icon { font-size: 14px; }
+.ve-role-label { font-weight: 600; }
+.ve-role-key {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sbb-color-granite);
+}
+
+.ve-section.ve-locked .ve-preset {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ve-group {
+  display: grid;
+  gap: 4px;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--sbb-color-cloud);
+}
+.ve-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sbb-color-granite);
+}
+.ve-group .ve-roles {
+  border-top: 0;
+  padding-top: 0;
+}
+.ve-group-note {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--sbb-color-granite);
 }
 

@@ -23,7 +23,7 @@ Guarantees
 Reference
 ---------
 flatland_baselines/deadlock_avoidance_heuristic/policy/deadlock_avoidance_policy.py
-adapted to Flatland 4.2.5 + our hybrid Policy interface (R1).
+adapted to Flatland 4.2.6 + our hybrid Policy interface (R1).
 """
 from typing import Dict, List, Optional
 

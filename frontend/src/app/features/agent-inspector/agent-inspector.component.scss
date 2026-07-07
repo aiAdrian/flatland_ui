@@ -57,7 +57,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--sbb-color-red, #eb0000);
+  background: var(--app-severity-error);
   color: #fff;
   font-weight: 700;
   font-size: 11px;
@@ -75,7 +75,7 @@
 }
 .state-MOVING { background: #00973b; color: #fff; }
 .state-WAITING, .state-READY_TO_DEPART { background: var(--sbb-color-orange, #ffaa00); color: var(--sbb-color-charcoal, #212121); }
-.state-MALFUNCTION, .state-MALFUNCTION_OFF_MAP { background: var(--sbb-color-red, #eb0000); color: #fff; }
+.state-MALFUNCTION, .state-MALFUNCTION_OFF_MAP { background: var(--app-severity-error); color: #fff; }
 .state-DONE { background: var(--sbb-color-cloud, #d2d2d2); color: var(--sbb-color-charcoal, #212121); }
 
 .ao-close {
@@ -97,8 +97,8 @@
   padding: 6px 8px;
   margin-bottom: 8px;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--sbb-color-red, #eb0000) 10%, white);
-  border-left: 3px solid var(--sbb-color-red, #eb0000);
+  background: color-mix(in srgb, var(--app-severity-error) 10%, white);
+  border-left: 3px solid var(--app-severity-error);
 }
 
 .ao-malf-ico {
@@ -106,7 +106,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--sbb-color-red, #eb0000);
+  background: var(--app-severity-error);
   color: #fff;
   font-weight: 700;
   font-size: 11px;
@@ -120,7 +120,7 @@
   color: var(--sbb-color-charcoal, #212121);
   font-variant-numeric: tabular-nums;
 }
-.ao-malf-text strong { color: var(--sbb-color-red, #eb0000); }
+.ao-malf-text strong { color: var(--app-severity-error); }
 .ao-malf-at { color: var(--sbb-color-granite, #686868); }
 
 .ao-facts {
@@ -132,7 +132,7 @@
   font-variant-numeric: tabular-nums;
   margin-bottom: 8px;
 }
-.ao-fact.warn { color: var(--sbb-color-orange, #cc8800); font-weight: 600; }
+.ao-fact.warn { color: var(--app-severity-warn); font-weight: 600; }
 .ao-fact.ok { color: #00973b; }
 
 .ao-actions {
@@ -268,7 +268,7 @@
   justify-content: center;
   font-size: 15px;
   line-height: 1;
-  color: var(--sbb-color-red, #eb0000);
+  color: var(--app-severity-error);
   background: var(--sbb-color-milk, #f6f6f6);
   border: 1px solid var(--sbb-color-cloud, #d2d2d2);
 }

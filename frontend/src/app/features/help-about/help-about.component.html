@@ -1,0 +1,66 @@
+<div class="help-card">
+  <div class="help-header">
+    <div>
+      <h2>Help &amp; About</h2>
+      <p>Flatland Dispatcher — a Human-AI Teaming Playground</p>
+    </div>
+    <button class="help-close" type="button" aria-label="Close" (click)="close()">×</button>
+  </div>
+
+  <div class="help-tabs" role="tablist">
+    <button type="button" role="tab" [class.is-active]="tab() === 'about'" (click)="tab.set('about')">About</button>
+    <button type="button" role="tab" [class.is-active]="tab() === 'help'" (click)="tab.set('help')">Help</button>
+  </div>
+
+  @if (tab() === 'about') {
+    <section class="help-body">
+      <p>
+        An interactive HMI for railway dispatching experiments, part of
+        <strong>AI4REALNET</strong> (EU Horizon). It explores how a human
+        dispatcher and an AI agent can co-operate on the
+        <strong>Flatland</strong> railway simulation.
+      </p>
+
+      <h3>The three collaboration modes</h3>
+      <ul class="help-modes">
+        @for (m of modes; track m.label) {
+          <li><strong>{{ m.label }}</strong> <span class="help-wp">{{ m.wp }}</span> — {{ m.description }}</li>
+        }
+      </ul>
+
+      <h3>Links</h3>
+      <ul class="help-links">
+        <li><a href="https://ai4realnet.eu/" target="_blank" rel="noopener">ai4realnet.eu</a></li>
+        <li><a href="https://www.flatland-association.org/" target="_blank" rel="noopener">Flatland</a></li>
+        <li><a href="https://digital.sbb.ch/" target="_blank" rel="noopener">SBB Design System</a></li>
+      </ul>
+    </section>
+  } @else {
+    <section class="help-body">
+      <h3>Get started</h3>
+      <ul>
+        <li><strong>New Session</strong> — set grid, agents and max steps, then dispatch.</li>
+        <li><strong>Guided Demo</strong> — solve one conflict in all three modes on the same environment.</li>
+        <li>Switch modes any time from the <strong>Mode</strong> menu in the header.</li>
+      </ul>
+
+      <h3>What you do in each mode</h3>
+      <ul class="help-modes">
+        @for (m of modes; track m.label) {
+          <li><strong>{{ m.label }}</strong> — {{ m.description }}</li>
+        }
+      </ul>
+
+      <h3>Good to know</h3>
+      <ul>
+        <li>The <strong>Impact</strong> panel flags decision moments; <strong>Scenarios</strong> and <strong>Recommendations</strong> offer alternatives.</li>
+        <li>Use the <strong>Layout Designer</strong> (app menu) to arrange and save your own panel layout.</li>
+        <li><strong>Esc</strong> closes dialogs and deselects the current train.</li>
+      </ul>
+    </section>
+  }
+
+  <div class="help-actions">
+    <sbb-button (click)="close()">Close</sbb-button>
+  </div>
+</div>

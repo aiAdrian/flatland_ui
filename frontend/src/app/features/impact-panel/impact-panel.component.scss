@@ -6,7 +6,7 @@
 .impact-panel {
   padding: 12px 16px;
   background: var(--sbb-color-milk, #f6f6f6);
-  border-left: 3px solid var(--sbb-color-red, #eb0000);
+  border-left: 3px solid var(--app-severity-error);
   border-radius: 4px;
   margin: 4px;
 }
@@ -39,7 +39,7 @@
   font-size: 11px;
   font-weight: 700;
   color: #fff;
-  background: var(--sbb-color-red, #eb0000);
+  background: var(--app-severity-error);
 }
 
 .ip-list {
@@ -59,7 +59,7 @@
   padding: 6px 8px;
 }
 .ip-item.high {
-  border-left-color: var(--sbb-color-red, #eb0000);
+  border-left-color: var(--app-severity-error);
 }
 
 .ip-row {
@@ -94,7 +94,7 @@
   background: var(--sbb-color-milk, #f6f6f6);
   color: var(--sbb-color-charcoal, #212121);
 }
-.ip-sev.high { background: var(--sbb-color-red, #eb0000); color: #fff; }
+.ip-sev.high { background: var(--app-severity-error); color: var(--sbb-color-white); }
 
 .ip-why {
   font-size: 11px;
@@ -207,8 +207,8 @@
 .ip-opt:hover:not(:disabled) { border-color: var(--sbb-color-charcoal, #212121); }
 .ip-opt:disabled { opacity: 0.5; cursor: not-allowed; }
 .ip-opt.recommended {
-  border: 2px solid var(--sbb-color-blue, #0079c7);
-  background: color-mix(in srgb, var(--sbb-color-blue, #0079c7) 8%, white);
+  border: 2px solid var(--app-positive);
+  background: color-mix(in srgb, var(--app-positive) 8%, var(--sbb-color-white));
   font-weight: 600;
 }
 .ip-rec-tag {
@@ -216,8 +216,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #fff;
-  background: var(--sbb-color-blue, #0079c7);
+  color: var(--sbb-color-white);
+  background: var(--app-positive);
   border-radius: 9px;
   padding: 0 6px;
 }
@@ -227,7 +227,7 @@
 .ip-held-banner {
   margin-bottom: 8px;
   padding: 6px 8px;
-  border-left: 3px solid #eb0000;
+  border-left: 3px solid var(--app-severity-error);
   background: var(--sbb-color-milk, #f6f6f6);
   font-size: 11px;
   line-height: 1.4;
@@ -239,7 +239,7 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: #fff;
-  background: #eb0000;
+  background: var(--app-severity-error);
   border-radius: 9px;
   padding: 0 6px;
 }
@@ -273,7 +273,7 @@
   color: var(--sbb-color-charcoal, #212121);
   margin-bottom: 4px;
 }
-.ip-cd-text strong { color: var(--sbb-color-red, #eb0000); }
+.ip-cd-text strong { color: var(--app-severity-error); }
 .ip-cd-bar {
   height: 6px;
   border-radius: 3px;

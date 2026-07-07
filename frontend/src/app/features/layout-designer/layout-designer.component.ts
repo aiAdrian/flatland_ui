@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   DesignerColumn,
@@ -10,12 +10,19 @@ import {
 import { DesignStorageService } from './design-storage.service';
 import { SessionStore } from '../../core/session.store';
 import { PanelShellComponent } from '../layout/components/panel-shell/panel-shell.component';
+import { ConfigShellComponent } from '../config-shell/config-shell.component';
 import { PanelInstance } from '../../core/layout';
 
 interface PaletteItem {
   type: string;
   title: string;
   minHeight: number;
+  /** One short sentence of what the tile shows/does (≤80 chars). */
+  description: string;
+  /** interaction-framework §2 function class: event | context | prediction |
+   *  decision-support | control | capitalization | trust. Drives the kind badge
+   *  colour (see --app-kind-* tokens in styles.scss). */
+  kind: string;
 }
 
 type DragPayload =
@@ -27,9 +34,10 @@ type DragPayload =
 @Component({
   selector: 'app-layout-designer',
   standalone: true,
-  imports: [CommonModule, FormsModule, PanelShellComponent],
+  imports: [CommonModule, FormsModule, PanelShellComponent, ConfigShellComponent],
   templateUrl: './layout-designer.component.html',
   styleUrls: ['./layout-designer.component.scss'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class LayoutDesignerComponent {
 
@@ -44,19 +52,59 @@ export class LayoutDesignerComponent {
 
   selection: DesignerSelection = { kind: 'design' };
 
+  // Aligned with the panel types the plugin host actually renders and with the
+  // main layout's panels. Left/center/right building blocks first, then the
+  // mode-specific and standalone view panels. Placeholder-only entries
+  // (timeline/validation/cell-inspector) were removed.
   palette: PaletteItem[] = [
-    { type: 'toggle-view', title: 'Toggle View', minHeight: 520 },
-    { type: 'toolbar', title: 'Toolbar', minHeight: 74 },
-    { type: 'layer-visibility', title: 'Layer Visibility', minHeight: 80 },
-    { type: 'flatland-map', title: 'Flatland Map', minHeight: 320 },
-    { type: 'marey', title: 'Graphical Timetable', minHeight: 260 },
-    { type: 'agents-list', title: 'Agents List', minHeight: 180 },
-    { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 180 },
-    { type: 'goal-achievement', title: 'Goal Achievement', minHeight: 140 },
-    { type: 'impact', title: 'Impact', minHeight: 160 },
-    { type: 'timeline', title: 'Timeline', minHeight: 130 },
-    { type: 'validation', title: 'Validation', minHeight: 130 },
-    { type: 'cell-inspector', title: 'Cell Inspector', minHeight: 160 },
+    { type: 'situation-summary', title: 'Situation Summary', minHeight: 120,
+      description: 'Headline counts: arrived/active/delayed/malfunctioning trains + progress.',
+      kind: 'event' },
+    { type: 'notifications', title: 'Notifications', minHeight: 140,
+      description: 'Event feed: notifications with kind, title, message, related train.',
+      kind: 'event' },
+    { type: 'agents', title: 'Trains', minHeight: 180,
+      description: 'Train roster grouped by state: position, arrival, deadline, actions.',
+      kind: 'context' },
+    { type: 'toggle-view', title: 'Track Layout & Timetable', minHeight: 520,
+      description: 'Composite: track map + graphic timetable with view & layer controls.',
+      kind: 'event' },
+    { type: 'flatland-map', title: 'Track Layout (Map)', minHeight: 320,
+      description: 'SVG network map: rails, trains, trajectories, switches, signals, decisions.',
+      kind: 'event' },
+    { type: 'marey', title: 'Graphic Timetable', minHeight: 260,
+      description: 'Time-distance train-movement diagram (graphic timetable).',
+      kind: 'prediction' },
+    { type: 'layer-visibility', title: 'Layer Visibility', minHeight: 80,
+      description: 'Toggle map layers: grid, decisions, trajectory, switches, signals.',
+      kind: 'control' },
+    { type: 'agent-inspector', title: 'Agent Inspector', minHeight: 180,
+      description: 'Train detail: position, destination, delay, malfunction, override actions.',
+      kind: 'context' },
+    { type: 'impact', title: 'Impact', minHeight: 160,
+      description: 'Trains blocked by a malfunction: ETA, severity, options, what-if hover.',
+      kind: 'context' },
+    { type: 'risk-uncertainty', title: 'Risk & Uncertainty', minHeight: 160,
+      description: 'Reliability, confidence & uncertainty band; Accept/Override with reasons.',
+      kind: 'trust' },
+    { type: 'decision-log', title: 'Decision Log', minHeight: 160,
+      description: 'Session decision strip: who decided, when, dwell, accept vs. override.',
+      kind: 'capitalization' },
+    { type: 'scenario', title: 'Scenario', minHeight: 160,
+      description: 'Scenario cards compared by KPIs (done/deadlock/delay) with policy switch.',
+      kind: 'decision-support' },
+    { type: 'recommendations', title: 'Recommendations', minHeight: 160,
+      description: 'AI recommendations: confidence, countdown, accept/reject, route preview.',
+      kind: 'decision-support' },
+    { type: 'kpi-filter', title: 'KPI Filter', minHeight: 160,
+      description: 'KPI weight sliders (time/energy/platform/train routing) as dot meters.',
+      kind: 'control' },
+    { type: 'goal-achievement', title: 'Goal Achievement', minHeight: 140,
+      description: 'Progress toward the operational goal with status badge & progress bar.',
+      kind: 'context' },
+    { type: 'toolbar', title: 'Toolbar', minHeight: 74,
+      description: 'Play/pause, speed, step, policy selector, demo finish controls.',
+      kind: 'control' },
   ];
 
   livePreviewSteps = 10;
@@ -1352,37 +1400,6 @@ startColumnResize(column: DesignerColumn, event: PointerEvent): void {
     }
   }
 
-  renameCurrentLayout(): void {
-    const name = window.prompt('Rename layout', this.design.name || 'Layout');
-
-    if (name === null) {
-      this.setDesignerFooterStatus('Rename cancelled', 'info');
-      return;
-    }
-
-    const cleanName = name.trim();
-
-    if (!cleanName) {
-      this.setDesignerFooterStatus('Rename cancelled: name is empty', 'warn');
-      return;
-    }
-
-    this.design = {
-      ...this.design,
-      name: cleanName,
-      updatedAt: new Date().toISOString(),
-    };
-
-    this.persistCurrentDesignerLayout();
-    this.refreshDesignerLayoutList();
-    this.markDesignerSaved(`Layout renamed to “${cleanName}”`);
-
-    const feedback = (this as any).showDesignerFeedback;
-    if (typeof feedback === 'function') {
-      feedback.call(this, `Renamed to “${cleanName}”`, 'success', 'rename');
-    }
-  }
-
   loadDesignerLayout(id: string): void {
     if (!id || id === this.design.id) {
       return;
@@ -1463,7 +1480,7 @@ startColumnResize(column: DesignerColumn, event: PointerEvent): void {
     this.storage.setActive(this.design.id);
     this.selection = { kind: 'design' };
     this.isDirty = false;
-    this.designerFooterStatusMessage = 'New 2×3 layout created';
+    this.designerFooterStatusMessage = 'New 3-column layout created';
     this.designerFooterStatusTone = 'saved';
     this.runLivePreview();
   }
@@ -1509,8 +1526,10 @@ startColumnResize(column: DesignerColumn, event: PointerEvent): void {
       panels,
     });
 
+    // Same three-column mirror of the main layout as DesignStorageService
+    // .createDefault(), expressed with this component's row-aware helpers.
     return {
-      id: `layout-2x3-${suffix}`,
+      id: `layout-main-${suffix}`,
       name: `Layout ${new Date().toLocaleString()}`,
       sessionId: this.activeSessionId,
       scale: 0.7,
@@ -1518,26 +1537,22 @@ startColumnResize(column: DesignerColumn, event: PointerEvent): void {
       updatedAt: now,
       layout: {
         columns: [
-          column('row-1', 'row1_col1_toolbar', 'Row 1 · Toolbar', 520, [
-            panel('toolbar', 'Toolbar', 74, 90),
+          column('row-1', 'left', 'Left', 280, [
+            panel('situation-summary', 'Situation Summary', 120, 140),
+            panel('notifications', 'Notifications', 140, 160),
+            panel('agents', 'Trains', 180, 240),
           ]),
-          column('row-1', 'row1_col2_layers', 'Row 1 · Layers', 520, [
-            panel('layer-visibility', 'Layer Visibility', 80, 100),
+          column('row-1', 'center', 'Center', 720, [
+            {
+              ...panel('toggle-view', 'Track Layout & Timetable', 520, 600),
+              settings: { toggleSplitOrientation: 'vertical', splitOrientation: 'vertical' },
+            },
           ]),
-          column('row-1', 'row1_col3_goal', 'Row 1 · Goal', 520, [
-            panel('goal-achievement', 'Goal Achievement', 140, 160),
-          ]),
-          column('row-2', 'row2_col1_agents', 'Row 2 · Left', 280, [
-            panel('agents-list', 'Agents List', 180, 260),
-          ]),
-          column('row-2', 'row2_col2_visuals', 'Row 2 · Center', 720, [
-            panel('toggle-view', 'Toggle View', 520, 640),
-          ]),
-          column('row-2', 'row2_col3_details', 'Row 2 · Right', 320, [
+          column('row-1', 'right', 'Right', 340, [
             panel('agent-inspector', 'Agent Inspector', 180, 220),
             panel('impact', 'Impact', 160, 180),
-            panel('timeline', 'Timeline', 130, 150),
-            panel('validation', 'Validation', 130, 150),
+            panel('scenario', 'Scenario', 160, 180),
+            panel('kpi-filter', 'KPI Filter', 160, 180),
           ]),
         ],
       },
@@ -1562,21 +1577,6 @@ startColumnResize(column: DesignerColumn, event: PointerEvent): void {
     this.callDesignerMethod(['importJson', 'importJSON', 'importDesign', 'loadJson'], [event]);
     this.showDesignerFeedback('Layout JSON imported', 'success', 'import');
   }
-
-  goHomeWithFeedback(): void {
-    this.showDesignerFeedback('Opening Home…', 'info', 'home');
-
-    window.setTimeout(() => {
-      const fn = (this as any).goHome;
-
-      if (typeof fn === 'function') {
-        fn.call(this);
-      } else {
-        window.location.href = '/';
-      }
-    }, 120);
-  }
-
 
   goHome(): void {
     window.location.href = '/';

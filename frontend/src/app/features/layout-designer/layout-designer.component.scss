@@ -59,11 +59,6 @@ label {
   border-bottom: 1px solid #d2d2d2;
 }
 
-.designer__eyebrow {
-  font-size: 12px;
-  color: #686868;
-}
-
 h1,
 h2,
 h3,
@@ -144,6 +139,59 @@ h3 {
   color: #686868;
 }
 
+/* Title row + kind badge. New code: bare tokens, no hex fallback
+   (per frontend-lyne-conventions §1; this file is legacy debt but new
+   additions stay token-only). Kind colours are the --app-kind-* tokens
+   defined in styles.scss (one per interaction-framework §2 function class). */
+.palette__item-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.palette__kind {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border: 1px solid var(--sbb-color-cloud);
+}
+/* Kind is carried by the dot, not by a full-fill background — full-fill
+   solid brand hues behind small uppercase text failed contrast for several
+   kinds (e.g. green/blue/red on white were 3.8-4.6:1, below WCAG AA 4.5:1
+   for small text) and read as 7 competing brand colours rather than a
+   restrained Lyne-style tag. Neutral pill + accent dot keeps text contrast
+   fixed at ~15:1 regardless of kind. */
+.palette__kind::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--app-kind-context);
+}
+.palette__kind[data-kind="event"]::before             { background: var(--app-kind-event); }
+.palette__kind[data-kind="context"]::before           { background: var(--app-kind-context); }
+.palette__kind[data-kind="prediction"]::before        { background: var(--app-kind-prediction); }
+.palette__kind[data-kind="decision-support"]::before  { background: var(--app-kind-decision-support); }
+.palette__kind[data-kind="control"]::before           { background: var(--app-kind-control); }
+.palette__kind[data-kind="capitalization"]::before    { background: var(--app-kind-capitalization); }
+.palette__kind[data-kind="trust"]::before             { background: var(--app-kind-trust); }
+
+.palette__desc {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
 .preview {
   min-width: 0;
   padding: 14px;
@@ -190,7 +238,7 @@ h3 {
 }
 
 .canvas__column.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: -2px;
 }
 
@@ -243,7 +291,7 @@ h3 {
 }
 
 .panel-card.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
 }
 
 .panel-card__head {
@@ -465,7 +513,7 @@ h3 {
 }
 
 .panel-card.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: 0;
 }
 
@@ -538,18 +586,6 @@ input[readonly] {
 .import-button.designer-action-btn.is-clicked {
   transform: translateY(0) scale(0.97);
   box-shadow: 0 0 0 3px rgba(235, 0, 0, 0.14);
-}
-
-button.primary.designer-action-btn,
-.designer-action-btn--primary {
-  font-weight: 700;
-}
-
-button.primary.designer-action-btn:hover,
-.designer-action-btn--primary:hover {
-  background: #c90000;
-  border-color: #c90000;
-  color: #fff;
 }
 
 .designer-import-btn {
@@ -638,36 +674,6 @@ button.primary.designer-action-btn:hover,
 /* DESIGNER_NEW_AND_CLEAR_LAYOUTS_END */
 
 /* DESIGNER_POLISH_FOOTER_SAVE_LOAD_START */
-.designer-layout-loader {
-  display: grid;
-  gap: 3px;
-  min-width: 190px;
-}
-
-.designer-layout-loader span {
-  font-size: 10px;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #686868;
-  font-weight: 700;
-}
-
-.designer-layout-loader select {
-  min-height: 32px;
-  border: 1px solid #d2d2d2;
-  border-radius: 3px;
-  background: #fff;
-  color: #212121;
-  font: inherit;
-  font-size: 13px;
-  padding: 4px 8px;
-}
-
-.designer-layout-loader select:hover {
-  border-color: #8d8d8d;
-}
-
 .designer-unsaved-pill {
   display: inline-flex;
   align-items: center;
@@ -793,54 +799,75 @@ button.primary.designer-action-btn:hover,
   position: relative;
   isolation: isolate;
   min-height: 72px;
-  padding: 12px 18px 12px 22px !important;
+  padding: 12px 18px 12px 24px !important;
   background: var(--designer-white) !important;
-  border-bottom: 1px solid var(--designer-cloud) !important;
+  /* Match the main page header: red underline, no left accent bar. */
+  border-bottom: 2px solid var(--designer-red) !important;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
 }
 
 .designer__topbar::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  background: var(--designer-red);
-  z-index: 1;
+  content: none;
 }
 
+/* Muted hint in the inspector when the whole design is selected. */
+.inspector-hint {
+  color: var(--designer-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+/* Brand block mirrors app.component.html's .header-brand + .header-title. */
 .designer__topbar > div:first-child {
-  display: grid;
-  gap: 2px;
-  min-width: 210px;
-}
-
-.designer__eyebrow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  width: fit-content;
-  color: var(--designer-muted) !important;
-  font-size: 11px !important;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  gap: 20px;
+  min-width: 0;
 }
 
-.designer__eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--designer-red);
+.designer__logo {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 
-.designer__topbar h1 {
+.designer__title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
   color: var(--designer-text);
-  font-size: 23px !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.02em;
+}
+
+.designer__title-main {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.designer__title-sub {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--designer-muted);
+}
+
+/* Header holds only the app menu on the right (no functional buttons). */
+.designer__menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The former header buttons live here, one row below the header. */
+.designer__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--designer-white);
+  border-bottom: 1px solid var(--designer-cloud);
 }
 
 /* Actions become a clean Lyne-like toolbar. */
@@ -911,21 +938,6 @@ button.primary.designer-action-btn:hover,
   box-shadow: 0 0 0 3px rgba(235, 0, 0, 0.16) !important;
 }
 
-/* Primary Home button. */
-button.primary.designer-action-btn,
-.designer-action-btn--primary {
-  border-color: var(--designer-red) !important;
-  background: var(--designer-red) !important;
-  color: #fff !important;
-}
-
-button.primary.designer-action-btn:hover,
-.designer-action-btn--primary:hover {
-  border-color: var(--designer-red-dark) !important;
-  background: var(--designer-red-dark) !important;
-  color: #fff !important;
-}
-
 /* Danger is clear but still light. */
 .designer-action-btn--danger {
   border-color: #f0a0a0 !important;
@@ -961,35 +973,6 @@ button.primary.designer-action-btn:hover,
   max-width: 280px !important;
   border-radius: 999px !important;
   font-size: 12px !important;
-}
-
-/* ---------- Load layout in topbar ---------- */
-.designer-layout-loader {
-  min-width: 220px !important;
-  padding: 3px 8px 5px;
-  border: 1px solid var(--designer-cloud);
-  border-radius: 4px;
-  background: #fafafa;
-  box-shadow: var(--designer-shadow-soft);
-}
-
-.designer-layout-loader span {
-  color: var(--designer-muted) !important;
-  font-size: 9px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
-}
-
-.designer-layout-loader select {
-  min-height: 26px !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background:
-    linear-gradient(180deg, transparent calc(100% - 1px), var(--designer-red) calc(100% - 1px)) !important;
-  color: var(--designer-text) !important;
-  font-size: 13px !important;
-  font-weight: 700;
-  padding: 2px 22px 2px 0 !important;
 }
 
 /* ---------- Meta / layout bar ---------- */
@@ -1168,10 +1151,6 @@ button.primary.designer-action-btn:hover,
   .designer__meta {
     grid-template-columns: repeat(2, minmax(150px, 1fr)) !important;
   }
-
-  .designer-layout-loader {
-    min-width: 180px !important;
-  }
 }
 /* DESIGNER_LYNE_TOOLBAR_STYLE_END */
 
@@ -1297,22 +1276,8 @@ button.primary.designer-action-btn:hover,
   row-gap: 8px !important;
 }
 
-.designer-layout-loader {
-  max-width: 260px;
-}
-
-.designer-layout-loader select {
-  text-overflow: ellipsis;
-}
-
 /* Better visual grouping for destructive action in toolbar. */
 .designer-action-btn--danger {
-  margin-left: 4px;
-}
-
-/* Home button separated as final navigation action. */
-button.primary.designer-action-btn,
-.designer-action-btn--primary {
   margin-left: 4px;
 }
 
@@ -1459,7 +1424,7 @@ button.primary.designer-action-btn,
 }
 
 .canvas__row.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   box-shadow: inset 0 0 0 1px rgba(235, 0, 0, 0.25);
 }
 
@@ -1554,7 +1519,7 @@ button.primary.designer-action-btn,
 }
 
 .canvas__row.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   box-shadow: inset 0 0 0 1px rgba(235, 0, 0, 0.25);
 }
 
@@ -1608,12 +1573,12 @@ button.primary.designer-action-btn,
 }
 
 .canvas__row.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: -2px;
 }
 
 .canvas__column.is-selected {
-  outline: 2px solid #eb0000;
+  outline: 2px solid var(--app-severity-error);
   outline-offset: -2px;
 }
 /* DESIGNER_ROW_COLUMN_DRAGDROP_END */

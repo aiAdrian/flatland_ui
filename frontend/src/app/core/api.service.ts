@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { backendHttpBase } from './backend-origin';
 import {
   ActionInt,
   PlayRequest,
@@ -30,7 +31,8 @@ export interface HmiBundle {
   recommendations: Recommendation[];
 }
 
-const API_BASE = 'http://localhost:8000';
+// Same-origin in production, localhost:8000 during local dev — see backend-origin.
+const API_BASE = backendHttpBase();
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {

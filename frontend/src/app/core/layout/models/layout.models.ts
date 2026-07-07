@@ -1,3 +1,5 @@
+import { InteractionMode } from '../../events/event-types';
+
 export type LayoutZone =
   | 'left'
   | 'center'
@@ -27,6 +29,28 @@ export interface PanelDefinition {
   defaultHeight?: number;
   defaultWidth?: number;
   capabilities: PanelCapabilities;
+  /**
+   * Interaction modes in which this panel type is offered. Omitted / 'all' =
+   * available in every mode. Availability is a property of the panel *type*,
+   * not of a placed instance; per-mode *behaviour* is handled inside the
+   * component (read `store.interactionMode()`), not here.
+   *
+   * Sketch only — declared for the mode-scoped-layout resolver to consume when
+   * building a mode's default layout. See docs/reference/panel-mode-matrix.md.
+   */
+  availableModes?: InteractionMode[] | 'all';
+  /**
+   * Function class of the panel (e.g. 'trust', 'prediction', 'control',
+   * 'capitalization', 'event', 'context'). From the interaction-framework
+   * taxonomy; a tile's `kind` is set in its spec
+   * (docs/plans/tile-<id>-<slug>.md). Sketch — not yet consumed by a resolver.
+   */
+  kind?: string;
+  /**
+   * Detail level the panel offers: 'overview' (at-a-glance), 'detail'
+   * (drill-down), or 'overview-detail' (a badge that expands). Sketch.
+   */
+  granularity?: 'overview' | 'detail' | 'overview-detail';
 }
 
 export interface PanelInstance {
