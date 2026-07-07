@@ -1,29 +1,29 @@
-# Tile authoring — how we develop a new tile
+# Widget authoring — how we develop a new widget
 
-> Our repeatable process for creating a new HMI tile. Authoring happens **in
+> Our repeatable process for creating a new HMI widget. Authoring happens **in
 > Claude Code as a discourse**, not in a WYSIWYG web tool: the web
 > [Layout Designer](../../frontend/src/app/features/layout-designer) *composes*
-> existing tiles; here we *author* new ones. Grounded in
+> existing widgets; here we *author* new ones. Grounded in
 > [interaction-framework.md](interaction-framework.md) (the taxonomy) and
-> tracked in [tile-catalog.md](../plans/tile-catalog.md) (the backlog).
+> tracked in [widget-catalog.md](../plans/widget-catalog.md) (the backlog).
 >
-> **Tooling:** run the [`/create-tile`](../../.claude/skills/create-tile/SKILL.md)
+> **Tooling:** run the [`/create-widget`](../../.claude/skills/create-widget/SKILL.md)
 > skill to walk this process (visual kind-picker, spec template, seam checklist).
-> Browse existing tiles — kind, per-mode behaviour, live preview — in the in-app
-> **Tile Gallery** at `/gallery`, backed by the machine-readable registry
-> [`core/tiles/tile-catalog.ts`](../../frontend/src/app/core/tiles/tile-catalog.ts).
-> That registry is the **single source of truth** for tile metadata (kind,
+> Browse existing widgets — kind, per-mode behaviour, live preview — in the in-app
+> **Widget Gallery** at `/widgets`, backed by the machine-readable registry
+> [`core/widgets/widget-catalog.ts`](../../frontend/src/app/core/widgets/widget-catalog.ts).
+> That registry is the **single source of truth** for widget metadata (kind,
 > granularity, status, per-mode behaviour, grounding, availability); register
-> every new tile there.
+> every new widget there.
 
 ## Principles
 
-1. **Spec before code.** Every tile starts as a written spec (template below).
+1. **Spec before code.** Every widget starts as a written spec (template below).
    The spec is the discourse: it forces the three axes — *what function*
    (`kind`), *how per mode*, *how it interacts with the system* — and usually
    surfaces a backend gap before a line is written.
-2. **Grounded.** Each tile names a reference (a consortium deliverable, a paper,
-   a control-room practice). No generic-dashboard tiles.
+2. **Grounded.** Each widget names a reference (a consortium deliverable, a paper,
+   a control-room practice). No generic-dashboard widgets.
 3. **One mode-aware component, not three.** Behaviour that varies by mode lives
    inside a single component that reads `store.interactionMode()` via a
    `modeBehavior` computed (see `impact-panel.component.ts` as the reference
@@ -37,20 +37,20 @@
    e.g. **A3S** for A1's uncertainty/calibration — integrate it by default.
    Building our own algorithm is the exception; if we do, say so explicitly in
    the spec's Open questions/risks section, not by silently diverging.
-6. **Wire into the seams, don't fork them.** A finished tile touches a known set
+6. **Wire into the seams, don't fork them.** A finished widget touches a known set
    of registration points (below) — never a parallel mechanism.
 7. **No hardcoded colours** (CLAUDE.md / frontend-lyne-conventions) — Lyne tokens
    or `light-dark()`, agent colours via `AgentColorService`.
 
-## The Tile Spec template
+## The Widget Spec template
 
-Every tile spec (`docs/plans/tile-<id>-<slug>.md`) has these sections:
+Every widget spec (`docs/plans/widget-<id>-<slug>.md`) has these sections:
 
 1. **Identity** — name · `kind` · `granularity` (overview↔detail) · default zone ·
    source(s) · grounding reference.
 2. **Promise** — one sentence: what the operator can now do.
 3. **Per-mode behaviour** — Recommendation / Co-Learning / Director: availability
-   **and** behaviour. For Decision-Support tiles, state the Assessment↔Recommendation
+   **and** behaviour. For Decision-Support widgets, state the Assessment↔Recommendation
    framing explicitly.
 4. **System interaction** — data *in* (store signals, API endpoints), actions
    *out* (store methods), and a **backend table**: available now vs. to-build.
@@ -73,7 +73,7 @@ Every tile spec (`docs/plans/tile-<id>-<slug>.md`) has these sections:
    - `panel-plugin-host.component.ts` (+ `.html` `@switch`) — type → component
    - `layout-designer.component.ts` `palette` — make it draggable
    - `core/layout/panel-mode-availability.ts` `PANEL_MODE_AVAILABILITY` — mode gating
-   - **`core/tiles/tile-catalog.ts` `TILE_CATALOG`** — the registry the Tile
+   - **`core/widgets/widget-catalog.ts` `WIDGET_CATALOG`** — the registry the Widget
      Gallery reads: `kind`, `granularity`, `status`, `perMode` behaviour,
      `grounding`, `availableModes` (must match the availability seam — the
      gallery flags drift)
@@ -84,9 +84,9 @@ Every tile spec (`docs/plans/tile-<id>-<slug>.md`) has these sections:
 5. **Verify**: `ng build` clean; drive it in the preview per mode; check the
    acceptance scenario.
 6. **Document**: update [panel-mode-matrix.md](panel-mode-matrix.md) with the new
-   row, and flip the tile's status in [tile-catalog.md](../plans/tile-catalog.md).
-   The in-app [Tile Gallery](../../frontend/src/app/features/tiles-gallery) picks
-   up the change automatically from the `tile-catalog.ts` registry.
+   row, and flip the widget's status in [widget-catalog.md](../plans/widget-catalog.md).
+   The in-app [Widget Gallery](../../frontend/src/app/features/widgets-gallery) picks
+   up the change automatically from the `widget-catalog.ts` registry.
 
 ## Definition of done
 

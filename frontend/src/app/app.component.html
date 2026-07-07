@@ -1,5 +1,5 @@
-@if (showTilesGallery) {
-  <app-tiles-gallery></app-tiles-gallery>
+@if (showWidgetsGallery) {
+  <app-widgets-gallery></app-widgets-gallery>
 } @else if (showLayoutDesigner) {
   <app-layout-designer></app-layout-designer>
 } @else {
@@ -72,7 +72,7 @@
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
-          <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
+          <sbb-menu-link icon-name="apps-small" href="/widgets">Widget Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
           <sbb-divider></sbb-divider>
@@ -100,7 +100,7 @@
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
-          <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
+          <sbb-menu-link icon-name="apps-small" href="/widgets">Widget Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
         </sbb-menu>
@@ -215,7 +215,7 @@
           }
         </div>
 
-        <!-- Co-Learning (WP 3.3): reflection surfaces centrally, as a tile
+        <!-- Co-Learning (WP 3.3): reflection surfaces centrally, as a widget
              below the map (like the Marey view) — no longer buried bottom-right.
              Collapsed by default; the operator opens it when they choose. -->
         @if (panelAvailable('co-learning-reflection')) {
@@ -392,7 +392,7 @@
                   <span class="ve-role-key">AI</span>
                 </div>
               </div>
-              <span class="ve-group-note">not yet used anywhere — seam for the planned what-if tile</span>
+              <span class="ve-group-note">not yet used anywhere — seam for the planned what-if widget</span>
             </div>
 
             <div class="ve-group">

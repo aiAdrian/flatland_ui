@@ -1,4 +1,4 @@
-# Flatland Dispatcher — UI Tile Synthesis (cross-model)
+# Flatland Dispatcher — UI Widget Synthesis (cross-model)
 
 > Synthesis of a multi-model brainstorm (OpenRouter, Jun 2026) on how to evolve
 > the Flatland Dispatcher interface. **Front half = build-first shortlist mapped
@@ -49,7 +49,7 @@ experiment (see §"Contrarian consensus").
 
 ## Build-first shortlist (for Claude Code)
 
-Five tiles, ranked by impact-to-effort, each mapped to the files/data we already
+Five widgets, ranked by impact-to-effort, each mapped to the files/data we already
 have. These reuse existing infrastructure rather than adding new dashboards.
 
 ### 1. Conflict-aware Marey — ribbons + predicted lines + plan-vs-actual ⭐ (6/6)
@@ -170,7 +170,7 @@ actually look during conflict resolution. High effort (L), high learning value.
 
 A follow-up round asked Opus, Gemini, Grok (closed) and Qwen, Mistral (open) to
 add **named, checkable references** and a **concrete dispatching walkthrough** to
-their top-3 tiles, with an explicit instruction to flag uncertain citations
+their top-3 widgets, with an explicit instruction to flag uncertain citations
 rather than invent them. (GPT-5.5-pro and DeepSeek returned empty this round.)
 Notably **Opus and Qwen actually verified/flagged their sources** — Opus
 confirmed each against a source and down-graded ISA-18.2 to "standard-level only";
@@ -256,7 +256,7 @@ lacked — treat it as the "before you build" checklist.
   you mean Corman. (One model had this wrong.)
 - **Don't overclaim ETCS/CBTC as the UI basis:** ETCS Level 3 / CBTC / IEEE
   1474.1 ground train *separation and headway*, **not** a prescribed dispatcher
-  visualisation. The direct grounding for the Marey tile is **Marey/Ibry train
+  visualisation. The direct grounding for the Marey widget is **Marey/Ibry train
   graphs + Hansen/Pachl blocking-time theory** (and resource-occupation diagrams).
 - **EEMUA/Honeywell overstated:** EEMUA 191 *guides* grouping/suppression/flood
   control — it does not "mandate" suppression. "Honeywell Experion time-to-
@@ -300,11 +300,11 @@ lacked — treat it as the "before you build" checklist.
    pixel crossing.
 4. **Uncertainty handling for consequence cards:** define horizon, rollout method
    (Monte Carlo?), confidence intervals, and calibration against realised outcomes
-   — otherwise the honest-uncertainty tile isn't honest. `scenario_runner` /
+   — otherwise the honest-uncertainty widget isn't honest. `scenario_runner` /
    `overrides.py` before-after is the starting point.
 5. **Operator authority & auditability:** preview → apply → undo, acknowledgement,
    suppression accountability, human-consent boundaries (esp. Director mode).
-6. **Define an evaluation plan per tile:** alarm-rate reduction, time-to-detect,
+6. **Define an evaluation plan per widget:** alarm-rate reduction, time-to-detect,
    false-bundling rate, deadlocks avoided, delay cost, workload — this is also the
    natural AI4REALNET experiment design (ties to D4.1 test protocols).
 7. **Classify every operational reference** as live control-room tool vs
@@ -312,7 +312,7 @@ lacked — treat it as the "before you build" checklist.
    cite marketing as a deployed-UI precedent.
 
 > Net: the cited real-world systems support *pieces* of each workflow, but **none
-> proves the exact proposed tile UI**. Build them as grounded hypotheses to test
+> proves the exact proposed widget UI**. Build them as grounded hypotheses to test
 > in Flatland, not as settled patterns.
 
 ---
@@ -324,16 +324,16 @@ lacked — treat it as the "before you build" checklist.
 | Marey ribbons / predicted lines | `marey-chart`, `graphic-timetable` | trajectories, speed, next_decision, delay, deadlines | conflict projection (extend `conflict_detector`) |
 | Plan-vs-actual overlay | `marey-chart`, `track-layout` | earliest_departure, latest_arrival, delay, eta | no |
 | Map↔Marey brushing | `SessionStore` signals, both views | selectedHandle, trajectories | no |
-| Bottleneck / congestion | new center tile | rail_grid, rail_tiles, positions, predicted conflicts | aggregation helper |
+| Bottleneck / congestion | new center widget | rail_grid, rail_tiles, positions, predicted conflicts | aggregation helper |
 | Topology / reservation view (contrarian) | new center view + view-toggle | rail topology, decision_cells, trajectories | topology abstraction (L) |
 | Triage + lead-time + grouping + shelving | `notifications-panel`, `notification_manager` | predicted conflicts, malfunction_remaining, time_to_deadline | root-cause grouping, time-to-act |
 | Explain-the-alert | `notifications-panel` popover | conflict graph from `conflict_detector` | expose causal chain (no LLM) |
-| Trust-calibration ledger | new small tile | logged recommendation outcomes vs realised KPIs | log store |
+| Trust-calibration ledger | new small widget | logged recommendation outcomes vs realised KPIs | log store |
 | Small-multiple mini-Mareys | `scenario-panel` | per-scenario `trajectories`, `ScenarioKpis` | no (data exists) |
 | Trade-off frontier / radar | `scenario-panel` | `ScenarioKpis`, `kpiDeltas`, `kpiWeights` | no |
 | Consequence-first rec card + uncertainty | `recommendations-panel`, `agent-inspector` | next_decision.options, override before/after impact (overrides.py), confidence | rollout spread (optional) |
 | What-if branch tree (blue/yellow) | `scenario-panel` / co-learning compare | scenario trajectories, kpiDeltas | multi-branch sim |
-| Autonomy contract / directive controls | new `goal-achievement` tile (brief §4.3) | kpiWeights, ScenarioKpis, mode | directive plumbing |
+| Autonomy contract / directive controls | new `goal-achievement` widget (brief §4.3) | kpiWeights, ScenarioKpis, mode | directive plumbing |
 
 ---
 
@@ -438,7 +438,7 @@ GK=Grok, M=Mistral, Q=Qwen.
 - **Worth one more model?** Generally no — convergence is reached; more general
   chat models repeat the same clusters. The exception with real added value was
   **`perplexity/sonar-deep-research`** (retried successfully): web-grounded, it
-  confirmed the same clusters and added three fresh, citation-backed tiles
+  confirmed the same clusters and added three fresh, citation-backed widgets
   (topology-grouped Marey bands, notification KPI lens, phase-space risk plane).
 
 ### Sonar / named grounding
@@ -470,5 +470,5 @@ models quoted from memory — useful for the "fundiert" angle and for a paper:
 Point Claude Code at this file + `docs/interaction-modes-brief.md` + `CLAUDE.md`.
 Suggested first build: **shortlist #1 (conflict-aware Marey)** and **#2 (triage'd
 notifications)** — highest impact, mostly reuse existing data. The mini-round
-prompt in `docs/reference/ui-exploration-prompt.md` (and below) can turn any single tile
+prompt in `docs/reference/ui-exploration-prompt.md` (and below) can turn any single widget
 into a build-ready Angular component spec first.

@@ -1,6 +1,6 @@
-# Tile B3 — Network Correlation Graph
+# Widget B3 — Network Correlation Graph
 
-> Spec following [tile-authoring-process.md](../reference/tile-authoring-process.md).
+> Spec following [widget-authoring-process.md](../reference/widget-authoring-process.md).
 > Status: **planned** (spec only, no code yet).
 
 ## 1. Identity
@@ -59,7 +59,7 @@ Data **in** (available now):
 | `store.scenarios` / KPI deltas | per-entity KPI values | correlation strength between two nodes (edge weight) — same role as InteractiveAI's `d3Correlations` KPI-pair correlation |
 
 Actions **out:** none that mutate sim state (informational, like A1). Node
-click emits a focus event usable by other tiles (e.g. filter Agent Inspector to
+click emits a focus event usable by other widgets (e.g. filter Agent Inspector to
 the selected train) — same seam as `eventBus.emit('graph:showTooltip', …)` in
 the reference implementation, adapted to our existing event bus /
 `selectedHandle` pattern instead of a new one.
@@ -71,14 +71,14 @@ before real backend" approach as A1 §4. A true multi-agent correlation signal
 is a flagged future extension, not faked as calibrated.
 
 ## 5. Allocation & accountability touchpoints
-- **Loop stage:** Context Determination (upstream of Decide) — this tile
+- **Loop stage:** Context Determination (upstream of Decide) — this widget
   answers "whom does it affect", not "what should I do".
 - **Allocation:** display-only in all three modes; ownership of the underlying
   decision stays with whichever mode's Decide-stage owner is active (brief §5a).
-  This tile does not change control allocation, only situational visibility.
-- **Decision events emitted:** none (pure Context tile, like Agent Inspector).
+  This widget does not change control allocation, only situational visibility.
+- **Decision events emitted:** none (pure Context widget, like Agent Inspector).
   May be referenced from A2's decision log entries ("operator inspected the
-  correlation graph before deciding") if we choose to log tile-view events —
+  correlation graph before deciding") if we choose to log widget-view events —
   optional, not required for v1.
 
 ## 6. Acceptance scenario
@@ -100,7 +100,7 @@ comparison).
 - **Touch:** new `features/network-correlation-graph/`; register at
   `panel-plugin-host` (+`@switch`), `layout-designer` palette,
   `PANEL_MODE_AVAILABILITY` (all modes, behaviour differs),
-  `PanelDefinition.kind='context'`; `core/tiles/tile-catalog.ts` entry
+  `PanelDefinition.kind='context'`; `core/widgets/widget-catalog.ts` entry
   (`catalogId: 'B3'`); `panel-mode-matrix` row. **Colour tokens:** the
   reference `Graph.vue` hardcodes hex (`--red-500: #f55`, etc.) — do **not**
   port that; use our Lyne severity tokens / `visual-encoding.ts` seam per the
@@ -115,9 +115,9 @@ comparison).
   causal.
 - **Redundancy with the geographic map:** does a second "trains as nodes" view
   add value or split attention? The acceptance scenario above is the test —
-  if operators don't catch anything the map wouldn't have shown, this tile's
+  if operators don't catch anything the map wouldn't have shown, this widget's
   contribution is weak and it should be reconsidered or merged into a Track
-  Layout overlay mode instead of a standalone tile.
+  Layout overlay mode instead of a standalone widget.
 - **Force-layout stability:** D3 force simulations can be visually noisy
   (nodes drifting) in a live-updating dashboard — the reference implementation
   freezes positions post-drag (`fx`/`fy`); we'd need an equivalent "settle then

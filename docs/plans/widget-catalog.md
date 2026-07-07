@@ -1,13 +1,13 @@
-# Tile catalog — candidates, sources, effort, contribution
+# Widget catalog — candidates, sources, effort, contribution
 
 > **This doc is the backlog narrative** (sources, effort, contribution). The
 > machine-readable counterpart — kind, granularity, status, per-mode behaviour,
-> grounding, availability for every tile (built *and* planned) — lives in
-> [`core/tiles/tile-catalog.ts`](../../frontend/src/app/core/tiles/tile-catalog.ts)
-> and renders in the in-app **Tile Gallery** (`/gallery`). Keep the two in sync;
-> author new tiles with the [`/create-tile`](../../.claude/skills/create-tile/SKILL.md) skill.
+> grounding, availability for every widget (built *and* planned) — lives in
+> [`core/widgets/widget-catalog.ts`](../../frontend/src/app/core/widgets/widget-catalog.ts)
+> and renders in the in-app **Widget Gallery** (`/widgets`). Keep the two in sync;
+> author new widgets with the [`/create-widget`](../../.claude/skills/create-widget/SKILL.md) skill.
 >
-> Working collection of candidate tiles, classified per
+> Working collection of candidate widgets, classified per
 > [interaction-framework.md](../reference/interaction-framework.md). Each entry:
 > **source(s)**, `kind`, **effort** (Claude-Code tokens ≈ working sessions, and
 > calendar days incl. review), **what must change**, and **contribution to our
@@ -36,8 +36,8 @@ model — epistemic/aleatoric per INESC framework as far as backend allows).
 - **Status:** **first cut built** — `risk-uncertainty-panel.component.ts`,
   frontend-only, registered at the seams (plugin-host, palette, matrix). Not
   calibrated; label reads "model-reported confidence" until the UQ/calibration
-  backend extension lands. See [tile-a1-risk-uncertainty.md](tile-a1-risk-uncertainty.md).
-- **Effort:** M. **Change:** frontend tile + backend proxy first (scenario-KPI
+  backend extension lands. See [widget-a1-risk-uncertainty.md](widget-a1-risk-uncertainty.md).
+- **Effort:** M. **Change:** frontend widget + backend proxy first (scenario-KPI
   spread, forecast variance across rollouts = cheap ensemble); true epistemic/
   aleatoric = later backend extension (flagged, not faked).
 - **Contributes:** Q2 (core), Q1 (framing per mode), Q5 (overtrust proxy data).
@@ -53,10 +53,10 @@ when, response time, override vs accept; JSON export.
   `accountableOwner: human | ai | system`. `coLearningFeedback` (Co-Learning
   only) left untouched. JSON export + override-rate / mean-decision-time
   readout. Registered at the seams (plugin-host, palette, matrix). See
-  [tile-a2-decision-log.md](tile-a2-decision-log.md).
+  [widget-a2-decision-log.md](widget-a2-decision-log.md).
 - **Effort:** M (rides on [interaction-logging-plan](interaction-logging-plan.md)
   — realises its first slice). **Change:** frontend store already sees decisions
-  (`setOverride`, applyOption, auto-decide); add an event record + tile; backend
+  (`setOverride`, applyOption, auto-decide); add an event record + widget; backend
   optional at first.
 - **Contributes:** Q3 (core — override rate, friction asymmetry, decision-time ÷
   acceptance), Q5 (the study instrument), Q4 (owner comes from `allocation`).
@@ -66,9 +66,9 @@ when, response time, override vs accept; JSON export.
   with a named human-factors KPI catalog (HS-003 intervention frequency,
   AS-005 agreement score, HS-023 response time, RS-091..096 reflection on
   trust/agency/de-skilling/over-reliance/biases) that overlaps almost
-  one-to-one with this tile's fields — no code to reuse (those KPIs are
+  one-to-one with this widget's fields — no code to reuse (those KPIs are
   uncoded, collected via survey/interactive-loop), but the schema should be
-  named to map onto these IDs later without a rename. See tile-a2 spec §5b.
+  named to map onto these IDs later without a rename. See widget-a2 spec §5b.
 
 ### A3. AI track record / reliability history — [DB]+[D3.1]
 `kind` **Trust** · overview. Rolling record: how often were AI suggestions
@@ -85,7 +85,7 @@ taken / overridden, and how did followed vs overridden decisions turn out
   evidential NN) and
   [`failure_prediction`](https://github.com/AI4REALNET/failure_prediction)
   (D2.2, classical RF/XGBoost/LightGBM failure-prediction models — the
-  "calibration data" reuse candidate for this tile's follow-up-outcome need).
+  "calibration data" reuse candidate for this widget's follow-up-outcome need).
 
 ## B. Prediction & what-if (A3S/TraceRL line)
 
@@ -95,7 +95,7 @@ operator override, simulate both forward (existing `whatIfOverride` + scenario
 rollouts), compare side-by-side with KPI deltas. Convention: **human-influenced
 steps blue, AI-simulated yellow** (consortium/TraceRL). A3S endpoints Restore /
 Action-space / Simulate ≈ our session + overrides + what-if APIs — mostly there.
-- **Effort:** M. **Change:** frontend tile (branch view + compare); backend
+- **Effort:** M. **Change:** frontend widget (branch view + compare); backend
   mostly exists, maybe a "simulate N steps from current state with overrides"
   convenience endpoint.
 - **Contributes:** Q1 (Co-Learning dual-path §3.3!), Q2 (simulation-backed
@@ -133,7 +133,7 @@ answered by proximity/edge-weight instead of scanning the map.
 - **Effort:** M. **Change:** frontend only to start (KPI-delta correlation
   proxy, same "cheap proxy before real backend" move as A1); new D3
   dependency (`d3-force`/`d3-selection`/`d3-drag`/`d3-zoom` subset).
-- **Contributes:** Q1 (Context tile behaves differently per mode's focus
+- **Contributes:** Q1 (Context widget behaves differently per mode's focus
   logic), situational awareness beyond the geographic map; a testable Q5
   comparison (does the graph surface correlated-but-distant trains the map
   misses?).
@@ -147,7 +147,7 @@ answered by proximity/edge-weight instead of scanning the map.
   click — and its `Map.vue` uses the same `criticalityToColor` helper for
   `LCircleMarker` status dots, i.e. the consortium already treats "severity as
   a coloured circle" as a shared idiom across their graph *and* map views. See
-  [tile-b3-network-correlation-graph.md](tile-b3-network-correlation-graph.md).
+  [widget-b3-network-correlation-graph.md](widget-b3-network-correlation-graph.md).
   Domain note: their hex-hardcoded CSS vars (`--red-500: #f55`, …) must **not**
   be ported — reimplement with our Lyne/`visual-encoding.ts` token seam.
 
@@ -160,7 +160,7 @@ per-scenario KPIs.
 - **Effort:** M. **Change:** frontend only to start (existing scenario KPI
   deltas); true multi-policy Pareto = backend/policy extension later.
 - **Contributes:** Q1 (Assessment framing = Co-Learning; ranked = Recommendation
-  — the mode switch made visible in one tile), Q2 (trade-off transparency), Q5.
+  — the mode switch made visible in one widget), Q2 (trade-off transparency), Q5.
 - **AI4REALNET check — strong match for the Assessment framing itself:**
   [`T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives)
   (D2.3) generates accurate *expected-outcome* explanations per action
@@ -202,10 +202,10 @@ First step: **display only** (derived from mode) — already valuable as the
   [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) (PPO
   controller + HMI that **injects high-level decisions at runtime while the
   controller stays the base decision layer** — literally the display-then-dial
-  progression this tile plans). Skim
+  progression this widget plans). Skim
   [`T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI)'s
   `HMI_overview.png` for how they render the allocation/mode state before
-  designing this tile's UI from scratch.
+  designing this widget's UI from scratch.
 
 ### D2. Partial Non-Control zones — [DB]
 `kind` **Trust/Context** · detail. Explicitly mark what the operator *cannot*
@@ -217,9 +217,9 @@ influence right now (e.g. malfunction duration, other trains under AI control)
   contribution (Grote's Partial Non-Control), not in any consortium deliverable
   found. Stays a from-scratch build, deliberately.
 
-## Not tiles (kept off this list deliberately)
+## Not widgets (kept off this list deliberately)
 - **Full A3S adoption** — architecture stance (service wrapper, Redis/Hydra),
-  not a tile; B1 is its minimal in-app expression.
+  not a widget; B1 is its minimal in-app expression.
 - **Negotiation proxy transparency (FHNW MARL / Tokener)** — needs the MARL
   backend; revisit when real RL agents land (see rl-agents goal).
 - **Competence-maintenance / AI-free practice phases** — mode/scenario-level

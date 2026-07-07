@@ -1,6 +1,6 @@
-# Interaction framework — tiles, functions, allocation, accountability
+# Interaction framework — widgets, functions, allocation, accountability
 
-> The conceptual backbone for **authoring** HMI elements ("tiles") in this
+> The conceptual backbone for **authoring** HMI elements ("widgets") in this
 > playground. It answers three questions about any element: **what function** it
 > serves in the human-AI loop, **at what granularity**, and **who owns which
 > part** of the loop. It is grounded in the AI4REALNET / InteractiveAI reference
@@ -35,15 +35,15 @@ Two AI capabilities are treated as **distinct** and are the novel core:
   [`AI4REALNET/T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives)
   (D2.3) — generates accurate *expected-outcome* explanations per action
   alternative without assuming the operator's reward weights; the reuse target
-  for tile C1.
+  for widget C1.
 
-## 2. Tile `kind` — function in the human-AI loop
+## 2. Widget `kind` — function in the human-AI loop
 
-The **primary** classification of a tile is its function in the loop, not its
+The **primary** classification of a widget is its function in the loop, not its
 form (text/chart/button). Sub-types can be added under a `kind` later without
 reshuffling the top level.
 
-| `kind` | AI4REALNET function | What the tile answers | Examples today | AI-novel |
+| `kind` | AI4REALNET function | What the widget answers | Examples today | AI-novel |
 |--------|---------------------|-----------------------|----------------|:--------:|
 | **Event** | Event / Context (detect) | *What is happening?* (event synthesis / Hypervision) | Situation Summary, Event Feed | |
 | **Context** | Context Determination | *Why, how bad, whom does it affect?* | Conflict Panel, Train Detail Overlay | |
@@ -69,7 +69,7 @@ Support* that feeds Control, and it stays advisory under **Human-in-Control**
 - **`granularity` — overview ↔ detail.** Shneiderman's mantra ("overview first,
   zoom and filter, details on demand"). The overview end *is* Hypervision (the
   big-board synthesis); the detail end is drill-down / detail-in-context (Train
-  Detail Overlay, Event Detail Card). A tile declares where it sits and, ideally,
+  Detail Overlay, Event Detail Card). A widget declares where it sits and, ideally,
   what it drills into.
 
 - **`allocation` — who owns each loop stage.** A map `{loop-stage → human | ai |
@@ -80,7 +80,7 @@ Support* that feeds Control, and it stays advisory under **Human-in-Control**
 
 ## 4. Human-in-Control — the autonomy principle
 
-"Human-in-Control" is **not a tile kind**; it is the principle governing
+"Human-in-Control" is **not a widget kind**; it is the principle governing
 `allocation`: actuation authority stays with the human unless explicitly and
 reversibly delegated. Grounded in levels-of-automation theory (Sheridan &
 Verplank 1978; Parasuraman, Sheridan & Wickens 2000: *types × levels* of
@@ -144,7 +144,7 @@ events make accountability **analysable later without a refactor**.
 Two tensions we must hold, not smooth over:
 - **Trust — design goal or warning sign?** Calibrated trust as a goal (Weyer)
   vs. *"trust may be a consequence of lack of control"* (Grote). This is why
-  **Trust** is its own kind, and why a trust tile must expose *appropriateness of
+  **Trust** is its own kind, and why a trust widget must expose *appropriateness of
   reliance*, not just a confidence number.
 - **Guardian-system paradox.** The preferred architecture (system extends
   perception, human keeps control) reproduces the automation irony at second
@@ -162,13 +162,13 @@ above — a good sign the taxonomy is consortium-aligned:
 
 | D3.1 solution family | Our mapping | Consortium repo(s) checked |
 |----------------------|-------------|------------------------------|
-| **Uncertainty-aware decision support** — epistemic vs. aleatoric; reliability indicators, probabilistic forecasts, failure-risk, uncertainty intervals → *calibrated trust* | **Trust** kind (+ **Prediction** for probabilistic forecasts) | [`RL_agent_failure_forecast`](https://github.com/AI4REALNET/RL_agent_failure_forecast) (INESC, evidential NN — tile A1's reuse target); [`RL-agent-uncertainty-prediction-module`](https://github.com/AI4REALNET/RL-agent-uncertainty-prediction-module) (Conformal Prediction, alternative); [`failure_prediction`](https://github.com/AI4REALNET/failure_prediction) (D2.2, classical models) |
-| **Multi-objective reasoning & trade-off transparency** — Pareto sets, reveal objective conflicts, situational priorities | **Decision Support / Assessment** (Evaluative AI, evidence for/against) | [`T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives) (D2.3, tile C1's reuse target); [`Grid2Op_MORL`](https://github.com/AI4REALNET/Grid2Op_MORL) (Pareto/MORL, domain caveat) |
+| **Uncertainty-aware decision support** — epistemic vs. aleatoric; reliability indicators, probabilistic forecasts, failure-risk, uncertainty intervals → *calibrated trust* | **Trust** kind (+ **Prediction** for probabilistic forecasts) | [`RL_agent_failure_forecast`](https://github.com/AI4REALNET/RL_agent_failure_forecast) (INESC, evidential NN — widget A1's reuse target); [`RL-agent-uncertainty-prediction-module`](https://github.com/AI4REALNET/RL-agent-uncertainty-prediction-module) (Conformal Prediction, alternative); [`failure_prediction`](https://github.com/AI4REALNET/failure_prediction) (D2.2, classical models) |
+| **Multi-objective reasoning & trade-off transparency** — Pareto sets, reveal objective conflicts, situational priorities | **Decision Support / Assessment** (Evaluative AI, evidence for/against) | [`T2.3_explaining_action_alternatives`](https://github.com/AI4REALNET/T2.3_explaining_action_alternatives) (D2.3, widget C1's reuse target); [`Grid2Op_MORL`](https://github.com/AI4REALNET/Grid2Op_MORL) (Pareto/MORL, domain caveat) |
 | **Interactive & co-learning architectures** — explicit/implicit feedback, IRL, explanation, persistent state | **Capitalization** kind | [`Tokener`](https://github.com/AI4REALNET/Tokener)'s Co-Learning approach (human-in-the-loop, transparent adaptation); [`CDRTrainer`](https://github.com/AI4REALNET/CDRTrainer) (TUD, feedback + shielding) |
-| **Agent-as-a-Service (A3S)** — see below | Architecture pattern for the **seams** | [`agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a-service-trace-rl) — confirmed, Flatland-configured already; tile B1's reuse target |
-| **Trustworthy autonomous operation** — director system, high-level directives, interpretable primitives from hierarchical task analysis, MARL + negotiation + supervision | **Control** kind (director-directive) + Human-in-Control | [`Tokener`](https://github.com/AI4REALNET/Tokener)'s Hybrid approach (CBS+PP, token-based); [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) (PPO + runtime decision injection); [`T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) (full reference HMI, both modes) — reuse targets for tile D1 |
+| **Agent-as-a-Service (A3S)** — see below | Architecture pattern for the **seams** | [`agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a-service-trace-rl) — confirmed, Flatland-configured already; widget B1's reuse target |
+| **Trustworthy autonomous operation** — director system, high-level directives, interpretable primitives from hierarchical task analysis, MARL + negotiation + supervision | **Control** kind (director-directive) + Human-in-Control | [`Tokener`](https://github.com/AI4REALNET/Tokener)'s Hybrid approach (CBS+PP, token-based); [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) (PPO + runtime decision injection); [`T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) (full reference HMI, both modes) — reuse targets for widget D1 |
 
-**A3S is not a tile — it is the architecture stance** that makes our seams real.
+**A3S is not a widget — it is the architecture stance** that makes our seams real.
 It wraps an autonomous agent in a human-centred service that *exposes* recommended
 actions **with uncertainty, context, and traceable decision pathways**, supports
 **adjustable autonomy**, and enables **auditing / logging / what-if**. In our terms:
@@ -185,7 +185,7 @@ service with uncertainty + traceability + an autonomy dial), not building one pa
 Materialise now: **`kind` + `granularity`** on `PanelDefinition`, and **Trust** as
 a first-class kind. Introduce **`allocation`** as a concept derived from the mode
 (seam for §5a). Keep accountability as the documented seam in §5b (events with an
-owner) — realised together with interaction logging, not before. The tile-spec
+owner) — realised together with interaction logging, not before. The widget-spec
 template builds on this: `kind × granularity`, then per-mode framing (Decision
 Support: Assessment ↔ Recommendation), then system interaction (data in / actions
 out), then the grounding reference + acceptance scenario.

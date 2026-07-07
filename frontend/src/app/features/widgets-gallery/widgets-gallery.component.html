@@ -1,4 +1,4 @@
-<app-config-shell active="gallery">
+<app-config-shell active="widgets">
   <sbb-transparent-button
     configActions
     id="gallery-menu-trigger"
@@ -15,12 +15,12 @@
 
 <div class="gallery">
   <div class="gallery__intro">
-    <h1>Tile Gallery</h1>
+    <h1>Widget Gallery</h1>
     <p class="gallery__lead">
-      Every HMI tile, grouped by its function in the human-AI loop
+      Every HMI widget, grouped by its function in the human-AI loop
       (<a href="docs/reference/interaction-framework.md">interaction-framework</a>).
       Pick a <em>kind</em>, see how it behaves per mode, preview it, then author a
-      new one with the <code>/create-tile</code> skill.
+      new one with the <code>/create-widget</code> skill.
     </p>
   </div>
 
@@ -79,14 +79,14 @@
     </label>
 
     <div class="gallery__count">
-      {{ totalShown() }} tile{{ totalShown() === 1 ? '' : 's' }}
+      {{ totalShown() }} widget{{ totalShown() === 1 ? '' : 's' }}
       @if (kindFilter() !== 'all' || modeFilter() !== 'all' || statusFilter() !== 'shipped' || query()) {
         <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
       }
     </div>
   </section>
 
-  <!-- Grouped tiles -->
+  <!-- Grouped widgets -->
   @for (group of groups(); track trackByKind($index, group)) {
     <section class="kind-section">
       <div class="kind-section__head" [style.--kind-color]="kindVar(group.kind)">
@@ -96,40 +96,40 @@
         <p class="kind-section__blurb">{{ group.meta.blurb }}</p>
       </div>
 
-      <div class="tile-grid">
-        @for (tile of group.tiles; track trackByType($index, tile)) {
-          <article class="tile-card" [style.--kind-color]="kindVar(tile.kind)">
-            <div class="tile-card__top">
-              <h3 class="tile-card__title">{{ tile.title }}</h3>
-              <span class="tile-card__status" [attr.data-status]="tile.status">{{ statusLabel(tile.status) }}</span>
+      <div class="widget-grid">
+        @for (widget of group.widgets; track trackByType($index, widget)) {
+          <article class="widget-card" [style.--kind-color]="kindVar(widget.kind)">
+            <div class="widget-card__top">
+              <h3 class="widget-card__title">{{ widget.title }}</h3>
+              <span class="widget-card__status" [attr.data-status]="widget.status">{{ statusLabel(widget.status) }}</span>
             </div>
 
-            <div class="tile-card__meta">
-              <span class="tile-card__kind">{{ kindMeta[tile.kind].label }}</span>
-              <span class="tile-card__gran">{{ tile.granularity }}</span>
-              @if (tile.catalogId) { <span class="tile-card__id">{{ tile.catalogId }}</span> }
+            <div class="widget-card__meta">
+              <span class="widget-card__kind">{{ kindMeta[widget.kind].label }}</span>
+              <span class="widget-card__gran">{{ widget.granularity }}</span>
+              @if (widget.catalogId) { <span class="widget-card__id">{{ widget.catalogId }}</span> }
             </div>
 
-            <p class="tile-card__desc">{{ tile.description }}</p>
-            <p class="tile-card__promise"><strong>You can:</strong> {{ tile.promise }}</p>
+            <p class="widget-card__desc">{{ widget.description }}</p>
+            <p class="widget-card__promise"><strong>You can:</strong> {{ widget.promise }}</p>
 
             <!-- Preview -->
-            <div class="tile-card__preview">
-              @if (isLive(tile)) {
+            <div class="widget-card__preview">
+              @if (isLive(widget)) {
                 <div class="preview-frame preview-frame--live">
-                  <app-panel-plugin-host [panel]="previewPanel(tile)"></app-panel-plugin-host>
+                  <app-panel-plugin-host [panel]="previewPanel(widget)"></app-panel-plugin-host>
                 </div>
               } @else {
-                <div class="preview-frame preview-frame--schematic" [attr.data-kind]="tile.kind">
+                <div class="preview-frame preview-frame--schematic" [attr.data-kind]="widget.kind">
                   <span class="schematic__bar schematic__bar--head"></span>
                   <span class="schematic__bar"></span>
                   <span class="schematic__bar schematic__bar--short"></span>
-                  <span class="schematic__label">{{ tile.type || tile.catalogId }}</span>
+                  <span class="schematic__label">{{ widget.type || widget.catalogId }}</span>
                 </div>
               }
-              @if (canPreviewLive(tile)) {
-                <button class="preview-toggle" type="button" (click)="toggleLive(tile)">
-                  {{ isLive(tile) ? 'Show schematic' : 'Live preview' }}
+              @if (canPreviewLive(widget)) {
+                <button class="preview-toggle" type="button" (click)="toggleLive(widget)">
+                  {{ isLive(widget) ? 'Show schematic' : 'Live preview' }}
                 </button>
               } @else {
                 <span class="preview-toggle preview-toggle--disabled">no component yet</span>
@@ -137,18 +137,18 @@
             </div>
 
             <!-- Per-mode behaviour -->
-            <div class="tile-card__modes">
+            <div class="widget-card__modes">
               @for (m of modeColumns; track trackByMode($index, m)) {
                 <div
                   class="mode-row"
                   [class.is-emphasis]="isEmphasisedMode(m.id)"
-                  [class.is-unavailable]="!availableIn(tile, m.id)">
+                  [class.is-unavailable]="!availableIn(widget, m.id)">
                   <span class="mode-row__name">
                     {{ m.label }} <span class="mode-row__wp">{{ m.wp }}</span>
                   </span>
                   <span class="mode-row__body">
-                    @if (availableIn(tile, m.id) && behaviourFor(tile, m.id)) {
-                      {{ behaviourFor(tile, m.id) }}
+                    @if (availableIn(widget, m.id) && behaviourFor(widget, m.id)) {
+                      {{ behaviourFor(widget, m.id) }}
                     } @else {
                       <span class="mode-row__na">not offered in this mode</span>
                     }
@@ -158,13 +158,13 @@
             </div>
 
             <!-- Grounding + links -->
-            <div class="tile-card__foot">
-              <p class="tile-card__grounding"><span>Grounded in:</span> {{ tile.grounding }}</p>
-              @if (tile.spec) {
-                <a class="tile-card__spec" [href]="tile.spec">spec ↗</a>
+            <div class="widget-card__foot">
+              <p class="widget-card__grounding"><span>Grounded in:</span> {{ widget.grounding }}</p>
+              @if (widget.spec) {
+                <a class="widget-card__spec" [href]="widget.spec">spec ↗</a>
               }
-              @if (availabilityMismatch(tile)) {
-                <span class="tile-card__warn" title="Registry availability disagrees with panel-mode-availability.ts">⚠ availability drift</span>
+              @if (availabilityMismatch(widget)) {
+                <span class="widget-card__warn" title="Registry availability disagrees with panel-mode-availability.ts">⚠ availability drift</span>
               }
             </div>
           </article>
@@ -175,7 +175,7 @@
 
   @if (totalShown() === 0) {
     <div class="gallery__empty">
-      No tiles match these filters.
+      No widgets match these filters.
       <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
     </div>
   }

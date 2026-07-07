@@ -10,18 +10,18 @@ import { PanelPluginHostComponent } from '../layout/components/panel-plugin-host
 import { ConfigShellComponent } from '../config-shell/config-shell.component';
 import {
   KIND_META,
-  TILE_KIND_ORDER,
-  TileKind,
-  TileMeta,
-  TileStatus,
-  tileAvailableInMode,
-  tilesByKind,
-} from '../../core/tiles/tile-catalog';
+  WIDGET_KIND_ORDER,
+  WidgetKind,
+  WidgetMeta,
+  WidgetStatus,
+  widgetAvailableInMode,
+  widgetsByKind,
+} from '../../core/widgets/widget-catalog';
 
 interface GalleryGroup {
-  kind: TileKind;
-  meta: (typeof KIND_META)[TileKind];
-  tiles: TileMeta[];
+  kind: WidgetKind;
+  meta: (typeof KIND_META)[WidgetKind];
+  widgets: WidgetMeta[];
 }
 
 interface ModeColumn {
@@ -31,31 +31,31 @@ interface ModeColumn {
 }
 
 /**
- * Tile Gallery — an in-app browsable catalog of every HMI tile, grounded in the
- * tile-catalog registry (core/tiles/tile-catalog.ts). It answers three
+ * Widget Gallery — an in-app browsable catalog of every HMI widget, grounded in the
+ * widget-catalog registry (core/widgets/widget-catalog.ts). It answers three
  * authoring/onboarding questions the layout designer's flat palette cannot:
  *
- *   1. *Which kind do I need?* — tiles are grouped by interaction-framework
+ *   1. *Which kind do I need?* — widgets are grouped by interaction-framework
  *      `kind`, each with the question it answers and its badge colour.
  *   2. *How does it behave in my mode?* — every card shows the per-mode
  *      behaviour (Recommendation / Co-Learning / Director) side by side.
  *   3. *What does it look like?* — a schematic thumbnail, with an opt-in live
- *      preview of the real component for shipped tiles.
+ *      preview of the real component for shipped widgets.
  *
- * Reached at /gallery (mirrors the /designer path toggle in AppComponent).
+ * Reached at /widgets (mirrors the /designer path toggle in AppComponent).
  */
 @Component({
-  selector: 'app-tiles-gallery',
+  selector: 'app-widgets-gallery',
   standalone: true,
   imports: [CommonModule, FormsModule, PanelPluginHostComponent, ConfigShellComponent],
-  templateUrl: './tiles-gallery.component.html',
-  styleUrl: './tiles-gallery.component.scss',
+  templateUrl: './widgets-gallery.component.html',
+  styleUrl: './widgets-gallery.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class TilesGalleryComponent {
+export class WidgetsGalleryComponent {
   readonly store = inject(SessionStore);
 
-  readonly kindOrder = TILE_KIND_ORDER;
+  readonly kindOrder = WIDGET_KIND_ORDER;
   readonly kindMeta = KIND_META;
 
   readonly modeColumns: ModeColumn[] = [
@@ -64,19 +64,19 @@ export class TilesGalleryComponent {
     { id: 'director', label: 'Director', wp: 'WP 3.4' },
   ];
 
-  readonly statusColumns: { id: TileStatus; label: string }[] = [
+  readonly statusColumns: { id: WidgetStatus; label: string }[] = [
     { id: 'shipped', label: 'Shipped' },
     { id: 'first-cut', label: 'First cut' },
     { id: 'planned', label: 'Planned' },
   ];
 
   /** Filter state. */
-  readonly kindFilter = signal<TileKind | 'all'>('all');
+  readonly kindFilter = signal<WidgetKind | 'all'>('all');
   readonly modeFilter = signal<InteractionMode | 'all'>('all');
-  readonly statusFilter = signal<TileStatus | 'all'>('shipped');
+  readonly statusFilter = signal<WidgetStatus | 'all'>('shipped');
   readonly query = signal<string>('');
 
-  /** Tiles whose live preview the user opted into (by panel type). */
+  /** Widgets whose live preview the user opted into (by panel type). */
   private readonly livePreviews = signal<ReadonlySet<string>>(new Set());
 
   readonly groups = computed<GalleryGroup[]>(() => {
@@ -85,29 +85,29 @@ export class TilesGalleryComponent {
     const statusF = this.statusFilter();
     const q = this.query().trim().toLowerCase();
 
-    return tilesByKind()
+    return widgetsByKind()
       .filter((g) => kindF === 'all' || g.kind === kindF)
       .map((g) => ({
         kind: g.kind,
         meta: KIND_META[g.kind],
-        tiles: g.tiles.filter((t) => {
+        widgets: g.widgets.filter((t) => {
           if (statusF !== 'all' && t.status !== statusF) return false;
-          if (modeF !== 'all' && !tileAvailableInMode(t, modeF)) return false;
+          if (modeF !== 'all' && !widgetAvailableInMode(t, modeF)) return false;
           if (q && !`${t.title} ${t.description} ${t.grounding}`.toLowerCase().includes(q)) {
             return false;
           }
           return true;
         }),
       }))
-      .filter((g) => g.tiles.length > 0);
+      .filter((g) => g.widgets.length > 0);
   });
 
   readonly totalShown = computed(() =>
-    this.groups().reduce((n, g) => n + g.tiles.length, 0),
+    this.groups().reduce((n, g) => n + g.widgets.length, 0),
   );
 
   // ── Filters ────────────────────────────────────────────────────────────
-  setKindFilter(kind: TileKind | 'all'): void {
+  setKindFilter(kind: WidgetKind | 'all'): void {
     this.kindFilter.set(kind);
   }
 
@@ -115,7 +115,7 @@ export class TilesGalleryComponent {
     this.modeFilter.set(mode);
   }
 
-  setStatusFilter(status: TileStatus | 'all'): void {
+  setStatusFilter(status: WidgetStatus | 'all'): void {
     this.statusFilter.set(status);
   }
 
@@ -127,8 +127,8 @@ export class TilesGalleryComponent {
   }
 
   // ── Per-mode presentation ────────────────────────────────────────────────
-  behaviourFor(tile: TileMeta, mode: InteractionMode): string | null {
-    return tile.perMode[mode];
+  behaviourFor(widget: WidgetMeta, mode: InteractionMode): string | null {
+    return widget.perMode[mode];
   }
 
   /** Emphasise the column matching the active session mode, or the mode filter. */
@@ -138,42 +138,42 @@ export class TilesGalleryComponent {
     return this.store.interactionMode() === mode;
   }
 
-  availableIn(tile: TileMeta, mode: InteractionMode): boolean {
-    return tileAvailableInMode(tile, mode);
+  availableIn(widget: WidgetMeta, mode: InteractionMode): boolean {
+    return widgetAvailableInMode(widget, mode);
   }
 
   /** Consistency check: registry availability vs the runtime availability map.
    *  Surfaced as a small warning so the two sources cannot drift silently. */
-  availabilityMismatch(tile: TileMeta): boolean {
-    if (!tile.type) return false;
+  availabilityMismatch(widget: WidgetMeta): boolean {
+    if (!widget.type) return false;
     return this.modeColumns.some(
-      (m) => tileAvailableInMode(tile, m.id) !== isPanelAvailableInMode(tile.type, m.id),
+      (m) => widgetAvailableInMode(widget, m.id) !== isPanelAvailableInMode(widget.type, m.id),
     );
   }
 
   // ── Live preview ─────────────────────────────────────────────────────────
-  canPreviewLive(tile: TileMeta): boolean {
-    return tile.status !== 'planned' && tile.type !== '';
+  canPreviewLive(widget: WidgetMeta): boolean {
+    return widget.status !== 'planned' && widget.type !== '';
   }
 
-  isLive(tile: TileMeta): boolean {
-    return this.livePreviews().has(tile.type);
+  isLive(widget: WidgetMeta): boolean {
+    return this.livePreviews().has(widget.type);
   }
 
-  toggleLive(tile: TileMeta): void {
-    if (!this.canPreviewLive(tile)) return;
+  toggleLive(widget: WidgetMeta): void {
+    if (!this.canPreviewLive(widget)) return;
     const next = new Set(this.livePreviews());
-    next.has(tile.type) ? next.delete(tile.type) : next.add(tile.type);
+    next.has(widget.type) ? next.delete(widget.type) : next.add(widget.type);
     this.livePreviews.set(next);
   }
 
-  /** Build a throwaway PanelInstance so panel-plugin-host can render the tile. */
-  previewPanel(tile: TileMeta): PanelInstance {
+  /** Build a throwaway PanelInstance so panel-plugin-host can render the widget. */
+  previewPanel(widget: WidgetMeta): PanelInstance {
     return {
-      id: `gallery-preview-${tile.type}`,
-      type: tile.type,
-      title: tile.title,
-      zone: tile.defaultZone,
+      id: `gallery-preview-${widget.type}`,
+      type: widget.type,
+      title: widget.title,
+      zone: widget.defaultZone,
       order: 0,
       collapsed: false,
       hidden: false,
@@ -182,11 +182,11 @@ export class TilesGalleryComponent {
   }
 
   // ── Cosmetics ────────────────────────────────────────────────────────────
-  kindVar(kind: TileKind): string {
+  kindVar(kind: WidgetKind): string {
     return `var(${KIND_META[kind].token})`;
   }
 
-  statusLabel(status: TileStatus): string {
+  statusLabel(status: WidgetStatus): string {
     switch (status) {
       case 'shipped':
         return 'shipped';
@@ -197,7 +197,7 @@ export class TilesGalleryComponent {
     }
   }
 
-  trackByType = (_: number, t: TileMeta): string => t.type || t.catalogId || t.title;
+  trackByType = (_: number, t: WidgetMeta): string => t.type || t.catalogId || t.title;
   trackByKind = (_: number, g: GalleryGroup): string => g.kind;
   trackByMode = (_: number, m: ModeColumn): string => m.id;
 

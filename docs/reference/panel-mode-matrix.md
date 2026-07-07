@@ -56,7 +56,7 @@ render identically everywhere.
 - **Director** — **overview only**; per-decision hooks are suppressed
   (`interactionMode() !== 'director'`) because the AI handles it.
 
-### `risk-uncertainty` (Tile A1 — Trust)
+### `risk-uncertainty` (Widget A1 — Trust)
 - **Recommendation** — reliability shown **with** the ranked recommendation:
   `confidence` from `store.recommendations()` + a spread band derived from
   `store.scenarios()` score dispersion. Low-and-wide → amber + invites scrutiny.
@@ -73,7 +73,7 @@ render identically everywhere.
   (spec §4). Not in the hardcoded default layout; available via the designer
   palette.
 
-### `decision-log` (Tile A2 — Capitalization)
+### `decision-log` (Widget A2 — Capitalization)
 - **Recommendation** — each strip entry shows the AI suggestion alongside what
   the human chose (accept vs. override is the point).
 - **Co-Learning** — entries show the human's chosen option neutrally; feeds the

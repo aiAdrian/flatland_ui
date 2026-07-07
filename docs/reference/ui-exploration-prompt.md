@@ -1,7 +1,7 @@
 # Reusable LLM Prompt — Evolving the Flatland Dispatcher Interface
 
 > Purpose: paste this into different LLMs (Claude, GPT, Gemini, …) to get
-> **inspiring but well-grounded** ideas for new, modular UI elements ("tiles")
+> **inspiring but well-grounded** ideas for new, modular UI elements ("widgets")
 > that improve how the Flatland Dispatcher visualises network state and supports
 > human-AI dispatching. It is self-contained — the CONTEXT block gives the model
 > everything it needs.
@@ -36,7 +36,7 @@ and minimise delay/deadlocks.
 **Tech & design constraints (respect these in every idea).**
 - Frontend: **Angular** (standalone components + signals), **SBB Lyne** design
   system / web components. Real-time updates via WebSocket.
-- Visualisation today is hand-built SVG/Canvas; no heavy 3D. Keep tiles
+- Visualisation today is hand-built SVG/Canvas; no heavy 3D. Keep widgets
   **modular and drop-in** — each should be a self-contained component that slots
   into one of the three layout columns without redesigning the whole screen.
 - Data is **abstract/schematic**, not geographic — Flatland is a grid of rail
@@ -78,7 +78,7 @@ differently per mode):
 
 ### TASK
 
-Propose **new or improved modular tiles** for this interface — elements we could
+Propose **new or improved modular widgets** for this interface — elements we could
 build and slot in individually — that visualise network state and support
 human-AI dispatching **better than what exists today**. Treat the three columns
 as three design surfaces:
@@ -113,9 +113,9 @@ as three design surfaces:
 
 ### OUTPUT FORMAT
 
-For **each region** give **3–5 tile ideas**, ranked by impact-to-effort. Use:
+For **each region** give **3–5 widget ideas**, ranked by impact-to-effort. Use:
 
-> **[Region] Tile name** — one-line promise.
+> **[Region] Widget name** — one-line promise.
 > - *Inspired by:* <pattern / real system / reference>
 > - *What it shows / data used:* …
 > - *Decision it improves:* …
@@ -155,18 +155,18 @@ rail dispatching HMI."
 
 ## ░ MINI-ROUND FOLLOW-UP PROMPT (build-ready) ░
 
-> Use after the first round, once you've picked a tile to build. Paste this into
+> Use after the first round, once you've picked a widget to build. Paste this into
 > 1–2 strong models (GPT-5.5-pro, Claude Opus 4.8, or Gemini Pro). Replace
-> `<TILE>` with the chosen idea (e.g. "Conflict-aware Marey" or "Triage'd
+> `<WIDGET>` with the chosen idea (e.g. "Conflict-aware Marey" or "Triage'd
 > notification column"). The point is a spec Claude Code can implement directly —
 > the model is secondary, the spec is the product.
 
-You previously proposed UI tiles for the **Flatland Dispatcher**, a human-in-the-
+You previously proposed UI widgets for the **Flatland Dispatcher**, a human-in-the-
 loop railway-dispatching HMI (Angular standalone components + signals, SBB Lyne,
 real-time WebSocket; abstract Flatland grid; three modes Recommendation /
 Co-Learning / Director; what-if convention human=blue, AI-simulated=yellow).
 
-Take **one** tile — **`<TILE>`** — and turn it into a **build-ready spec** for an
+Take **one** widget — **`<WIDGET>`** — and turn it into a **build-ready spec** for an
 Angular standalone component. Be concrete and implementation-level:
 
 1. **Component contract:** name, inputs (as signals), outputs/events it emits, and
@@ -203,7 +203,7 @@ directly from it. Flag any data we'd need that probably isn't available yet.
 > their grounding and concrete scenarios on the record too. Ask for it explicitly —
 > otherwise they stay abstract.
 
-For your **top 3 tile ideas**, add two things to each:
+For your **top 3 widget ideas**, add two things to each:
 
 1. **Grounding references (be specific and verifiable):** name the standard,
    paper, product, or control room the pattern comes from — e.g. "EEMUA 191",
@@ -212,12 +212,12 @@ For your **top 3 tile ideas**, add two things to each:
    "control-room practice". If you are not sure a source exists, say so rather
    than inventing a citation — a fabricated reference is worse than none.
 2. **A concrete use-case walkthrough (a 4–6 step scenario):** a specific
-   dispatching moment on a Flatland grid where this tile changes the outcome.
-   Format: *Situation → what the dispatcher sees on the tile → the decision they
+   dispatching moment on a Flatland grid where this widget changes the outcome.
+   Format: *Situation → what the dispatcher sees on the widget → the decision they
    make → what they'd have done without it → the measurable difference
    (delay/deadlocks/arrivals)*. Use concrete train IDs, cells, and step numbers.
 
-Keep each tile to ~8 lines. Do not re-explain the tile from scratch — only add
+Keep each widget to ~8 lines. Do not re-explain the widget from scratch — only add
 the references and the walkthrough. Flag any reference you are not confident is
 real.
 

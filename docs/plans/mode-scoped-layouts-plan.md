@@ -89,7 +89,7 @@ palette + `panel-plugin-host`:
 
 - **Add `co-learning-reflection`** as a panel type (palette entry +
   `@case` in `panel-plugin-host`) — missing today.
-- `goal-achievement` already exists; make a clear "Recommendations" tile too.
+- `goal-achievement` already exists; make a clear "Recommendations" widget too.
 - **Defence-in-depth:** an optional `visibleInModes?: InteractionMode[]` per
   panel so a panel dropped into the wrong mode's layout hides itself. Primary
   mechanism stays "one layout per mode"; this is just a safety net.
@@ -151,11 +151,11 @@ session.
 
 **Why it doesn't fit today's designer as-is:**
 
-1. **No content-only tiles.** Every panel type in the palette
+1. **No content-only widgets.** Every panel type in the palette
    (`layout-designer.component.ts` palette array) renders through
    `panel-plugin-host.component.ts`, and every one of those components injects
-   `SessionStore` for live data. There's no "text/copy" or "action button" tile —
-   both would be new primitives (title/tagline/body tile; CTA-button tile that
+   `SessionStore` for live data. There's no "text/copy" or "action button" widget —
+   both would be new primitives (title/tagline/body widget; CTA-button widget that
    emits designer-defined events like `startScenario` / `exit` / `restart`).
 2. **No session-less rendering host.** Intro/complete screens render full-pane,
    before a session exists (intro) or after it ends (complete). Reusing
@@ -168,15 +168,15 @@ session.
    extending the resolver's scope from "which live dashboard" to "which screen,
    for which stage."
 
-**Effort estimate:** per the tile catalog's S/M/L scale, roughly **M**
-(150–400k tokens / 1–3 days) — two new tile types + a session-independent host
+**Effort estimate:** per the widget catalog's S/M/L scale, roughly **M**
+(150–400k tokens / 1–3 days) — two new widget types + a session-independent host
 + wiring the demo-flow lifecycle events (`dismissDemoIntro()`, `restart`/`exit`)
 into designer-emitted actions — layered on top of P1, which must land first.
 
 **Open question:** is it worth generalizing this far, or is hand-authoring two
-screens (mode-intro, demo-complete) simply cheaper than building content-tiles
+screens (mode-intro, demo-complete) simply cheaper than building content-widgets
 + a session-less host for a two-screen use case? Revisit once P1–P3 above are
-built and the designer's tile vocabulary has grown for other reasons anyway.
+built and the designer's widget vocabulary has grown for other reasons anyway.
 
 ---
 

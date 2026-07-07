@@ -10,20 +10,20 @@ and move it below the open ones when implemented.
 
 ---
 
-## Topic 1 — Align Layout Designer to Tile Gallery (visual)
+## Topic 1 — Align Layout Designer to Widget Gallery (visual)
 
 **Status:** deferred · **Surface:** Layout Designer body (`/designer`)
 
-**Problem.** The Designer and the Tile Gallery share the config-shell header but
+**Problem.** The Designer and the Widget Gallery share the config-shell header but
 their **bodies look visually different**. The Gallery is the preferred/reference
 look; the Designer should adopt its visual language — same page background,
 typography scale, border-radius scale, card / control / section-header
 vocabulary, and token usage — without restructuring the editor
 (palette | canvas | settings) or breaking its sizing/resize logic.
 
-**Reference (the "better" look) — `frontend/src/app/features/tiles-gallery/`:**
+**Reference (the "better" look) — `frontend/src/app/features/widgets-gallery/`:**
 - `:host` bg `--sbb-color-milk`; `.gallery` centered `max-width: 1180px`.
-- Cards (`.tile-card`): white bg, `1px solid --sbb-color-cloud`, `border-radius: 8px`,
+- Cards (`.widget-card`): white bg, `1px solid --sbb-color-cloud`, `border-radius: 8px`,
   `border-top: 3px solid var(--kind-color)`.
 - Controls: `.control-label` (11px uppercase `--sbb-color-graphite`), `.segmented`
   (cloud border, radius 6, active = charcoal bg / white text), inputs cloud-bordered
@@ -51,7 +51,7 @@ already exists (lines 764–777) and the `DESIGNER_LYNE_TOOLBAR_STYLE` block
    (105–140), `.preview__head` (201–210), `.panel-card`/`__head`/`__body` (281–318),
    `.canvas__empty` (261–269 — cosmetic only), `.canvas__column-head` (245–253).
 3. **Align radius scale:** buttons/inputs → 6px, cards → 8px, pills → 999px.
-4. **Align cards to the tile-card look:** `.palette__item` and `.panel-card` →
+4. **Align cards to the widget-card look:** `.palette__item` and `.panel-card` →
    white bg, cloud border, radius 8, accent top-border (palette: `--app-kind-*`;
    panel: neutral `--sbb-color-graphite` or a panel-type accent).
 5. **Align section headers:** `.preview__head` and the palette `<h2>` → left 4px
@@ -84,6 +84,6 @@ aligned in prior work — leave them.
 ### Verification (when implemented)
 
 `npx ng build` and `npx stylelint "src/**/*.scss"` both pass; manually open
-`/designer` and `/gallery` side by side and confirm the two bodies share page bg,
+`/designer` and `/widgets` side by side and confirm the two bodies share page bg,
 card, control, and section-header vocabulary. Drag/resize rows, columns, and
 panels in the Designer to confirm sizing/resize behavior is unchanged.
