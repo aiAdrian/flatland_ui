@@ -770,9 +770,16 @@ export class SessionStore {
     if (opts.scenarioPolicyIds != null) payload.enabled_scenario_policy_ids = opts.scenarioPolicyIds;
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
     if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
+    const requestedScene = payload.infrastructure_scene as { id?: string; name?: string } | undefined;
+    this.message.set(requestedScene
+      ? `Creating session from infrastructure: ${requestedScene.name || requestedScene.id || 'selected scene'}`
+      : 'Creating session from random infrastructure');
     this.api.createSession(payload).subscribe({
       next: (s) => {
         this.session.set(s);
+        this.message.set(s.infrastructure_scene_id
+          ? `Loaded infrastructure scene: ${s.infrastructure_scene_id}`
+          : 'Loaded random infrastructure');
         if (opts.scenarioPolicyIds != null) {
           this.setEnabledScenarioPolicyIds(opts.scenarioPolicyIds);
         }

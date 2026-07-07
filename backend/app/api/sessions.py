@@ -184,6 +184,7 @@ def create_session(req: SessionCreateRequest):
         width=session.env.width,
         height=session.env.height,
         num_agents=len(session.env.agents),
+        infrastructure_scene_id=getattr(session, "infrastructure_scene_id", None),
     )
 
 
@@ -200,6 +201,7 @@ def get_state(session_id: str):
     overrides = override_manager.get_all(session_id)
     state = serialize_env(session.env, overrides=overrides)
     state["episode_done"] = _is_done(session.env)
+    state["infrastructure_scene_id"] = getattr(session, "infrastructure_scene_id", None)
     return state
 
 

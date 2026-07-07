@@ -42,6 +42,7 @@ class Session:
         # Shape compatible with hmi_scenario_adapter._extract_trajectories().
         self.marey_history_snapshots: list[dict] = []
         self.infrastructure_scene: dict | None = None
+        self.infrastructure_scene_id: str | None = None
 
 
 class SessionManager:
@@ -61,6 +62,11 @@ class SessionManager:
         env = create_env(**env_kwargs)
         session = Session(sid, env, enabled_scenario_policy_set, enabled_policy_set)
         session.infrastructure_scene = infrastructure_scene
+        session.infrastructure_scene_id = (
+            str(infrastructure_scene.get("id"))
+            if isinstance(infrastructure_scene, dict) and infrastructure_scene.get("id")
+            else None
+        )
         seed = env_kwargs.get("seed")
         session.seed = int(seed) if seed is not None else None
         session.max_episode_steps = (

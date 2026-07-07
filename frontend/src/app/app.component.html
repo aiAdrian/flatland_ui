@@ -298,8 +298,9 @@
               <select
                 [value]="selectedRuntimeInfrastructureId()"
                 (focus)="refreshRuntimeInfrastructures()"
+                (pointerdown)="refreshRuntimeInfrastructures()"
                 (change)="setSelectedRuntimeInfrastructure($any($event.target).value)">
-                <option value="random">Random</option>
+                <option value="random">Random · default</option>
                 @for (scene of runtimeInfrastructureScenes(); track scene.id) {
                   <option [value]="scene.id">
                     {{ scene.name }} · {{ scene.gridWidth }} × {{ scene.gridHeight }} · {{ scene.agentCount }} trains
@@ -307,6 +308,14 @@
                 }
               </select>
             </label>
+
+            <button
+              type="button"
+              class="welcome-infrastructure-delete"
+              [disabled]="selectedRuntimeInfrastructureId() === 'random'"
+              (click)="deleteSelectedRuntimeInfrastructure()">
+              Delete infrastructure
+            </button>
 
             <sbb-button size="l" (click)="onWelcomeNewSession()">
               + New Session

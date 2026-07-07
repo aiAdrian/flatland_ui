@@ -30,6 +30,7 @@ class SessionInfo(BaseModel):
     width: int
     height: int
     num_agents: int
+    infrastructure_scene_id: str | None = None
 
 
 class StepRequest(BaseModel):

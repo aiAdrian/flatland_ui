@@ -96,6 +96,10 @@ selected, the runtime create-session request sends the scene as
 `infrastructure_scene`; the backend uses it for the new Flatland session.
 Single-connection Builder cells are exported as Flatland dead-end transitions so
 scene start/target endpoints remain part of the simulated rail map.
+The runtime selector refreshes saved scenes when opened so scenes saved in the
+Builder are available before pressing `+ New Session`.
+Saved infrastructure scenes can also be deleted from the dispatcher welcome
+screen. Deleting resets the selector to `Random`.
 
 ### Left Sidebar
 

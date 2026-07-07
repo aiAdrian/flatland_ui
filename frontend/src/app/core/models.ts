@@ -80,6 +80,7 @@ export interface SessionState {
   width: number;
   height: number;
   num_agents: number;
+  infrastructure_scene_id?: string | null;
   elapsed_steps: number;
   max_episode_steps: number;
   agents: AgentDTO[];
@@ -94,6 +95,7 @@ export interface SessionInfo {
   width: number;
   height: number;
   num_agents: number;
+  infrastructure_scene_id?: string | null;
 }
 
 export interface StepResponse {
