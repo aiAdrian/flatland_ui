@@ -1,0 +1,79 @@
+:host {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+  align-content: start;
+}
+
+.builder-widget {
+  width: 100%;
+}
+
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.2rem;
+  color: var(--sbb-color-charcoal);
+}
+
+h3 {
+  font-size: 1rem;
+  color: var(--sbb-color-charcoal);
+}
+
+p {
+  color: var(--sbb-color-granite);
+  font-size: 0.9rem;
+}
+
+sbb-expansion-panel-content {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-3x);
+}
+
+.grid-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+label {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-1x);
+  color: var(--sbb-color-charcoal);
+  font-size: 0.85rem;
+}
+
+input,
+select {
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+}
+
+input {
+  min-width: 0;
+  padding: var(--sbb-spacing-fixed-1x) var(--sbb-spacing-fixed-2x);
+}
+
+.button-row,
+.tool-grid {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.button-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.tool-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tool-choice {
+  min-width: 0;
+}

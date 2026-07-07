@@ -1,0 +1,56 @@
+<div class="designer__toolbar">
+  <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'new-scene'" (click)="newScene()">New Scene</button>
+  <button
+    type="button"
+    class="designer-action-btn"
+    [class.is-clicked]="buttonFeedbackId === 'save'"
+    [class.designer-action-btn--dirty]="isDirty"
+    [class.designer-action-btn--saved]="!isDirty"
+    [attr.title]="isDirty ? 'Save unsaved scene changes' : 'Scene already saved'"
+    (click)="save()">
+    {{ isDirty ? 'Save changes' : 'Saved' }}
+  </button>
+  <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'save-as'" (click)="saveAs()">Save As…</button>
+  <button type="button" class="designer-action-btn" [class.is-clicked]="buttonFeedbackId === 'export'" (click)="exportJson()">Export JSON</button>
+  <label class="import-button designer-action-btn designer-import-btn" [class.is-clicked]="buttonFeedbackId === 'import'">
+    Import JSON
+    <input type="file" accept="application/json" hidden (change)="importJson($event)" />
+  </label>
+  <button type="button" class="designer-action-btn designer-action-btn--danger" [class.is-clicked]="buttonFeedbackId === 'clear-scenes'" (click)="clearAllScenes()">Clear All Scenes</button>
+</div>
+
+<section class="designer__meta">
+  <label>
+    Scene
+    <select [ngModel]="store.scene().id" (ngModelChange)="load($event)">
+      @for (scene of scenes(); track scene.id) {
+        <option [value]="scene.id">{{ scene.name }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Name
+    <input
+      type="text"
+      [ngModel]="store.scene().name"
+      (ngModelChange)="store.updateSceneName($event); onSceneChanged()" />
+  </label>
+
+  <label>
+    Linked Layout
+    <input
+      type="text"
+      [ngModel]="store.scene().linkedLayoutId || ''"
+      (ngModelChange)="store.updateLinkedLayoutId($event); onSceneChanged()" />
+  </label>
+
+  <span class="designer-unsaved-pill" [class.is-dirty]="isDirty" [class.is-saved]="!isDirty">
+    <span class="designer-unsaved-pill__dot"></span>
+    {{ isDirty ? 'Unsaved changes' : 'Scene saved' }}
+  </span>
+
+  <div class="scene-manager-feedback" [attr.data-tone]="feedbackTone">
+    {{ feedbackMessage }}
+  </div>
+</section>

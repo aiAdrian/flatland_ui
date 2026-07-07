@@ -1,0 +1,67 @@
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Infrastructure Builder</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <p>Draw tracks, stations, and train start/target cells as one reusable scene.</p>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Grid Settings</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <div class="grid-settings">
+      <label>
+        Width
+        <input type="number" min="1" max="80" [ngModel]="draftWidth()" (ngModelChange)="draftWidth.set($event)" />
+      </label>
+      <label>
+        Height
+        <input type="number" min="1" max="60" [ngModel]="draftHeight()" (ngModelChange)="draftHeight.set($event)" />
+      </label>
+    </div>
+    <div class="button-row">
+      <sbb-secondary-button size="s" (click)="applyGrid()">Apply</sbb-secondary-button>
+      <sbb-secondary-button size="s" (click)="resetGrid()">New Scene</sbb-secondary-button>
+    </div>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Drawing Tools</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <sbb-radio-button-group
+      class="tool-grid"
+      name="infrastructure-builder-tool"
+      [value]="store.activeTool()"
+      (change)="selectTool($event)">
+      @for (tool of tools; track tool.id) {
+        <sbb-radio-button
+          class="tool-choice"
+          [value]="tool.id"
+          [title]="tool.description">
+          {{ tool.label }}
+        </sbb-radio-button>
+      }
+    </sbb-radio-button-group>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Agents</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <app-builder-agent-panel></app-builder-agent-panel>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Validation</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <app-builder-validation-panel></app-builder-validation-panel>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s">
+  <sbb-expansion-panel-header>Export</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <app-builder-export-panel></app-builder-export-panel>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>

@@ -1,0 +1,45 @@
+.panel {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.status,
+.issue,
+.empty {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.status {
+  color: var(--sbb-color-red);
+  font-weight: 700;
+}
+
+.status--valid {
+  color: var(--sbb-color-green);
+}
+
+.issue {
+  padding: var(--sbb-spacing-fixed-2x);
+  border-left: 3px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-milk);
+}
+
+.issue--error {
+  border-left-color: var(--sbb-color-red);
+}
+
+.issue--warning {
+  border-left-color: var(--sbb-color-orange);
+}
+
+.empty {
+  color: var(--sbb-color-granite);
+}
