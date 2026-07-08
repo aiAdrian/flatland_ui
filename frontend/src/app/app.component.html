@@ -227,33 +227,42 @@
       </section>
 
       <aside class="right-pane">
-                                                                                                  <app-panel-shell
-                                                    [panel]="$any({
-                                                      id: 'agent-inspector',
-                                                      key: 'agent-inspector',
-                                                      type: 'agent-inspector',
-                                                      title: 'Agent Inspector',
-                                                      label: 'Agent Inspector',
-                                                      zone: 'right',
-                                                      side: 'right',
-                                                      expanded: true,
-                                                      collapsible: true
-                                                    })"
-                                                    title="Agent Inspector"
-                                                    data-panel-type="agent-inspector"
-                                                    data-panel-zone="right"
-                                                  ></app-panel-shell>
-
-        <app-panel-shell [panel]="panelImpact"></app-panel-shell>
-        <app-panel-shell [panel]="panelScenario"></app-panel-shell>
-
+        <!-- Signature surface first: each mode's primary right-column widget sits
+             at the top so the mode difference reads at a glance. Only one of these
+             is available per mode (see panel-mode-availability.ts), so no clash.
+             The always-on context tools (agent-inspector, impact) drop below. -->
         @if (panelAvailable('recommendations')) {
           <app-panel-shell [panel]="panelRecommendations"></app-panel-shell>
         }
 
-        <div class="right-kpi-filter">
-          <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
-        </div>
+        @if (panelAvailable('kpi-filter')) {
+          <div class="right-kpi-filter">
+            <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
+          </div>
+        }
+
+        @if (panelAvailable('scenario')) {
+          <app-panel-shell [panel]="panelScenario"></app-panel-shell>
+        }
+
+        <app-panel-shell
+          [panel]="$any({
+            id: 'agent-inspector',
+            key: 'agent-inspector',
+            type: 'agent-inspector',
+            title: 'Agent Inspector',
+            label: 'Agent Inspector',
+            zone: 'right',
+            side: 'right',
+            expanded: true,
+            collapsible: true
+          })"
+          title="Agent Inspector"
+          data-panel-type="agent-inspector"
+          data-panel-zone="right"
+        ></app-panel-shell>
+
+        <app-panel-shell [panel]="panelImpact"></app-panel-shell>
       </aside>
     </div>
     }

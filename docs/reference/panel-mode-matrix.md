@@ -35,8 +35,8 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `impact` | ● | ● | ◐ overview only |
 | `risk-uncertainty` | ● | ● | ● read-only |
 | `decision-log` | ● | ● | ● |
-| `scenario` | ◐ collapsed | ◐ collapsed | ● expanded |
-| `kpi-filter` | ◐ | ◐ | ● expanded |
+| `scenario` | ○ | ◐ collapsed | ● expanded |
+| `kpi-filter` | ○ | ○ | ● expanded |
 | `recommendations` | ● | ○ | ○ |
 | `co-learning-reflection` | ○ | ● | ○ |
 | `goal-achievement` | ○ | ○ | ● |
@@ -91,16 +91,22 @@ render identically everywhere.
   deferred. Not in the default layout; available via the designer palette.
 
 ### `scenario`
-- **Recommendation** — alternatives **ranked by the operator's KPI priorities**
-  (`optionPresentation() === 'recommended'`).
-- **Co-Learning** — options presented **neutrally**, no KPI-score ranking.
-- **Director** — neutral framing too, and the panel is **expanded by default**
-  (policy is the directive); collapsed by default in Rec/Co-Learning.
+- **Recommendation** — **not shown**: `recommendations` is the policy surface in
+  this mode, so `scenario` would only duplicate it.
+- **Co-Learning** — the **neutral** policy-compare surface: options unranked, no
+  KPI-score ordering; also the base for the §3.3 what-if compare.
+- **Director** — neutral framing, and the panel is **expanded by default**
+  (policy is the directive / swap lever).
 
 ### `kpi-filter`
 - **Director** — the KPI filter is the **primary directive lever**, so it is
-  **expanded** on entering Director.
-- **Recommendation / Co-Learning** — available but secondary.
+  **expanded** on entering Director. **Director-only.**
+- **Recommendation / Co-Learning** — **not shown**: KPI weighting is "optional"
+  here (brief §4.5), and in Co-Learning the neutral, unranked options don't react
+  to the weights at all. Removing it declutters both modes and sharpens Director's
+  "set your priorities up front" identity. Trade-off: the operator can no longer
+  live-tune the recommendation ranking in Recommendation — it runs on sensible
+  defaults (acceptable for the study prototype).
 
 ### `recommendations` / `co-learning-reflection` / `goal-achievement` / `director-directive`
 Pure availability panels — each is the signature surface of exactly one mode
@@ -145,6 +151,8 @@ Example catalogue values implied by the table above:
 | `co-learning-reflection` | `['co-learning']` |
 | `goal-achievement` | `['director']` |
 | `director-directive` | `['director']` |
+| `scenario` | `['co-learning', 'director']` |
+| `kpi-filter` | `['director']` |
 | everything else | `'all'` |
 
 This is a sketch: the field is declared but not yet wired into the resolver. Next
