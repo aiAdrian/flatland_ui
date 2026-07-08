@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-export type ConfigArea = 'designer' | 'widgets';
+export type ConfigArea = 'designer' | 'infrastructure-builder' | 'widgets';
 
 /**
  * Shared chrome for the system **Configuration** area. A single topbar strip —
@@ -30,6 +30,7 @@ export class ConfigShellComponent {
 
   readonly tabs: Array<{ id: ConfigArea; label: string; href: string }> = [
     { id: 'designer', label: 'Layout Designer', href: '/designer' },
-    { id: 'widgets', label: 'Widget Gallery', href: '/widgets' },
+    { id: 'infrastructure-builder', label: 'Infrastructure Builder', href: '/infrastructure-builder' },
+    { id: 'widgets', label: 'Widgets Gallery', href: '/widgets' },
   ];
 }

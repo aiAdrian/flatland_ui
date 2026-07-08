@@ -1,0 +1,92 @@
+<div class="builder">
+  <app-config-shell active="infrastructure-builder">
+    <sbb-transparent-button
+      configActions
+      id="infrastructure-builder-menu-trigger"
+      size="m"
+      icon-name="hamburger-menu-small">
+      Menu
+    </sbb-transparent-button>
+    <sbb-menu configActions trigger="infrastructure-builder-menu-trigger">
+      <sbb-menu-button icon-name="gear-small" (click)="openSettingsRequested.emit()">Session Settings…</sbb-menu-button>
+      <sbb-menu-button icon-name="plus-small" (click)="openInfrastructureStartChoice()">New infrastructure session</sbb-menu-button>
+      <sbb-menu-button icon-name="play-small" (click)="runCurrentScene()">Run current infrastructure</sbb-menu-button>
+      <sbb-menu-button (click)="useSessionGrid()">Use session grid {{ sessionGridWidth }} × {{ sessionGridHeight }}</sbb-menu-button>
+      <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
+    </sbb-menu>
+  </app-config-shell>
+
+  <app-builder-scene-manager></app-builder-scene-manager>
+
+  <section class="builder__meta">
+    <label>
+      Session grid
+      <input [value]="sessionGridWidth + ' × ' + sessionGridHeight" readonly>
+    </label>
+    <button type="button" (click)="useSessionGrid()">Use Session Grid</button>
+    <button type="button" (click)="openSettingsRequested.emit()">Session Settings</button>
+    <button type="button" (click)="openInfrastructureStartChoice()">New Scene</button>
+    <button type="button" (click)="runCurrentScene()">Run Current Scene</button>
+  </section>
+
+    @if (startChoiceOpen()) {
+      <section class="builder-start-choice" aria-label="Infrastructure start choice">
+        <div class="builder-start-choice__panel">
+          <div class="builder-start-choice__header">
+            <p>Infrastructure Session</p>
+            <button type="button" aria-label="Close infrastructure start choice" (click)="closeInfrastructureStartChoice()">×</button>
+          </div>
+
+          <div class="builder-start-choice__body">
+            <button type="button" class="builder-start-choice__option" (click)="startRandomInfrastructure()">
+              <strong>Random infrastructure</strong>
+              <span>Create a new random scene from the current session grid.</span>
+            </button>
+
+            <div class="builder-start-choice__load">
+              <label>
+                Load saved infrastructure
+                <select [(ngModel)]="selectedInfrastructureId" [disabled]="savedInfrastructureScenes().length === 0">
+                  @for (scene of savedInfrastructureScenes(); track scene.id) {
+                    <option [value]="scene.id">{{ scene.name }} · {{ scene.gridWidth }} × {{ scene.gridHeight }}</option>
+                  }
+                </select>
+              </label>
+              <button type="button" (click)="loadSelectedInfrastructure()" [disabled]="!selectedInfrastructureId">
+                Load infrastructure
+              </button>
+              @if (savedInfrastructureScenes().length === 0) {
+                <p>No saved infrastructure scenes yet.</p>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+  <main class="builder-shell">
+    <aside class="builder-sidebar builder-sidebar--left">
+      <app-builder-left-sidebar></app-builder-left-sidebar>
+    </aside>
+
+    <main class="builder-canvas">
+      <app-builder-canvas></app-builder-canvas>
+    </main>
+
+    <aside class="builder-sidebar builder-sidebar--right">
+      <app-builder-inspector></app-builder-inspector>
+    </aside>
+  </main>
+
+  <footer class="builder-footer-status" [attr.data-tone]="store.scene().validation.valid ? 'saved' : 'warn'">
+    <div class="builder-footer-status__left">
+      <span class="builder-footer-status__dot"></span>
+      <span>{{ store.scene().validation.valid ? 'Scene valid' : 'Scene has validation issues' }}</span>
+    </div>
+
+    <div class="builder-footer-status__right">
+      <span>Scene: <strong>{{ store.scene().name }}</strong></span>
+      <span>ID: {{ store.scene().id }}</span>
+    </div>
+  </footer>
+</div>

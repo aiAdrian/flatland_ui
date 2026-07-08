@@ -742,7 +742,7 @@ export class SessionStore {
     run();
   }
 
-  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[] } = {}) {
+  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown } = {}) {
     this.loading.set(true);
     this.error.set(null);
     this.message.set(null);
@@ -769,9 +769,17 @@ export class SessionStore {
     if (opts.malfunctionMaxDuration != null) payload.malfunction_max_duration = opts.malfunctionMaxDuration;
     if (opts.scenarioPolicyIds != null) payload.enabled_scenario_policy_ids = opts.scenarioPolicyIds;
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
+    if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
+    const requestedScene = payload.infrastructure_scene as { id?: string; name?: string; cells?: unknown[]; agents?: unknown[] } | undefined;
+    this.message.set(requestedScene
+      ? `Creating session from infrastructure: ${requestedScene.name || requestedScene.id || 'selected scene'} · sending ${requestedScene.cells?.length ?? 0} cells · ${requestedScene.agents?.length ?? 0} trains`
+      : 'Creating session from random infrastructure');
     this.api.createSession(payload).subscribe({
       next: (s) => {
         this.session.set(s);
+        this.message.set(s.infrastructure_scene_id
+          ? `Loaded infrastructure scene: ${s.infrastructure_scene_id}`
+          : 'Loaded random infrastructure');
         if (opts.scenarioPolicyIds != null) {
           this.setEnabledScenarioPolicyIds(opts.scenarioPolicyIds);
         }
@@ -794,6 +802,9 @@ export class SessionStore {
     this.api.getState(s.id).subscribe({
       next: (st) => {
         this.state.set(st);
+        if (autoAdvanceFirstAgent && st.infrastructure_scene_id && st.infrastructure_scene_diagnostics) {
+          this.message.set(this.formatInfrastructureLoadMessage(st));
+        }
         this._recordTrajectory(st);
         if (autoAdvanceFirstAgent) {
           this._autoAdvanceUntilFirstAgentReady();
@@ -806,6 +817,17 @@ export class SessionStore {
         this.loading.set(false);
       },
     });
+  }
+
+  private formatInfrastructureLoadMessage(st: SessionState): string {
+    const diagnostics = st.infrastructure_scene_diagnostics;
+    if (!diagnostics) {
+      return `Loaded infrastructure scene: ${st.infrastructure_scene_id}`;
+    }
+
+    const mismatches = diagnostics.mismatched_cell_count ? ` · mismatches ${diagnostics.mismatched_cell_count}` : '';
+    const unknown = diagnostics.unknown_tile_count ? ` · unknown tiles ${diagnostics.unknown_tile_count}` : '';
+    return `Loaded infrastructure scene: ${st.infrastructure_scene_id} · cells ${diagnostics.rail_cell_count}/${diagnostics.scene_cell_count} · switches ${diagnostics.rail_switch_tile_count}/${diagnostics.scene_switch_count} · trains ${diagnostics.routable_agent_count}/${diagnostics.scene_agent_count}${mismatches}${unknown}`;
   }
 
   step(policy: PolicyName, n_steps: number = 1) {

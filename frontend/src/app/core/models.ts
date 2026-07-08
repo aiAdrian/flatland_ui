@@ -80,6 +80,8 @@ export interface SessionState {
   width: number;
   height: number;
   num_agents: number;
+  infrastructure_scene_id?: string | null;
+  infrastructure_scene_diagnostics?: InfrastructureSceneDiagnostics | null;
   elapsed_steps: number;
   max_episode_steps: number;
   agents: AgentDTO[];
@@ -89,11 +91,50 @@ export interface SessionState {
   decision_cells?: DecisionCell[];
 }
 
+export interface InfrastructureSceneDiagnostics {
+  scene_cell_count: number;
+  scene_switch_count: number;
+  scene_agent_count: number;
+  routable_agent_count: number;
+  rail_cell_count: number;
+  rail_tile_count: number;
+  rail_switch_tile_count: number;
+  switch_cell_tiles?: Array<{
+    id?: string;
+    x: number;
+    y: number;
+    connections?: string[];
+    switchFacing?: string;
+    svg?: string;
+    rot?: number;
+    visual_kind?: string;
+  }>;
+  switch_cell_visual_counts?: {
+    switch: number;
+    crossing: number;
+    track: number;
+  };
+  unknown_tile_count: number;
+  unknown_tiles: RailTile[];
+  mismatched_cell_count?: number;
+  mismatched_cells?: Array<{
+    id?: string;
+    x: number;
+    y: number;
+    kind?: string;
+    reason?: string;
+    connections?: string[];
+    expected?: number;
+    actual?: number;
+  }>;
+}
+
 export interface SessionInfo {
   id: string;
   width: number;
   height: number;
   num_agents: number;
+  infrastructure_scene_id?: string | null;
 }
 
 export interface StepResponse {

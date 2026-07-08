@@ -41,6 +41,8 @@ class Session:
         # Real executed trajectory history for Marey.
         # Shape compatible with hmi_scenario_adapter._extract_trajectories().
         self.marey_history_snapshots: list[dict] = []
+        self.infrastructure_scene: dict | None = None
+        self.infrastructure_scene_id: str | None = None
 
 
 class SessionManager:
@@ -54,10 +56,17 @@ class SessionManager:
         max_ep_override = env_kwargs.pop("max_episode_steps", None)
         enabled_scenario_policy_ids = env_kwargs.pop("enabled_scenario_policy_ids", None)
         enabled_policy_ids = env_kwargs.pop("enabled_policy_ids", None)
+        infrastructure_scene = env_kwargs.pop("infrastructure_scene", None)
         enabled_scenario_policy_set = set(enabled_scenario_policy_ids or []) if enabled_scenario_policy_ids is not None else None
         enabled_policy_set = set(enabled_policy_ids or []) if enabled_policy_ids is not None else None
-        env = create_env(**env_kwargs)
+        env = create_env(**env_kwargs, infrastructure_scene=infrastructure_scene)
         session = Session(sid, env, enabled_scenario_policy_set, enabled_policy_set)
+        session.infrastructure_scene = infrastructure_scene
+        session.infrastructure_scene_id = (
+            str(infrastructure_scene.get("id"))
+            if isinstance(infrastructure_scene, dict) and infrastructure_scene.get("id")
+            else None
+        )
         seed = env_kwargs.get("seed")
         session.seed = int(seed) if seed is not None else None
         session.max_episode_steps = (

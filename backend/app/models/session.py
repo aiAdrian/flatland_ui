@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -22,6 +22,7 @@ class SessionCreateRequest(BaseModel):
 
     enabled_policy_ids: list[str] | None = None
     enabled_scenario_policy_ids: list[str] | None = None
+    infrastructure_scene: dict[str, Any] | None = None
 
 
 class SessionInfo(BaseModel):
@@ -29,6 +30,7 @@ class SessionInfo(BaseModel):
     width: int
     height: int
     num_agents: int
+    infrastructure_scene_id: str | None = None
 
 
 class StepRequest(BaseModel):

@@ -1,0 +1,18 @@
+<section class="panel">
+  <div class="panel-title">
+    <span>Validation</span>
+    <sbb-secondary-button size="s" (click)="store.validateNow()">Run</sbb-secondary-button>
+  </div>
+  <p class="status" [class.status--valid]="store.scene().validation.valid">
+    {{ store.scene().validation.valid ? 'Valid scene' : 'Scene has errors' }}
+  </p>
+  @for (issue of store.scene().validation.errors; track issue.id) {
+    <p class="issue issue--error">{{ issue.message }}</p>
+  }
+  @for (issue of store.scene().validation.warnings; track issue.id) {
+    <p class="issue issue--warning">{{ issue.message }}</p>
+  }
+  @if (!store.scene().validation.errors.length && !store.scene().validation.warnings.length) {
+    <p class="empty">No validation issues.</p>
+  }
+</section>

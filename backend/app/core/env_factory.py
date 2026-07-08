@@ -6,6 +6,7 @@ from flatland.envs.rail_env import RailEnv
 from flatland.envs import rail_generators as rail_gen
 from flatland.envs import line_generators as line_gen
 import flatland.envs.timetable_generators as ttg
+from app.core.infrastructure_scene_adapter import scene_to_line_generator, scene_to_rail_generator
 
 
 class EnvGenerationError(Exception):
@@ -160,6 +161,7 @@ def _build_once(
     malfunction_rate,
     malfunction_min_duration,
     malfunction_max_duration,
+    infrastructure_scene=None,
 ):
     malfunction_generator = _build_malfunction_generator(
         malfunction_rate,
@@ -171,23 +173,30 @@ def _build_once(
     if malfunction_generator is not None and _rail_env_supports_malfunction_generator():
         env_kwargs["malfunction_generator"] = malfunction_generator
 
+    if infrastructure_scene is not None:
+        rail_generator = scene_to_rail_generator(infrastructure_scene)
+        line_generator = scene_to_line_generator(infrastructure_scene)
+    else:
+        rail_generator = rail_gen.sparse_rail_generator(
+            max_num_cities=max_num_cities,
+            seed=seed,
+            grid_mode=False,
+            max_rails_between_cities=max_rails_between_cities,
+            max_rail_pairs_in_city=max_rail_pairs_in_city,
+        )
+        line_generator = line_gen.sparse_line_generator(
+            speed_ratio_map=_speed_ratio_map(speed_profile),
+            seed=seed,
+            line_length=line_length,
+        )
+
     def make_env(extra_kwargs):
         return RailEnv(
             width=width,
             height=height,
             number_of_agents=number_of_agents,
-            rail_generator=rail_gen.sparse_rail_generator(
-                max_num_cities=max_num_cities,
-                seed=seed,
-                grid_mode=False,
-                max_rails_between_cities=max_rails_between_cities,
-                max_rail_pairs_in_city=max_rail_pairs_in_city,
-            ),
-            line_generator=line_gen.sparse_line_generator(
-                speed_ratio_map=_speed_ratio_map(speed_profile),
-                seed=seed,
-                line_length=line_length,
-            ),
+            rail_generator=rail_generator,
+            line_generator=line_generator,
             timetable_generator=ttg.timetable_generator,
             **extra_kwargs,
         )
@@ -227,6 +236,7 @@ def create_env(
     malfunction_rate: float = 0.0,
     malfunction_min_duration: int = 5,
     malfunction_max_duration: int = 20,
+    infrastructure_scene=None,
     max_retries: int = 5,
 ) -> RailEnv:
     """Build a RailEnv. If Flatland fails, retry with seed+1, seed+2, ..."""
@@ -246,6 +256,7 @@ def create_env(
         malfunction_rate=malfunction_rate,
         malfunction_min_duration=malfunction_min_duration,
         malfunction_max_duration=malfunction_max_duration,
+        infrastructure_scene=infrastructure_scene,
     )
 
     for attempt in range(max_retries):
@@ -267,6 +278,7 @@ def create_env(
                     malfunction_rate,
                     malfunction_min_duration,
                     malfunction_max_duration,
+                    infrastructure_scene,
                 )
                 if max_episode_steps is not None and max_episode_steps > 0:
                     env._max_episode_steps = int(max_episode_steps)

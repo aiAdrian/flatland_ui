@@ -1,0 +1,36 @@
+<section class="panel">
+  <div class="panel-title">
+    <span>Agents</span>
+    <sbb-secondary-button size="s" (click)="store.addAgent()">Add</sbb-secondary-button>
+  </div>
+
+  <div class="random-row">
+    <label>
+      Random
+      <input
+        type="number"
+        min="1"
+        max="50"
+        [ngModel]="store.randomAgentCount()"
+        (ngModelChange)="store.randomAgentCount.set($event)" />
+    </label>
+    <sbb-secondary-button size="s" (click)="store.generateRandomAgents()">Generate</sbb-secondary-button>
+  </div>
+
+  <div class="agent-list">
+    @for (agent of store.scene().agents; track agent.id) {
+      <sbb-transparent-button
+        size="s"
+        class="agent-row"
+        [class.is-active]="store.selectedAgentId() === agent.id"
+        (click)="store.selectAgent(agent.id)">
+        <span>{{ agent.name }}</span>
+        <small>{{ agent.startCellId || 'no start' }} → {{ agent.targetCellId || 'no target' }}</small>
+      </sbb-transparent-button>
+    }
+  </div>
+
+  @if (store.selectedAgent()) {
+    <sbb-secondary-button size="s" (click)="store.removeSelectedAgent()">Remove selected train</sbb-secondary-button>
+  }
+</section>

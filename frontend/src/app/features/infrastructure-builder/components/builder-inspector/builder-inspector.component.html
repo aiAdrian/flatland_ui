@@ -1,0 +1,55 @@
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Scene</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <dl>
+      <dt>ID</dt><dd>{{ store.scene().id }}</dd>
+      <dt>Version</dt><dd>{{ store.scene().version }}</dd>
+      <dt>Updated</dt><dd>{{ store.scene().updatedAt }}</dd>
+      <dt>Linked layout</dt><dd>{{ store.scene().linkedLayoutId || 'none' }}</dd>
+    </dl>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Selection</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    @if (store.selectedCell(); as cell) {
+      <dl>
+        <dt>Cell</dt><dd>{{ cell.id }}</dd>
+        <dt>Kind</dt><dd>{{ cell.kind }}</dd>
+        <dt>Position</dt><dd>{{ cell.x }}, {{ cell.y }}</dd>
+        <dt>Connections</dt><dd>{{ cell.connections.join(', ') || 'none' }}</dd>
+      </dl>
+    } @else {
+      <p>No cell selected.</p>
+    }
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Selected Train</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    @if (store.selectedAgent(); as agent) {
+      <dl>
+        <dt>Name</dt><dd>{{ agent.name }}</dd>
+        <dt>Start</dt><dd>{{ agent.startCellId || 'not set' }}</dd>
+        <dt>Target</dt><dd>{{ agent.targetCellId || 'not set' }}</dd>
+        <dt>Speed</dt><dd>{{ agent.speed || 1 }}</dd>
+      </dl>
+    } @else {
+      <p>No train selected.</p>
+    }
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+
+<sbb-expansion-panel class="builder-widget" color="white" size="s" expanded>
+  <sbb-expansion-panel-header>Graph</sbb-expansion-panel-header>
+  <sbb-expansion-panel-content>
+    <dl>
+      <dt>Nodes</dt><dd>{{ store.scene().graph.nodes.length }}</dd>
+      <dt>Edges</dt><dd>{{ store.scene().graph.edges.length }}</dd>
+      <dt>Stations</dt><dd>{{ store.scene().stations.length }}</dd>
+      <dt>Agents</dt><dd>{{ store.scene().agents.length }}</dd>
+    </dl>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>

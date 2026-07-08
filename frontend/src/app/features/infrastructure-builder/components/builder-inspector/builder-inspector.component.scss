@@ -1,0 +1,41 @@
+:host {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-2x);
+  align-content: start;
+}
+
+.builder-widget {
+  width: 100%;
+}
+
+h3,
+p,
+dl {
+  margin: 0;
+}
+
+h3 {
+  font-size: 1rem;
+  color: var(--sbb-color-charcoal);
+}
+
+p {
+  color: var(--sbb-color-granite);
+}
+
+dl {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) 1fr;
+  gap: var(--sbb-spacing-fixed-1x) var(--sbb-spacing-fixed-3x);
+  font-size: 0.85rem;
+}
+
+dt {
+  color: var(--sbb-color-granite);
+}
+
+dd {
+  margin: 0;
+  color: var(--sbb-color-charcoal);
+  overflow-wrap: anywhere;
+}
