@@ -53,7 +53,7 @@ type RuntimeLayoutOption = {
     PanelPluginHostComponent,
     LayoutDesignerComponent,
     InfrastructureBuilderComponent,
-    TilesGalleryComponent,
+    WidgetsGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
     GraphicTimetableComponent,
@@ -98,11 +98,11 @@ export class AppComponent implements OnInit {
     );
   }
 
-  get showTilesGallery(): boolean {
+  get showWidgetsGallery(): boolean {
     return (
-      window.location.pathname === '/gallery' ||
-      window.location.hash === '#/gallery' ||
-      window.location.hash.endsWith('/gallery')
+      window.location.pathname === '/widgets' ||
+      window.location.hash === '#/widgets' ||
+      window.location.hash.endsWith('/widgets')
     );
   }
 
