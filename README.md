@@ -14,6 +14,21 @@ The frontend follows the official [SBB Design System](https://digital.sbb.ch/en/
 > KPI filter, and a post-session survey. See **[PLAYGROUND.md](PLAYGROUND.md)**
 > for a review-friendly summary of what changed and why.
 
+## Video gallery - current version 08.07.2026
+
+[mov_001.webm](https://github.com/user-attachments/assets/d68ee248-5965-4d58-acfc-5f9e1f1e80ac)
+
+[mov_002.webm](https://github.com/user-attachments/assets/992810c6-c38a-4bea-8fe9-2bb1b5334add)
+
+[mov_003.webm](https://github.com/user-attachments/assets/81a2fb58-4d2b-4465-ae56-f6e3886f85c8)
+
+[mov_004.webm](https://github.com/user-attachments/assets/f4a610f7-6a46-439e-9d30-428be260d66c)
+
+[mov_005.webm](https://github.com/user-attachments/assets/1663d39d-f1a1-4e01-9ae8-d629696ab905)
+
+[mov_006.webm](https://github.com/user-attachments/assets/4ec3b311-e630-4c17-a37b-679a7871a703)
+
+
 ---
 
 ## Quick start
