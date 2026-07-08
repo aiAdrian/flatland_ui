@@ -94,7 +94,7 @@ DF-075/RF-076/SF-077 reward-curve/degradation/restorative metrics.
 
 ## 4. Current alignment (what we already did, so this isn't purely aspirational)
 
-- [tile-a2-decision-log.md](../plans/tile-a2-decision-log.md) §5b maps our
+- [widget-a2-decision-log.md](../plans/widget-a2-decision-log.md) §5b maps our
   decision-log fields onto HS-003, AS-005, HS-023 explicitly.
 - Cross-references noted (not yet built): A1's reliance signal → TS-038/039;
   D1's allocation display → HS-018; the planned reflection module → RS-091..096.
@@ -115,7 +115,7 @@ DF-075/RF-076/SF-077 reward-curve/degradation/restorative metrics.
    transform is more appropriate — don't force our internal schema to be
    literally the wire format if that adds coupling for no benefit.
 4. **Only then** write any orchestrator/FAB-facing integration code — this
-   was explicitly out of scope when tile A2 was speced (2026-07-04); doing it
+   was explicitly out of scope when widget A2 was speced (2026-07-04); doing it
    without real WP 4.3 requirements in hand would be guessing at a moving
    target.
 

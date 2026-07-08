@@ -51,16 +51,16 @@ write PP/CBS logic from scratch. Watch for the Flatland version mismatch
 - **Source:** [recommender-roadmap.md](recommender-roadmap.md) "Planned" item 2
 - **Size:** M–L
 
-### R4 — Tile B1: what-if branch compare
+### R4 — Widget B1: what-if branch compare
 "A3S-light": map/Marey visualisation with two paths — old (blue,
 human-influenced) vs. new (yellow, AI-simulated) — plus a KPI delta. Reuse
 target: [`agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a-service-trace-rl)
 (Redis-backed restore/simulate-forward/report). Spec first via the
-`create-tile` skill, then build — effort estimate already documented there.
-- **Entry point:** tile registration seams (`panel-plugin-host.component.ts`,
+`create-widget` skill, then build — effort estimate already documented there.
+- **Entry point:** widget registration seams (`panel-plugin-host.component.ts`,
   designer palette); backend needs an alternative-route computation (partly
   depends on R3)
-- **Source:** Tile B1 in [tile-catalog.md](tile-catalog.md)
+- **Source:** Widget B1 in [widget-catalog.md](widget-catalog.md)
 - **Size:** M–L
 - **Depends on:** R3 (for a real alternative path, not a placeholder)
 
@@ -105,8 +105,8 @@ option (expected delays / follow-on conflicts).
 ### A4 — Dual-path what-if visualisation
 Old (blue, human-influenced) vs. new (yellow, AI-simulated) path + KPI delta
 on map/Marey. Same reuse target as R4.
-- **Source:** [recommender-roadmap.md](recommender-roadmap.md) item 4 / Tile B1
-  in [tile-catalog.md](tile-catalog.md)
+- **Source:** [recommender-roadmap.md](recommender-roadmap.md) item 4 / Widget B1
+  in [widget-catalog.md](widget-catalog.md)
 - **Size:** M–L
 
 ### A5 — Guaranteed decision moment
@@ -118,13 +118,13 @@ guided demo. Recommended fix: scripted events.
 ### A6 — Trade-off frontier / scenario small-multiples
 Evaluative-AI decision support: show several options with trade-offs
 side-by-side instead of just a ranking.
-- **Source:** Tile C1 in [tile-catalog.md](tile-catalog.md)
+- **Source:** Widget C1 in [widget-catalog.md](widget-catalog.md)
 - **Size:** M
 
 ### A7 — Autonomy dial / allocation panel
 Make visible and adjustable how much autonomy the AI currently has (Director
 altitudes) — groundwork for "adjustable autonomy".
-- **Source:** Tile D1 in [tile-catalog.md](tile-catalog.md); §4.1 in
+- **Source:** Widget D1 in [widget-catalog.md](widget-catalog.md); §4.1 in
   [interaction-modes-brief.md](../reference/interaction-modes-brief.md)
 - **Size:** M
 
@@ -215,5 +215,5 @@ but also a Co-Learning design question (what counts as "active"?).
 ## Related plans
 
 [[mode-scoped-layouts-plan]] · [[cities-stations-plan]] · [[recommender-roadmap]] ·
-[[tile-catalog]] · [[co-learning-direction]] · [[experiment-storyboard]] ·
+[[widget-catalog]] · [[co-learning-direction]] · [[experiment-storyboard]] ·
 [[scenario-variants]] · [[interaction-logging-plan]] · [[recommendation-reliability]]

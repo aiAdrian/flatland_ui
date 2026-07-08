@@ -30,12 +30,13 @@ The AI actively **proposes a preferred solution**; you stay the decision-maker.
 
 1. Step or Play until the **Event Feed** (left) flags the conflict.
 2. On the right, the **AI Recommendation** card appears: a preferred policy with a
-   **confidence** value and a **countdown**.
-3. The **Policies** comparison shows alternatives **with badges** (Recommended /
-   Avoid) and **ranked by your KPI priorities**.
-4. You **Accept** the recommendation, or override the train yourself via the
+   **confidence** value and a **countdown**. This card is the single policy
+   surface in this mode — the neutral **Scenario** compare and the **KPI filter**
+   are hidden here, so the AI's suggestion stands alone (it runs on sensible
+   default KPI priorities).
+3. You **Accept** the recommendation, or override the train yourself via the
    **agent overlay** on the map (select the train → action buttons).
-5. Continue.
+4. Continue.
 
 **Feel:** the AI points at "the best option". Fast, guided, decision support.
 
@@ -47,8 +48,9 @@ Same conflict, but the AI **does not push a favourite** — it supports your
 learning.
 
 1. Step/Play until the conflict appears.
-2. The **AI Recommendation card is hidden**. The **Policies** are shown
+2. The **AI Recommendation card is hidden**. The **Scenario** compare is shown
    **neutrally**: no Recommended/Avoid badge, no score ranking — equal options.
+   (The KPI filter is hidden here too: neutral options don't react to weights.)
 3. You choose (switch policy, or override the train on the map). Every
    intervention is **logged** (see the "Interventions" counter in the footer).
 4. **Pause** (or finish the episode): the **Co-Learning Reflection** panel appears
@@ -91,8 +93,9 @@ exception (adjustable autonomy).
 | AI role | suggests a best option | offers neutral options | acts autonomously |
 | Who drives | you, step by step | you, + reflection | the AI; you supervise |
 | Recommendation card | shown (confidence, countdown) | hidden | hidden |
-| Policies framing | badges + KPI ranking | neutral, unranked | neutral |
-| Primary surface | recommendation + policies | options + reflection | goal-achievement panel |
+| Scenario compare | hidden (card covers policy) | shown, neutral/unranked | shown, expanded |
+| KPI filter | hidden | hidden | shown, primary lever |
+| Primary surface | recommendation card | scenario + reflection | goal-achievement panel |
 | Start | manual step/play | manual step/play | directive → start autonomous |
 | Human action | accept / override | choose / override (logged) | re-weight / swap / take over |
 

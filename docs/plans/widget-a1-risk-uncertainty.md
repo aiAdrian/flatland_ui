@@ -1,6 +1,6 @@
-# Tile A1 — Risk & Uncertainty
+# Widget A1 — Risk & Uncertainty
 
-> Spec following [tile-authoring-process.md](../reference/tile-authoring-process.md).
+> Spec following [widget-authoring-process.md](../reference/widget-authoring-process.md).
 > Status: **first cut built (frontend-only, not calibrated).** See
 > `frontend/src/app/features/risk-uncertainty/risk-uncertainty-panel.component.ts`
 > and the matrix row in `docs/reference/panel-mode-matrix.md`. Backend UQ /
@@ -13,7 +13,7 @@
   expands into "what is uncertain and why")
 - **Default zone:** right (next to Recommendation / Conflict)
 - **Sources:** AI4REALNET **D3.1** (uncertainty-aware augmentation) + **D3.2**
-  (UQ building block) · UI exploration ("honest uncertainty" tile, 4/6+6/6) ·
+  (UQ building block) · UI exploration ("honest uncertainty" widget, 4/6+6/6) ·
   owner's accountability line (Trust as double-edged)
 - **Grounding:** Lee & See (2004) *appropriate reliance*; epistemic vs. aleatoric
   uncertainty; Grote's caution — *trust may be a consequence of lack of control*.
@@ -68,18 +68,18 @@ Concrete AI4REALNET UQ vocabulary to align our backend fields with (from
 power grids (Grid2Op / l2rpn_icaps_2021_small), not railways. It is a
 **semantic alignment** — same UQ vocabulary and split — not a drop-in library.
 The Flatland backend would host an equivalent Evidential NN over *our* agent's
-action space. A3S (EnliteAI/TraceRL, T3.1) is the reuse target for Tile **B1**
+action space. A3S (EnliteAI/TraceRL, T3.1) is the reuse target for Widget **B1**
 (what-if branch compare), not A1's UQ.
 
 ## 5. Allocation & accountability touchpoints
 - **Loop stage:** Decide (Trust is the reliance judgement feeding Control).
-- **Allocation:** in Rec/Co-Learning the human owns Decide → the tile serves
-  *their* reliance calibration; in Director the AI owns Decide → the tile is the
+- **Allocation:** in Rec/Co-Learning the human owns Decide → the widget serves
+  *their* reliance calibration; in Director the AI owns Decide → the widget is the
   human's **exception trigger** (supervisory).
 - **Decision events emitted:** `{decision, shownReliability, shownUncertainty,
   action: accept|override, decisionTimeMs}` → directly powers the accountability
   signals (override-rate, friction, **decision-time ÷ acceptance-rate overtrust
-  proxy**). This is the tile where the owner's Trust-vs-control tension becomes
+  proxy**). This is the widget where the owner's Trust-vs-control tension becomes
   *measurable*.
 - **Design guardrail (from the framework):** must show **calibration**, not a
   false-comfort confidence number — otherwise it manufactures the overtrust it

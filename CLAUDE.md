@@ -44,14 +44,14 @@ the **`AI4REALNET` GitHub org** and align naming/semantics with them:
   action spaces (Flatland-configured already), plus a Dash tree-visualisation
   app for branching trajectories (override → alternative future). **Convention:
   human-influenced steps = blue, AI-simulated steps = yellow.** Reuse for our
-  Co-Learning compare (brief §3.3) and tile B1 (`tile-catalog.md`).
+  Co-Learning compare (brief §3.3) and widget B1 (`widget-catalog.md`).
 - **Co-Learning HMI (T3.3, FHNW / Flatland):** the dedicated learning-support
   HMI — formulate-own vs. AI-recommended solutions, impact comparison, and a
   post-run **statistical + open-question reflection** module (brief §3.2/§3.3).
   See also [`AI4REALNET/T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) —
   a full PyQt reference HMI covering **both** Co-Learning and Director/Autonomous
   interaction on Flatland; skim it before designing new Co-Learning/Director
-  widgets (e.g. tile D1, C2).
+  widgets (e.g. widget D1, C2).
 - **CDRTrainer (TUD):** human feedback + action shielding + expert demonstrations
   (the one WP3 artefact with a DOI) — reference for the "AI learns from human" loop.
 - **Explaining action alternatives (T2.3, D2.3):**
@@ -59,7 +59,7 @@ the **`AI4REALNET` GitHub org** and align naming/semantics with them:
   generates accurate *expected-outcome* explanations per action alternative
   without assuming the operator's reward weights. This is the concrete
   AI4REALNET grounding for our **Assessment** framing (Evaluative AI,
-  `interaction-framework.md` §2) — the reuse target for tile C1.
+  `interaction-framework.md` §2) — the reuse target for widget C1.
 - **Validated HMI surveys (Q5 study instruments):**
   [`AI4REALNET/hmisurveys`](https://github.com/AI4REALNET/hmisurveys) (TU Delft) —
   a modular, **validated** human-factors/cognitive-engineering survey framework
@@ -74,13 +74,13 @@ consortium convention and note the divergence in the PR.
 
 **Reuse, don't reinvent, the algorithms.** For anything with an AI4REALNET
 reference implementation — e.g. **`agent-as-a-service-trace-rl`** (A3S/TraceRL)
-for what-if/branch-compare (tile B1), **`RL_agent_failure_forecast`** (INESC,
-evidential NN) for uncertainty/calibration (tile A1,
-`docs/plans/tile-a1-risk-uncertainty.md` — do not conflate this with A3S, they
-are two different repos for two different tiles), or the Tokener negotiation
+for what-if/branch-compare (widget B1), **`RL_agent_failure_forecast`** (INESC,
+evidential NN) for uncertainty/calibration (widget A1,
+`docs/plans/widget-a1-risk-uncertainty.md` — do not conflate this with A3S, they
+are two different repos for two different widgets), or the Tokener negotiation
 proxy for Director — integrate the consortium's code/approach by default.
 Building our own algorithm from scratch is the exception, not the default: only
-do it as an explicit, stated decision (e.g. in the tile spec's Open
+do it as an explicit, stated decision (e.g. in the widget spec's Open
 questions/risks section), not by omission. This applies to the algorithms
 themselves (UQ, calibration, policy negotiation, …); presentation/HMI framing
 around them stays ours.

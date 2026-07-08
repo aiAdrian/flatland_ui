@@ -34,7 +34,7 @@ import { PanelInstance, isPanelAvailableInMode } from './core/layout';
 import { PanelShellComponent } from './features/layout/components/panel-shell/panel-shell.component';
 
 import { LayoutDesignerComponent } from './features/layout-designer/layout-designer.component';
-import { TilesGalleryComponent } from './features/tiles-gallery/tiles-gallery.component';
+import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 type RuntimeLayoutOption = {
   id: string;
@@ -49,7 +49,7 @@ type RuntimeLayoutOption = {
   imports: [
     PanelPluginHostComponent,
     LayoutDesignerComponent,
-    TilesGalleryComponent,
+    WidgetsGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
     GraphicTimetableComponent,
@@ -86,11 +86,11 @@ export class AppComponent implements OnInit {
     );
   }
 
-  get showTilesGallery(): boolean {
+  get showWidgetsGallery(): boolean {
     return (
-      window.location.pathname === '/gallery' ||
-      window.location.hash === '#/gallery' ||
-      window.location.hash.endsWith('/gallery')
+      window.location.pathname === '/widgets' ||
+      window.location.hash === '#/widgets' ||
+      window.location.hash.endsWith('/widgets')
     );
   }
 

@@ -1,5 +1,5 @@
-@if (showTilesGallery) {
-  <app-tiles-gallery></app-tiles-gallery>
+@if (showWidgetsGallery) {
+  <app-widgets-gallery></app-widgets-gallery>
 } @else if (showLayoutDesigner) {
   <app-layout-designer></app-layout-designer>
 } @else {
@@ -72,7 +72,7 @@
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
-          <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
+          <sbb-menu-link icon-name="apps-small" href="/widgets">Widget Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
           <sbb-divider></sbb-divider>
@@ -100,7 +100,7 @@
           <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
           <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
           <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
-          <sbb-menu-link icon-name="apps-small" href="/gallery">Tile Gallery</sbb-menu-link>
+          <sbb-menu-link icon-name="apps-small" href="/widgets">Widget Gallery</sbb-menu-link>
           <sbb-divider></sbb-divider>
           <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
         </sbb-menu>
@@ -215,7 +215,7 @@
           }
         </div>
 
-        <!-- Co-Learning (WP 3.3): reflection surfaces centrally, as a tile
+        <!-- Co-Learning (WP 3.3): reflection surfaces centrally, as a widget
              below the map (like the Marey view) — no longer buried bottom-right.
              Collapsed by default; the operator opens it when they choose. -->
         @if (panelAvailable('co-learning-reflection')) {
@@ -227,33 +227,42 @@
       </section>
 
       <aside class="right-pane">
-                                                                                                  <app-panel-shell
-                                                    [panel]="$any({
-                                                      id: 'agent-inspector',
-                                                      key: 'agent-inspector',
-                                                      type: 'agent-inspector',
-                                                      title: 'Agent Inspector',
-                                                      label: 'Agent Inspector',
-                                                      zone: 'right',
-                                                      side: 'right',
-                                                      expanded: true,
-                                                      collapsible: true
-                                                    })"
-                                                    title="Agent Inspector"
-                                                    data-panel-type="agent-inspector"
-                                                    data-panel-zone="right"
-                                                  ></app-panel-shell>
-
-        <app-panel-shell [panel]="panelImpact"></app-panel-shell>
-        <app-panel-shell [panel]="panelScenario"></app-panel-shell>
-
+        <!-- Signature surface first: each mode's primary right-column widget sits
+             at the top so the mode difference reads at a glance. Only one of these
+             is available per mode (see panel-mode-availability.ts), so no clash.
+             The always-on context tools (agent-inspector, impact) drop below. -->
         @if (panelAvailable('recommendations')) {
           <app-panel-shell [panel]="panelRecommendations"></app-panel-shell>
         }
 
-        <div class="right-kpi-filter">
-          <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
-        </div>
+        @if (panelAvailable('kpi-filter')) {
+          <div class="right-kpi-filter">
+            <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
+          </div>
+        }
+
+        @if (panelAvailable('scenario')) {
+          <app-panel-shell [panel]="panelScenario"></app-panel-shell>
+        }
+
+        <app-panel-shell
+          [panel]="$any({
+            id: 'agent-inspector',
+            key: 'agent-inspector',
+            type: 'agent-inspector',
+            title: 'Agent Inspector',
+            label: 'Agent Inspector',
+            zone: 'right',
+            side: 'right',
+            expanded: true,
+            collapsible: true
+          })"
+          title="Agent Inspector"
+          data-panel-type="agent-inspector"
+          data-panel-zone="right"
+        ></app-panel-shell>
+
+        <app-panel-shell [panel]="panelImpact"></app-panel-shell>
       </aside>
     </div>
     }
@@ -392,7 +401,7 @@
                   <span class="ve-role-key">AI</span>
                 </div>
               </div>
-              <span class="ve-group-note">not yet used anywhere — seam for the planned what-if tile</span>
+              <span class="ve-group-note">not yet used anywhere — seam for the planned what-if widget</span>
             </div>
 
             <div class="ve-group">

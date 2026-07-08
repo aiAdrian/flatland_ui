@@ -6,8 +6,8 @@ Docs are grouped by purpose. Start with **reference** for the living truth.
 The authoritative specs and guides for how the app works today.
 
 - [interaction-modes-brief.md](reference/interaction-modes-brief.md) — **authoritative** mode spec (WP 3.1/3.3/3.4)
-- [interaction-framework.md](reference/interaction-framework.md) — tile taxonomy (kind × granularity), function allocation, Human-in-Control, accountability seam
-- [tile-authoring-process.md](reference/tile-authoring-process.md) — how we develop a tile (spec template + build workflow)
+- [interaction-framework.md](reference/interaction-framework.md) — widget taxonomy (kind × granularity), function allocation, Human-in-Control, accountability seam
+- [widget-authoring-process.md](reference/widget-authoring-process.md) — how we develop a widget (spec template + build workflow)
 - [architecture.md](reference/architecture.md) — system architecture
 - [mode-guide.md](reference/mode-guide.md) — the same task walked through all three modes
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
@@ -16,16 +16,16 @@ The authoritative specs and guides for how the app works today.
 - [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub + Railway KPI catalog (confirmed in AI4REALNET org) — re-check at real WP 4.3 requirements
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
-- [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model tile ideas (convergence), grounding for the tile catalog
-- [ui-exploration-prompt.md](reference/ui-exploration-prompt.md) — reusable prompt for generating/refining tile ideas
+- [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model widget ideas (convergence), grounding for the widget catalog
+- [ui-exploration-prompt.md](reference/ui-exploration-prompt.md) — reusable prompt for generating/refining widget ideas
 - [ux-design-topics.md](reference/ux-design-topics.md) — deferred UX/UI backlog (open topics with change lists; not yet implemented)
 
 ## plans/ — planned work
 Designs and roadmaps not yet (fully) built.
 
-- [tile-catalog.md](plans/tile-catalog.md) — candidate tiles: sources (D3.1/D3.2/UIX/owner), effort, changes, contribution to core questions
-- [tile-a1-risk-uncertainty.md](plans/tile-a1-risk-uncertainty.md) — spec: Risk & Uncertainty (Trust kind) — first tile
-- [tile-a2-decision-log.md](plans/tile-a2-decision-log.md) — spec: Decision Log & Accountability Strip (Capitalization kind) — incl. WP4 validation-KPI alignment
+- [widget-catalog.md](plans/widget-catalog.md) — candidate widgets: sources (D3.1/D3.2/UIX/owner), effort, changes, contribution to core questions
+- [widget-a1-risk-uncertainty.md](plans/widget-a1-risk-uncertainty.md) — spec: Risk & Uncertainty (Trust kind) — first widget
+- [widget-a2-decision-log.md](plans/widget-a2-decision-log.md) — spec: Decision Log & Accountability Strip (Capitalization kind) — incl. WP4 validation-KPI alignment
 - [mode-scoped-layouts-plan.md](plans/mode-scoped-layouts-plan.md)
 - [interaction-logging-plan.md](plans/interaction-logging-plan.md)
 - [scripted-events-plan.md](plans/scripted-events-plan.md)
@@ -42,7 +42,7 @@ Experiment design and scenario material.
 - [guided-demo-scenario.md](scenarios/guided-demo-scenario.md)
 - [railway-scenarios.md](scenarios/railway-scenarios.md)
 - [experiment-storyboard.md](scenarios/experiment-storyboard.md)
-- [tile-01-conflict-aware-marey.md](scenarios/tile-01-conflict-aware-marey.md)
+- [widget-01-conflict-aware-marey.md](scenarios/widget-01-conflict-aware-marey.md)
 
 ## archive/ — one-off artefacts
 Prompt and exploration notes kept for provenance; not maintained.
