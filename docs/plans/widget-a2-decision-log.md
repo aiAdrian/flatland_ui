@@ -1,6 +1,6 @@
-# Tile A2 — Decision Log & Accountability Strip
+# Widget A2 — Decision Log & Accountability Strip
 
-> Spec following [tile-authoring-process.md](../reference/tile-authoring-process.md).
+> Spec following [widget-authoring-process.md](../reference/widget-authoring-process.md).
 > Status: **first cut built.** See
 > `frontend/src/app/features/decision-log/decision-log-panel.component.ts` +
 > `frontend/src/app/core/decision-log.ts` and the `decisionLog` signal in
@@ -53,12 +53,12 @@ Data **in** — reuses existing choke-points, no new capture mechanism (per
 
 | Event | Emit from (existing code, verified) |
 |---|---|
-| `intervention` (human override) | `SessionStore.setOverride()` (`session.store.ts:942`) — already builds a `CoLearningEntry {step, handle, humanAction, aiSuggestion, timestamp}` in Co-Learning; this tile needs the same capture **in all three modes**, not just Co-Learning |
+| `intervention` (human override) | `SessionStore.setOverride()` (`session.store.ts:942`) — already builds a `CoLearningEntry {step, handle, humanAction, aiSuggestion, timestamp}` in Co-Learning; this widget needs the same capture **in all three modes**, not just Co-Learning |
 | `decision` (impact-panel outcome) | `impact-panel.component.ts` `applyOption()` (:336) / `_apply()` (:360) / `dismiss()` (:248) — hold/reroute/proceed/dismiss |
 | `system_hold` (safe default, NOT a human decision) | `SessionStore.systemHold()` (:987) — explicitly documented in code as *not* a human intervention; the log must keep this distinct (`accountableOwner: 'system'`), not conflate it with an override |
 | `mode_change` | `SessionStore.setInteractionMode()` |
 
-Actions **out:** none that mutate sim state — this tile is purely a read
+Actions **out:** none that mutate sim state — this widget is purely a read
 model over events already happening elsewhere. Optional: click a strip entry
 to jump to/highlight that train (same interaction pattern as impact-panel
 rows).
@@ -110,7 +110,7 @@ per the repo's own README, those are collected via the **interactive-loop**
 workflow (partial auto-upload + manual completion via FAB UI / survey,
 i.e. the `hmisurveys` repo's role), which is exactly our situation.
 
-This tile's fields should be **named so they map cleanly onto these KPI IDs
+This widget's fields should be **named so they map cleanly onto these KPI IDs
 later**, without a rename exercise, if the project ever participates in a
 validation campaign. No campaign integration work is being done now — this
 is purely a naming/scoping precaution.
@@ -120,7 +120,7 @@ is purely a naming/scoping precaution.
 | Override rate (`accountableOwner: 'human'` ÷ total) | **KPI-HS-003** Human intervention frequency | direct mapping |
 | Accept-vs-override ratio | **KPI-AS-005** Agreement score | direct mapping |
 | `decisionTimeMs` | **KPI-HS-023** Human response time | direct mapping |
-| — (not this tile; backend latency) | **KPI-AF-029** AI Response time | different metric, note so it isn't confused with `decisionTimeMs` |
+| — (not this widget; backend latency) | **KPI-AF-029** AI Response time | different metric, note so it isn't confused with `decisionTimeMs` |
 | Session reflection answers (planned, see `co-learning-reflection`) | **KPI-RS-091..096** Reflection on trust / agency / de-skilling / over-reliance / additional training / biases | our reflection module already covers nearly the same taxonomy — align question categories with these IDs when reflection is next revised, not in this task |
 | A1's shown-reliability + reliance signal | **KPI-TS-038/039** Trust in AI / Trust towards the AI tool | cross-reference in A1, not owned by A2 |
 | D1's allocation display | **KPI-HS-018** Human control/autonomy over the process | cross-reference in D1, not owned by A2 |
@@ -144,7 +144,7 @@ system's safe-default was their own decision).
 
 ## 7. Effort & changes
 - **Effort:** M (rides on `interaction-logging-plan.md`, which does most of
-  the schema/capture design already; this task adds the *tile* + extends
+  the schema/capture design already; this task adds the *widget* + extends
   capture to all three modes, not just Co-Learning, + the `accountableOwner`/
   `system` distinction).
 - **Touch:** new `features/decision-log/`; extend `SessionStore.setOverride()`

@@ -1,10 +1,10 @@
 import { Component, Input } from '@angular/core';
 
-export type ConfigArea = 'designer' | 'infrastructure-builder' | 'gallery';
+export type ConfigArea = 'designer' | 'infrastructure-builder' | 'widgets';
 
 /**
  * Shared chrome for the system **Configuration** area. A single topbar strip —
- * brand + sub-navigation between the config surfaces (Layout Designer, Tile
+ * brand + sub-navigation between the config surfaces (Layout Designer, Widget
  * Gallery) — so every full-page config surface shares one consistent header
  * instead of each hand-rolling its own.
  *

@@ -42,8 +42,8 @@
 | `--layer-color-*` | `next-decisions (#eb0000), switches (#762C8F), signals (#DC8C00), grid (#787878)` | "Layer colours — single source of truth. Used by layer-visibility dots AND map markers, so the legend colour always matches the map." | **2 files** — `layer-visibility`, `flatland-map` (the legend/marker contract holds) |
 | `--app-select-*` | `select-color (#f939e9 magenta), -dark, -bg, -ring, -glow` | "Selection / active edit color. Must not be warning orange." | **9 files** — agent-inspector, impact-panel, left-sidebar, recommendations-panel, … (the active-selection accent) |
 | `--app-hover-*` | `hover-bg, -border, -border-dark, -ring, -ring-soft, -glow` | "Neutral hover/focus. Red/orange are reserved for semantic states." | **9 files** — broadly the hover/focus accent |
-| `--app-reliability-*` | `high (green), medium (orange), low (red), band (cloud), band-wide (red)` | Tile A1 reliability level + uncertainty band (Trust kind) | **2 files** — `risk-uncertainty-panel.component.scss` only (+ `styles.scss` def) |
-| `--app-kind-*` | `event, context, prediction, decision-support, control, capitalization, trust` | Tile `kind` badge in the Layout Designer palette (interaction-framework §2) | **1 consumer** — `layout-designer.component.scss` (+ `styles.scss` def) |
+| `--app-reliability-*` | `high (green), medium (orange), low (red), band (cloud), band-wide (red)` | Widget A1 reliability level + uncertainty band (Trust kind) | **2 files** — `risk-uncertainty-panel.component.scss` only (+ `styles.scss` def) |
+| `--app-kind-*` | `event, context, prediction, decision-support, control, capitalization, trust` | Widget `kind` badge in the Layout Designer palette (interaction-framework §2) | **1 consumer** — `layout-designer.component.scss` (+ `styles.scss` def) |
 
 ### 1c. Agent / train identity palette — `AgentColorService`
 
@@ -92,13 +92,13 @@ Grouped by *what the colour encodes*, not by file.
 
 | Family | Encodes | Defined where | Consumed where (consistency) | Global-config candidate? | Risk if reassigned |
 |---|---|---|---|---|---|
-| **Agent/train identity** | *which train is which* | `AgentColorService` + `agent-color.types.ts` (6 types, round-robin, tinted+solid) | 6 components — **consistent** (single service, one contract, tests pin it) | **Partial** — palette is the SBB Flatland UX spec; a study *could* swap palettes, but identity is the round-robin contract, not a per-tile choice | **High** — per-tile override breaks the identity mapping (agent 0 = normal everywhere). Must stay a single global service |
-| **Authorship** (human vs AI) | *who produced this step/branch* — planned: human blue solid / AI amber dashed | **Not yet in code.** Memory `visual-encoding-registry` defines v1: human `#0079c7` solid 👤, AI `#ffaa00` dashed 🤖 | No consumer yet (the what-if tile B1 / `recommender-roadmap` will be first). No informal authorship colouring found in the codebase today | **Yes** — it is the v1 registry role, designed to be configured-once-before-session | Hue overload (see §3): blue & amber each already mean 3 other things → registry must carry line-style + icon + label, not hue alone |
-| **Trust / reliability / uncertainty** | *how much to rely on this AI output* | `--app-reliability-*` in `styles.scss` (green/orange/red/cloud) | **1 consumer** (`risk-uncertainty-panel`) — consistent by default (only one tile) | **Yes** — a study-calibrated reliability palette is a natural global knob | Collides with severity (red/orange/green) and mode (green/orange); must move in lockstep with those families, not independently |
-| **Severity / status** | *how bad / alert vs warn vs ok* | Scatter: global `.malfunction-indicator` (`styles.scss`, `#eb0000`), `--sbb-color-red/orange` in impact/left-sidebar/notifications, hardcoded `#eb0000` in several | **Inconsistent** — mix of tokens and raw `#eb0000`; severity-high uses `--sbb-color-red` (impact-panel:97) but malfunction indicator hardcodes the same red | **Partial** — semantics are universal, but currently scattered raw; needs a `--app-severity-*` family first | Reassigning per-tile would fragment the alert language; should be one global severity ramp |
+| **Agent/train identity** | *which train is which* | `AgentColorService` + `agent-color.types.ts` (6 types, round-robin, tinted+solid) | 6 components — **consistent** (single service, one contract, tests pin it) | **Partial** — palette is the SBB Flatland UX spec; a study *could* swap palettes, but identity is the round-robin contract, not a per-widget choice | **High** — per-widget override breaks the identity mapping (agent 0 = normal everywhere). Must stay a single global service |
+| **Authorship** (human vs AI) | *who produced this step/branch* — planned: human blue solid / AI amber dashed | **Not yet in code.** Memory `visual-encoding-registry` defines v1: human `#0079c7` solid 👤, AI `#ffaa00` dashed 🤖 | No consumer yet (the what-if widget B1 / `recommender-roadmap` will be first). No informal authorship colouring found in the codebase today | **Yes** — it is the v1 registry role, designed to be configured-once-before-session | Hue overload (see §3): blue & amber each already mean 3 other things → registry must carry line-style + icon + label, not hue alone |
+| **Trust / reliability / uncertainty** | *how much to rely on this AI output* | `--app-reliability-*` in `styles.scss` (green/orange/red/cloud) | **1 consumer** (`risk-uncertainty-panel`) — consistent by default (only one widget) | **Yes** — a study-calibrated reliability palette is a natural global knob | Collides with severity (red/orange/green) and mode (green/orange); must move in lockstep with those families, not independently |
+| **Severity / status** | *how bad / alert vs warn vs ok* | Scatter: global `.malfunction-indicator` (`styles.scss`, `#eb0000`), `--sbb-color-red/orange` in impact/left-sidebar/notifications, hardcoded `#eb0000` in several | **Inconsistent** — mix of tokens and raw `#eb0000`; severity-high uses `--sbb-color-red` (impact-panel:97) but malfunction indicator hardcodes the same red | **Partial** — semantics are universal, but currently scattered raw; needs a `--app-severity-*` family first | Reassigning per-widget would fragment the alert language; should be one global severity ramp |
 | **Mode identity** | *which interaction mode is active* | `app.component.scss:98-100,447,945-947` — recommendation=blue `#0079c7`, co-learning=green `#00973b`, director=orange `#ffaa00` (header `mode-dot`, footer, `mode-locked`) | **Consistent** within `app.component.scss` (one file, three selectors) | **No** — mode identity is the mode-switch UI itself, not a per-study variable; making it configurable would sever the visual link to the mode taxonomy | Low if left fixed; **high collision risk** if made configurable (blue/amber overload, §3) |
-| **Layer identity** | *which map layer a glyph belongs to* | `--layer-color-*` in `styles.scss` (red/violet/orange/grey) | **2 consumers** (`layer-visibility` dots + `flatland-map` markers) — **consistent** by design (single source → legend matches map) | **Partial** — a study could pick a layer palette, but the legend/marker contract must stay a single token | Reassigning per-tile breaks the legend-matches-map invariant; must stay one shared token |
-| **Tile-kind tag** (designer only) | *which interaction-framework function class a panel is* | `--app-kind-*` in `styles.scss` (7 colours) | **1 consumer** (`layout-designer` palette badge) | **No** — taxonomy colour is arbitrary, not study-variable; designer-only | Low; palette badge only, no runtime meaning |
+| **Layer identity** | *which map layer a glyph belongs to* | `--layer-color-*` in `styles.scss` (red/violet/orange/grey) | **2 consumers** (`layer-visibility` dots + `flatland-map` markers) — **consistent** by design (single source → legend matches map) | **Partial** — a study could pick a layer palette, but the legend/marker contract must stay a single token | Reassigning per-widget breaks the legend-matches-map invariant; must stay one shared token |
+| **Widget-kind tag** (designer only) | *which interaction-framework function class a panel is* | `--app-kind-*` in `styles.scss` (7 colours) | **1 consumer** (`layout-designer` palette badge) | **No** — taxonomy colour is arbitrary, not study-variable; designer-only | Low; palette badge only, no runtime meaning |
 | **Structural / Lyne base** | UI chrome — borders, backgrounds, text | `--sbb-color-charcoal/granite/cloud/milk/white/iron` (136/119/118/50/42/12 uses) | Mostly token-based in new files; legacy files hardcode the same greys (`#d2d2d2`, `#686868`, `#212121`) | **No** — Lyne theme territory; a future dark mode flips these via Lyne, not a per-session config | None — leave to Lyne tokens; opportunistic migration only |
 
 ## 3. Divergence & collision call-outs (the owner's concern)
@@ -111,7 +111,7 @@ config.
    Lines 41, 50, 91 hardcode `#00973b` / `rgba(0,151,59,0.12)` for the
    "recommended scenario" badge — the *same* green that is
    `--app-reliability-high`, `--app-kind-capitalization`, and the Co-Learning
-   mode dot. If reliability or mode ever becomes configurable, this tile will
+   mode dot. If reliability or mode ever becomes configurable, this widget will
    silently keep its local green and diverge. Should be a shared
    "recommended/positive" token.
 
@@ -122,7 +122,7 @@ config.
 
 3. **Blue (`#0079c7` / `--sbb-color-blue`) is overloaded across families.**
    It carries: Recommendation-mode identity (`app.component.scss:98`),
-   tile-kind `decision-support` (`--app-kind-decision-support`), the
+   widget-kind `decision-support` (`--app-kind-decision-support`), the
    "recommended option" border (`impact-panel.component.scss:210`), the planned
    human-authorship colour, and is visually adjacent to the S-Bahn agent focus
    colour `#3C3F8F` (`agent-color.types.ts`, sbahn `colorsSolid.focus`). Making
@@ -144,7 +144,7 @@ config.
    (`--color-warning` ≈ `--sbb-color-orange`; `--color-default` ≈ granite).
    Candidate for removal, not for becoming a config family.
 
-7. **No informal authorship colouring exists today** (good). The what-if tile
+7. **No informal authorship colouring exists today** (good). The what-if widget
    (B1) will be the first consumer; it should pull from the planned registry,
    not hardcode blue/amber — this is exactly the precedent
    `risk-uncertainty-panel.component.scss` already set (it tokens its

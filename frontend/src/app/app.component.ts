@@ -37,7 +37,7 @@ import { LayoutDesignerComponent } from './features/layout-designer/layout-desig
 import { InfrastructureBuilderComponent } from './features/infrastructure-builder/infrastructure-builder.component';
 import { InfrastructureScene, InfrastructureSceneSummary } from './features/infrastructure-builder/models/scene.model';
 import { InfrastructureSceneStorageService } from './features/infrastructure-builder/services/infrastructure-scene-storage.service';
-import { TilesGalleryComponent } from './features/tiles-gallery/tiles-gallery.component';
+import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 type RuntimeLayoutOption = {
   id: string;

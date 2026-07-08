@@ -1,4 +1,4 @@
-# Build Brief — Tile #1: Conflict-aware Marey
+# Build Brief — Widget #1: Conflict-aware Marey
 
 > For Claude Code. Implements the highest-convergence idea from
 > `docs/reference/ui-exploration-synthesis.md` (6/6 models). Turns the Marey from a passive
@@ -48,7 +48,7 @@ We already have the machinery; wire it, don't reinvent it.
     `_detect_malfunctions`, `_detect_deadlock_cycles`, `_detect_overdue`) appear as
     `pass` stubs in the file, yet `tests/test_conflict_detector*.py` exist. Confirm
     whether detection is implemented (maybe in a later part) or whether wiring them
-    is a prerequisite. **If stubbed, implementing them is task 0** — the tile is
+    is a prerequisite. **If stubbed, implementing them is task 0** — the widget is
     worthless without real conflict events.
 - **Forecast trajectories already exist:** `GET /{id}/hmi/scenarios` returns
   `ScenarioOption.trajectories` — per-agent `TrajectoryPoint{step,row,col,dir}`
@@ -146,7 +146,7 @@ stringlines already use. Do not build a second chart.
 - **V1:** forecast dashed lines (from existing scenario trajectories) + conflict
   markers (from `/hmi/conflicts`) with hover-link + estimated tooltip. No ribbon.
 - **Defer:** headway/occupancy ribbon (phase 2), edge/direction-level resource
-  semantics, multi-branch what-if overlay (that's the Co-Learning compare tile).
+  semantics, multi-branch what-if overlay (that's the Co-Learning compare widget).
 
 ## Open questions to resolve before coding
 1. Are `ConflictDetectionCallbacks` per-step detectors actually implemented? (If

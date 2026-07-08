@@ -1,28 +1,28 @@
 import { InteractionMode } from '../events/event-types';
 
 /**
- * Tile catalog — the single source of truth for tile metadata.
+ * Widget catalog — the single source of truth for widget metadata.
  *
- * A "tile" is an HMI panel authored per the interaction-framework taxonomy
- * (docs/reference/interaction-framework.md) and the tile-authoring process
- * (docs/reference/tile-authoring-process.md). Until this file existed, the same
+ * A "widget" is an HMI panel authored per the interaction-framework taxonomy
+ * (docs/reference/interaction-framework.md) and the widget-authoring process
+ * (docs/reference/widget-authoring-process.md). Until this file existed, the same
  * facts lived scattered across three places that drifted apart:
  *
  *   - the layout-designer palette (type, title, description, kind badge),
  *   - core/layout/panel-mode-availability.ts (availableModes),
- *   - docs/reference/panel-mode-matrix.md + docs/plans/tile-catalog.md
+ *   - docs/reference/panel-mode-matrix.md + docs/plans/widget-catalog.md
  *     (per-mode behaviour, grounding, status) — prose only, not consumable.
  *
- * This registry consolidates them so the in-app **Tile Gallery**
- * (features/tiles-gallery) can render each tile with its kind, granularity,
- * per-mode behaviour and grounding, and so the `/create-tile` authoring skill
- * has a machine-checkable place to register a new tile. Keep it in sync with
+ * This registry consolidates them so the in-app **Widget Gallery**
+ * (features/widgets-gallery) can render each widget with its kind, granularity,
+ * per-mode behaviour and grounding, and so the `/create-widget` authoring skill
+ * has a machine-checkable place to register a new widget. Keep it in sync with
  * the palette and the availability map (the gallery cross-checks and warns).
  */
 
 /** interaction-framework §2 function class. The primary classification of a
- *  tile — its role in the human-AI loop, not its visual form. */
-export type TileKind =
+ *  widget — its role in the human-AI loop, not its visual form. */
+export type WidgetKind =
   | 'event'
   | 'context'
   | 'prediction'
@@ -33,42 +33,42 @@ export type TileKind =
 
 /** overview ↔ detail (Shneiderman's mantra); 'overview-detail' = a badge that
  *  expands / drills down. */
-export type TileGranularity = 'overview' | 'detail' | 'overview-detail';
+export type WidgetGranularity = 'overview' | 'detail' | 'overview-detail';
 
 /** Build status — drives whether the gallery can render a live preview. */
-export type TileStatus = 'shipped' | 'first-cut' | 'planned';
+export type WidgetStatus = 'shipped' | 'first-cut' | 'planned';
 
-/** Per-mode behaviour: how the *same* tile behaves in each interaction mode.
- *  A short sentence per mode, or `null` when the tile is not offered in that
+/** Per-mode behaviour: how the *same* widget behaves in each interaction mode.
+ *  A short sentence per mode, or `null` when the widget is not offered in that
  *  mode (see `availableModes`). Grounded in panel-mode-matrix.md. */
-export interface TileModeBehaviour {
+export interface WidgetModeBehaviour {
   recommendation: string | null;
   'co-learning': string | null;
   director: string | null;
 }
 
-export interface TileMeta {
+export interface WidgetMeta {
   /** Panel `type` — the key used by panel-plugin-host `@switch`, the palette,
-   *  and PanelInstance.type. Empty/absent for not-yet-built (planned) tiles. */
+   *  and PanelInstance.type. Empty/absent for not-yet-built (planned) widgets. */
   type: string;
   /** Catalog id where one exists (A1, B1, …), else undefined. */
   catalogId?: string;
   title: string;
-  kind: TileKind;
-  granularity: TileGranularity;
-  status: TileStatus;
-  /** One short sentence: what the tile shows/does (palette-length, ≤90 chars). */
+  kind: WidgetKind;
+  granularity: WidgetGranularity;
+  status: WidgetStatus;
+  /** One short sentence: what the widget shows/does (palette-length, ≤90 chars). */
   description: string;
-  /** One sentence: what the operator can now *do* (the tile-spec "Promise"). */
+  /** One sentence: what the operator can now *do* (the widget-spec "Promise"). */
   promise: string;
   /** Grounding reference — a consortium deliverable, paper, or control-room
-   *  practice. Every tile is grounded; no generic-dashboard tiles. */
+   *  practice. Every widget is grounded; no generic-dashboard widgets. */
   grounding: string;
-  /** Modes in which the tile type is offered. 'all' = every mode. Mirrors
+  /** Modes in which the widget type is offered. 'all' = every mode. Mirrors
    *  core/layout/panel-mode-availability.ts (which stays the runtime source). */
   availableModes: InteractionMode[] | 'all';
   /** How behaviour branches per mode. `null` where not offered in that mode. */
-  perMode: TileModeBehaviour;
+  perMode: WidgetModeBehaviour;
   /** Default layout zone, for the gallery preview + palette. */
   defaultZone: 'left' | 'center' | 'right' | 'bottom' | 'floating';
   /** Minimum preview height (px), mirrors the palette. */
@@ -81,7 +81,7 @@ export interface TileMeta {
  *  (see --app-kind-* in styles.scss), whether it is an AI-novel core capability,
  *  and the question the kind answers. */
 export const KIND_META: Record<
-  TileKind,
+  WidgetKind,
   { label: string; token: string; aiNovel: boolean; answers: string; blurb: string }
 > = {
   event: {
@@ -139,7 +139,7 @@ export const KIND_META: Record<
   },
 };
 
-export const TILE_KIND_ORDER: TileKind[] = [
+export const WIDGET_KIND_ORDER: WidgetKind[] = [
   'event',
   'context',
   'prediction',
@@ -149,7 +149,7 @@ export const TILE_KIND_ORDER: TileKind[] = [
   'trust',
 ];
 
-const ALL_MODES: TileModeBehaviour = {
+const ALL_MODES: WidgetModeBehaviour = {
   recommendation: 'Same in all modes — no mode-specific branching.',
   'co-learning': 'Same in all modes — no mode-specific branching.',
   director: 'Same in all modes — no mode-specific branching.',
@@ -157,10 +157,10 @@ const ALL_MODES: TileModeBehaviour = {
 
 /**
  * The catalog. Order within a kind roughly follows overview → detail. Built
- * tiles first (have a `type` + component), then planned candidates from
- * docs/plans/tile-catalog.md (no live preview; shown as spec cards).
+ * widgets first (have a `type` + component), then planned candidates from
+ * docs/plans/widget-catalog.md (no live preview; shown as spec cards).
  */
-export const TILE_CATALOG: TileMeta[] = [
+export const WIDGET_CATALOG: WidgetMeta[] = [
   // ── Event ────────────────────────────────────────────────────────────────
   {
     type: 'situation-summary',
@@ -322,7 +322,7 @@ export const TILE_CATALOG: TileMeta[] = [
     },
     defaultZone: 'right',
     minHeight: 200,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
   {
     catalogId: 'B2',
@@ -338,7 +338,7 @@ export const TILE_CATALOG: TileMeta[] = [
     perMode: ALL_MODES,
     defaultZone: 'center',
     minHeight: 260,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
   {
     catalogId: 'B3',
@@ -359,7 +359,7 @@ export const TILE_CATALOG: TileMeta[] = [
     },
     defaultZone: 'center',
     minHeight: 260,
-    spec: 'docs/plans/tile-b3-network-correlation-graph.md',
+    spec: 'docs/plans/widget-b3-network-correlation-graph.md',
   },
 
   // ── Decision Support ─────────────────────────────────────────────────────
@@ -372,11 +372,11 @@ export const TILE_CATALOG: TileMeta[] = [
     description: 'Scenario cards compared by KPIs (done / deadlock / delay) with policy switch.',
     promise: 'Compare candidate scenarios/policies by KPI and pick one.',
     grounding: 'Scenario-panel per-scenario KPIs; T3.2 policy-ensemble framing.',
-    availableModes: 'all',
+    availableModes: ['co-learning', 'director'],
     perMode: {
-      recommendation: 'Alternatives **ranked by the operator’s KPI priorities** (`optionPresentation === recommended`).',
-      'co-learning': 'Options presented **neutrally**, no KPI-score ranking.',
-      director: 'Neutral framing, and the panel is **expanded by default** (policy is the directive).',
+      recommendation: null,
+      'co-learning': 'The neutral policy-compare surface — options unranked, no KPI-score ordering; base for the §3.3 what-if.',
+      director: 'Neutral framing, and the panel is **expanded by default** (policy is the directive / swap lever).',
     },
     defaultZone: 'right',
     minHeight: 160,
@@ -419,7 +419,7 @@ export const TILE_CATALOG: TileMeta[] = [
     },
     defaultZone: 'right',
     minHeight: 200,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
   {
     catalogId: 'C2',
@@ -435,7 +435,7 @@ export const TILE_CATALOG: TileMeta[] = [
     perMode: ALL_MODES,
     defaultZone: 'left',
     minHeight: 160,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
 
   // ── Control ──────────────────────────────────────────────────────────────
@@ -462,10 +462,10 @@ export const TILE_CATALOG: TileMeta[] = [
     description: 'KPI weight sliders (time / energy / platform / routing) as dot meters.',
     promise: 'Express which KPIs matter, shaping how options are ranked.',
     grounding: 'Operator priority elicitation; the Director directive lever.',
-    availableModes: 'all',
+    availableModes: ['director'],
     perMode: {
-      recommendation: 'Available but secondary — tunes ranking of recommendations.',
-      'co-learning': 'Available but secondary — tunes what the operator compares.',
+      recommendation: null,
+      'co-learning': null,
       director: 'The **primary directive lever** — **expanded** on entering Director.',
     },
     defaultZone: 'left',
@@ -523,7 +523,7 @@ export const TILE_CATALOG: TileMeta[] = [
     },
     defaultZone: 'left',
     minHeight: 140,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
 
   // ── Capitalization ───────────────────────────────────────────────────────
@@ -546,7 +546,7 @@ export const TILE_CATALOG: TileMeta[] = [
     },
     defaultZone: 'right',
     minHeight: 160,
-    spec: 'docs/plans/tile-a2-decision-log.md',
+    spec: 'docs/plans/widget-a2-decision-log.md',
   },
   {
     type: 'co-learning-reflection',
@@ -591,7 +591,7 @@ export const TILE_CATALOG: TileMeta[] = [
     },
     defaultZone: 'right',
     minHeight: 160,
-    spec: 'docs/plans/tile-a1-risk-uncertainty.md',
+    spec: 'docs/plans/widget-a1-risk-uncertainty.md',
   },
   {
     catalogId: 'A3',
@@ -608,7 +608,7 @@ export const TILE_CATALOG: TileMeta[] = [
     perMode: ALL_MODES,
     defaultZone: 'right',
     minHeight: 160,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
   {
     catalogId: 'D2',
@@ -625,24 +625,24 @@ export const TILE_CATALOG: TileMeta[] = [
     perMode: ALL_MODES,
     defaultZone: 'right',
     minHeight: 140,
-    spec: 'docs/plans/tile-catalog.md',
+    spec: 'docs/plans/widget-catalog.md',
   },
 ];
 
-/** Tiles grouped by kind, in TILE_KIND_ORDER. */
-export function tilesByKind(): Array<{ kind: TileKind; tiles: TileMeta[] }> {
-  return TILE_KIND_ORDER.map((kind) => ({
+/** Widgets grouped by kind, in WIDGET_KIND_ORDER. */
+export function widgetsByKind(): Array<{ kind: WidgetKind; widgets: WidgetMeta[] }> {
+  return WIDGET_KIND_ORDER.map((kind) => ({
     kind,
-    tiles: TILE_CATALOG.filter((t) => t.kind === kind),
-  })).filter((g) => g.tiles.length > 0);
+    widgets: WIDGET_CATALOG.filter((t) => t.kind === kind),
+  })).filter((g) => g.widgets.length > 0);
 }
 
-/** Look up a tile by its panel `type`. */
-export function tileByType(type: string): TileMeta | undefined {
-  return TILE_CATALOG.find((t) => t.type === type && t.type !== '');
+/** Look up a widget by its panel `type`. */
+export function widgetByType(type: string): WidgetMeta | undefined {
+  return WIDGET_CATALOG.find((t) => t.type === type && t.type !== '');
 }
 
-/** True if the tile is offered in the given mode (mirrors isPanelAvailableInMode). */
-export function tileAvailableInMode(tile: TileMeta, mode: InteractionMode): boolean {
-  return tile.availableModes === 'all' || tile.availableModes.includes(mode);
+/** True if the widget is offered in the given mode (mirrors isPanelAvailableInMode). */
+export function widgetAvailableInMode(widget: WidgetMeta, mode: InteractionMode): boolean {
+  return widget.availableModes === 'all' || widget.availableModes.includes(mode);
 }
