@@ -39,6 +39,7 @@ import { InfrastructureScene, InfrastructureSceneSummary } from './features/infr
 import { InfrastructureSceneStorageService } from './features/infrastructure-builder/services/infrastructure-scene-storage.service';
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
+import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 type RuntimeLayoutOption = {
   id: string;
   name: string;
@@ -74,7 +75,8 @@ type RuntimeLayoutOption = {
     ModeIntroComponent,
     DemoCompleteComponent,
     HelpAboutComponent,
-PanelShellComponent,
+    PanelShellComponent,
+    ConfigShellComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',

@@ -5,84 +5,13 @@
   overflow: hidden;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-  padding: 12px 24px;
-  background: var(--sbb-color-white, #fff);
-  border-bottom: 2px solid var(--sbb-color-red, #eb0000);
-  flex-shrink: 0;
-}
-
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  z-index: 1;
-}
-
-.header-logo {
-  background: var(--sbb-color-red, #eb0000);
-  color: white;
-  padding: 4px 8px;
-  font-weight: bold;
-  font-size: 14px;
-  letter-spacing: 1px;
-}
-
-
-.header-app-logo {
-  /* Height-aligned with the SBB block / header-title (~28px tall).
-     Aspect ratio 144x58 means width ~70px at 28px height. */
-  height: 28px;
-  width: auto;
-  display: block;
-}
-
-.header-title {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-left: 20px;
-  margin-right: 0;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--sbb-color-charcoal, #212121);
-}
-
-/* Header right-hand actions: mode dropdown (WP 3.1/3.3/3.4) + app menu. Always
-   pushed to the far right — .mode-tabs supplies its own margin-right: auto
-   when a session is active, but the welcome screen (no session, no mode-tabs)
-   needs this margin-left: auto directly or the menu sits glued to the title. */
-.header-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-@media (max-width: 1100px) {
-  .header-title-sub { display: none; }
-}
-
 /* Mode switcher: flat tabs (per-mode icon + label, red underline on the active
-   mode) — mirrors the config-shell nav (Layout Designer / Widget Gallery). Sits
-   left of the header (after the title); margin-right:auto pushes the Menu to
-   the right edge. */
+   mode), projected into the shared config-shell bar via [configCenter]; the
+   shell's gap + spacer handle spacing, so no margins are needed here. */
 .mode-tabs {
   display: inline-flex;
   align-items: center;
   gap: 20px;
-  margin-left: 24px;
-  margin-right: auto;
 }
 
 .mode-tab {
@@ -131,18 +60,6 @@
   color: var(--sbb-color-granite, #686868);
   pointer-events: none;
 }
-
-.header-title-main {
-  font-size: 18px;
-  font-weight: 600;
-} 
-
-.header-title-sub {
-  font-size: 1.125rem;;
-  font-weight: 400;
-  color: var(--sbb-color-granite, #686868);
-  margin-left: 8px;
-} 
 
 .error {
   color: var(--sbb-color-red, #eb0000);

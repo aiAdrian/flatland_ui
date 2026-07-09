@@ -24,6 +24,7 @@
   align-items: center;
   gap: 18px;
   min-width: 0;
+  flex-shrink: 0;
   text-decoration: none;
   color: var(--sbb-color-charcoal);
 }
@@ -53,11 +54,8 @@
   color: var(--sbb-color-granite);
 }
 
-.config-shell__nav {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  flex: 1 1 auto;
+.config-shell__center {
+  display: contents;
 }
 
 .config-shell__spacer {
@@ -68,43 +66,10 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-}
-
-/* Flat action/nav item — icon + label, no border, black medium text. */
-.config-shell__item {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 6px 2px;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.2;
-  text-decoration: none;
-  color: var(--sbb-color-charcoal);
-  border-bottom: 3px solid transparent;
-  transition: color 0.12s;
-
-  &:hover { color: var(--sbb-color-red); }
-
-  &.is-active {
-    border-bottom-color: var(--sbb-color-red);
-  }
-}
-
-.config-shell__ico {
-  width: 21px;
-  height: 21px;
-  flex: none;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  flex-shrink: 0;
 }
 
 @media (max-width: 760px) {
   .config-shell__bar { flex-wrap: wrap; gap: 12px 20px; padding: 10px 18px; }
-  .config-shell__nav { gap: 18px; flex-wrap: wrap; }
   .config-shell__title-sub { display: none; }
 }

@@ -576,8 +576,8 @@ input[readonly] {
 .designer-action-btn:hover,
 .import-button.designer-action-btn:hover {
   transform: translateY(-1px);
-  border-color: #8d8d8d;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.12);
+  border-color: var(--sbb-color-granite);
+  box-shadow: 0 2px 7px var(--sbb-shadow-color-soft-1);
 }
 
 .designer-action-btn:active,
@@ -585,7 +585,7 @@ input[readonly] {
 .designer-action-btn.is-clicked,
 .import-button.designer-action-btn.is-clicked {
   transform: translateY(0) scale(0.97);
-  box-shadow: 0 0 0 3px rgba(235, 0, 0, 0.14);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sbb-color-red) 14%, transparent);
 }
 
 .designer-import-btn {
@@ -773,7 +773,7 @@ input[readonly] {
   --designer-green-soft: #eef8f0;
   --designer-yellow-soft: #fff8e1;
   --designer-shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --designer-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.14);
+  --designer-shadow-hover: 0 4px 14px var(--sbb-shadow-color-soft-2);
 }
 
 /* App frame: footer included in 100vh instead of pushing below viewport. */
@@ -913,8 +913,8 @@ input[readonly] {
 .designer__meta button:hover:not(:disabled),
 .settings button:hover:not(:disabled) {
   transform: translateY(-1px);
-  border-color: #8d8d8d !important;
-  background: #fafafa !important;
+  border-color: var(--sbb-color-granite) !important;
+  background: var(--sbb-color-milk) !important;
   box-shadow: var(--designer-shadow-hover);
 }
 
@@ -923,7 +923,7 @@ input[readonly] {
 .designer__meta button:active:not(:disabled),
 .settings button:active:not(:disabled) {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 0 0 3px rgba(235, 0, 0, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--designer-red) 12%, transparent);
 }
 
 .designer-action-btn:focus-visible,
@@ -935,7 +935,7 @@ input[readonly] {
 .designer__meta input:focus-visible {
   outline: none;
   border-color: var(--designer-red) !important;
-  box-shadow: 0 0 0 3px rgba(235, 0, 0, 0.16) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--designer-red) 16%, transparent) !important;
 }
 
 /* Danger is clear but still light. */

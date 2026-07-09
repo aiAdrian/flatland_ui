@@ -55,6 +55,9 @@
   letter-spacing: 0;
 }
 
+/* Same hover-lift / click-ring feel as the Layout Designer's action row
+   (layout-designer.component.scss .designer-action-btn) — two different
+   function rows, one consistent button feel. */
 .builder__meta button {
   align-self: stretch;
   min-width: 92px;
@@ -67,6 +70,29 @@
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.builder__meta button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--sbb-color-granite);
+  background: var(--sbb-color-milk);
+  box-shadow: 0 4px 14px var(--sbb-shadow-color-soft-2);
+}
+
+.builder__meta button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sbb-color-red) 12%, transparent);
+}
+
+.builder__meta button:focus-visible {
+  outline: none;
+  border-color: var(--sbb-color-red);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sbb-color-red) 16%, transparent);
 }
 
 .builder-shell {

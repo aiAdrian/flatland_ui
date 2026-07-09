@@ -1,16 +1,7 @@
 <div class="designer">
-  <app-config-shell active="designer">
-    <sbb-transparent-button
-      configActions
-      id="designer-menu-trigger"
-      size="m"
-      icon-name="hamburger-menu-small">
-      Menu
-    </sbb-transparent-button>
-    <sbb-menu configActions trigger="designer-menu-trigger">
-      <sbb-menu-button (click)="runSession()">Apply &amp; open dispatcher</sbb-menu-button>
-      <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
-    </sbb-menu>
+  <app-config-shell active="designer" [skipAreas]="['dispatcher']">
+    <sbb-menu-button configActions icon-name="arrow-left-small" (click)="runSession()">Apply &amp; open dispatcher</sbb-menu-button>
+    <sbb-divider configActions></sbb-divider>
   </app-config-shell>
 
   <!-- Functions live in a row below the header, not in the header itself.
