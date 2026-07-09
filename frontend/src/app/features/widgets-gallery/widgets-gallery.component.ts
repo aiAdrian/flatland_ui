@@ -200,9 +200,4 @@ export class WidgetsGalleryComponent {
   trackByType = (_: number, t: WidgetMeta): string => t.type || t.catalogId || t.title;
   trackByKind = (_: number, g: GalleryGroup): string => g.kind;
   trackByMode = (_: number, m: ModeColumn): string => m.id;
-
-  /** Leave the configuration area and return to the dispatcher start page. */
-  goHome(): void {
-    window.location.href = '/';
-  }
 }

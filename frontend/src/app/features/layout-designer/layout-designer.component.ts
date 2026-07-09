@@ -1578,10 +1578,6 @@ startColumnResize(column: DesignerColumn, event: PointerEvent): void {
     this.showDesignerFeedback('Layout JSON imported', 'success', 'import');
   }
 
-  goHome(): void {
-    window.location.href = '/';
-  }
-
   runLivePreview(): void {
     this.syncActiveSession();
     const sessionId = this.activeSessionId;

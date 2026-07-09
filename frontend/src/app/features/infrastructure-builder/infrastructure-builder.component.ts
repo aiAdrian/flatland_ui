@@ -82,9 +82,6 @@ export class InfrastructureBuilderComponent implements OnChanges {
     this.newSessionRequested.emit(this.store.scene());
   }
 
-  goHome(): void {
-    window.location.href = '/';
-  }
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {

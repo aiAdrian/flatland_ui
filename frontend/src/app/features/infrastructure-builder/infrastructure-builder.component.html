@@ -1,19 +1,10 @@
 <div class="builder">
   <app-config-shell active="infrastructure-builder">
-    <sbb-transparent-button
-      configActions
-      id="infrastructure-builder-menu-trigger"
-      size="m"
-      icon-name="hamburger-menu-small">
-      Menu
-    </sbb-transparent-button>
-    <sbb-menu configActions trigger="infrastructure-builder-menu-trigger">
-      <sbb-menu-button icon-name="gear-small" (click)="openSettingsRequested.emit()">Session Settings…</sbb-menu-button>
-      <sbb-menu-button icon-name="plus-small" (click)="openInfrastructureStartChoice()">New infrastructure session</sbb-menu-button>
-      <sbb-menu-button icon-name="play-small" (click)="runCurrentScene()">Run current infrastructure</sbb-menu-button>
-      <sbb-menu-button (click)="useSessionGrid()">Use session grid {{ sessionGridWidth }} × {{ sessionGridHeight }}</sbb-menu-button>
-      <sbb-menu-button icon-name="arrow-left-small" (click)="goHome()">Exit to start</sbb-menu-button>
-    </sbb-menu>
+    <sbb-menu-button configActions icon-name="gear-small" (click)="openSettingsRequested.emit()">Session Settings…</sbb-menu-button>
+    <sbb-menu-button configActions icon-name="plus-small" (click)="openInfrastructureStartChoice()">New infrastructure session</sbb-menu-button>
+    <sbb-menu-button configActions icon-name="play-small" (click)="runCurrentScene()">Run current infrastructure</sbb-menu-button>
+    <sbb-menu-button configActions (click)="useSessionGrid()">Use session grid {{ sessionGridWidth }} × {{ sessionGridHeight }}</sbb-menu-button>
+    <sbb-divider configActions></sbb-divider>
   </app-config-shell>
 
   <app-builder-scene-manager></app-builder-scene-manager>

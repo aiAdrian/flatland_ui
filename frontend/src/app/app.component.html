@@ -10,17 +10,9 @@
 } @else if (showLayoutDesigner) {
   <app-layout-designer></app-layout-designer>
 } @else {
-  <header class="header"><div class="header-brand">
-      <img class="header-app-logo" src="/ai4realnet_logo.svg" alt="AI4REALNET" />
-      <!-- <span class="header-logo">SBB CFF FFS</span> -->
-    </div>
-    <span class="header-title">
-      <span class="header-title-main">Flatland Dispatcher</span>
-      <span class="header-title-sub">A Human-AI Teaming Playground</span>
-    </span>
-
+  <app-config-shell active="dispatcher">
     @if (store.session()) {
-      <div class="mode-tabs" role="tablist" aria-label="Interaction mode">
+      <div configCenter class="mode-tabs" role="tablist" aria-label="Interaction mode">
         @for (m of interactionModes; track m.id) {
           <button
             type="button"
@@ -64,59 +56,31 @@
           </button>
         }
       </div>
-
-      <div class="header-actions">
-        <sbb-transparent-button
-          id="app-menu-trigger"
-          size="m"
-          icon-name="hamburger-menu-small">
-          Menu
-        </sbb-transparent-button>
-        <sbb-menu trigger="app-menu-trigger">
-          <!-- Setup & Configuration: everything that shapes the system / workspace,
-               grouped as one section (settings + policies + the config surfaces). -->
-          <span class="menu-section">Setup &amp; Configuration</span>
-          <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
-          <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
-          <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
-          <sbb-menu-link icon-name="map-small" href="/infrastructure-builder">Infrastructure Builder</sbb-menu-link>
-          <sbb-menu-link icon-name="apps-small" href="/widgets">Widgets Gallery</sbb-menu-link>
-          <sbb-divider></sbb-divider>
-          <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
-          <sbb-divider></sbb-divider>
-          <!-- This run: interventions on the live session. Plain action items
-               (no icons), matching the SBB pattern for action-only entries. -->
-          <span class="menu-section">This run</span>
-          <sbb-menu-button (click)="resetWithSettings()">Restart run</sbb-menu-button>
-          <sbb-menu-button (click)="exitToStart()">End session</sbb-menu-button>
-        </sbb-menu>
-      </div>
-    } @else {
-      <!-- No active session (welcome screen): still expose the app menu so the
-           Layout Designer and pre-session settings are reachable. -->
-      <div class="header-actions">
-        <sbb-transparent-button
-          id="app-menu-trigger"
-          size="m"
-          icon-name="hamburger-menu-small">
-          Menu
-        </sbb-transparent-button>
-        <sbb-menu trigger="app-menu-trigger">
-          <!-- No active session: only Setup & Configuration + Help;
-               "This run" interventions have nothing to act on yet. -->
-          <span class="menu-section">Setup &amp; Configuration</span>
-          <sbb-menu-button icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
-          <sbb-menu-button icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
-          <sbb-menu-link icon-name="grid-small" href="/designer">Layout Designer</sbb-menu-link>
-          <sbb-menu-link icon-name="map-small" href="/infrastructure-builder">Infrastructure Builder</sbb-menu-link>
-          <sbb-menu-link icon-name="apps-small" href="/widgets">Widgets Gallery</sbb-menu-link>
-          <sbb-divider></sbb-divider>
-          <sbb-menu-button icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
-        </sbb-menu>
-      </div>
     }
 
-  </header>
+    <!-- Setup & Configuration: everything that shapes the session itself
+         (shown whether or not a session is active). -->
+    <span class="menu-section" configActions>Setup &amp; Configuration</span>
+    <sbb-menu-button configActions icon-name="gear-small" (click)="openSettings()">Session Settings…</sbb-menu-button>
+    <sbb-menu-button configActions icon-name="list-small" (click)="openScenarioPolicySettings()">Scenario &amp; Policies…</sbb-menu-button>
+    <sbb-divider configActions></sbb-divider>
+    <sbb-menu-button configActions icon-name="circle-information-small" (click)="openHelp()">Help &amp; About</sbb-menu-button>
+    <!-- This run: interventions on the live session. Verified (via
+         devtools signal toggling + a settle delay, ruling out a plain
+         change-detection timing artefact) that Angular's content projection
+         does not reliably re-project a group of sibling nodes that only
+         start existing once a nested @if inside a projected slot turns true
+         — they silently never appear, even after CD has settled. Keeping the
+         group permanently in the DOM and toggling `display` instead sidesteps
+         that: projection only ever has to happen once, at creation. -->
+    <span configActions [style.display]="store.session() ? 'contents' : 'none'">
+      <sbb-divider></sbb-divider>
+      <span class="menu-section">This run</span>
+      <sbb-menu-button (click)="resetWithSettings()">Restart run</sbb-menu-button>
+      <sbb-menu-button (click)="exitToStart()">End session</sbb-menu-button>
+    </span>
+    <sbb-divider configActions></sbb-divider>
+  </app-config-shell>
 
   
     @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending()) && !demoComplete()) {
