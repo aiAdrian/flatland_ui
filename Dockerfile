@@ -5,7 +5,9 @@
 # Build from the repo root:  docker build -t flatland-dispatcher .
 # Run:                       docker run -p 8000:8000 flatland-dispatcher
 
-FROM node:20-alpine AS frontend-build
+# Angular CLI 22 requires Node >= 22.22.3 / 24.15.0 / 26.0.0 — node:20 (Render's
+# earlier cache) is too old, hence node:24.
+FROM node:24-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
