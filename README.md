@@ -152,6 +152,33 @@ curl -s "http://localhost:8000/session/$SID/hmi"
 
 ---
 
+## Deployment
+
+The root [`Dockerfile`](Dockerfile) builds the Angular frontend and serves it
+same-origin from the FastAPI backend (`backend/app/main.py` mounts the built
+UI with an SPA fallback once `backend/static` exists) — one container, one
+URL, no CORS configuration needed.
+
+```bash
+docker build -t flatland-dispatcher .
+docker run -p 8000:8000 flatland-dispatcher
+# → http://localhost:8000
+```
+
+To host it online, point any Dockerfile-based platform at the repo root:
+
+- **Render** — New → Web Service → connect the repo, it auto-detects the
+  Dockerfile. Free tier available.
+- **Fly.io** — `fly launch` from the repo root, then `fly deploy`.
+- **Any VPS** — `docker build` + `docker run` (above) behind your reverse
+  proxy of choice for TLS.
+
+No environment variables are required for a same-origin deploy. `CORS_ORIGINS`
+(see `backend/app/config.py`) only matters if you instead host the frontend
+and backend on separate domains — set it to the frontend's origin in that case.
+
+---
+
 ## Troubleshooting
 
 **Backend does not start** — verify Flatland is installed in the active venv:
