@@ -114,6 +114,31 @@
           }
         </g>
       }
+
+      <!-- What-if Compare overlay: the two branch forecast paths for the
+           selected train — branch (My plan) in BLUE, baseline (AI plan) in
+           YELLOW. Dashed so it stays visually distinct from the solid
+           scenario preview above. Drawn only while store.whatIfPreview is set. -->
+      @if (whatIfPreviewSegments().length > 0) {
+        <g class="whatif-preview-segments" pointer-events="none">
+          @for (seg of whatIfPreviewSegments(); track seg.id) {
+            <path
+              [attr.d]="seg.d"
+              class="whatif-preview-segment-casing"
+              [class.whatif-preview-segment--ai]="seg.variant === 'ai'"
+              [class.whatif-preview-segment--human]="seg.variant === 'human'"
+              fill="none"
+              pointer-events="none" />
+            <path
+              [attr.d]="seg.d"
+              class="whatif-preview-segment"
+              [class.whatif-preview-segment--ai]="seg.variant === 'ai'"
+              [class.whatif-preview-segment--human]="seg.variant === 'human'"
+              fill="none"
+              pointer-events="none" />
+          }
+        </g>
+      }
     <!-- Targets (always visible) -->
     @for (a of agents(); track trackByAgent($index, a)) {
       <rect

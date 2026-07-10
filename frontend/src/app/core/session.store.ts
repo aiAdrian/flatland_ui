@@ -23,6 +23,7 @@ import {
   LayerVisibility,
   Recommendation,
   ScenarioOption,
+  WhatIfTrajById,
 } from './events/event-types';
 import { WebSocketService } from './websocket.service';
 import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState } from './models';
@@ -73,6 +74,17 @@ export class SessionStore {
   /** When user hovers a scenario card, store its id here so the Marey
    *  can swap its forecast preview. null = use the active baseline. */
   readonly previewScenarioId = signal<string | null>(null);
+
+  /** What-if Compare map preview: the two branch forecast paths the map
+   *  draws when the operator picks an action. baseline = AI course (yellow),
+   *  branch = human "My plan" (blue). Set on choose(); cleared on commit /
+   *  leave / destroy (same discipline as previewScenarioId). Distinct from
+   *  previewScenarioId so the two overlays never collide. */
+  readonly whatIfPreview = signal<{
+    baseline: WhatIfTrajById;
+    branch: WhatIfTrajById;
+    handles: number[];
+  } | null>(null);
   // Backwards-compat: components that still call .has(h) on a Set.
   readonly selectedHandles = computed<Set<number>>(() => {
     const h = this.selectedHandle();
@@ -922,6 +934,7 @@ export class SessionStore {
     this.coLearningFeedback.set([]);
     this.reflectionRequested.set(false);
     this.previewScenarioId.set(null);
+    this.whatIfPreview.set(null);
   }
 
   reset() {

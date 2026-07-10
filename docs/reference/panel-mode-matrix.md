@@ -33,6 +33,7 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `graphic-timetable` (`marey`) | ● | ● | ● |
 | `agent-inspector` | ● | ● | ● |
 | `impact` | ● | ● | ◐ overview only |
+| `whatif-compare` | ● | ● | ● read-only (no Commit) |
 | `risk-uncertainty` | ● | ● | ● read-only |
 | `decision-log` | ● | ● | ● |
 | `scenario` | ○ | ◐ collapsed | ● expanded |
@@ -55,6 +56,23 @@ render identically everywhere.
   decides. Empty-state handled explicitly (`isCoLearning() && items().length === 0`).
 - **Director** — **overview only**; per-decision hooks are suppressed
   (`interactionMode() !== 'director'`) because the AI handles it.
+
+### `whatif-compare` (Widget B1 — Prediction)
+- **Recommendation** — the "AI plan" column is anchored to the current course
+  incl. any active suggestion; the human's proposed action is compared against
+  it. **Commit** available.
+- **Co-Learning** — the dual-path core (§3.3): the human formulates their own
+  action ("My plan", **blue**) simulated forward against the AI plan (**yellow**),
+  both neutral, no winner marked. Committing feeds the reflection module.
+- **Director** — **read-only** supervisory what-if; the **Commit** button is
+  hidden (the AI keeps actuation under the directive).
+- Availability is **all modes** (omitted from `PANEL_MODE_AVAILABILITY` = 'all');
+  only *behaviour* branches, inside `whatif-compare.component.ts`. Reuses the
+  existing `POST /what-if-override` (no new backend); blue/yellow follows the
+  AI4REALNET A3S/TraceRL convention. Shown in the **Co-Learning** default layout
+  (right pane, under the neutral Scenario panel) as the §3.3 dual-path
+  centrepiece; available in every mode via the designer palette / gallery.
+  (spec: `docs/plans/widget-b1-whatif-compare.md`)
 
 ### `risk-uncertainty` (Widget A1 — Trust)
 - **Recommendation** — reliability shown **with** the ranked recommendation:

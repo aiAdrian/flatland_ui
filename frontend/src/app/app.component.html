@@ -200,24 +200,39 @@
       </section>
 
       <aside class="right-pane">
-        <!-- Signature surface first: each mode's primary right-column widget sits
-             at the top so the mode difference reads at a glance. Only one of these
-             is available per mode (see panel-mode-availability.ts), so no clash.
-             The always-on context tools (agent-inspector, impact) drop below. -->
-        @if (panelAvailable('recommendations')) {
-          <app-panel-shell [panel]="panelRecommendations"></app-panel-shell>
+        <!-- Right-column order is authored per mode (each mode tells a different
+             story): Recommendation leads with the impact then its ranked
+             suggestion; Co-Learning leads with the dual-path what-if; Director
+             keeps its supervisory order. The Agent Inspector (shared drill-down)
+             is a template reused by each branch so it isn't duplicated. -->
+        @switch (store.interactionMode()) {
+          @case ('recommendation') {
+            <app-panel-shell [panel]="panelImpact"></app-panel-shell>
+            <app-panel-shell [panel]="panelRecommendations"></app-panel-shell>
+            <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
+          }
+          @case ('co-learning') {
+            <!-- WP 3.3 dual-path: your own action vs the AI plan (Widget B1)
+                 first, then the neutral impact + scenario compare surfaces. -->
+            <app-panel-shell [panel]="panelWhatifCompare"></app-panel-shell>
+            <app-panel-shell [panel]="panelImpact"></app-panel-shell>
+            <app-panel-shell [panel]="panelScenario"></app-panel-shell>
+            <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
+          }
+          @case ('director') {
+            @if (panelAvailable('kpi-filter')) {
+              <div class="right-kpi-filter">
+                <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
+              </div>
+            }
+            <app-panel-shell [panel]="panelScenario"></app-panel-shell>
+            <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
+            <app-panel-shell [panel]="panelImpact"></app-panel-shell>
+          }
         }
+      </aside>
 
-        @if (panelAvailable('kpi-filter')) {
-          <div class="right-kpi-filter">
-            <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
-          </div>
-        }
-
-        @if (panelAvailable('scenario')) {
-          <app-panel-shell [panel]="panelScenario"></app-panel-shell>
-        }
-
+      <ng-template #agentInspectorPanel>
         <app-panel-shell
           [panel]="$any({
             id: 'agent-inspector',
@@ -234,9 +249,7 @@
           data-panel-type="agent-inspector"
           data-panel-zone="right"
         ></app-panel-shell>
-
-        <app-panel-shell [panel]="panelImpact"></app-panel-shell>
-      </aside>
+      </ng-template>
     </div>
     }
     }
@@ -273,6 +286,7 @@
                 (focus)="refreshRuntimeInfrastructures()"
                 (pointerdown)="refreshRuntimeInfrastructures()"
                 (change)="setSelectedRuntimeInfrastructure($any($event.target).value)">
+                <option value="guided-demo">Guided Demo Environment · fixed seed 42</option>
                 <option value="random">Random · default</option>
                 @for (scene of runtimeInfrastructureScenes(); track scene.id) {
                   <option [value]="scene.id">
@@ -290,8 +304,10 @@
             </sbb-secondary-button>
           </div>
           <p class="welcome-demo-hint">
-            Guided Demo: same environment, solve one conflict in all three modes
-            (Recommendation → Co-Learning → Director) with a short survey after each.
+            Guided Demo: solve one conflict in all three modes (Recommendation →
+            Co-Learning → Director) with a short survey after each. The environment
+            follows the <strong>Layout</strong> + <strong>Infrastructure</strong>
+            above — “Guided Demo Environment” is the tuned, reproducible seed-42 env.
           </p>
 
           <div class="welcome-inputs">

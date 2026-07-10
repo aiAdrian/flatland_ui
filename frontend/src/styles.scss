@@ -152,6 +152,18 @@ body {
 :root {
   --app-positive: var(--sbb-color-green, #00973b);
 }
+
+/* What-if branch compare (widget B1) — the AI4REALNET A3S/TraceRL convention:
+   human-influenced steps = BLUE, AI-simulated steps = YELLOW (CLAUDE.md
+   §Cross-reference, agent-as-a-service-trace-rl). Named tokens so the two
+   branch identities live in one place and a future dark/colour-blind variant
+   changes here only. Scoped to the what-if compare surface; distinct from the
+   Recommendation-mode blue and the decision-support kind badge (same hue
+   family, different concept — do not merge). */
+:root {
+  --app-whatif-human: var(--sbb-color-blue,   #0079c7);
+  --app-whatif-ai:    var(--sbb-color-orange, #ffaa00);
+}
 /* app interaction color concept overrides - end */
 
 

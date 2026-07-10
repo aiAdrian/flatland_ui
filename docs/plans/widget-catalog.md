@@ -89,12 +89,18 @@ taken / overridden, and how did followed vs overridden decisions turn out
 
 ## B. Prediction & what-if (A3S/TraceRL line)
 
-### B1. What-if branch compare ("A3S-light") — [D3.2]+[D3.1]+[UIX]
-`kind` **Prediction** · detail. Take a decision point, branch: AI plan vs
-operator override, simulate both forward (existing `whatIfOverride` + scenario
-rollouts), compare side-by-side with KPI deltas. Convention: **human-influenced
-steps blue, AI-simulated yellow** (consortium/TraceRL). A3S endpoints Restore /
-Action-space / Simulate ≈ our session + overrides + what-if APIs — mostly there.
+### B1. What-if compare ("My solution vs. AI") — [D3.2]+[D3.1]+[UIX] — **FIRST CUT (built)**
+`kind` **Prediction** · detail · type `whatif-compare`. **Built** — see
+`docs/plans/widget-b1-whatif-compare.md` + `whatif-compare.component.ts`. Take a
+decision point, branch: AI plan vs operator action, simulate both forward
+(reuses the existing `whatIfOverride` endpoint — `baseline` = AI course,
+`branch` = human), compare side-by-side with KPI deltas. Convention:
+**human-influenced steps blue, AI-simulated yellow** (consortium/TraceRL, tokens
+`--app-whatif-human/-ai`). Mode-aware: Commit in Rec/Co-L, read-only in Director.
+This cut compares **KPI outcomes**, not drawn per-cell paths (flagged extension);
+and reuses the in-repo forward-sim, not the real A3S Redis service (same
+endpoint contract, swappable). A3S endpoints Restore / Action-space / Simulate ≈
+our session + overrides + what-if APIs — mostly there.
 - **Effort:** M. **Change:** frontend widget (branch view + compare); backend
   mostly exists, maybe a "simulate N steps from current state with overrides"
   convenience endpoint.

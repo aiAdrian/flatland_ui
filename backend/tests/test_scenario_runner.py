@@ -183,3 +183,108 @@ def test_runner_cleans_up_temporary_overrides():
         if isinstance(sid, str) and sid.startswith("branch-")
     ]
     assert leftover == [], f"leaked branch override sessions: {leftover}"
+
+
+# ── per-agent outcomes (what-if "selected train" block) ────────────
+
+
+def test_agent_outcomes_populated_for_every_agent():
+    """BranchResult.agent_outcomes must have one entry per agent, each
+    with the three fields the what-if UI reads (arrived/deadlocked/delay)."""
+    env = _make_env(num_agents=2)
+    runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
+    result = runner.run_branch(overrides={}, max_steps=15)
+
+    assert set(result.agent_outcomes.keys()) == set(range(2))
+    for h in range(2):
+        o = result.agent_outcomes[h]
+        assert set(o.keys()) == {"arrived", "deadlocked", "delay"}
+        assert isinstance(o["arrived"], bool)
+        assert isinstance(o["deadlocked"], bool)
+        assert isinstance(o["delay"], int)
+        assert o["delay"] >= 0
+
+
+def test_agent_outcomes_arrived_matches_success_count():
+    """`arrived` for handle h must equal (state == DONE), and the number
+    of arrived agents must equal success_count."""
+    env = _make_env(num_agents=2)
+    runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
+    result = runner.run_branch(overrides={}, max_steps=300)
+
+    arrived_count = sum(1 for o in result.agent_outcomes.values() if o["arrived"])
+    assert arrived_count == result.success_count
+
+
+def test_agent_outcomes_reports_overridden_handle():
+    """The handle the operator selected must be present in agent_outcomes
+    so the what-if `train` block can report its own fate."""
+    env = _make_env(num_agents=2)
+    runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
+    result = runner.run_branch(overrides={0: RailEnvActions.MOVE_LEFT}, max_steps=20)
+
+    assert 0 in result.agent_outcomes
+    o = result.agent_outcomes[0]
+    # If the agent finished on this branch, arrived must be True; if not,
+    # it must be False — never missing/None.
+    assert o["arrived"] in (True, False)
+    assert o["deadlocked"] in (True, False)
+
+
+def test_agent_outcomes_delay_formula_matches_serializer():
+    """Delay must be (elapsed - latest_arrival) when overdue and not DONE,
+    else 0 — the exact serializer.py formula. Build a tiny deterministic
+    case by inspecting the post-branch env directly."""
+    from app.core.scenario_runner import agent_outcomes as collect_outcomes
+
+    env = _make_env(num_agents=2)
+    runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
+    result = runner.run_branch(overrides={}, max_steps=15)
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    # Cross-check against the serializer formula for every agent.
+    for h, a in enumerate(env.agents):
+        latest = getattr(a, "latest_arrival", None)
+        latest = int(latest) if latest is not None else None
+        state = getattr(a, "state", None)
+        is_done = state is not None and state.name == "DONE"
+        expected = (elapsed - latest) if (latest is not None and elapsed > latest and not is_done) else 0
+        assert result.agent_outcomes[h]["delay"] == max(0, expected)
+
+
+def test_deadlocked_agents_returns_set_and_count_is_len():
+    """deadlocked_agents returns a set of handles; count_deadlocked_agents
+    is len(...) of it (refactor preserved the public count)."""
+    from app.core.scenario_runner import count_deadlocked_agents, deadlocked_agents
+
+    env = _make_env(num_agents=2)
+    runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
+    runner.run_branch(overrides={}, max_steps=15)
+
+    dl = deadlocked_agents(env)
+    assert isinstance(dl, set)
+    assert all(isinstance(h, int) for h in dl)
+    assert count_deadlocked_agents(env) == len(dl)
+
+
+def test_branch_trajectories_shape_for_overridden_handle():
+    """The what-if map overlay needs per-agent trajectories in scenario
+    shape ({handle_str: [{step,row,col}]}). _extract_trajectories on the
+    branch snapshots must produce that for the overridden handle."""
+    from app.core.hmi_scenario_adapter import _extract_trajectories
+
+    env = _make_env(num_agents=2)
+    runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
+    result = runner.run_branch(overrides={0: RailEnvActions.MOVE_LEFT}, max_steps=20)
+
+    traj = _extract_trajectories(result.snapshots)
+    assert isinstance(traj, dict)
+    # The overridden handle must have at least one point if it was on the map.
+    if any(s.get("agents", {}).get(0) for s in result.snapshots):
+        assert "0" in traj
+        pts = traj["0"]
+        assert len(pts) > 0
+        # TrajectoryPoint is a pydantic model; the map overlay reads step/row/col.
+        p0 = pts[0].model_dump() if hasattr(pts[0], "model_dump") else dict(pts[0])
+        assert {"step", "row", "col"} <= set(p0.keys())
+

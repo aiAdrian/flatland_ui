@@ -260,10 +260,15 @@ def get_recommendations(
     kpi_energy: float = Query(0.5, ge=0.0, le=1.0),
     kpi_platform: float = Query(0.5, ge=0.0, le=1.0),
     kpi_train: float = Query(0.5, ge=0.0, le=1.0),
+    guarantee: bool = Query(False),
 ):
     """Surface the top-scoring alternative policy as a Recommendation,
     only if it clearly beats the current baseline. Empty list otherwise
-    — that's the right signal: 'current policy is fine'."""
+    — that's the right signal: 'current policy is fine'.
+
+    ``guarantee=true`` (guided demo / study): never leave the panel silently
+    empty — if nothing beats the baseline by the margin, surface the best
+    deadlock-free alternative anyway so there is always a decision moment."""
     from app.core.scenario_cache import scenario_cache
     from app.core.scenario_builder import ScenarioBuilder, scoring_weights_from_kpi
 
@@ -318,7 +323,7 @@ def get_recommendations(
             f"[REC] cache_hit session={session_id[:8]} step={elapsed} "
             f"overrides={override_hash} (no re-compute)"
         )
-        return real_recommendations(session_id, scenarios)
+        return real_recommendations(session_id, scenarios, guarantee=guarantee)
     _perf_log.info(
         f"[REC] cache_miss session={session_id[:8]} step={elapsed} "
         f"horizon={horizon} overrides={override_hash}"
@@ -360,7 +365,7 @@ def get_recommendations(
         )
         return []
 
-    return real_recommendations(session_id, scenarios)
+    return real_recommendations(session_id, scenarios, guarantee=guarantee)
 
 
 @router.get("/{session_id}/hmi/marey-data")

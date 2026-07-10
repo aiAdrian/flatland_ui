@@ -642,6 +642,53 @@
   pointer-events: none !important;
 }
 
+/* What-if Compare branch overlay (widget B1). AI4REALNET A3S/TraceRL
+   convention: human = BLUE, AI = YELLOW. Dashed to stay distinct from the
+   solid scenario preview. Colours are the named --app-whatif-* tokens
+   (styles.scss), never inline hex — a future dark/colour-blind variant
+   changes those tokens, not this file. */
+.whatif-preview-segments {
+  pointer-events: none !important;
+}
+
+.whatif-preview-segment-casing {
+  stroke-width: 7px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-dasharray: none !important;
+  opacity: 0.85 !important;
+  fill: none !important;
+  pointer-events: none !important;
+  /* casing picks a contrast backdrop against the rail layer */
+  stroke: light-dark(var(--sbb-color-white), var(--sbb-color-black));
+}
+
+.whatif-preview-segment {
+  stroke-width: 2.75px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-dasharray: 6 5 !important;
+  fill: none !important;
+  pointer-events: none !important;
+}
+
+.whatif-preview-segment--ai {
+  stroke: var(--app-whatif-ai);
+}
+
+.whatif-preview-segment--human {
+  stroke: var(--app-whatif-human);
+}
+
+/* Casing tinted by branch identity so the dashed segment reads on busy rails. */
+.whatif-preview-segment-casing.whatif-preview-segment--ai {
+  stroke: color-mix(in srgb, var(--app-whatif-ai) 35%, transparent);
+}
+
+.whatif-preview-segment-casing.whatif-preview-segment--human {
+  stroke: color-mix(in srgb, var(--app-whatif-human) 35%, transparent);
+}
+
 @keyframes trajectory-flow-forward {
   from {
     stroke-dashoffset: 15;

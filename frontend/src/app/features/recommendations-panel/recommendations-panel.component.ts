@@ -89,7 +89,11 @@ export class RecommendationsPanelComponent implements OnDestroy {
   }
 
   private _fetchRecommendations(sessionId: string): void {
-    this.api.getRecommendations(sessionId, this.store.kpiPriorities()).subscribe({
+    // In the guided demo, guarantee a recommendation surfaces (never an empty
+    // panel for a whole run). Normal sessions keep the honest "empty = current
+    // policy is fine" behaviour.
+    const guarantee = this.store.demoActive();
+    this.api.getRecommendations(sessionId, this.store.kpiPriorities(), guarantee).subscribe({
       next: (recs) => {
         this.store.recommendations.set(recs);
 

@@ -126,12 +126,42 @@ export interface WhatIfKpis {
   total: number;
   delay: number;
 }
+
+/** The selected train's own fate on one branch (primary what-if content). */
+export interface WhatIfTrainSide {
+  arrived: boolean;
+  delay: number;
+  deadlocked: boolean;
+}
+export interface WhatIfTrainOutcome {
+  handle: number;
+  baseline: WhatIfTrainSide; // AI course
+  branch: WhatIfTrainSide;   // human-influenced ("My plan")
+}
+
+/** One forecast point of a per-agent branch trajectory (scenario shape). */
+export interface WhatIfTrajectoryPoint {
+  step: number;
+  row: number;
+  col: number;
+}
+/** Per-agent trajectories keyed by handle (string) — same shape scenarios use. */
+export type WhatIfTrajById = Record<string, WhatIfTrajectoryPoint[]>;
+
 export interface WhatIfResult {
   horizon: number;
   baseline: WhatIfKpis;
   branch: WhatIfKpis;
   delta: { delay: number; deadlocks: number; done: number };
   summary: string;
+  /** The operator's selected train: its own outcome on both branches. */
+  train?: WhatIfTrainOutcome | null;
+  /** Per-agent forecast paths for BOTH branches, so the map can draw
+   *  blue (human = branch) vs yellow (AI = baseline). Scenario shape. */
+  baseline_trajectories?: WhatIfTrajById;
+  branch_trajectories?: WhatIfTrajById;
+  /** Handles the override applies to (the affected trains to draw). */
+  handles?: number[];
 }
 
 /** One affected train from the Phase-1 impact analysis (malfunction fallout). */

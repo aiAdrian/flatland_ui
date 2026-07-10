@@ -58,8 +58,8 @@ from app.policies.override_policy import OverridePolicy
 _DIR_DELTA = {0: (-1, 0), 1: (0, 1), 2: (1, 0), 3: (0, -1)}
 
 
-def count_deadlocked_agents(env) -> int:
-    """Post-mortem deadlock count after a branch finished.
+def deadlocked_agents(env) -> set:
+    """Post-mortem set of deadlocked agent handles after a branch finished.
 
     An agent is deadlocked iff it is on the map (not DONE, not WAITING),
     facing a cell that's occupied by another on-map agent. Both sides
@@ -84,7 +84,55 @@ def count_deadlocked_agents(env) -> int:
         if front in agents_at_pos:
             deadlocked.add(h)
             deadlocked.add(agents_at_pos[front])
-    return len(deadlocked)
+    return deadlocked
+
+
+def count_deadlocked_agents(env) -> int:
+    """Post-mortem deadlock count (see :func:`deadlocked_agents`)."""
+    return len(deadlocked_agents(env))
+
+
+def _safe_int(v) -> Optional[int]:
+    """Best-effort int coercion that returns None on failure (mirrors
+    serializer.py). Used for latest_arrival / earliest_departure, which
+    can be None or numpy ints depending on the Flatland version."""
+    if v is None:
+        return None
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def agent_outcomes(env) -> Dict[int, dict]:
+    """Per-agent post-branch outcome map: handle →
+    {arrived, deadlocked, delay}.
+
+    - ``arrived`` — state == TrainState.DONE.
+    - ``deadlocked`` — handle in :func:`deadlocked_agents` (operator
+      definition: physically face-to-face blocked, can't reach target).
+    - ``delay`` — same formula as ``serializer.py`` (steps overdue vs.
+      ``latest_arrival``; 0 while not yet overdue or already arrived).
+    """
+    from flatland.envs.step_utils.states import TrainState
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    deadlocked = deadlocked_agents(env)
+
+    out: Dict[int, dict] = {}
+    for h, a in enumerate(env.agents):
+        state = getattr(a, "state", None)
+        arrived = state == TrainState.DONE
+        latest = _safe_int(getattr(a, "latest_arrival", None))
+        delay = 0
+        if latest is not None and elapsed > latest and not arrived:
+            delay = elapsed - latest
+        out[int(h)] = {
+            "arrived": bool(arrived),
+            "deadlocked": int(h) in deadlocked,
+            "delay": int(delay),
+        }
+    return out
 
 
 @dataclass
@@ -100,6 +148,10 @@ class BranchResult:
     elapsed_steps: int = 0
     finished: bool = False  # True if all_done; False if horizon hit
     terminated_early: bool = False  # True if all agents done before max_steps
+    # Per-agent post-branch outcome (handle → {arrived, deadlocked, delay}).
+    # Populated by run_branch from the forked env so the what-if surface can
+    # show the SELECTED train's own fate, not just system-wide KPIs.
+    agent_outcomes: Dict[int, dict] = field(default_factory=dict)
 
     @property
     def success_rate(self) -> float:
@@ -118,6 +170,7 @@ class BranchResult:
             "finished": bool(self.finished),
             "terminated_early": bool(self.terminated_early),
             "success_rate": float(self.success_rate),
+            "agent_outcomes": dict(self.agent_outcomes),
         }
 
 
@@ -238,6 +291,7 @@ class TrajectoryBranchRunner:
                 elapsed_steps=int(getattr(env, "_elapsed_steps", steps_run)),
                 finished=terminated_early,
                 terminated_early=terminated_early,
+                agent_outcomes=agent_outcomes(env),
             )
             return result
         finally:

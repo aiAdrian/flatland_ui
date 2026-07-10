@@ -64,6 +64,25 @@ Tune the existing knobs so decision moments occur **more often** (not guaranteed
 **Pro:** trivial, already in. **Con:** still probabilistic — no guarantee a run
 contains a decision moment, and raising malfunction rate adds noise.
 
+### Variant A′ — Demo guarantee for the Recommendations panel (IMPLEMENTED)
+`generate_recommendations(..., guarantee=True)` never leaves the panel silently
+empty: when nothing clears `SCORE_MARGIN` it surfaces the single best
+deadlock-free alternative anyway (never a deadlock-causing option). Wired end to
+end via `GET /hmi/recommendations?guarantee=true`
+(`api.service.getRecommendations(..., guarantee)`), and the Recommendations panel
+passes `guarantee = store.demoActive()` — so **only the guided demo** forces a
+recommendation; normal sessions keep the honest "empty = current policy is fine"
+signal. Combined with the fixed **seed-42 default** (deterministic, calibrated
+conflicts; toggle to a random seed on the welcome screen), a guided-demo run
+reliably shows a recommendation in Recommendation mode, and a populated neutral
+scenario surface + reflection in Co-Learning.
+
+**Pro:** guarantees a non-empty Recommendations panel in the demo without new
+infrastructure. **Con:** the surfaced option may not *beat* the baseline — it is
+framed as "an option to weigh / consciously keep current policy", not "do this";
+it does not guarantee an *impact/auto-pause* moment (that still relies on the
+seed-42 conflict calibration — Variant B/C remain the deterministic fix).
+
 ### Variant B — Scripted events (RECOMMENDED, see scripted-events-plan.md)
 A deterministic event scheduler fires a **scripted conflict at a fixed step**
 (e.g. area block at step 15), which guarantees:
