@@ -229,11 +229,12 @@
   border-bottom: none;
 }
 
-/* Director (WP 3.4): large goal-achievement dashboard above the map. The
-   supervision overview dominates the centre; the map sits below it. */
+/* Director (WP 3.4): goal-achievement dashboard above the map. It sizes to its
+   content (no growing into empty space) so the map keeps the remaining centre;
+   if the content ever gets tall it caps at max-height and scrolls. */
 .center-dashboard {
-  flex: 1 1 auto;
-  min-height: 220px;
+  flex: 0 0 auto;
+  min-height: 0;
   max-height: 58%;
   overflow: auto;
   padding: 8px 12px;
