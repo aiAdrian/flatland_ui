@@ -8,6 +8,7 @@ import {
   PolicyInfo,
   PolicyName,
   ScenarioPoliciesConfig,
+  ScenarioPreset,
   SessionInfo,
   SessionState,
   StepResponse,
@@ -40,6 +41,10 @@ export class ApiService {
 
   createSession(opts: any = {}): Observable<SessionInfo> {
     return this.http.post<SessionInfo>(`${API_BASE}/session`, opts);
+  }
+
+  listScenarioPresets(): Observable<ScenarioPreset[]> {
+    return this.http.get<ScenarioPreset[]>(`${API_BASE}/session/scenario-presets`);
   }
 
   getState(id: string): Observable<SessionState> {

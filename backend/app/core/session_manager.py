@@ -43,6 +43,7 @@ class Session:
         self.marey_history_snapshots: list[dict] = []
         self.infrastructure_scene: dict | None = None
         self.infrastructure_scene_id: str | None = None
+        self.scenario_preset_id: str | None = None
 
 
 class SessionManager:
@@ -57,11 +58,17 @@ class SessionManager:
         enabled_scenario_policy_ids = env_kwargs.pop("enabled_scenario_policy_ids", None)
         enabled_policy_ids = env_kwargs.pop("enabled_policy_ids", None)
         infrastructure_scene = env_kwargs.pop("infrastructure_scene", None)
+        scenario_preset_id = env_kwargs.pop("scenario_preset_id", None)
         enabled_scenario_policy_set = set(enabled_scenario_policy_ids or []) if enabled_scenario_policy_ids is not None else None
         enabled_policy_set = set(enabled_policy_ids or []) if enabled_policy_ids is not None else None
-        env = create_env(**env_kwargs, infrastructure_scene=infrastructure_scene)
+        env = create_env(
+            **env_kwargs,
+            infrastructure_scene=infrastructure_scene,
+            scenario_preset_id=scenario_preset_id,
+        )
         session = Session(sid, env, enabled_scenario_policy_set, enabled_policy_set)
         session.infrastructure_scene = infrastructure_scene
+        session.scenario_preset_id = scenario_preset_id
         session.infrastructure_scene_id = (
             str(infrastructure_scene.get("id"))
             if isinstance(infrastructure_scene, dict) and infrastructure_scene.get("id")

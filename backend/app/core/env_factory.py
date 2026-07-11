@@ -6,7 +6,9 @@ from flatland.envs.rail_env import RailEnv
 from flatland.envs import rail_generators as rail_gen
 from flatland.envs import line_generators as line_gen
 import flatland.envs.timetable_generators as ttg
+from flatland.envs.persistence import RailEnvPersister
 from app.core.infrastructure_scene_adapter import scene_to_line_generator, scene_to_rail_generator
+from app.core.scenario_presets import get_preset
 
 
 class EnvGenerationError(Exception):
@@ -221,6 +223,24 @@ def _build_once(
     return env, obs, info
 
 
+def load_preset_env(scenario_preset_id: str) -> RailEnv:
+    """Load a prebuilt scenario preset (e.g. an ECML 2026 scene).
+
+    Uses RailEnvPersister.load_new — the same primitive used for what-if forking
+    in scenario_runner — so the whole scenario (network, traffic, train goals,
+    intermediate stops, timetable, malfunctions) comes back intact. Generation
+    params are irrelevant here; everything is baked into the file. The env is
+    deliberately not post-processed (no latest_departure clamp) so it stays
+    identical to the source challenge instance.
+    """
+    preset = get_preset(scenario_preset_id)
+    env, _ = RailEnvPersister.load_new(str(preset["path"]))
+    obs, info = env.reset()
+    env._initial_obs = obs
+    env._initial_info = info
+    return env
+
+
 def create_env(
     width: int = 30,
     height: int = 30,
@@ -237,9 +257,21 @@ def create_env(
     malfunction_min_duration: int = 5,
     malfunction_max_duration: int = 20,
     infrastructure_scene=None,
+    scenario_preset_id: str | None = None,
     max_retries: int = 5,
 ) -> RailEnv:
-    """Build a RailEnv. If Flatland fails, retry with seed+1, seed+2, ..."""
+    """Build a RailEnv. If Flatland fails, retry with seed+1, seed+2, ...
+
+    Three env sources, in priority order: a prebuilt scenario preset
+    (`scenario_preset_id`), an Infrastructure-Builder scene
+    (`infrastructure_scene`), or procedural generation (the remaining params).
+    """
+    if scenario_preset_id:
+        env = load_preset_env(scenario_preset_id)
+        if max_episode_steps is not None and max_episode_steps > 0:
+            env._max_episode_steps = int(max_episode_steps)
+        return env
+
     last_err: Optional[Exception] = None
     params = dict(
         width=width,

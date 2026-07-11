@@ -23,6 +23,7 @@ import { DemoCompleteComponent } from './features/demo-complete/demo-complete.co
 import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
+import { ScenarioPreset } from './core/models';
 import { SessionStore } from './core/session.store';
 
 /** The exact options object accepted by SessionStore.newSession — so the
@@ -153,6 +154,10 @@ export class AppComponent implements OnInit {
    *  Default is the demo environment so the headline Guided Demo is reliable. */
   static readonly GUIDED_DEMO_INFRA_ID = 'guided-demo';
   readonly selectedRuntimeInfrastructureId = signal(AppComponent.GUIDED_DEMO_INFRA_ID);
+  /** Prebuilt scenario presets (e.g. ECML 2026 scenes) offered in the same
+   *  Infrastructure picker. Selecting one loads the env from file (network +
+   *  traffic + goals baked in), bypassing the generator and scene builder. */
+  readonly scenarioPresets = signal<ScenarioPreset[]>([]);
 
   private designerSessionRequested = false;
 
@@ -588,7 +593,8 @@ export class AppComponent implements OnInit {
     this.runtimeInfrastructureScenes.set(scenes);
     const id = this.selectedRuntimeInfrastructureId();
     const isSpecial = id === 'random' || id === AppComponent.GUIDED_DEMO_INFRA_ID;
-    if (!isSpecial && !scenes.some((scene) => scene.id === id)) {
+    const isPreset = this.scenarioPresets().some((preset) => preset.id === id);
+    if (!isSpecial && !isPreset && !scenes.some((scene) => scene.id === id)) {
       this.selectedRuntimeInfrastructureId.set(AppComponent.GUIDED_DEMO_INFRA_ID);
     }
   }
@@ -625,6 +631,10 @@ export class AppComponent implements OnInit {
       return this.guidedDemoEnvOpts();
     }
 
+    if (this.scenarioPresets().some((preset) => preset.id === infrastructureId)) {
+      return this.presetSessionOpts(infrastructureId);
+    }
+
     const infrastructureScene = infrastructureId === 'random'
       ? undefined
       : this.infrastructureStorage.loadScene(infrastructureId) ?? undefined;
@@ -657,6 +667,18 @@ export class AppComponent implements OnInit {
       scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
       policyControlIds: this.welcomeControlPolicyIds(),
       infrastructureScene,
+    };
+  }
+
+  /** Session-creation opts for a prebuilt scenario preset (e.g. an ECML 2026
+   *  scene). Grid, traffic, goals and disruptions come from the file, so none of
+   *  the generator fields are sent — only the preset id and the chosen AI
+   *  policies (which are orthogonal to the map). */
+  private presetSessionOpts(scenarioPresetId: string): NewSessionOpts {
+    return {
+      scenarioPresetId,
+      scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
+      policyControlIds: this.welcomeControlPolicyIds(),
     };
   }
 
@@ -1071,6 +1093,10 @@ export class AppComponent implements OnInit {
     this.ensureDesignerSession();
     this.refreshRuntimeInfrastructures();
     this.store.loadPolicies();
+    this.api.listScenarioPresets().subscribe({
+      next: (presets) => this.scenarioPresets.set(presets ?? []),
+      error: () => this.scenarioPresets.set([]),
+    });
   }
 
   runtimePanelZone(column: { id?: string; zone?: string } | null | undefined): string {

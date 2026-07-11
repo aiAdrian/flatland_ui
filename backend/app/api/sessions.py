@@ -13,6 +13,7 @@ from app.core.ws_manager import ws_manager
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
 from app.core.marey_history import capture_marey_history_snapshot, reset_marey_history
+from app.core.scenario_presets import get_preset, list_presets
 from app.models.session import (
     SessionCreateRequest,
     SessionInfo,
@@ -163,6 +164,38 @@ def _scene_counts(infrastructure_scene: dict[str, Any]) -> dict[str, int]:
 
 @router.post("", response_model=SessionInfo)
 def create_session(req: SessionCreateRequest):
+    scenario_preset_id = req.scenario_preset_id or None
+    if scenario_preset_id:
+        # Prebuilt scenario preset (e.g. ECML 2026): env is loaded from file,
+        # generation params and any scene are ignored. Validate up front so the
+        # UI gets a clean 400 rather than a 500 from the loader.
+        try:
+            get_preset(scenario_preset_id)
+        except (KeyError, FileNotFoundError) as e:
+            raise HTTPException(400, str(e))
+        _perf_log.info("[INFRA] create requested mode=preset id=%s", scenario_preset_id)
+        session = session_manager.create(
+            seed=req.seed,
+            enabled_policy_ids=req.enabled_policy_ids,
+            enabled_scenario_policy_ids=req.enabled_scenario_policy_ids,
+            scenario_preset_id=scenario_preset_id,
+        )
+        _perf_log.info(
+            "[INFRA] create built session=%s mode=preset id=%s env=%sx%s agents=%s",
+            session.id,
+            scenario_preset_id,
+            session.env.width,
+            session.env.height,
+            len(session.env.agents),
+        )
+        return SessionInfo(
+            id=session.id,
+            width=session.env.width,
+            height=session.env.height,
+            num_agents=len(session.env.agents),
+            scenario_preset_id=scenario_preset_id,
+        )
+
     infrastructure_scene = req.infrastructure_scene or None
     infrastructure_grid = infrastructure_scene.get("grid", {}) if isinstance(infrastructure_scene, dict) else {}
     width = int(infrastructure_grid.get("width", req.width)) if infrastructure_grid else req.width
@@ -254,6 +287,12 @@ def create_session(req: SessionCreateRequest):
 @router.get("")
 def list_sessions() -> List[str]:
     return session_manager.list_ids()
+
+
+@router.get("/scenario-presets")
+def get_scenario_presets() -> List[dict]:
+    """Prebuilt scenario presets (e.g. ECML 2026 scenes) for the UI picker."""
+    return list_presets()
 
 
 @router.get("/{session_id}/state")

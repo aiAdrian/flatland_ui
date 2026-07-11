@@ -135,6 +135,17 @@ export interface SessionInfo {
   height: number;
   num_agents: number;
   infrastructure_scene_id?: string | null;
+  scenario_preset_id?: string | null;
+}
+
+/** A prebuilt scenario preset (e.g. an ECML 2026 scene) offered in the picker. */
+export interface ScenarioPreset {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  agents: number;
+  source?: string;
 }
 
 export interface StepResponse {

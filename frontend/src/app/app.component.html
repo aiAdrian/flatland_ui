@@ -288,6 +288,11 @@
                 (change)="setSelectedRuntimeInfrastructure($any($event.target).value)">
                 <option value="guided-demo">Guided Demo Environment · fixed seed 42</option>
                 <option value="random">Random · default</option>
+                @for (preset of scenarioPresets(); track preset.id) {
+                  <option [value]="preset.id">
+                    {{ preset.name }} · {{ preset.width }} × {{ preset.height }} · {{ preset.agents }} trains
+                  </option>
+                }
                 @for (scene of runtimeInfrastructureScenes(); track scene.id) {
                   <option [value]="scene.id">
                     {{ scene.name }} · {{ scene.gridWidth }} × {{ scene.gridHeight }} · {{ scene.agentCount }} trains
