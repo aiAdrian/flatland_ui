@@ -15,6 +15,9 @@ import { InteractionMode } from '../events/event-types';
  */
 export const PANEL_MODE_AVAILABILITY: Record<string, InteractionMode[]> = {
   recommendations: ['recommendation'],
+  // v1 variant of the recommendations widget (docs/plans/widget-variants-versioning.md);
+  // same mode availability as the default v2.
+  'recommendations-classic': ['recommendation'],
   'co-learning-reflection': ['co-learning'],
   'goal-achievement': ['director'],
   'director-directive': ['director'],

@@ -1,4 +1,7 @@
-@use '../../shared/ui/option-card' as card;
+// Recommendations v1 (classic simple-card variant). Design preserved from the
+// pre-rebuild version; colours tokenised so it passes the lint gate (no visual
+// change beyond the AI-badge gradient → violet token). See v2 for the scored
+// strategy cards. docs/plans/widget-variants-versioning.md.
 
 :host {
   display: flex;
@@ -38,42 +41,38 @@
   font-style: italic;
 }
 
-// Scored strategy cards. Responsive: side-by-side (A/B/C, deck slides 1–2)
-// when the panel is wide, stacking automatically in a narrow sidebar.
-.strategy-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-@include card.option-card;
-
-.option-card__title {
+.recs {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  min-width: 0;
 }
 
-// Urgent = countdown near zero. Emphasise via the shared severity token.
-.option-card.urgent {
+.rec-card {
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  padding: 10px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.rec-card:hover {
+  border-color: var(--sbb-color-granite);
+}
+.rec-card.urgent {
   border-color: var(--app-severity-error);
   border-width: 2px;
-  padding: 11px;
+  padding: 9px;
 }
-.option-card.urgent .countdown {
+.rec-card.urgent .countdown {
   color: var(--app-severity-error);
   font-weight: 700;
 }
 
-.option-card.previewable {
-  cursor: help;
-}
-
-.option-card__meta {
+.rec-head {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-bottom: 6px;
 }
 
 .ai-badge {
@@ -104,48 +103,49 @@
   color: var(--sbb-color-granite);
 }
 
+.rec-card.previewable {
+  cursor: help;
+}
+
 .title {
   font-size: 13px;
   font-weight: 600;
   color: var(--sbb-color-charcoal);
-  margin: 0;
-}
-
-.option-card__why {
-  border-top: 1px solid var(--sbb-color-cloud);
-  padding-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.why-heading {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--sbb-color-granite);
-}
-
-.colearning-hint {
-  margin: 0;
-  font-size: 10px;
-  font-style: italic;
-  line-height: 1.4;
-  color: var(--sbb-color-granite);
+  margin: 0 0 4px 0;
 }
 
 .preview-hint {
   font-size: 10px;
   font-style: italic;
   color: var(--sbb-color-granite);
-  margin: 0;
+  margin: 0 0 8px 0;
   display: flex;
   align-items: center;
   gap: 4px;
 }
-.option-card.previewable:hover .preview-hint {
+.rec-card.previewable:hover .preview-hint {
   color: var(--sbb-color-iron);
+}
+
+.desc {
+  font-size: 11px;
+  color: var(--sbb-color-iron);
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+}
+
+.conf-bar {
+  height: 4px;
+  background: var(--sbb-color-cloud);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.conf-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--app-positive), var(--sbb-color-blue));
+  border-radius: 2px;
+  transition: width 0.3s ease-out;
 }
 
 .actions {
@@ -190,6 +190,7 @@
   color: var(--app-severity-error);
 }
 
+
 .auto-dispatch-disabled {
   flex: 1;
   display: inline-flex;
@@ -204,6 +205,33 @@
   font-weight: 600;
   text-align: center;
 }
+
+/* app interaction color concept overrides - start */
+.recommendation-card:hover,
+.recommendation:hover,
+.rec-card:hover,
+.card:hover {
+  background: var(--app-hover-bg) !important;
+  border-color: var(--app-hover-border) !important;
+  box-shadow:
+    0 0 0 2px var(--app-hover-ring-soft, rgba(104, 104, 104, 0.18)),
+    0 6px 18px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.recommendation-card.selected,
+.recommendation-card.active,
+.recommendation.selected,
+.recommendation.active,
+.rec-card.selected,
+.rec-card.active {
+  background: var(--app-select-bg) !important;
+  border-color: var(--app-select-color) !important;
+  box-shadow:
+    0 0 0 2px var(--app-select-ring, rgba(249, 57, 233, 0.40)),
+    0 6px 18px rgba(0, 0, 0, 0.16) !important;
+}
+/* app interaction color concept overrides - end */
 
 /* Collapsible panel header. */
 .panel-head {

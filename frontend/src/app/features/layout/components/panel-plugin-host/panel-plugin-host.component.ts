@@ -6,6 +6,7 @@ import { AgentsPanelComponent } from '../../../agents-panel/agents-panel.compone
 import { KpiFilterComponent } from '../../../kpi-filter/kpi-filter.component';
 import { ScenarioPanelComponent } from '../../../scenario-panel/scenario-panel.component';
 import { RecommendationsPanelComponent } from '../../../recommendations-panel/recommendations-panel.component';
+import { RecommendationsClassicComponent } from '../../../recommendations-classic/recommendations-classic.component';
 import { ImpactPanelComponent } from '../../../impact-panel/impact-panel.component';
 import { WhatifCompareComponent } from '../../../whatif-compare/whatif-compare.component';
 import { RiskUncertaintyPanelComponent } from '../../../risk-uncertainty/risk-uncertainty-panel.component';
@@ -39,6 +40,7 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     KpiFilterComponent,
     ScenarioPanelComponent,
     RecommendationsPanelComponent,
+    RecommendationsClassicComponent,
     ImpactPanelComponent,
     WhatifCompareComponent,
     RiskUncertaintyPanelComponent,

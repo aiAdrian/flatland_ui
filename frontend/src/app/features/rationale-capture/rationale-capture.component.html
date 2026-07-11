@@ -1,0 +1,52 @@
+@if (pending(); as p) {
+  <div class="rc" role="dialog" aria-label="Why did you override?">
+    <div class="rc-head">
+      <span class="rc-title">Warum diese Entscheidung?</span>
+      <button type="button" class="rc-close" (click)="dismiss()" title="Schließen">×</button>
+    </div>
+
+    <p class="rc-context">
+      Zug {{ p.handle }} → <strong>{{ strategyLabel() }}</strong>
+      @if (p.aiSuggestion) {
+        <span class="rc-vs"> statt AI: {{ p.aiSuggestion }}</span>
+      }
+    </p>
+
+    <div class="rc-chips" role="group" aria-label="Gründe">
+      @for (c of chips; track c.id) {
+        <button type="button"
+                class="rc-chip"
+                [class.is-selected]="isSelected(c.id)"
+                (click)="toggleChip(c.id)">
+          {{ c.label }}
+        </button>
+      }
+    </div>
+
+    <textarea class="rc-note"
+              rows="2"
+              [value]="note()"
+              (input)="note.set($any($event.target).value)"
+              placeholder="Eigene Notiz (optional)…"></textarea>
+
+    <div class="rc-hypothesis">
+      <span class="rc-hypothesis-label">Präferenz-Hypothese</span>
+      <p class="rc-hypothesis-text">{{ hypothesis() }}</p>
+    </div>
+
+    <div class="rc-actions">
+      <button type="button" class="rc-btn rc-btn--yes" [disabled]="!canSubmit()" (click)="submit('yes')">
+        Ja, als Regel
+      </button>
+      <button type="button" class="rc-btn rc-btn--once" [disabled]="!canSubmit()" (click)="submit('once')">
+        Nur diesmal
+      </button>
+      <button type="button" class="rc-btn rc-btn--no" (click)="submit('no')">
+        Nein
+      </button>
+    </div>
+    <p class="rc-hint">
+      „Nur diesmal“ bleibt eine Einmal-Entscheidung und wird nicht zur Regel.
+    </p>
+  </div>
+}

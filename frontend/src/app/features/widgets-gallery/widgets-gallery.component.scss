@@ -272,6 +272,15 @@
     border-color: var(--kind-color);
     font-weight: 600;
   }
+  // Data-provenance badge: filled tint (distinct from the outlined kind badge)
+  // so "where does this data come from" reads at a glance. Token-driven.
+  .widget-card__prov {
+    color: var(--prov-color);
+    border-color: color-mix(in srgb, var(--prov-color) 40%, transparent);
+    background: color-mix(in srgb, var(--prov-color) 12%, transparent);
+    font-weight: 600;
+    cursor: help;
+  }
 }
 
 .widget-card__desc {

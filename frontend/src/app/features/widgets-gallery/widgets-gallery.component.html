@@ -94,6 +94,9 @@
             <div class="widget-card__meta">
               <span class="widget-card__kind">{{ kindMeta[widget.kind].label }}</span>
               <span class="widget-card__gran">{{ widget.granularity }}</span>
+              <span class="widget-card__prov"
+                    [style.--prov-color]="provVar(widget.dataSource)"
+                    [title]="provMeta[widget.dataSource].blurb">{{ provMeta[widget.dataSource].label }}</span>
               @if (widget.catalogId) { <span class="widget-card__id">{{ widget.catalogId }}</span> }
             </div>
 

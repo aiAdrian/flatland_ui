@@ -3,44 +3,24 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, compu
 import { SessionStore } from '../../core/session.store';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
-import { Recommendation, ScenarioOption } from '../../core/events/event-types';
+import { Recommendation } from '../../core/events/event-types';
 import { PolicyName } from '../../core/models';
-import { ScoreBadgeComponent } from '../../shared/ui/score-badge.component';
-import { MetricChipComponent } from '../../shared/ui/metric-chip.component';
-import { ReasoningListComponent, ReasoningItem } from '../../shared/ui/reasoning-list.component';
-import { RationaleCaptureComponent } from '../rationale-capture/rationale-capture.component';
-import { LearningRecordsComponent } from '../learning-records/learning-records.component';
 
-type MetricLevel = 'good' | 'fair' | 'low' | 'neutral';
-interface CardMetric {
-  value: string;
-  level: MetricLevel;
-}
-
-/** View-model for one scored strategy card (deck slides 1–2). Joins a
- *  Recommendation with its backing Scenario (via `scenarioId`). */
-export interface StrategyCard {
-  rec: Recommendation;
-  /** A / B / C … positional identifier. */
-  ident: string;
-  title: string;
-  /** 0–100. From scenario.score, else recommendation confidence. */
-  score: number;
-  isActive: boolean;
-  isRecommended: boolean;
-  metrics: { delay: CardMetric; connection: CardMetric; ripple: CardMetric };
-  reasons: ReasoningItem[];
-}
-
+/**
+ * Recommendations — v1 (classic simple-card variant). The pre-rebuild design,
+ * preserved as a selectable variant alongside v2 (scored strategy cards).
+ * Same `role: 'recommendations'` in the widget catalog; distinct panel `type`
+ * 'recommendations-classic'. See docs/plans/widget-variants-versioning.md.
+ */
 @Component({
-  selector: 'app-recommendations-panel',
+  selector: 'app-recommendations-classic',
   standalone: true,
-  imports: [CommonModule, ScoreBadgeComponent, MetricChipComponent, ReasoningListComponent, RationaleCaptureComponent, LearningRecordsComponent],
-  templateUrl: './recommendations-panel.component.html',
-  styleUrl: './recommendations-panel.component.scss',
+  imports: [CommonModule],
+  templateUrl: './recommendations-classic.component.html',
+  styleUrl: './recommendations-classic.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class RecommendationsPanelComponent implements OnDestroy {
+export class RecommendationsClassicComponent implements OnDestroy {
   @Input() embedded = false;
 
   @HostBinding('class.embedded')
@@ -198,94 +178,6 @@ export class RecommendationsPanelComponent implements OnDestroy {
   // Visualizing the confidence (0..1) as a stripe length
   confidencePct(r: Recommendation): number {
     return Math.round(r.confidence * 100);
-  }
-
-  // ── Scored strategy cards (deck slides 1–2) ───────────────────────────────
-  // Join each live recommendation with its backing scenario and derive the
-  // score + sub-metrics the card shows. Recomputes when recommendations or
-  // scenarios change (both are signals).
-  readonly strategyCards = computed<StrategyCard[]>(() => {
-    const recs = this.store.recommendations();
-    const scenarios = this.store.scenarios();
-    return recs.map((rec, i) => {
-      const s = scenarios.find((sc) => sc.id === rec.scenarioId);
-      return {
-        rec,
-        ident: String.fromCharCode(65 + i), // A, B, C, …
-        title: rec.title,
-        score: this._scoreFor(rec, s),
-        isActive: !!s?.isBaseline,
-        isRecommended: !!s?.isRecommended,
-        metrics: {
-          delay: this._delayMetric(s),
-          connection: this._connectionMetric(s),
-          ripple: this._rippleMetric(s),
-        },
-        reasons: this._reasonsFor(rec, s),
-      };
-    });
-  });
-
-  /** Scenario score is roughly [-1, 1]; map to 0–100. Falls back to the
-   *  recommendation confidence when no scenario backs the card. */
-  private _scoreFor(rec: Recommendation, s?: ScenarioOption): number {
-    if (s?.score != null) return Math.round(((s.score + 1) / 2) * 100);
-    return Math.round(rec.confidence * 100);
-  }
-
-  /** Δ mean delay vs. the active plan (positive = worse). */
-  private _delayMetric(s?: ScenarioOption): CardMetric {
-    const d = s?.kpiDeltas?.meanDelay;
-    if (d == null) return { value: '—', level: 'neutral' };
-    const sign = d > 0 ? '+' : '';
-    const value = `${sign}${Math.round(d)}`;
-    // Heuristic thresholds — refine once a real delay unit is confirmed.
-    const level: MetricLevel = d <= 0 ? 'good' : d <= 5 ? 'fair' : 'low';
-    return { value, level };
-  }
-
-  /** PROXY: connection quality derived from the `done` delta (more trains
-   *  completing ≈ more connections preserved). Replace with a real
-   *  connection-protection KPI when the backend exposes one (see
-   *  docs/plans/colearning-across-modes.md — open points). */
-  private _connectionMetric(s?: ScenarioOption): CardMetric {
-    const d = s?.kpiDeltas?.done;
-    if (d == null) return { value: '—', level: 'neutral' };
-    if (d > 0) return { value: 'Better', level: 'good' };
-    if (d === 0) return { value: 'Stable', level: 'neutral' };
-    return { value: 'Reduced', level: 'low' };
-  }
-
-  /** PROXY: ripple risk derived from the `deadlocks` delta. Replace with a
-   *  real ripple/propagation KPI when available. */
-  private _rippleMetric(s?: ScenarioOption): CardMetric {
-    const d = s?.kpiDeltas?.deadlocks;
-    if (d == null) return { value: '—', level: 'neutral' };
-    if (d <= 0) return { value: 'Low', level: 'good' };
-    if (d <= 1) return { value: 'Medium', level: 'fair' };
-    return { value: 'High', level: 'low' };
-  }
-
-  /** Structured "why" reasons for the WHY column — derived from scenario
-   *  deltas plus the recommendation's own description. No LLM dependency. */
-  private _reasonsFor(rec: Recommendation, s?: ScenarioOption): ReasoningItem[] {
-    const out: ReasoningItem[] = [];
-    const conn = this._connectionMetric(s);
-    const ripple = this._rippleMetric(s);
-    const delay = this._delayMetric(s);
-    if (conn.level === 'good') {
-      out.push({ title: 'Protects connections', detail: 'More trains complete than under the current plan.' });
-    }
-    if (ripple.level === 'good') {
-      out.push({ title: 'Low ripple risk', detail: 'No added deadlocks expected downstream.' });
-    }
-    if (delay.level === 'good') {
-      out.push({ title: 'Limited delay impact', detail: 'Mean delay stays at or below the current plan.' });
-    }
-    if (rec.description) {
-      out.push({ title: 'Rationale', detail: rec.description });
-    }
-    return out;
   }
 
   policyIdForRecommendation(r: Recommendation): PolicyName | null {

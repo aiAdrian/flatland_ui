@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SessionStore } from '../../core/session.store';
+import { GalleryFixtureService } from '../../core/gallery-fixture.service';
 import { InteractionMode } from '../../core/events/event-types';
 import { PanelInstance } from '../../core/layout';
 import { isPanelAvailableInMode } from '../../core/layout/panel-mode-availability';
@@ -10,7 +11,9 @@ import { PanelPluginHostComponent } from '../layout/components/panel-plugin-host
 import { ConfigShellComponent } from '../config-shell/config-shell.component';
 import {
   KIND_META,
+  PROVENANCE_META,
   WIDGET_KIND_ORDER,
+  WidgetDataSource,
   WidgetKind,
   WidgetMeta,
   WidgetStatus,
@@ -52,11 +55,18 @@ interface ModeColumn {
   styleUrl: './widgets-gallery.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class WidgetsGalleryComponent {
+export class WidgetsGalleryComponent implements OnInit, OnDestroy {
   readonly store = inject(SessionStore);
+  private readonly fixture = inject(GalleryFixtureService);
 
   readonly kindOrder = WIDGET_KIND_ORDER;
   readonly kindMeta = KIND_META;
+  readonly provMeta = PROVENANCE_META;
+
+  /** CSS var reference for a data-source badge colour (styles.scss token). */
+  provVar(source: WidgetDataSource): string {
+    return `var(${PROVENANCE_META[source].token})`;
+  }
 
   readonly modeColumns: ModeColumn[] = [
     { id: 'recommendation', label: 'Recommendation', wp: 'WP 3.1' },
@@ -124,6 +134,19 @@ export class WidgetsGalleryComponent {
     this.modeFilter.set('all');
     this.statusFilter.set('shipped');
     this.query.set('');
+  }
+
+  // ── Fixture lifecycle ─────────────────────────────────────────────────────
+  // /widgets is an isolated authoring route with no real session. seed() fills
+  // the store signals with gallery fixture data (only when no real session is
+  // running) so live previews render populated examples; ngOnDestroy's clear()
+  // resets exactly those signals so the fixtures can never leak into a real run.
+  ngOnInit(): void {
+    this.fixture.seed();
+  }
+
+  ngOnDestroy(): void {
+    this.fixture.clear();
   }
 
   // ── Per-mode presentation ────────────────────────────────────────────────

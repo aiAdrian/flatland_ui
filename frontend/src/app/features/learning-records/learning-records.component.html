@@ -1,0 +1,40 @@
+@if (records().length > 0) {
+  <section class="lr">
+    <div class="lr-head">
+      <span class="lr-title">Learning Records</span>
+      <span class="lr-count">{{ records().length }}</span>
+    </div>
+
+    @for (r of records(); track r.id) {
+      <article class="lr-card" [class.lr-card--once]="r.once">
+        <div class="lr-card__head">
+          <div class="lr-card__title">
+            <span class="lr-card__strat">{{ r.strategyLabel }}</span>
+            <span class="lr-card__train">Zug {{ r.handle }}</span>
+          </div>
+          <app-score-badge
+            [score]="scoreFor(r)"
+            [state]="stateFor(r)"
+            [label]="labelFor(r)" />
+        </div>
+
+        <p class="lr-card__hypothesis">{{ r.hypothesis }}</p>
+
+        @if (hasContext(r)) {
+          <div class="lr-card__metrics">
+            <app-metric-chip label="Delay" [value]="delayMetric(r).value" [level]="delayMetric(r).level" />
+            <app-metric-chip label="Connection" [value]="connectionMetric(r).value" [level]="connectionMetric(r).level" />
+            <app-metric-chip label="Ripple" [value]="rippleMetric(r).value" [level]="rippleMetric(r).level" />
+          </div>
+        }
+
+        @if (reasoningFor(r).length > 0) {
+          <div class="lr-card__why">
+            <span class="lr-card__why-label">Warum</span>
+            <app-reasoning-list [items]="reasoningFor(r)" />
+          </div>
+        }
+      </article>
+    }
+  </section>
+}

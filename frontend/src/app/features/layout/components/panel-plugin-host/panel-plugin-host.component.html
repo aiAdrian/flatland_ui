@@ -74,6 +74,10 @@
       <app-recommendations-panel [embedded]="true"></app-recommendations-panel>
     }
 
+    @case ('recommendations-classic') {
+      <app-recommendations-classic [embedded]="true"></app-recommendations-classic>
+    }
+
     @case ('impact') {
       <app-impact-panel [embedded]="true"></app-impact-panel>
     }

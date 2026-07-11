@@ -1,0 +1,67 @@
+@if (embedded) {
+  <ng-container [ngTemplateOutlet]="recommendationsContent"></ng-container>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel recommendations-panel-lyne-panel" color="white" size="s" expanded>
+    <sbb-expansion-panel-header>
+      <span class="lyne-panel-title">Recommendations</span>
+    </sbb-expansion-panel-header>
+
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="recommendationsContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #recommendationsContent>
+  <div class="recommendations-panel">
+
+    @if (store.recommendations().length === 0) {
+      <p class="empty">No active recommendations</p>
+    } @else {
+      <div class="recs">
+        @for (r of store.recommendations(); track r.id) {
+          <div class="rec-card"
+               [class.urgent]="isUrgent(r)"
+               [class.previewable]="previewable(r)"
+               (mouseenter)="previewOn(r)"
+               (mouseleave)="previewOff(r)">
+            <div class="rec-head">
+              <span class="ai-badge">AI</span>
+              <span class="confidence">{{ confidencePct(r) }}%</span>
+              @if (remaining(r) !== null) {
+                <span class="countdown">{{ remaining(r) }}s</span>
+              }
+            </div>
+
+            <h4 class="title">{{ r.title }}</h4>
+
+            @if (previewable(r)) {
+              <p class="preview-hint">Hover zeigt die geänderte Route auf Karte & Marey</p>
+            }
+
+            <div class="conf-bar">
+              <div class="conf-fill" [style.width]="confidencePct(r) + '%'"></div>
+            </div>
+
+            <div class="actions">
+              @if (canAcceptRecommendation(r)) {
+                <button class="btn btn-accept" (click)="accept(r)">
+                  Accept
+                </button>
+              } @else {
+                <span class="auto-dispatch-disabled">
+                  Deaktiviert für Auto-Dispo
+                </span>
+              }
+
+              <button class="btn btn-reject" (click)="reject(r)" title="Decline this change">
+                Reject
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</ng-template>

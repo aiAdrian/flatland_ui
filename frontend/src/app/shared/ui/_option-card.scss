@@ -1,0 +1,71 @@
+// Shared scored-option card frame (deck slides 1–2). Consumed via `@use` from
+// feature panels that present ranked strategy options. Tokens only — no raw
+// hex, no accent stripe (banned by frontend-lyne-conventions.md); the
+// "recommended/active" state is a full-border tint + soft ring instead.
+
+@mixin option-card {
+  .option-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+    border: 1px solid var(--sbb-color-cloud);
+    border-radius: 6px;
+    padding: 12px;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  }
+
+  .option-card:hover {
+    border-color: var(--app-hover-border);
+    box-shadow: 0 0 0 2px var(--app-hover-ring-soft),
+                0 6px 18px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+
+  // Recommended / active: emphasise with the positive cluster, full border.
+  .option-card.is-recommended {
+    border-color: var(--app-positive);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--app-positive) 22%, transparent);
+  }
+
+  .option-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .option-card__tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--app-positive);
+    background: color-mix(in srgb, var(--app-positive) 12%, transparent);
+  }
+
+  .option-card__ident {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+    background: var(--sbb-color-granite);
+  }
+  .option-card.is-recommended .option-card__ident {
+    background: var(--app-positive);
+  }
+
+  .option-card__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
