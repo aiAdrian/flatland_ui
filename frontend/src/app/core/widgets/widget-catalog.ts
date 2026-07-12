@@ -286,6 +286,25 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
 
   // ── Context ──────────────────────────────────────────────────────────────
   {
+    type: 'timetable',
+    title: 'Timetable',
+    dataSource: 'simulation',
+    kind: 'context',
+    granularity: 'overview',
+    status: 'shipped',
+    description: 'Schedule board: train, from→to (shared station labels), dep/arr, delay.',
+    promise: 'Read every train’s origin→destination and schedule, keyed to the map station labels.',
+    grounding: 'Operator timetable / departure board (control-room practice); tabular counterpart to the Marey graphic timetable.',
+    availableModes: 'all',
+    perMode: ALL_MODES,
+    defaultZone: 'left',
+    minHeight: 160,
+    spec: 'docs/plans/widget-timetable.md',
+    role: 'timetable',
+    variantLabel: 'v1 · compact board',
+    variantDefault: true,
+  },
+  {
     type: 'agents',
     title: 'Trains',
     dataSource: 'simulation',

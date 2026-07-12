@@ -42,6 +42,27 @@
   pointer-events: none;
 }
 
+.station-marker {
+  pointer-events: none;
+}
+
+.station-dot {
+  fill: var(--sbb-color-granite, #686868);
+  stroke: var(--sbb-color-white, #ffffff);
+  stroke-width: 1.5;
+  opacity: 0.9;
+}
+
+.station-label {
+  fill: var(--sbb-color-charcoal, #212121);
+  font-size: 12px;
+  font-weight: 600;
+  // White halo so the label stays legible over tracks/cells.
+  stroke: var(--sbb-color-white, #ffffff);
+  stroke-width: 3;
+  paint-order: stroke;
+}
+
 .agent {
   cursor: pointer;
 }

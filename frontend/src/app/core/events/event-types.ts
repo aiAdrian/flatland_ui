@@ -5,6 +5,10 @@ export type LayerVisibility = {
   trajectoryCellInfo: boolean;
   switches: boolean;
   signals: boolean;
+  /** Neutral station markers (icon + shared label) at every stop used by the
+   *  trains. Same labels are referenced by the timetable tile so map and
+   *  schedule can be cross-read. */
+  stations: boolean;
 };
 
 export type KpiPriorities = {

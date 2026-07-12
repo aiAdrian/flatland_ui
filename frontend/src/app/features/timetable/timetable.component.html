@@ -1,0 +1,35 @@
+<div class="timetable">
+  @if (rows().length === 0) {
+    <p class="tt-empty">No trains in this scenario.</p>
+  } @else {
+    <table class="tt-table">
+      <thead>
+        <tr>
+          <th class="tt-train">Train</th>
+          <th>From</th>
+          <th>To</th>
+          <th class="tt-num">Dep</th>
+          <th class="tt-num">Arr</th>
+          <th class="tt-num">Delay</th>
+          <th>State</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of rows(); track r.handle) {
+          <tr>
+            <td class="tt-train">
+              <span class="tt-chip" [style.background]="r.color"></span>
+              <span class="tt-train-id">#{{ r.handle }}</span>
+            </td>
+            <td class="tt-stop">{{ r.from }}</td>
+            <td class="tt-stop">{{ r.to }}</td>
+            <td class="tt-num">{{ r.departure ?? '—' }}</td>
+            <td class="tt-num">{{ r.arrival ?? '—' }}</td>
+            <td class="tt-num" [class.tt-late]="r.delay > 0">{{ r.delay > 0 ? '+' + r.delay : '—' }}</td>
+            <td class="tt-state">{{ r.state }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

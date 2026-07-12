@@ -138,6 +138,18 @@ export interface SessionInfo {
   scenario_preset_id?: string | null;
 }
 
+/** A station (stop) derived from the trains' origins and targets. The `label`
+ *  is the single shared identifier used both by the map station layer and the
+ *  timetable tile, so a stop on the map can be matched to a row in the schedule. */
+export interface StationRef {
+  /** Stable cell key "row,col". */
+  id: string;
+  /** Human-facing short label, e.g. "S1". */
+  label: string;
+  row: number;
+  col: number;
+}
+
 /** A prebuilt scenario preset (e.g. an ECML 2026 scene) offered in the picker. */
 export interface ScenarioPreset {
   id: string;

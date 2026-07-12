@@ -62,6 +62,10 @@
       <app-agents-panel [embedded]="true"></app-agents-panel>
     }
 
+    @case ('timetable') {
+      <app-timetable [embedded]="true"></app-timetable>
+    }
+
     @case ('kpi-filter') {
       <app-kpi-filter [embedded]="true"></app-kpi-filter>
     }

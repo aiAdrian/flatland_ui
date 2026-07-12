@@ -855,6 +855,19 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     this.store.agents().filter((a) => a.is_visible !== false),
   );
 
+  /** Shared station registry (labelled stops) from the store — same source the
+   *  timetable tile uses, so map labels and schedule rows line up. */
+  readonly stations = computed(() => this.store.stations());
+
+  /** Pixel centre of a station cell (same convention as agentX/agentY). */
+  stationX(s: { col: number }): number {
+    return s.col * this.cellSize + this.cellSize / 2;
+  }
+
+  stationY(s: { row: number }): number {
+    return s.row * this.cellSize + this.cellSize / 2;
+  }
+
   readonly mergeCells = computed<DecisionCell[]>(() => {
     const state = this.store.state();
     const all = (state?.decision_cells ?? []) as DecisionCell[];
@@ -1385,6 +1398,7 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     // Reuse the already-correct map coordinate conversion from agentY().
     return this.agentY({ ...(a as any), position: target } as AgentDTO);
   }
+
   agentTargetHighlightColor(a: AgentDTO): string {
     if (this.isSelected(a.handle)) return '#f939e9';
 

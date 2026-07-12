@@ -33,7 +33,7 @@ import {
   buildPreferenceHypothesis,
   strategyLabelForAction,
 } from './learning-store.service';
-import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState } from './models';
+import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState, StationRef } from './models';
 
 /**
  * One human intervention captured while in Co-Learning mode (WP 3.3).
@@ -196,6 +196,35 @@ export class SessionStore {
 
   readonly agents = computed<AgentDTO[]>(() => this.state()?.agents ?? []);
 
+  /** Shared station registry: one entry per distinct stop cell used by the
+   *  trains (each train's origin + target), with a stable "S{n}" label ordered
+   *  by position. Single source of truth for BOTH the map station layer and the
+   *  timetable tile, so labels line up across the two. Derived frontend-side —
+   *  no backend change. (Intermediate stops will join once waypoints are
+   *  serialized; a real all-cities layer needs city_positions from the env.) */
+  readonly stations = computed<StationRef[]>(() => {
+    const cells = new Map<string, { row: number; col: number }>();
+    for (const a of this.agents()) {
+      for (const pos of [a.initial_position, a.target]) {
+        if (!pos) continue;
+        const row = Number(pos[0]);
+        const col = Number(pos[1]);
+        cells.set(`${row},${col}`, { row, col });
+      }
+    }
+    return [...cells.values()]
+      .sort((a, b) => a.row - b.row || a.col - b.col)
+      .map((cell, i) => ({ id: `${cell.row},${cell.col}`, label: `S${i + 1}`, row: cell.row, col: cell.col }));
+  });
+
+  /** Shared label lookup used by the map and the timetable so a stop resolves to
+   *  the same "S{n}" in both. Returns null for cells that are not a known stop. */
+  stationLabelForCell(pos: [number, number] | null | undefined): string | null {
+    if (!pos) return null;
+    const key = `${Number(pos[0])},${Number(pos[1])}`;
+    return this.stations().find((s) => s.id === key)?.label ?? null;
+  }
+
   // ── Policies (loaded once at app start) ───────────────────────
   private readonly _policies = signal<PolicyInfo[]>([]);
   readonly availablePolicies = computed<PolicyInfo[]>(() => this._policies());
@@ -252,6 +281,7 @@ export class SessionStore {
     trajectoryCellInfo: true,
     switches: false,
     signals: false,
+    stations: true,
   });
   readonly kpiPriorities = signal<KpiPriorities>({
     time: 1,
