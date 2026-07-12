@@ -10,8 +10,8 @@
           <th>To</th>
           <th class="tt-num">Dep</th>
           <th class="tt-num">Arr</th>
-          <th class="tt-num">Delay</th>
-          <th>State</th>
+          <th>Now</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -25,8 +25,8 @@
             <td class="tt-stop">{{ r.to }}</td>
             <td class="tt-num">{{ r.departure ?? '—' }}</td>
             <td class="tt-num">{{ r.arrival ?? '—' }}</td>
-            <td class="tt-num" [class.tt-late]="r.delay > 0">{{ r.delay > 0 ? '+' + r.delay : '—' }}</td>
-            <td class="tt-state">{{ r.state }}</td>
+            <td class="tt-now">{{ r.now }}</td>
+            <td class="tt-status" [attr.data-tone]="r.tone">{{ r.status }}</td>
           </tr>
         }
       </tbody>

@@ -65,12 +65,27 @@
   color: var(--sbb-color-charcoal, #212121);
 }
 
-.tt-late {
-  color: var(--app-severity-error);
+.tt-now {
+  color: var(--sbb-color-charcoal, #212121);
+}
+
+.tt-status {
   font-weight: 600;
 }
 
-.tt-state {
+.tt-status[data-tone='ok'] {
   color: var(--sbb-color-granite, #686868);
-  text-transform: lowercase;
+}
+
+.tt-status[data-tone='late'] {
+  color: var(--app-severity-error);
+}
+
+.tt-status[data-tone='warn'] {
+  color: var(--app-severity-warning, var(--app-severity-error));
+}
+
+.tt-status[data-tone='muted'] {
+  color: var(--sbb-color-granite, #686868);
+  font-weight: 400;
 }

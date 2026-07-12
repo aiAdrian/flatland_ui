@@ -64,7 +64,7 @@ export class LayoutDesignerComponent {
       description: 'Event feed: notifications with kind, title, message, related train.',
       kind: 'event' },
     { type: 'timetable', title: 'Timetable', minHeight: 160,
-      description: 'Schedule board: train, from→to (shared station labels), dep/arr, delay.',
+      description: 'Schedule board: train, from→to (shared labels), dep/arr, live position + status.',
       kind: 'context' },
     { type: 'agents', title: 'Trains', minHeight: 180,
       description: 'Train roster grouped by state: position, arrival, deadline, actions.',
