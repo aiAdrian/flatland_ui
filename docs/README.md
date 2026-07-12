@@ -13,6 +13,7 @@ The authoritative specs and guides for how the app works today.
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
 - [colour-usage-audit.md](reference/colour-usage-audit.md) — colour concepts grouped into semantic families; consistency, collisions, global-config readiness (input to a future visual-encoding registry)
+- [data-provenance.md](reference/data-provenance.md) — real simulation vs mock vs derived per widget/endpoint; why **Demo ≠ Mock** (grounds `WidgetMeta.dataSource` + the gallery badge)
 - [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub + Railway KPI catalog (confirmed in AI4REALNET org) — re-check at real WP 4.3 requirements
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
@@ -35,6 +36,16 @@ Designs and roadmaps not yet (fully) built.
 - [recommendation-reliability.md](plans/recommendation-reliability.md)
 - [scenario-variants.md](plans/scenario-variants.md)
 - [co-learning-direction.md](plans/co-learning-direction.md)
+- [colearning-across-modes.md](plans/colearning-across-modes.md) — Co-Learning as a cross-cutting layer over the 3 automation levels; deck slide-8 gap analysis
+- [workstream-b-rationale-capture.md](plans/workstream-b-rationale-capture.md) — override "why?" + preference hypothesis + Learning Store; MVP vs feedback-loop effort split
+- [i18n-strategy.md](plans/i18n-strategy.md) — runtime language support (EN base, DE next) via Transloco; colour-gate-style governance for strings
+- [widget-variants-versioning.md](plans/widget-variants-versioning.md) — multiple selectable variants per widget role; keeping v1 alongside v2
+
+## delegation/ — delegation records
+Dated records of tasks handed to other agents/models, with the brief and the review outcome. Kept for reflection.
+
+- [2026-07-11-mvp-rationale-capture-glm.md](delegation/2026-07-11-mvp-rationale-capture-glm.md) — Workstream B Tier 1 built by GLM 5.2; reviewed + live-verified
+- [2026-07-11-gallery-fixture-previews-glm.md](delegation/2026-07-11-gallery-fixture-previews-glm.md) — fixture-backed live previews in the Widget Gallery; delegated to GLM 5.2
 
 ## scenarios/ — study & scenarios
 Experiment design and scenario material.

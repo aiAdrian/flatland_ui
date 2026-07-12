@@ -23,14 +23,27 @@ import {
   LayerVisibility,
   Recommendation,
   ScenarioOption,
+  WhatIfTrajById,
 } from './events/event-types';
 import { WebSocketService } from './websocket.service';
-import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState } from './models';
+import {
+  LearningRecord,
+  LearningStore,
+  RationaleContext,
+  buildPreferenceHypothesis,
+  strategyLabelForAction,
+} from './learning-store.service';
+import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState, StationRef } from './models';
 
 /**
  * One human intervention captured while in Co-Learning mode (WP 3.3).
  * This is the raw material a future feedback/learning loop would consume;
  * for now it powers the in-session intervention count and the reflection panel.
+ *
+ * The optional rationale fields (Workstream B Tier 1, deck slides 5 & 7) are
+ * filled in AFTER the override, when the operator answers the "why?" prompt and
+ * confirms the preference hypothesis. They are absent on entries the operator
+ * never annotated — hence optional and backward-compatible.
  */
 export interface CoLearningEntry {
   /** Simulation step at which the human intervened. */
@@ -42,6 +55,38 @@ export interface CoLearningEntry {
   /** Top AI recommendation title at that moment, if any. */
   aiSuggestion: string | null;
   timestamp: number;
+  /** Chosen "why" (structured reason chips, joined) + optional note.
+   *  Set by the rationale-capture prompt after the override. */
+  rationale?: string;
+  /** Generated "when {context}, prefer {choice}" hypothesis string. */
+  preferenceHypothesis?: string;
+  /** Operator's confirmation of the hypothesis. 'once' = a one-off, explicitly
+   *  NOT promoted to a persistent preference (overfitting guard). */
+  hypothesisResponse?: 'yes' | 'once' | 'no';
+}
+
+/**
+ * Workstream B Tier 1 — an override awaiting its "why?" (deck slide 7). Set in
+ * `setOverride` when a human overrode a recommendation (or any intervention in
+ * Co-Learning), consumed by the rationale-capture UI, cleared on submit/dismiss.
+ *
+ * Carries the handles needed to patch the matching `CoLearningEntry` (by
+ * timestamp) and `DecisionLogEntry` (by seq) once the operator answers, so the
+ * rationale lands on the exact entry it explains.
+ */
+export interface PendingRationale {
+  handle: number;
+  action: number;
+  mode: InteractionMode;
+  aiSuggestion: string | null;
+  simStep: number;
+  timestamp: number;
+  /** Situation snapshot for the hypothesis template. */
+  context: RationaleContext;
+  /** DecisionLogEntry seq to patch on submit. */
+  decisionSeq: number;
+  /** CoLearningEntry timestamp to patch on submit (Co-Learning mode only). */
+  coLearningTimestamp: number | null;
 }
 
 export interface TrajectoryPoint {
@@ -62,6 +107,7 @@ export interface TrajectoryPoint {
 export class SessionStore {
   private api = inject(ApiService);
   private ws = inject(WebSocketService);
+  private learning = inject(LearningStore);
 
   readonly session = signal<SessionInfo | null>(null);
   readonly state = signal<SessionState | null>(null);
@@ -73,6 +119,17 @@ export class SessionStore {
   /** When user hovers a scenario card, store its id here so the Marey
    *  can swap its forecast preview. null = use the active baseline. */
   readonly previewScenarioId = signal<string | null>(null);
+
+  /** What-if Compare map preview: the two branch forecast paths the map
+   *  draws when the operator picks an action. baseline = AI course (yellow),
+   *  branch = human "My plan" (blue). Set on choose(); cleared on commit /
+   *  leave / destroy (same discipline as previewScenarioId). Distinct from
+   *  previewScenarioId so the two overlays never collide. */
+  readonly whatIfPreview = signal<{
+    baseline: WhatIfTrajById;
+    branch: WhatIfTrajById;
+    handles: number[];
+  } | null>(null);
   // Backwards-compat: components that still call .has(h) on a Set.
   readonly selectedHandles = computed<Set<number>>(() => {
     const h = this.selectedHandle();
@@ -139,6 +196,35 @@ export class SessionStore {
 
   readonly agents = computed<AgentDTO[]>(() => this.state()?.agents ?? []);
 
+  /** Shared station registry: one entry per distinct stop cell used by the
+   *  trains (each train's origin + target), with a stable "S{n}" label ordered
+   *  by position. Single source of truth for BOTH the map station layer and the
+   *  timetable tile, so labels line up across the two. Derived frontend-side —
+   *  no backend change. (Intermediate stops will join once waypoints are
+   *  serialized; a real all-cities layer needs city_positions from the env.) */
+  readonly stations = computed<StationRef[]>(() => {
+    const cells = new Map<string, { row: number; col: number }>();
+    for (const a of this.agents()) {
+      for (const pos of [a.initial_position, a.target]) {
+        if (!pos) continue;
+        const row = Number(pos[0]);
+        const col = Number(pos[1]);
+        cells.set(`${row},${col}`, { row, col });
+      }
+    }
+    return [...cells.values()]
+      .sort((a, b) => a.row - b.row || a.col - b.col)
+      .map((cell, i) => ({ id: `${cell.row},${cell.col}`, label: `S${i + 1}`, row: cell.row, col: cell.col }));
+  });
+
+  /** Shared label lookup used by the map and the timetable so a stop resolves to
+   *  the same "S{n}" in both. Returns null for cells that are not a known stop. */
+  stationLabelForCell(pos: [number, number] | null | undefined): string | null {
+    if (!pos) return null;
+    const key = `${Number(pos[0])},${Number(pos[1])}`;
+    return this.stations().find((s) => s.id === key)?.label ?? null;
+  }
+
   // ── Policies (loaded once at app start) ───────────────────────
   private readonly _policies = signal<PolicyInfo[]>([]);
   readonly availablePolicies = computed<PolicyInfo[]>(() => this._policies());
@@ -195,6 +281,7 @@ export class SessionStore {
     trajectoryCellInfo: true,
     switches: false,
     signals: false,
+    stations: true,
   });
   readonly kpiPriorities = signal<KpiPriorities>({
     time: 1,
@@ -257,14 +344,19 @@ export class SessionStore {
   }
 
   /** Append a decision entry (auto-assigns seq, trims to the rolling cap). */
-  private _appendDecision(entry: Omit<DecisionLogEntry, 'seq'>): void {
+  /** Returns the assigned sequence number so callers (e.g. setOverride) can
+   *  later patch the entry — Workstream B annotates the rationale AFTER the
+   *  operator answers the "why?" prompt, not at append time. */
+  private _appendDecision(entry: Omit<DecisionLogEntry, 'seq'>): number {
+    let seq = 0;
     this.decisionLog.update((list) => {
-      const seq = list.length ? list[list.length - 1].seq + 1 : 1;
+      seq = list.length ? list[list.length - 1].seq + 1 : 1;
       const next = [...list, { ...entry, seq }];
       return next.length > DECISION_LOG_CAP
         ? next.slice(next.length - DECISION_LOG_CAP)
         : next;
     });
+    return seq;
   }
 
   /** Clear the log (e.g. on session reset). */
@@ -411,6 +503,18 @@ export class SessionStore {
   readonly coLearningFeedback = signal<CoLearningEntry[]>([]);
   readonly interventionCount = computed(() => this.coLearningFeedback().length);
 
+  /** Workstream B Tier 1: an override awaiting its "why?" (deck slide 7).
+   *  Non-null right after a human override that overrode a recommendation (or
+   *  any Co-Learning intervention); the rationale-capture UI reads this. Cleared
+   *  on submit / dismiss / session reset. Mode-agnostic store, mode-specific
+   *  capture surface (docs/plans/colearning-across-modes.md §2). */
+  readonly pendingRationale = signal<PendingRationale | null>(null);
+
+  /** Confirmed learning records (deck slide 5) — proxied from LearningStore so
+   *  panels can read them through the store they already inject. */
+  readonly learningRecords = computed(() => this.learning.visibleRecords());
+  readonly confirmedPreferenceCount = computed(() => this.learning.confirmedCount());
+
   /**
    * "Things have calmed down": the lull in which Co-Learning reflection should
    * become available (Hamouche et al., Kolb phase 2). Calm = a started session
@@ -508,6 +612,128 @@ export class SessionStore {
     const recs = this.recommendations();
     return recs.length > 0 ? recs[0].title : null;
   }
+
+  /** Snapshot the situation at override time for the preference hypothesis
+   *  (deck slide 5: "learn the condition, not the option"). Derives the three
+   *  Phase-2 trade-off proxies (connection/delay/ripple) from the top
+   *  recommendation's backing scenario — the same heuristic the strategy cards
+   *  use. `hasScenario` flags whether the booleans are real or defaulted, so the
+   *  hypothesis template can stay honest when no scenario is on the table. */
+  private _snapshotRationaleContext(handle: number, aiSuggestion: string | null): RationaleContext {
+    const recs = this.recommendations();
+    const scenarios = this.scenarios();
+    const topRec = recs.length > 0 ? recs[0] : null;
+    const scenario = topRec?.scenarioId
+      ? scenarios.find((s) => s.id === topRec.scenarioId)
+      : scenarios.find((s) => s.isBaseline) ?? scenarios[0] ?? null;
+
+    const simStep = this.elapsedSteps();
+    if (!scenario) {
+      return {
+        connectionCritical: false,
+        lowDelay: false,
+        lowRipple: false,
+        aiSuggestion,
+        simStep,
+        hasScenario: false,
+      };
+    }
+
+    const d = scenario.kpiDeltas?.meanDelay;
+    const done = scenario.kpiDeltas?.done;
+    const dl = scenario.kpiDeltas?.deadlocks;
+
+    const delayValue = d == null ? '—' : `${d > 0 ? '+' : ''}${Math.round(d)}`;
+    const connectionValue = done == null ? '—' : done > 0 ? 'Better' : done === 0 ? 'Stable' : 'Reduced';
+    const rippleValue = dl == null ? '—' : dl <= 0 ? 'Low' : dl <= 1 ? 'Medium' : 'High';
+
+    return {
+      connectionCritical: done != null && done < 0,            // 'Reduced' → at risk
+      lowDelay: d != null && d <= 0,                            // no added delay
+      lowRipple: dl != null && dl <= 0,                         // no added deadlocks
+      delayValue,
+      connectionValue,
+      rippleValue,
+      aiSuggestion,
+      simStep,
+      hasScenario: true,
+      scenarioTitle: scenario.title ?? null,
+    };
+  }
+
+  /** Submit the rationale for the pending override: patch the matching
+   *  CoLearningEntry (Co-Learning only) and DecisionLogEntry with the why +
+   *  hypothesis + response, add a LearningRecord (confirmed → persisted; one-off
+   *  → in-memory only), and clear the prompt. 'no' records nothing. */
+  submitRationale(payload: {
+    rationale: string;
+    response: 'yes' | 'once' | 'no';
+  }): void {
+    const pending = this.pendingRationale();
+    if (!pending) return;
+
+    const hypothesis = buildPreferenceHypothesis(
+      pending.context,
+      strategyLabelForAction(pending.action),
+    );
+
+    // Patch the CoLearningEntry this override produced (Co-Learning mode only).
+    if (pending.coLearningTimestamp != null) {
+      this.coLearningFeedback.update((list) =>
+        list.map((e) =>
+          e.timestamp === pending.coLearningTimestamp
+            ? {
+                ...e,
+                rationale: payload.rationale,
+                preferenceHypothesis: hypothesis,
+                hypothesisResponse: payload.response,
+              }
+            : e,
+        ),
+      );
+    }
+
+    // Patch the DecisionLogEntry this override produced (all modes).
+    this.decisionLog.update((list) =>
+      list.map((e) =>
+        e.seq === pending.decisionSeq
+          ? {
+              ...e,
+              rationale: payload.rationale,
+              preferenceHypothesis: hypothesis,
+              hypothesisResponse: payload.response,
+            }
+          : e,
+      ),
+    );
+
+    // 'no' = hypothesis rejected → no Learning Record (deck slide 7).
+    if (payload.response === 'yes' || payload.response === 'once') {
+      const record: LearningRecord = {
+        id: `lr_${pending.timestamp}_${pending.handle}`,
+        createdAt: pending.timestamp,
+        mode: pending.mode,
+        handle: pending.handle,
+        action: pending.action,
+        strategyLabel: strategyLabelForAction(pending.action),
+        rationale: payload.rationale,
+        hypothesis,
+        response: payload.response,
+        once: payload.response === 'once',
+        context: pending.context,
+      };
+      this.learning.addRecord(record);
+    }
+
+    this.pendingRationale.set(null);
+  }
+
+  /** Dismiss the "why?" prompt without recording (e.g. user closes it). The
+   *  override itself stays logged; only the rationale is forgone. */
+  dismissRationale(): void {
+    this.pendingRationale.set(null);
+  }
+
   readonly notifications = signal<AppNotification[]>([]);
   readonly scenarios = signal<ScenarioOption[]>([]);
   readonly recommendations = signal<Recommendation[]>([]);
@@ -742,13 +968,14 @@ export class SessionStore {
     run();
   }
 
-  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown } = {}) {
+  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown; scenarioPresetId?: string } = {}) {
     this.loading.set(true);
     this.error.set(null);
     this.message.set(null);
     this.playing.set(false);
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
+    this.pendingRationale.set(null);
     this.impact.set([]);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
@@ -770,14 +997,19 @@ export class SessionStore {
     if (opts.scenarioPolicyIds != null) payload.enabled_scenario_policy_ids = opts.scenarioPolicyIds;
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
     if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
+    if (opts.scenarioPresetId != null) payload.scenario_preset_id = opts.scenarioPresetId;
     const requestedScene = payload.infrastructure_scene as { id?: string; name?: string; cells?: unknown[]; agents?: unknown[] } | undefined;
-    this.message.set(requestedScene
+    this.message.set(opts.scenarioPresetId
+      ? `Loading prebuilt scenario: ${opts.scenarioPresetId}`
+      : requestedScene
       ? `Creating session from infrastructure: ${requestedScene.name || requestedScene.id || 'selected scene'} · sending ${requestedScene.cells?.length ?? 0} cells · ${requestedScene.agents?.length ?? 0} trains`
       : 'Creating session from random infrastructure');
     this.api.createSession(payload).subscribe({
       next: (s) => {
         this.session.set(s);
-        this.message.set(s.infrastructure_scene_id
+        this.message.set(s.scenario_preset_id
+          ? `Loaded scenario preset: ${s.scenario_preset_id} · ${s.width} × ${s.height} · ${s.num_agents} trains`
+          : s.infrastructure_scene_id
           ? `Loaded infrastructure scene: ${s.infrastructure_scene_id}`
           : 'Loaded random infrastructure');
         if (opts.scenarioPolicyIds != null) {
@@ -921,7 +1153,9 @@ export class SessionStore {
     this.notifications.set([]);
     this.coLearningFeedback.set([]);
     this.reflectionRequested.set(false);
+    this.pendingRationale.set(null);
     this.previewScenarioId.set(null);
+    this.whatIfPreview.set(null);
   }
 
   reset() {
@@ -934,6 +1168,7 @@ export class SessionStore {
     this.playing.set(false);
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
+    this.pendingRationale.set(null);
     this.impact.set([]);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
@@ -1044,17 +1279,24 @@ export class SessionStore {
     // Optimistic UI update: button reacts immediately.
     this._setLocalOverride(handle, action);
 
+    const aiSuggestion = this._currentTopRecommendation();
+    const simStep = this.elapsedSteps();
+    const mode = this.interactionMode();
+    const now = Date.now();
+
     // Co-Learning (WP 3.3): capture the human intervention so it can feed
     // the reflection panel (and, later, an actual learning loop).
+    let coLearningTimestamp: number | null = null;
     if (this.isCoLearning()) {
+      coLearningTimestamp = now;
       this.coLearningFeedback.update((list) => [
         ...list,
         {
-          step: this.elapsedSteps(),
+          step: simStep,
           handle,
           humanAction: action,
-          aiSuggestion: this._currentTopRecommendation(),
-          timestamp: Date.now(),
+          aiSuggestion,
+          timestamp: now,
         },
       ]);
     }
@@ -1062,16 +1304,36 @@ export class SessionStore {
     // Decision Log (Tile A2): capture every override in ALL modes (not just
     // Co-Learning). `owner` distinguishes a human click from the AI auto-decide
     // (countdown expiry). systemHold is logged separately (owner 'system').
-    this._appendDecision({
-      t: Date.now(),
-      simStep: this.elapsedSteps(),
-      mode: this.interactionMode(),
+    const decisionSeq = this._appendDecision({
+      t: now,
+      simStep,
+      mode,
       handle,
       accountableOwner: owner,
       action: actionLabelFor(action),
-      aiSuggestion: this._currentTopRecommendation(),
+      aiSuggestion,
       decisionTimeMs: owner === 'human' ? this._closeDecisionWindow(handle) : null,
     });
+
+    // Workstream B Tier 1 (deck slide 7): after a human override that deviated
+    // from an AI suggestion (or any Co-Learning intervention), surface the
+    // "why?" prompt. Suppressed for AI/system owners, in Director mode (its
+    // sparser signal economy has its own, separate capture — Tier 2), and for
+    // bare human clicks with no AI context to deviate from. The capture UI is
+    // mode-specific; the pending state here is mode-agnostic.
+    if (owner === 'human' && mode !== 'director' && (aiSuggestion != null || this.isCoLearning())) {
+      this.pendingRationale.set({
+        handle,
+        action,
+        mode,
+        aiSuggestion,
+        simStep,
+        timestamp: now,
+        context: this._snapshotRationaleContext(handle, aiSuggestion),
+        decisionSeq,
+        coLearningTimestamp,
+      });
+    }
 
     this.api.setOverride(s.id, handle, action as any).subscribe({
       next: () => {

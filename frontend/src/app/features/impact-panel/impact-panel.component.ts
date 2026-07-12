@@ -118,6 +118,17 @@ export class ImpactPanelComponent implements OnDestroy {
       this._lastHasImpact = has;
     });
 
+    // Keep the stabilized display list in sync with store.impact() from ANY
+    // source — the live poll below, or a value set elsewhere (e.g. a pre-seeded
+    // gallery fixture with no backend behind it). The poll additionally rebuilds
+    // synchronously inside _fetchImpact for its engage/countdown logic; this
+    // effect covers the non-poll sources. Safe: _rebuildStable writes _stable
+    // (not store.impact), so there is no feedback loop, and its merge is
+    // idempotent, so the redundant rebuild on the poll path is harmless.
+    effect(() => {
+      this._rebuildStable(this.store.impact());
+    });
+
     // Impact is cheap to compute → poll it live (~1.5s) so conflicts surface
     // while the simulation runs, not only on pause. Scenarios stay throttled.
     effect(() => {

@@ -11,6 +11,11 @@
         <span class="rp-phase" title="Kolb experiential learning — reflection phase">reflect</span>
       </div>
 
+      <!-- Workstream B Tier 1: "why?" prompt after a human override (deck slide 7).
+           The store owns pending state; this panel hosts the capture surface in
+           Co-Learning mode. Renders only while a rationale is pending. -->
+      <app-rationale-capture />
+
       <!-- Mirroring [MR]: the operator's own run, reflected back -->
       <div class="rp-section">
         <span class="rp-mode" title="Supportive-AI mode: Mirroring">MR · your run</span>
@@ -70,6 +75,10 @@
           }
         </div>
       </div>
+
+      <!-- Workstream B Tier 1: confirmed learning records (deck slide 5),
+           reusing the shared/ui primitives. Visible in Co-Learning mode. -->
+      <app-learning-records />
 
       <div class="actions">
         <sbb-button size="m" (click)="close()">Done — reflect again later</sbb-button>

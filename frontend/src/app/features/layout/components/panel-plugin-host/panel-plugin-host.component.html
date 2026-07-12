@@ -62,6 +62,10 @@
       <app-agents-panel [embedded]="true"></app-agents-panel>
     }
 
+    @case ('timetable') {
+      <app-timetable [embedded]="true"></app-timetable>
+    }
+
     @case ('kpi-filter') {
       <app-kpi-filter [embedded]="true"></app-kpi-filter>
     }
@@ -74,8 +78,16 @@
       <app-recommendations-panel [embedded]="true"></app-recommendations-panel>
     }
 
+    @case ('recommendations-classic') {
+      <app-recommendations-classic [embedded]="true"></app-recommendations-classic>
+    }
+
     @case ('impact') {
       <app-impact-panel [embedded]="true"></app-impact-panel>
+    }
+
+    @case ('whatif-compare') {
+      <app-whatif-compare [embedded]="true"></app-whatif-compare>
     }
 
     @case ('risk-uncertainty') {

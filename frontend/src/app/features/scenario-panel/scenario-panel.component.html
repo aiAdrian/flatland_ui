@@ -15,6 +15,10 @@
 <ng-template #scenarioContent>
   <div class="scenario-panel">
 
+    @if (store.isCoLearning() && store.scenarios().length > 0) {
+      <p class="scenario-neutral-hint">Options shown neutrally — compare and decide; none is marked “best”.</p>
+    }
+
     @if (store.scenarios().length === 0) {
       <p class="empty">No scenarios available</p>
     } @else {

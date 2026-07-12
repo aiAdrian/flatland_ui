@@ -92,6 +92,54 @@ def test_generate_recommendations_returns_top_policy_recommendation():
     assert rec.countdownSeconds >= 5
 
 
+def test_guarantee_surfaces_best_alternative_below_margin():
+    # Candidate beats baseline by only 0.03 (below SCORE_MARGIN). Normally empty,
+    # but with guarantee=True the demo must still surface a decision moment.
+    scenarios = [
+        _scenario("baseline", "deadlock_avoidance", 0.80),
+        _scenario("Forward Only", "forward_only", 0.83),
+    ]
+    assert generate_recommendations("sid", scenarios) == []
+    recs = generate_recommendations("sid", scenarios, guarantee=True)
+    assert len(recs) == 1
+    assert recs[0].id == "rec_policy_forward_only"
+
+
+def test_guarantee_surfaces_best_even_when_worse_than_baseline():
+    # Every alternative is worse than DLA. The guarantee still surfaces the best
+    # deadlock-free one so the operator can consciously keep the current policy.
+    scenarios = [
+        _scenario("baseline", "deadlock_avoidance", 0.90),
+        _scenario("Forward Only", "forward_only", 0.40),
+        _scenario("Random", "random", 0.20),
+    ]
+    recs = generate_recommendations("sid", scenarios, guarantee=True)
+    assert len(recs) == 1
+    assert recs[0].id == "rec_policy_forward_only"
+
+
+def test_guarantee_never_surfaces_deadlock_option():
+    # The only alternative deadlocks → guarantee must NOT surface it, even in demo.
+    scenarios = [
+        _scenario("baseline", "deadlock_avoidance", 0.20),
+        _scenario("Forward Only", "forward_only", 0.95,
+                  result=_result(success=1, total=1, deadlocks=1)),
+    ]
+    assert generate_recommendations("sid", scenarios, guarantee=True) == []
+
+
+def test_guarantee_does_not_duplicate_when_margin_already_met():
+    # A candidate already clears the margin → guarantee changes nothing.
+    scenarios = [
+        _scenario("baseline", "deadlock_avoidance", 0.20),
+        _scenario("Forward Only", "forward_only", 0.90),
+    ]
+    normal = generate_recommendations("sid", scenarios)
+    guaranteed = generate_recommendations("sid", scenarios, guarantee=True)
+    assert [r.id for r in normal] == [r.id for r in guaranteed]
+    assert len(guaranteed) == 1
+
+
 def test_generate_recommendations_caps_at_three_ranked():
     # The generator surfaces up to 3 qualifying alternatives, ranked by score
     # (best first). All of these clearly beat the baseline.

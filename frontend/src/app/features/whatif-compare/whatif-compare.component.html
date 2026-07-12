@@ -1,0 +1,157 @@
+@if (embedded) {
+  <div class="wic wic--embedded">
+    <div class="wic-head wic-head--embedded">
+      <span class="panel-title" title="Formulate your own action for the selected train and compare its simulated future with the AI's plan.">
+        What-if Compare
+      </span>
+    </div>
+    <ng-container [ngTemplateOutlet]="wicContent"></ng-container>
+  </div>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel wic" color="white" size="s" expanded>
+    <sbb-expansion-panel-header class="wic-head">
+      <span class="lyne-panel-title panel-title" title="Formulate your own action for the selected train and compare its simulated future with the AI's plan.">
+        What-if Compare
+      </span>
+    </sbb-expansion-panel-header>
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="wicContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #wicContent>
+  <p class="wic-note">{{ modeBehavior().note }}</p>
+
+  @if (targetHandle() == null) {
+    <p class="wic-empty">Select a train (map, roster, or impact) to compare your plan against the AI.</p>
+  } @else {
+    <div class="wic-target">
+      <span class="wic-dot" [style.background]="targetColor()"></span>
+      <span class="wic-target-label">{{ targetLabel() }}</span>
+    </div>
+
+    <div class="wic-actions" role="group" aria-label="Propose an action">
+      @for (c of actionChoices; track c.action) {
+        <button type="button"
+                class="wic-action"
+                [class.is-chosen]="isChosen(c.action)"
+                (click)="choose(c.action)">
+          {{ c.label }}
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <p class="wic-loading">Simulating both futures…</p>
+    } @else if (failed()) {
+      <p class="wic-empty">Could not simulate this branch. Try another action.</p>
+    } @else if (result(); as r) {
+      <!-- PRIMARY: the selected train's own fate ("local action").
+           My plan (blue) vs AI plan (yellow): arrives? delay? deadlock? -->
+      @if (r.train; as t) {
+        <section class="wic-primary">
+          <div class="wic-section-label">This train</div>
+          <div class="wic-compare">
+            <!-- AI plan (yellow) -->
+            <div class="wic-col wic-col--ai">
+              <div class="wic-col-head">{{ modeBehavior().aiLabel }}</div>
+              <dl class="wic-kpis">
+                <div><dt>Arrives</dt><dd>{{ t.baseline.arrived ? '✓ yes' : '✗ no' }}</dd></div>
+                <div><dt>Delay</dt><dd>{{ t.baseline.delay }}<span class="wic-unit">steps</span></dd></div>
+                <div><dt>Deadlock</dt><dd>{{ t.baseline.deadlocked ? 'yes' : 'no' }}</dd></div>
+              </dl>
+            </div>
+
+            <!-- My plan (blue) -->
+            <div class="wic-col wic-col--human">
+              <div class="wic-col-head">My plan</div>
+              <dl class="wic-kpis">
+                <div>
+                  <dt>Arrives</dt>
+                  <dd>{{ t.branch.arrived ? '✓ yes' : '✗ no' }}
+                    @if (trainArrivesChanged(t)) {
+                      <span class="wic-delta" [class.good]="t.branch.arrived && !t.baseline.arrived" [class.bad]="!t.branch.arrived && t.baseline.arrived">
+                        {{ t.branch.arrived ? '▲ arrives' : '▼ no arrival' }}
+                      </span>
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt>Delay</dt>
+                  <dd>{{ t.branch.delay }}<span class="wic-unit">steps</span>
+                    @if (trainDelayDelta(t) !== 0) {
+                      <span class="wic-delta" [class.good]="trainDelayDelta(t) < 0" [class.bad]="trainDelayDelta(t) > 0">
+                        {{ deltaArrow(trainDelayDelta(t)) }}{{ signedDelta(trainDelayDelta(t)) }}
+                      </span>
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt>Deadlock</dt>
+                  <dd>{{ t.branch.deadlocked ? 'yes' : 'no' }}
+                    @if (trainDeadlockChanged(t)) {
+                      <span class="wic-delta" [class.good]="!t.branch.deadlocked && t.baseline.deadlocked" [class.bad]="t.branch.deadlocked && !t.baseline.deadlocked">
+                        {{ t.branch.deadlocked ? '▼ deadlock' : '▲ avoids' }}
+                      </span>
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- SECONDARY: system-wide effect ("global effect"), kept smaller.
+           done/total, delay, deadlocks — the original system KPIs. -->
+      <section class="wic-secondary">
+        <div class="wic-section-label">System effect</div>
+        <dl class="wic-system-kpis">
+          <div>
+            <dt>Arrived</dt>
+            <dd>{{ r.branch.done }}/{{ r.branch.total }}
+              @if (r.delta.done !== 0) {
+                <span class="wic-delta" [class.good]="r.delta.done > 0" [class.bad]="r.delta.done < 0">
+                  {{ deltaArrow(r.delta.done) }}{{ signedDelta(r.delta.done) }}
+                </span>
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Delay</dt>
+            <dd>{{ r.branch.delay }}
+              @if (r.delta.delay !== 0) {
+                <span class="wic-delta" [class.good]="r.delta.delay < 0" [class.bad]="r.delta.delay > 0">
+                  {{ deltaArrow(r.delta.delay) }}{{ signedDelta(r.delta.delay) }}
+                </span>
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Deadlocks</dt>
+            <dd>{{ r.branch.deadlocks }}
+              @if (r.delta.deadlocks !== 0) {
+                <span class="wic-delta" [class.good]="r.delta.deadlocks < 0" [class.bad]="r.delta.deadlocks > 0">
+                  {{ deltaArrow(r.delta.deadlocks) }}{{ signedDelta(r.delta.deadlocks) }}
+                </span>
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <p class="wic-summary">{{ r.summary }}</p>
+
+      @if (modeBehavior().canCommit) {
+        @if (committed()) {
+          <p class="wic-committed">✓ My plan committed as an override.</p>
+        } @else {
+          <button type="button" class="wic-commit" (click)="commit()">Commit my plan</button>
+        }
+      } @else {
+        <p class="wic-readonly">Read-only in Director — the AI keeps actuation.</p>
+      }
+    }
+  }
+</ng-template>

@@ -53,6 +53,15 @@ export interface DecisionLogEntry {
   /** Dwell time from decision-moment-open to decision, in ms. null for system
    *  / autonomous entries (no human dwell). */
   decisionTimeMs: number | null;
+  /** Chosen "why" behind a human override (Workstream B Tier 1, deck slide 7).
+   *  Absent on entries the operator never annotated, and on all non-human
+   *  entries. Mirrored from the rationale-capture prompt. */
+  rationale?: string;
+  /** Generated preference hypothesis the operator was shown. */
+  preferenceHypothesis?: string;
+  /** Operator's confirmation of that hypothesis. 'once' is the explicit
+   *  overfitting guard — a one-off decision that must not become a rule. */
+  hypothesisResponse?: 'yes' | 'once' | 'no';
 }
 
 /** Rolling cap on the in-memory log (newest kept). */

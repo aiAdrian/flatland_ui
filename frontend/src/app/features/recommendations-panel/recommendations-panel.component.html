@@ -15,37 +15,74 @@
 <ng-template #recommendationsContent>
   <div class="recommendations-panel">
 
-    @if (store.recommendations().length === 0) {
+    <!-- Workstream B Tier 1: "why?" prompt after a human override (deck slide 7).
+         Read-only here — the store owns pending state; this panel just hosts the
+         capture surface in Recommendation mode (the reflection panel hosts it in
+         Co-Learning mode). Does not touch the countdown / bus.emit paths. -->
+    <app-rationale-capture />
+
+    @if (strategyCards().length === 0) {
       <p class="empty">No active recommendations</p>
     } @else {
-      <div class="recs">
-        @for (r of store.recommendations(); track r.id) {
-          <div class="rec-card"
-               [class.urgent]="isUrgent(r)"
-               [class.previewable]="previewable(r)"
-               (mouseenter)="previewOn(r)"
-               (mouseleave)="previewOff(r)">
-            <div class="rec-head">
+      <div class="strategy-grid">
+        @for (card of strategyCards(); track card.rec.id) {
+          <div class="option-card"
+               [class.is-recommended]="card.isRecommended"
+               [class.urgent]="isUrgent(card.rec)"
+               [class.previewable]="previewable(card.rec)"
+               (mouseenter)="previewOn(card.rec)"
+               (mouseleave)="previewOff(card.rec)">
+
+            <div class="option-card__head">
+              <div class="option-card__title">
+                <span class="option-card__ident">{{ card.ident }}</span>
+                <h4 class="title">{{ card.title }}</h4>
+              </div>
+              <app-score-badge
+                [score]="card.score"
+                [state]="card.isRecommended ? 'recommended' : (card.isActive ? 'active' : 'neutral')"
+                [label]="card.isActive ? (card.isRecommended ? 'Active · Recommended' : 'Active') : (card.isRecommended ? 'Recommended' : '')" />
+            </div>
+
+            <div class="option-card__metrics">
+              <app-metric-chip label="Delay" [value]="card.metrics.delay.value" [level]="card.metrics.delay.level" />
+              <app-metric-chip label="Connection" [value]="card.metrics.connection.value" [level]="card.metrics.connection.level" />
+              <app-metric-chip label="Ripple Risk" [value]="card.metrics.ripple.value" [level]="card.metrics.ripple.level" />
+            </div>
+
+            <div class="option-card__meta">
               <span class="ai-badge">AI</span>
-              <span class="confidence">{{ confidencePct(r) }}%</span>
-              @if (remaining(r) !== null) {
-                <span class="countdown">{{ remaining(r) }}s</span>
+              <span class="confidence">{{ confidencePct(card.rec) }}%</span>
+              @if (remaining(card.rec) !== null) {
+                <span class="countdown">{{ remaining(card.rec) }}s</span>
               }
             </div>
 
-            <h4 class="title">{{ r.title }}</h4>
-
-            @if (previewable(r)) {
-              <p class="preview-hint">Hover zeigt die geänderte Route auf Karte & Marey</p>
+            @if (card.isRecommended && card.reasons.length > 0) {
+              <div class="option-card__why">
+                <span class="why-heading">Why this option</span>
+                <app-reasoning-list [items]="card.reasons" />
+                <!-- Co-Learning effect (Workstream B Tier 1): now reflects the
+                     actual count of confirmed preferences instead of the old
+                     aspirational placeholder. Ranking adjustment itself is
+                     Tier 2 (docs/plans/workstream-b-rationale-capture.md). -->
+                <p class="colearning-hint">
+                  @if (store.confirmedPreferenceCount() > 0) {
+                    Berücksichtigt {{ store.confirmedPreferenceCount() }} bestätigte Präferenz(en) — Ranking-Nudge, keine harte Regel.
+                  } @else {
+                    Ranking beruht noch rein auf der KPI-Bewertung (bestätigte Präferenzen fehlen noch).
+                  }
+                </p>
+              </div>
             }
 
-            <div class="conf-bar">
-              <div class="conf-fill" [style.width]="confidencePct(r) + '%'"></div>
-            </div>
+            @if (previewable(card.rec)) {
+              <p class="preview-hint">Hover zeigt die geänderte Route auf Karte &amp; Marey</p>
+            }
 
             <div class="actions">
-              @if (canAcceptRecommendation(r)) {
-                <button class="btn btn-accept" (click)="accept(r)">
+              @if (canAcceptRecommendation(card.rec)) {
+                <button class="btn btn-accept" (click)="accept(card.rec)">
                   Accept
                 </button>
               } @else {
@@ -54,7 +91,7 @@
                 </span>
               }
 
-              <button class="btn btn-reject" (click)="reject(r)" title="Decline this change">
+              <button class="btn btn-reject" (click)="reject(card.rec)" title="Decline this change">
                 Reject
               </button>
             </div>
@@ -62,6 +99,10 @@
         }
       </div>
     }
+
+    <!-- Workstream B Tier 1: confirmed learning records (deck slide 5),
+         reusing the shared/ui primitives. Visible in Recommendation mode. -->
+    <app-learning-records />
 
   </div>
 </ng-template>

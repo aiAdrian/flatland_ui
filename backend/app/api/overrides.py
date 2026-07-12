@@ -35,16 +35,50 @@ def _estimate_branch_kpis(env, policy_factory, overrides: dict, horizon: int) ->
 def _branch_kpis_full(env, policy_factory, overrides: dict, horizon: int) -> dict:
     """Forward-simulate a branch and return the KPIs Co-Learning feedback
     needs: deadlocks, arrived (done), total trains, and total delay."""
+    res = _branch_run(env, policy_factory, overrides, horizon)
+    return _kpis_from_result(res)
+
+
+def _branch_run(env, policy_factory, overrides: dict, horizon: int):
+    """Run a what-if branch and return the full BranchResult (system KPIs
+    + per-agent outcomes + snapshots for trajectory extraction)."""
     from app.core.scenario_runner import TrajectoryBranchRunner
 
     runner = TrajectoryBranchRunner(env, policy_factory)
-    res = runner.run_branch(overrides=overrides, max_steps=horizon)
+    return runner.run_branch(overrides=overrides, max_steps=horizon)
+
+
+def _kpis_from_result(res) -> dict:
     return {
         "deadlocks": int(res.kpis.get("deadlocks", res.kpis.get("num_deadlock_cycles", 0)) or 0),
         "done": int(res.success_count or 0),
         "total": int(res.total_agents or 0),
         "delay": int(res.kpis.get("total_delay", 0) or 0),
     }
+
+
+def _train_outcome(res, handle: int) -> dict:
+    """The overridden train's own fate on this branch: arrived / delay /
+    deadlocked. Falls back to all-zero if the handle is missing."""
+    o = res.agent_outcomes.get(int(handle)) or {
+        "arrived": False,
+        "deadlocked": False,
+        "delay": 0,
+    }
+    return {
+        "arrived": bool(o.get("arrived", False)),
+        "delay": int(o.get("delay", 0) or 0),
+        "deadlocked": bool(o.get("deadlocked", False)),
+    }
+
+
+def _branch_trajectories(res) -> dict:
+    """Per-agent trajectories from a branch's snapshots, in the same shape
+    scenarios use ({handle_str: [{step, row, col, ...}]}), so the map overlay
+    can draw them with the existing forecast machinery."""
+    from app.core.hmi_scenario_adapter import _extract_trajectories
+
+    return _extract_trajectories(res.snapshots)
 
 
 def _whatif_summary(baseline: dict, branch: dict) -> str:
@@ -181,8 +215,29 @@ def what_if_override(session_id: str, req: WhatIfRequest):
     branch_overrides = dict(baseline_overrides)
     branch_overrides.update({int(h): int(a) for h, a in req.overrides.items()})
 
-    baseline = _branch_kpis_full(env, policy_factory, baseline_overrides, horizon)
-    branch = _branch_kpis_full(env, policy_factory, branch_overrides, horizon)
+    baseline_res = _branch_run(env, policy_factory, baseline_overrides, horizon)
+    branch_res = _branch_run(env, policy_factory, branch_overrides, horizon)
+
+    baseline = _kpis_from_result(baseline_res)
+    branch = _kpis_from_result(branch_res)
+
+    # Per-train outcome for the operator's selected handle (the first override
+    # key — the UI sends exactly one). Primary content; system KPIs above are
+    # the secondary "local action → global effect" context.
+    affected_handles = [int(h) for h in req.overrides.keys()]
+    train = None
+    if affected_handles:
+        h = affected_handles[0]
+        train = {
+            "handle": h,
+            "baseline": _train_outcome(baseline_res, h),
+            "branch": _train_outcome(branch_res, h),
+        }
+
+    # Per-agent trajectories for BOTH branches (baseline = AI, branch = human),
+    # in scenario shape so the map overlay draws them with the forecast code.
+    baseline_traj = _branch_trajectories(baseline_res)
+    branch_traj = _branch_trajectories(branch_res)
 
     return {
         "horizon": horizon,
@@ -194,6 +249,10 @@ def what_if_override(session_id: str, req: WhatIfRequest):
             "done": branch["done"] - baseline["done"],
         },
         "summary": _whatif_summary(baseline, branch),
+        "train": train,
+        "baseline_trajectories": baseline_traj,
+        "branch_trajectories": branch_traj,
+        "handles": affected_handles,
     }
 
 

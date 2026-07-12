@@ -22,6 +22,13 @@
   font-style: italic;
 }
 
+.scenario-neutral-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite, #686868);
+  margin: 0 0 8px;
+}
+
 .scenarios {
   display: flex;
   flex-direction: column;

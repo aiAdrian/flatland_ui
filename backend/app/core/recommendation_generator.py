@@ -68,10 +68,21 @@ SCORE_MARGIN = 0.05
 def generate_recommendations(
     session_id: str,
     scenarios: List[Scenario],
+    guarantee: bool = False,
 ) -> List[Recommendation]:
-    """Build at most one Recommendation from a pre-computed scenario list.
-    The hmi.py endpoint is responsible for fetching the scenarios (with
-    its cache); we just consume them here to keep things DRY."""
+    """Build recommendations from a pre-computed scenario list. The hmi.py
+    endpoint fetches the scenarios (with its cache); we just consume them here
+    to keep things DRY.
+
+    ``guarantee`` (demo/study mode): when no candidate beats the baseline by
+    ``SCORE_MARGIN`` the panel is normally empty ("current policy is fine").
+    For a demo we don't want an empty panel for a whole run, so if nothing
+    clears the margin we fall back to surfacing the single best non-deadlock
+    alternative anyway — the operator always has a concrete option to weigh.
+    Only guaranteed options with a real trade-off would be surfaced; a strictly
+    worse-or-equal alternative is still shown so the human can consciously keep
+    the current policy (that decision moment is the point). This never invents
+    deadlock-causing options and never overrides the normal margin ranking."""
     if not scenarios:
         return []
 
@@ -93,13 +104,29 @@ def generate_recommendations(
             continue
         if (cand.score - baseline.score) < SCORE_MARGIN:
             continue
-        label = POLICY_LABELS.get(cand.policy_id, cand.policy_id)
-        recs.append(Recommendation(
-            id=f"rec_policy_{cand.policy_id}",
-            title=f"Switch to {label}",
-            description="",                 # no explanation (by design)
-            confidence=round(_confidence(cand.score), 2),
-            countdownSeconds=30,            # generic; policy switch isn't time-critical
-            scenarioId=f"scn_{cand.policy_id}",
-        ))
+        recs.append(_to_recommendation(cand))
+
+    # Demo guarantee: nothing cleared the margin → surface the best
+    # deadlock-free alternative so the panel is never silently empty.
+    if not recs and guarantee:
+        best = next(
+            (c for c in candidates
+             if c.result.kpis.get("num_deadlock_cycles", 0) == 0),
+            None,
+        )
+        if best is not None:
+            recs.append(_to_recommendation(best))
+
     return recs
+
+
+def _to_recommendation(cand: Scenario) -> Recommendation:
+    label = POLICY_LABELS.get(cand.policy_id, cand.policy_id)
+    return Recommendation(
+        id=f"rec_policy_{cand.policy_id}",
+        title=f"Switch to {label}",
+        description="",                 # no explanation (by design)
+        confidence=round(_confidence(cand.score), 2),
+        countdownSeconds=30,            # generic; policy switch isn't time-critical
+        scenarioId=f"scn_{cand.policy_id}",
+    )

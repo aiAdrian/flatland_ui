@@ -1,0 +1,286 @@
+// Recommendations v1 (classic simple-card variant). Design preserved from the
+// pre-rebuild version; colours tokenised so it passes the lint gate (no visual
+// change beyond the AI-badge gradient → violet token). See v2 for the scored
+// strategy cards. docs/plans/widget-variants-versioning.md.
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-bottom: 1px solid var(--sbb-color-cloud);
+  padding: 12px 16px;
+  background: var(--sbb-color-milk);
+  overflow-y: auto;
+  min-height: auto;
+}
+
+:host:not(:has(.empty)) {
+  min-height: 200px;
+}
+
+:host:has(.empty) {
+  min-height: 0;
+  flex: 0;
+  padding: 0;
+  border-bottom: none;
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--sbb-color-granite);
+  margin: 0 0 8px 0;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+  margin: 0;
+  font-style: italic;
+}
+
+.recs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec-card {
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  padding: 10px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.rec-card:hover {
+  border-color: var(--sbb-color-granite);
+}
+.rec-card.urgent {
+  border-color: var(--app-severity-error);
+  border-width: 2px;
+  padding: 9px;
+}
+.rec-card.urgent .countdown {
+  color: var(--app-severity-error);
+  font-weight: 700;
+}
+
+.rec-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ai-badge {
+  background: var(--sbb-color-violet);
+  color: var(--sbb-color-white);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.confidence {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-granite);
+}
+
+.rec-card.previewable {
+  cursor: help;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+  margin: 0 0 4px 0;
+}
+
+.preview-hint {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--sbb-color-granite);
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rec-card.previewable:hover .preview-hint {
+  color: var(--sbb-color-iron);
+}
+
+.desc {
+  font-size: 11px;
+  color: var(--sbb-color-iron);
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+}
+
+.conf-bar {
+  height: 4px;
+  background: var(--sbb-color-cloud);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.conf-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--app-positive), var(--sbb-color-blue));
+  border-radius: 2px;
+  transition: width 0.3s ease-out;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn {
+  padding: 5px 8px;
+  border: 1px solid var(--sbb-color-cloud);
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.12s;
+}
+.btn:hover {
+  background: var(--sbb-color-cloud);
+}
+.btn-accept {
+  flex: 1;
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+  border-color: var(--sbb-color-charcoal);
+  font-size: 11px;
+}
+.btn-accept:hover {
+  background: var(--sbb-color-black);
+  border-color: var(--sbb-color-black);
+}
+.btn-reject {
+  flex: 1;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+.btn-reject:hover {
+  background: var(--sbb-color-milk);
+  border-color: var(--app-severity-error);
+  color: var(--app-severity-error);
+}
+
+
+.auto-dispatch-disabled {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border: 1px dashed var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* app interaction color concept overrides - start */
+.recommendation-card:hover,
+.recommendation:hover,
+.rec-card:hover,
+.card:hover {
+  background: var(--app-hover-bg) !important;
+  border-color: var(--app-hover-border) !important;
+  box-shadow:
+    0 0 0 2px var(--app-hover-ring-soft, rgba(104, 104, 104, 0.18)),
+    0 6px 18px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.recommendation-card.selected,
+.recommendation-card.active,
+.recommendation.selected,
+.recommendation.active,
+.rec-card.selected,
+.rec-card.active {
+  background: var(--app-select-bg) !important;
+  border-color: var(--app-select-color) !important;
+  box-shadow:
+    0 0 0 2px var(--app-select-ring, rgba(249, 57, 233, 0.40)),
+    0 6px 18px rgba(0, 0, 0, 0.16) !important;
+}
+/* app interaction color concept overrides - end */
+
+/* Collapsible panel header. */
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.panel-head .panel-title { margin: 0; }
+.panel-caret {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+  transition: transform 0.15s ease;
+}
+.panel-caret.open { transform: rotate(90deg); }
+
+
+:host(.embedded) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: initial;
+  padding: 0;
+  margin: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+:host(.embedded):has(.empty) {
+  display: block;
+  min-height: 0;
+  flex: initial;
+  padding: 0;
+  border-bottom: 0;
+}
+
+:host(.embedded):not(:has(.empty)) {
+  min-height: 0;
+}
+
+:host(.embedded) .recommendations-panel {
+  width: 100%;
+  min-width: 0;
+}

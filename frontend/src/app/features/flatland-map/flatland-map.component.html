@@ -114,18 +114,46 @@
           }
         </g>
       }
-    <!-- Targets (always visible) -->
-    @for (a of agents(); track trackByAgent($index, a)) {
-      <rect
-        [attr.x]="targetX(a) - 8"
-        [attr.y]="targetY(a) - 8"
-        width="16"
-        height="14"
-        [attr.fill]="agentColor(a.handle)"
-        opacity="0.5"
-        stroke="white"
-        stroke-width="1.5"
-        class="target" />
+
+      <!-- What-if Compare overlay: the two branch forecast paths for the
+           selected train — branch (My plan) in BLUE, baseline (AI plan) in
+           YELLOW. Dashed so it stays visually distinct from the solid
+           scenario preview above. Drawn only while store.whatIfPreview is set. -->
+      @if (whatIfPreviewSegments().length > 0) {
+        <g class="whatif-preview-segments" pointer-events="none">
+          @for (seg of whatIfPreviewSegments(); track seg.id) {
+            <path
+              [attr.d]="seg.d"
+              class="whatif-preview-segment-casing"
+              [class.whatif-preview-segment--ai]="seg.variant === 'ai'"
+              [class.whatif-preview-segment--human]="seg.variant === 'human'"
+              fill="none"
+              pointer-events="none" />
+            <path
+              [attr.d]="seg.d"
+              class="whatif-preview-segment"
+              [class.whatif-preview-segment--ai]="seg.variant === 'ai'"
+              [class.whatif-preview-segment--human]="seg.variant === 'human'"
+              fill="none"
+              pointer-events="none" />
+          }
+        </g>
+      }
+    <!-- Stations layer: one neutral marker + shared label ("S1", "S2", …) per
+         stop used by the trains. Same labels appear in the timetable tile so a
+         stop on the map maps to a row in the schedule. Toggleable, not
+         train-coloured. -->
+    @if (store.layerVisibility().stations) {
+      @for (s of stations(); track s.id) {
+        <g class="station-marker" pointer-events="none">
+          <circle [attr.cx]="stationX(s)" [attr.cy]="stationY(s)" r="7" class="station-dot" />
+          <text
+            [attr.x]="stationX(s)"
+            [attr.y]="stationY(s) - 11"
+            text-anchor="middle"
+            class="station-label">{{ s.label }}</text>
+        </g>
+      }
     }
 
     <!-- Switches layer: small directional glyph at every switch-cell -->

@@ -1,0 +1,148 @@
+:host {
+  display: block;
+}
+
+.rc {
+  border: 1px solid var(--sbb-color-cloud);
+  border-left: 3px solid var(--app-whatif-human);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: var(--sbb-color-white);
+}
+
+.rc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.rc-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+}
+
+.rc-close {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--sbb-color-granite);
+  padding: 0 4px;
+}
+
+.rc-context {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--sbb-color-iron);
+}
+
+.rc-vs {
+  color: var(--sbb-color-granite);
+}
+
+.rc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rc-chip {
+  border: 1px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--app-whatif-human);
+  }
+
+  &.is-selected {
+    border-color: var(--app-whatif-human);
+    background: color-mix(in srgb, var(--app-whatif-human) 14%, transparent);
+    color: var(--app-whatif-human);
+    font-weight: 600;
+  }
+}
+
+.rc-note {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+  resize: vertical;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+}
+
+.rc-hypothesis {
+  margin: 10px 0;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--app-whatif-ai) 12%, transparent);
+}
+
+.rc-hypothesis-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--app-whatif-ai);
+}
+
+.rc-hypothesis-text {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+}
+
+.rc-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rc-btn {
+  border: 1px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &--yes {
+    border-color: var(--app-positive);
+    color: var(--app-positive);
+  }
+
+  &--once {
+    border-color: var(--app-whatif-ai);
+    color: var(--app-whatif-ai);
+  }
+
+  &--no {
+    color: var(--sbb-color-granite);
+  }
+}
+
+.rc-hint {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}

@@ -69,6 +69,15 @@ interface TrajectoryOverlaySegment {
   opacity: number;
 }
 
+/** One segment of a what-if branch path drawn on the map. `variant` selects
+ *  the stroke colour via SCSS (tokens) so no hex lives in TS: ai = baseline
+ *  (yellow), human = branch (blue). */
+interface WhatIfOverlaySegment {
+  id: string;
+  d: string;
+  variant: 'ai' | 'human';
+}
+
 @Component({
   selector: 'app-flatland-map',
   standalone: true,
@@ -368,87 +377,50 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
 
     for (const handle of handles) {
       const forecast = activeScenario.trajectories?.[String(handle)] ?? [];
-      if (forecast.length === 0) continue;
-
-      const agent = this.store.agents().find((a) => a.handle === handle);
-      const pathCells: Array<{ row: number; col: number }> = [];
-
-      // Start at the current physical agent position, so the route is continuous
-      // from the train to the future forecast.
-      if (agent?.position) {
-        this._pushTrajectoryPathCell(
-          pathCells,
-          Number(agent.position[0]),
-          Number(agent.position[1]),
-        );
-      }
-
-      const orderedFuture = forecast
-        .filter((pt) => pt.step > now)
-        .sort((a, b) => a.step - b.step)
-        .map((pt) => ({
-          row: Number(pt.row),
-          col: Number(pt.col),
-        }));
-
-      for (const pt of orderedFuture) {
-        const prev = pathCells[pathCells.length - 1] ?? null;
-
-        if (prev) {
-          this._appendInterpolatedTrajectoryPathCells(pathCells, prev.row, prev.col, pt.row, pt.col);
-        } else {
-          this._pushTrajectoryPathCell(pathCells, pt.row, pt.col);
-        }
-      }
-
-      // Forecasts can end one cell before the target although visually the
-      // intended trajectory should reach the target marker. Only append the
-      // target when it is directly adjacent to the last forecast/path cell;
-      // this avoids drawing artificial long extensions when the forecast
-      // horizon genuinely ends before the target.
-      const target = agent?.target;
-      const lastPathCell = pathCells[pathCells.length - 1] ?? null;
-      if (target && lastPathCell) {
-        const targetRow = Number(target[0]);
-        const targetCol = Number(target[1]);
-
-        if (Number.isFinite(targetRow) && Number.isFinite(targetCol)) {
-          const dr = Math.abs(lastPathCell.row - targetRow);
-          const dc = Math.abs(lastPathCell.col - targetCol);
-          const isAdjacentTarget = dr + dc === 1;
-          const alreadyAtTarget =
-            lastPathCell.row === targetRow && lastPathCell.col === targetCol;
-
-          if (!alreadyAtTarget && isAdjacentTarget) {
-            this._pushTrajectoryPathCell(pathCells, targetRow, targetCol);
-          }
-        }
-      }
-
-      if (pathCells.length < 2) continue;
-
       const color = this._trajectoryColorForHandle(handle);
-
-      for (let i = 0; i < pathCells.length; i++) {
-        const curr = pathCells[i];
-        if (!railCells.has(`${curr.row}_${curr.col}`)) continue;
-
-        const prev = i > 0 ? pathCells[i - 1] : null;
-        const next = i < pathCells.length - 1 ? pathCells[i + 1] : null;
-
-        const d = this._trajectorySegmentPathD(curr, prev, next);
-        if (!d) continue;
-
-        segments.push({
-          id: `traj_future_seg_${handle}_${i}_${curr.row}_${curr.col}`,
-          d,
-          color,
-          opacity: 0.5,
-        });
-      }
+      segments.push(...this._buildForecastSegments(
+        handle, forecast, color, 'traj_future_seg', railCells, now, 0.5,
+      ));
     }
 
     return segments;
+  });
+
+  /** What-if Compare map overlay: when the operator picks an action in the
+   *  What-if Compare widget, `store.whatIfPreview` carries the two branch
+   *  forecast paths. Draw both for the affected handle(s): the human branch
+   *  in blue (--app-whatif-human) and the AI baseline in yellow
+   *  (--app-whatif-ai), dashed so it stays distinct from the solid scenario
+   *  preview. Colour is bound via SCSS classes (tokens), never hex in TS. */
+  readonly whatIfPreviewSegments = computed<WhatIfOverlaySegment[]>(() => {
+    const preview = this.store.whatIfPreview();
+    if (!preview) return [];
+
+    const now = this.store.elapsedSteps();
+    const railCells = new Set(this.tiles().map((t) => `${t.r}_${t.c}`));
+
+    const handles = preview.handles.length > 0
+      ? preview.handles
+      : Array.from(new Set([
+          ...Object.keys(preview.baseline),
+          ...Object.keys(preview.branch),
+        ].map(Number)));
+
+    const out: WhatIfOverlaySegment[] = [];
+    for (const handle of handles) {
+      const baselineFc = preview.baseline[String(handle)] ?? [];
+      const branchFc = preview.branch[String(handle)] ?? [];
+      // AI baseline (yellow) first → beneath; human branch (blue) on top.
+      const ai = this._buildForecastSegments(
+        handle, baselineFc, '', 'wic_traj_ai', railCells, now, 0.55,
+      );
+      const human = this._buildForecastSegments(
+        handle, branchFc, '', 'wic_traj_human', railCells, now, 0.75,
+      );
+      out.push(...ai.map((s) => ({ id: s.id, d: s.d, variant: 'ai' as const })));
+      out.push(...human.map((s) => ({ id: s.id, d: s.d, variant: 'human' as const })));
+    }
+    return out;
   });
 
   readonly selectedTrajectoryCells = computed<TrajectoryOverlayCell[]>(() => {
@@ -531,6 +503,96 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     const last = out[out.length - 1];
     if (last && last.row === row && last.col === col) return;
     out.push({ row, col });
+  }
+
+  /**
+   * Build renderable forecast path segments for one handle's trajectory.
+   *
+   * Shared by the scenario preview (`selectedTrajectoryFutureSegments`,
+   * coloured per agent) and the what-if overlay (`whatIfPreviewSegments`,
+   * coloured by branch identity via SCSS). Starts at the agent's current
+   * physical position so the route is continuous from the train into the
+   * forecast, interpolates sparse forecast points, optionally appends an
+   * adjacent target cell, and turns the cell chain into per-cell SVG path
+   * data via `_trajectorySegmentPathD`.
+   */
+  private _buildForecastSegments(
+    handle: number,
+    forecast: Array<{ step: number; row: number; col: number }>,
+    color: string,
+    idPrefix: string,
+    railCells: Set<string>,
+    now: number,
+    opacity = 0.5,
+  ): TrajectoryOverlaySegment[] {
+    if (forecast.length === 0) return [];
+
+    const agent = this.store.agents().find((a) => a.handle === handle);
+    const pathCells: Array<{ row: number; col: number }> = [];
+
+    if (agent?.position) {
+      this._pushTrajectoryPathCell(
+        pathCells,
+        Number(agent.position[0]),
+        Number(agent.position[1]),
+      );
+    }
+
+    const orderedFuture = forecast
+      .filter((pt) => pt.step > now)
+      .sort((a, b) => a.step - b.step)
+      .map((pt) => ({ row: Number(pt.row), col: Number(pt.col) }));
+
+    for (const pt of orderedFuture) {
+      const prev = pathCells[pathCells.length - 1] ?? null;
+      if (prev) {
+        this._appendInterpolatedTrajectoryPathCells(pathCells, prev.row, prev.col, pt.row, pt.col);
+      } else {
+        this._pushTrajectoryPathCell(pathCells, pt.row, pt.col);
+      }
+    }
+
+    // Forecasts can end one cell before the target; only append the target
+    // when directly adjacent to the last path cell, to avoid drawing an
+    // artificial extension past the forecast horizon.
+    const target = agent?.target;
+    const lastPathCell = pathCells[pathCells.length - 1] ?? null;
+    if (target && lastPathCell) {
+      const targetRow = Number(target[0]);
+      const targetCol = Number(target[1]);
+      if (Number.isFinite(targetRow) && Number.isFinite(targetCol)) {
+        const dr = Math.abs(lastPathCell.row - targetRow);
+        const dc = Math.abs(lastPathCell.col - targetCol);
+        const isAdjacentTarget = dr + dc === 1;
+        const alreadyAtTarget =
+          lastPathCell.row === targetRow && lastPathCell.col === targetCol;
+        if (!alreadyAtTarget && isAdjacentTarget) {
+          this._pushTrajectoryPathCell(pathCells, targetRow, targetCol);
+        }
+      }
+    }
+
+    if (pathCells.length < 2) return [];
+
+    const segments: TrajectoryOverlaySegment[] = [];
+    for (let i = 0; i < pathCells.length; i++) {
+      const curr = pathCells[i];
+      if (!railCells.has(`${curr.row}_${curr.col}`)) continue;
+
+      const prev = i > 0 ? pathCells[i - 1] : null;
+      const next = i < pathCells.length - 1 ? pathCells[i + 1] : null;
+
+      const d = this._trajectorySegmentPathD(curr, prev, next);
+      if (!d) continue;
+
+      segments.push({
+        id: `${idPrefix}_${handle}_${i}_${curr.row}_${curr.col}`,
+        d,
+        color,
+        opacity,
+      });
+    }
+    return segments;
   }
 
   private _appendInterpolatedTrajectoryPathCells(
@@ -792,6 +854,19 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   readonly agents = computed(() =>
     this.store.agents().filter((a) => a.is_visible !== false),
   );
+
+  /** Shared station registry (labelled stops) from the store — same source the
+   *  timetable tile uses, so map labels and schedule rows line up. */
+  readonly stations = computed(() => this.store.stations());
+
+  /** Pixel centre of a station cell (same convention as agentX/agentY). */
+  stationX(s: { col: number }): number {
+    return s.col * this.cellSize + this.cellSize / 2;
+  }
+
+  stationY(s: { row: number }): number {
+    return s.row * this.cellSize + this.cellSize / 2;
+  }
 
   readonly mergeCells = computed<DecisionCell[]>(() => {
     const state = this.store.state();
@@ -1323,6 +1398,7 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     // Reuse the already-correct map coordinate conversion from agentY().
     return this.agentY({ ...(a as any), position: target } as AgentDTO);
   }
+
   agentTargetHighlightColor(a: AgentDTO): string {
     if (this.isSelected(a.handle)) return '#f939e9';
 

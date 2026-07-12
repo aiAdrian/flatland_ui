@@ -1,10 +1,12 @@
+@use '../../shared/ui/option-card' as card;
+
 :host {
   display: flex;
   flex-direction: column;
   flex: 1;
-  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-bottom: 1px solid var(--sbb-color-cloud);
   padding: 12px 16px;
-  background: var(--sbb-color-milk, #f6f6f6);
+  background: var(--sbb-color-milk);
   overflow-y: auto;
   min-height: auto;
 }
@@ -25,54 +27,58 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
   margin: 0 0 8px 0;
 }
 
 .empty {
   font-size: 12px;
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
   margin: 0;
   font-style: italic;
 }
 
-.recs {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+// Scored strategy cards. Responsive: side-by-side (A/B/C, deck slides 1–2)
+// when the panel is wide, stacking automatically in a narrow sidebar.
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
 }
 
-.rec-card {
-  background: white;
-  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
-  border-radius: 4px;
-  padding: 10px;
-  position: relative;
-  transition: border-color 0.15s;
+@include card.option-card;
+
+.option-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
-.rec-card:hover {
-  border-color: var(--sbb-color-granite, #686868);
-}
-.rec-card.urgent {
-  border-color: #eb0000;
+
+// Urgent = countdown near zero. Emphasise via the shared severity token.
+.option-card.urgent {
+  border-color: var(--app-severity-error);
   border-width: 2px;
-  padding: 9px;
+  padding: 11px;
 }
-.rec-card.urgent .countdown {
-  color: #eb0000;
+.option-card.urgent .countdown {
+  color: var(--app-severity-error);
   font-weight: 700;
 }
 
-.rec-head {
+.option-card.previewable {
+  cursor: help;
+}
+
+.option-card__meta {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
 }
 
 .ai-badge {
-  background: linear-gradient(135deg, #5a4f3f, #9c4ddc);
-  color: white;
+  background: var(--sbb-color-violet);
+  color: var(--sbb-color-white);
   font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
@@ -83,8 +89,8 @@
 .confidence {
   font-size: 10px;
   font-weight: 600;
-  color: var(--sbb-color-charcoal, #212121);
-  background: var(--sbb-color-milk, #f6f6f6);
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
   padding: 1px 5px;
   border-radius: 2px;
   font-variant-numeric: tabular-nums;
@@ -95,52 +101,51 @@
   font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--sbb-color-granite, #686868);
-}
-
-.rec-card.previewable {
-  cursor: help;
+  color: var(--sbb-color-granite);
 }
 
 .title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--sbb-color-charcoal, #212121);
-  margin: 0 0 4px 0;
+  color: var(--sbb-color-charcoal);
+  margin: 0;
+}
+
+.option-card__why {
+  border-top: 1px solid var(--sbb-color-cloud);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.why-heading {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--sbb-color-granite);
+}
+
+.colearning-hint {
+  margin: 0;
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
 }
 
 .preview-hint {
   font-size: 10px;
   font-style: italic;
-  color: var(--sbb-color-granite, #686868);
-  margin: 0 0 8px 0;
+  color: var(--sbb-color-granite);
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 4px;
 }
-.rec-card.previewable:hover .preview-hint {
-  color: var(--sbb-color-iron, #444);
-}
-
-.desc {
-  font-size: 11px;
-  color: var(--sbb-color-iron, #444);
-  line-height: 1.4;
-  margin: 0 0 8px 0;
-}
-
-.conf-bar {
-  height: 4px;
-  background: var(--sbb-color-cloud, #d2d2d2);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-.conf-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #00973b, #0079c7);
-  border-radius: 2px;
-  transition: width 0.3s ease-out;
+.option-card.previewable:hover .preview-hint {
+  color: var(--sbb-color-iron);
 }
 
 .actions {
@@ -150,9 +155,9 @@
 
 .btn {
   padding: 5px 8px;
-  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
-  background: white;
-  color: var(--sbb-color-charcoal, #212121);
+  border: 1px solid var(--sbb-color-cloud);
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
   font-size: 12px;
   font-weight: 600;
   font-family: inherit;
@@ -161,30 +166,29 @@
   transition: all 0.12s;
 }
 .btn:hover {
-  background: var(--sbb-color-cloud, #d2d2d2);
+  background: var(--sbb-color-cloud);
 }
 .btn-accept {
   flex: 1;
-  background: var(--sbb-color-charcoal, #212121);
-  color: white;
-  border-color: var(--sbb-color-charcoal, #212121);
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+  border-color: var(--sbb-color-charcoal);
   font-size: 11px;
 }
 .btn-accept:hover {
-  background: #000;
-  border-color: #000;
+  background: var(--sbb-color-black);
+  border-color: var(--sbb-color-black);
 }
 .btn-reject {
   flex: 1;
   font-size: 11px;
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
 }
 .btn-reject:hover {
-  background: var(--sbb-color-milk, #f6f6f6);
-  border-color: #eb0000;
-  color: #eb0000;
+  background: var(--sbb-color-milk);
+  border-color: var(--app-severity-error);
+  color: var(--app-severity-error);
 }
-
 
 .auto-dispatch-disabled {
   flex: 1;
@@ -192,41 +196,14 @@
   align-items: center;
   justify-content: center;
   padding: 5px 8px;
-  border: 1px dashed var(--sbb-color-cloud, #d2d2d2);
+  border: 1px dashed var(--sbb-color-cloud);
   border-radius: 3px;
-  background: var(--sbb-color-milk, #f6f6f6);
-  color: var(--sbb-color-granite, #686868);
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
   font-size: 11px;
   font-weight: 600;
   text-align: center;
 }
-
-/* app interaction color concept overrides - start */
-.recommendation-card:hover,
-.recommendation:hover,
-.rec-card:hover,
-.card:hover {
-  background: var(--app-hover-bg, #f8f8f8) !important;
-  border-color: var(--app-hover-border, #8d8d8d) !important;
-  box-shadow:
-    0 0 0 2px var(--app-hover-ring-soft, rgba(104, 104, 104, 0.18)),
-    0 6px 18px rgba(0, 0, 0, 0.12) !important;
-  transform: translateY(-1px);
-}
-
-.recommendation-card.selected,
-.recommendation-card.active,
-.recommendation.selected,
-.recommendation.active,
-.rec-card.selected,
-.rec-card.active {
-  background: var(--app-select-bg, #fff0fe) !important;
-  border-color: var(--app-select-color, #f939e9) !important;
-  box-shadow:
-    0 0 0 2px var(--app-select-ring, rgba(249, 57, 233, 0.40)),
-    0 6px 18px rgba(0, 0, 0, 0.16) !important;
-}
-/* app interaction color concept overrides - end */
 
 /* Collapsible panel header. */
 .panel-head {
@@ -243,7 +220,7 @@
 .panel-caret {
   margin-left: auto;
   font-size: 11px;
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
   transition: transform 0.15s ease;
 }
 .panel-caret.open { transform: rotate(90deg); }
@@ -279,4 +256,3 @@
   width: 100%;
   min-width: 0;
 }
-

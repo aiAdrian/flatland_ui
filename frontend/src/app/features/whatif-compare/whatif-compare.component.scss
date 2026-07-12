@@ -1,0 +1,238 @@
+:host {
+  display: block;
+}
+
+.wic-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-weight: 700;
+}
+
+.wic-note {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sbb-color-granite);
+}
+
+.wic-empty,
+.wic-loading,
+.wic-readonly {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--sbb-color-granite);
+}
+
+.wic-target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.wic-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.wic-target-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.wic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.wic-action {
+  border: 1px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--app-whatif-human);
+  }
+
+  &.is-chosen {
+    border-color: var(--app-whatif-human);
+    background: color-mix(in srgb, var(--app-whatif-human) 12%, transparent);
+    color: var(--app-whatif-human);
+    font-weight: 600;
+  }
+}
+
+.wic-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Section labels — "This train" (primary) vs "System effect" (secondary). */
+.wic-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sbb-color-granite);
+  margin-bottom: 4px;
+}
+
+.wic-primary {
+  margin-bottom: 10px;
+}
+
+/* Secondary system block: smaller, subdued — the "global effect" context
+   beneath the per-train primary. Visually lower weight, not removed. */
+.wic-secondary {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sbb-color-cloud);
+
+  .wic-section-label {
+    color: var(--sbb-color-iron);
+  }
+}
+
+.wic-system-kpis {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  dt {
+    font-size: 10px;
+    color: var(--sbb-color-granite);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.wic-unit {
+  margin-left: 3px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--sbb-color-granite);
+}
+
+.wic-col {
+  border: 1px solid var(--sbb-color-cloud);
+  border-top-width: 3px;
+  border-radius: 6px;
+  padding: 8px 10px;
+
+  &--ai {
+    border-top-color: var(--app-whatif-ai);
+  }
+
+  &--human {
+    border-top-color: var(--app-whatif-human);
+  }
+}
+
+.wic-col-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+
+  .wic-col--ai & {
+    color: var(--app-whatif-ai);
+  }
+
+  .wic-col--human & {
+    color: var(--app-whatif-human);
+  }
+}
+
+.wic-kpis {
+  margin: 0;
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 0;
+  }
+
+  dt {
+    font-size: 12px;
+    color: var(--sbb-color-granite);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.wic-delta {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 700;
+
+  &.good {
+    color: var(--app-positive);
+  }
+
+  &.bad {
+    color: var(--app-severity-error);
+  }
+}
+
+.wic-summary {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sbb-color-iron);
+}
+
+.wic-commit {
+  margin-top: 10px;
+  border: 0;
+  border-radius: 18px;
+  padding: 6px 16px;
+  background: var(--app-whatif-human);
+  color: var(--sbb-color-white);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--app-whatif-human) 85%, var(--sbb-color-black));
+  }
+}
+
+.wic-committed {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-positive);
+}

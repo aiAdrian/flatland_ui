@@ -1,0 +1,29 @@
+:host { display: block; }
+
+.metric-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metric-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--sbb-color-granite);
+}
+
+.metric-value {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-charcoal);
+}
+
+/* Quality ramp reuses the shared semantic tokens (styles.scss):
+   positive = favour, severity-warn = caution, severity-error = bad. */
+.metric-chip.level-good  .metric-value { color: var(--app-positive); }
+.metric-chip.level-fair  .metric-value { color: var(--app-severity-warn); }
+.metric-chip.level-low   .metric-value { color: var(--app-severity-error); }

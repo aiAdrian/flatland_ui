@@ -1,0 +1,13 @@
+**/node_modules
+**/.angular
+**/dist
+backend/.venv
+backend/venv
+backend/static
+backend/outputs
+backend/logs
+backend/__pycache__
+**/__pycache__
+.git
+.claude
+*.log

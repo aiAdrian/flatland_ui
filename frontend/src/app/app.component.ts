@@ -1,5 +1,6 @@
 import '@sbb-esta/lyne-elements/toggle-check.js';
 import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { ToolbarComponent } from './features/toolbar/toolbar.component';
 import { AgentInspectorComponent } from './features/agent-inspector/agent-inspector.component';
 import { AgentsPanelComponent } from './features/agents-panel/agents-panel.component';
@@ -22,7 +23,12 @@ import { DemoCompleteComponent } from './features/demo-complete/demo-complete.co
 import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
+import { ScenarioPreset } from './core/models';
 import { SessionStore } from './core/session.store';
+
+/** The exact options object accepted by SessionStore.newSession — so the
+ *  welcome/demo session-opts builders stay in sync with the store signature. */
+type NewSessionOpts = Parameters<SessionStore['newSession']>[0];
 import {
   DEFAULT_VISUAL_ENCODING,
   VISUAL_ENCODING_PRESETS,
@@ -51,6 +57,7 @@ type RuntimeLayoutOption = {
   selector: 'app-root',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     PanelPluginHostComponent,
     LayoutDesignerComponent,
     InfrastructureBuilderComponent,
@@ -142,7 +149,15 @@ export class AppComponent implements OnInit {
 
   readonly runtimeLayoutOptions = signal<RuntimeLayoutOption[]>(this.loadRuntimeLayoutOptions());
   readonly runtimeInfrastructureScenes = signal<InfrastructureSceneSummary[]>(this.infrastructureStorage.listScenes());
-  readonly selectedRuntimeInfrastructureId = signal('random');
+  /** Special Infrastructure choices (not saved scenes): the conflict-tuned
+   *  Guided Demo Environment (fixed seed 42) and pure random generation.
+   *  Default is the demo environment so the headline Guided Demo is reliable. */
+  static readonly GUIDED_DEMO_INFRA_ID = 'guided-demo';
+  readonly selectedRuntimeInfrastructureId = signal(AppComponent.GUIDED_DEMO_INFRA_ID);
+  /** Prebuilt scenario presets (e.g. ECML 2026 scenes) offered in the same
+   *  Infrastructure picker. Selecting one loads the env from file (network +
+   *  traffic + goals baked in), bypassing the generator and scene builder. */
+  readonly scenarioPresets = signal<ScenarioPreset[]>([]);
 
   private designerSessionRequested = false;
 
@@ -237,6 +252,21 @@ export class AppComponent implements OnInit {
     sizeMode: 'auto',
   };
 
+  /** Co-Learning §3.3 dual-path centrepiece: formulate your own action and
+   *  compare it side-by-side with the AI plan (Widget B1). Placed in the
+   *  co-learning right pane by the hardcoded default layout; available in every
+   *  mode via the designer/gallery. */
+  readonly panelWhatifCompare: PanelInstance = {
+    id: 'runtime-whatif-compare',
+    type: 'whatif-compare',
+    title: 'What-if Compare',
+    zone: 'right',
+    order: 22,
+    collapsed: false,
+    hidden: false,
+    sizeMode: 'auto',
+  };
+
   readonly panelKpiFilter: PanelInstance = {
     id: 'runtime-kpi-filter',
     type: 'kpi-filter',
@@ -315,33 +345,36 @@ export class AppComponent implements OnInit {
     this.showLayoutSandbox.update((value) => !value);
   }
 
-  /** Demo environment. The conflict-tuning (bottlenecked corridors via few
-   *  rails/pairs + real malfunctions) stays fixed so conflicts reliably
-   *  emerge, but the four user-facing fields from the welcome page / Settings
-   *  (grid size, #agents, max steps) are respected — picking "Guided Demo"
-   *  no longer silently ignores them. Their defaults (see newWidth/etc.) are
-   *  set to the conflict-prone values, so an untouched demo stays tuned. */
-  private demoSessionOpts() {
+  /** The conflict-tuned Guided Demo Environment (fixed seed 42): bottlenecked
+   *  corridors (few rails/pairs) + real malfunctions so decision moments
+   *  reliably emerge, replayed identically across the three modes. Grid size /
+   *  #agents / max steps still come from the welcome page / Settings. Selected
+   *  via the Infrastructure dropdown ("Guided Demo Environment"); a fresh random
+   *  environment is just the "Random · default" Infrastructure choice instead. */
+  private guidedDemoEnvOpts() {
     return {
       width: this.newWidth(), height: this.newHeight(),
       agents: this.newAgents(), maxSteps: this.newMaxSteps(),
       seed: 42,
       maxNumCities: 3, maxRailsBetweenCities: 2, maxRailPairsInCity: 1,
       latestDepartureMax: 35, speedProfile: 'uniform_1_0', lineLength: 4,
-      // Slightly higher than before (0.012) so a blocking malfunction — and
-      // thus an impact-driven decision moment — surfaces more reliably within
-      // a run. Scripted events (Phase 1) will later guarantee this.
       malfunctionRate: 0.02, malfunctionMinDuration: 10, malfunctionMaxDuration: 22,
       scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
       policyControlIds: this.welcomeControlPolicyIds(),
     };
   }
 
-  /** Start the guided demo: one fixed env, modes run in sequence. */
+  /** Start the guided demo. The environment comes from the selected
+   *  Infrastructure (same resolution as "New Session"), so Layout +
+   *  Infrastructure + grid/seed are honoured: "Guided Demo Environment" →
+   *  tuned seed-42 env, "Random · default" → random, a saved scene → that scene.
+   *  One env is created once and replayed across the three modes. */
   startDemoSession() {
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
     this.store.stopDemo();
     this.demoComplete.set(false);
-    this.store.newSession(this.demoSessionOpts());
+    this.createSession(opts);
     this.store.startDemo();
   }
 
@@ -558,8 +591,11 @@ export class AppComponent implements OnInit {
   refreshRuntimeInfrastructures(): void {
     const scenes = this.infrastructureStorage.listScenes();
     this.runtimeInfrastructureScenes.set(scenes);
-    if (this.selectedRuntimeInfrastructureId() !== 'random' && !scenes.some((scene) => scene.id === this.selectedRuntimeInfrastructureId())) {
-      this.selectedRuntimeInfrastructureId.set('random');
+    const id = this.selectedRuntimeInfrastructureId();
+    const isSpecial = id === 'random' || id === AppComponent.GUIDED_DEMO_INFRA_ID;
+    const isPreset = this.scenarioPresets().some((preset) => preset.id === id);
+    if (!isSpecial && !isPreset && !scenes.some((scene) => scene.id === id)) {
+      this.selectedRuntimeInfrastructureId.set(AppComponent.GUIDED_DEMO_INFRA_ID);
     }
   }
 
@@ -568,16 +604,9 @@ export class AppComponent implements OnInit {
   }
 
   onWelcomeNewSession(): void {
-    const infrastructureId = this.selectedRuntimeInfrastructureId();
-    const infrastructureScene = infrastructureId === 'random'
-      ? undefined
-      : this.infrastructureStorage.loadScene(infrastructureId) ?? undefined;
-    if (infrastructureId !== 'random' && !infrastructureScene) {
-      this.store.error.set('Selected infrastructure scene was not found. Save it in Infrastructure Builder, then select it again.');
-      this.refreshRuntimeInfrastructures();
-      return;
-    }
-    this.onNewSession(infrastructureScene);
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+    this.createSession(opts);
   }
 
   onInfrastructureBuilderSession(infrastructureScene: InfrastructureScene): void {
@@ -588,10 +617,39 @@ export class AppComponent implements OnInit {
   }
 
   onNewSession(infrastructureScene?: InfrastructureScene) {
-    this.persistSessionSettings();
-    this.pendingScenarioPreviousSessionId.set(null);
-    this.pendingScenarioPolicyIds.set(null);
-    this.store.newSession({
+    this.createSession(this.sceneSessionOpts(infrastructureScene));
+  }
+
+  /** Resolve the session-creation opts from the selected Infrastructure choice.
+   *  Shared by "New Session" and "Guided Demo" so both honour the same env:
+   *  the tuned Guided Demo Environment, pure random, or a saved scene. Returns
+   *  null (and surfaces an error) if a saved scene id can no longer be found. */
+  private resolveWelcomeSessionOpts(): NewSessionOpts | null {
+    const infrastructureId = this.selectedRuntimeInfrastructureId();
+
+    if (infrastructureId === AppComponent.GUIDED_DEMO_INFRA_ID) {
+      return this.guidedDemoEnvOpts();
+    }
+
+    if (this.scenarioPresets().some((preset) => preset.id === infrastructureId)) {
+      return this.presetSessionOpts(infrastructureId);
+    }
+
+    const infrastructureScene = infrastructureId === 'random'
+      ? undefined
+      : this.infrastructureStorage.loadScene(infrastructureId) ?? undefined;
+    if (infrastructureId !== 'random' && !infrastructureScene) {
+      this.store.error.set('Selected infrastructure scene was not found. Save it in Infrastructure Builder, then select it again.');
+      this.refreshRuntimeInfrastructures();
+      return null;
+    }
+    return this.sceneSessionOpts(infrastructureScene);
+  }
+
+  /** Session-creation opts for a random env (no scene) or a saved scene, from
+   *  the welcome page / Settings fields. */
+  private sceneSessionOpts(infrastructureScene?: InfrastructureScene): NewSessionOpts {
+    return {
       width: infrastructureScene ? undefined : this.newWidth(),
       height: infrastructureScene ? undefined : this.newHeight(),
       agents: infrastructureScene ? undefined : this.newAgents(),
@@ -609,7 +667,27 @@ export class AppComponent implements OnInit {
       scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
       policyControlIds: this.welcomeControlPolicyIds(),
       infrastructureScene,
-    });
+    };
+  }
+
+  /** Session-creation opts for a prebuilt scenario preset (e.g. an ECML 2026
+   *  scene). Grid, traffic, goals and disruptions come from the file, so none of
+   *  the generator fields are sent — only the preset id and the chosen AI
+   *  policies (which are orthogonal to the map). */
+  private presetSessionOpts(scenarioPresetId: string): NewSessionOpts {
+    return {
+      scenarioPresetId,
+      scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
+      policyControlIds: this.welcomeControlPolicyIds(),
+    };
+  }
+
+  /** Persist settings, clear pending scenario state, and create the session. */
+  private createSession(opts: NewSessionOpts): void {
+    this.persistSessionSettings();
+    this.pendingScenarioPreviousSessionId.set(null);
+    this.pendingScenarioPolicyIds.set(null);
+    this.store.newSession(opts);
   }
 
 
@@ -1015,6 +1093,10 @@ export class AppComponent implements OnInit {
     this.ensureDesignerSession();
     this.refreshRuntimeInfrastructures();
     this.store.loadPolicies();
+    this.api.listScenarioPresets().subscribe({
+      next: (presets) => this.scenarioPresets.set(presets ?? []),
+      error: () => this.scenarioPresets.set([]),
+    });
   }
 
   runtimePanelZone(column: { id?: string; zone?: string } | null | undefined): string {

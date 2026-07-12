@@ -38,6 +38,19 @@ export type WidgetGranularity = 'overview' | 'detail' | 'overview-detail';
 /** Build status — drives whether the gallery can render a live preview. */
 export type WidgetStatus = 'shipped' | 'first-cut' | 'planned';
 
+/** Where a widget's data comes from — surfaced so a study operator can tell,
+ *  per widget, whether they are looking at the real Flatland run or a placeholder.
+ *  Orthogonal to the guided-demo runtime path (see docs/reference/data-provenance.md):
+ *  Demo ≠ Mock — the guided demo runs REAL simulation on a fixed seed with
+ *  guaranteed decision moments; mock data is mock in every mode.
+ *   - `simulation` — computed from the real Flatland run / real session data.
+ *   - `derived`    — frontend-computed proxy from simulation data (not a backend KPI).
+ *   - `mock`       — synthesized placeholder, not from the simulation.
+ *   - `mixed`      — a combination (e.g. real data + derived proxies, or real
+ *                    with a mock fallback).
+ *   - `none`       — pure control / UI surface with no data source of its own. */
+export type WidgetDataSource = 'simulation' | 'derived' | 'mock' | 'mixed' | 'none';
+
 /** Per-mode behaviour: how the *same* widget behaves in each interaction mode.
  *  A short sentence per mode, or `null` when the widget is not offered in that
  *  mode (see `availableModes`). Grounded in panel-mode-matrix.md. */
@@ -73,8 +86,22 @@ export interface WidgetMeta {
   defaultZone: 'left' | 'center' | 'right' | 'bottom' | 'floating';
   /** Minimum preview height (px), mirrors the palette. */
   minHeight: number;
+  /** Where the widget's data comes from (real simulation vs mock vs derived).
+   *  Shown as a badge in the gallery so provenance is legible. See
+   *  docs/reference/data-provenance.md for the per-endpoint grounding. */
+  dataSource: WidgetDataSource;
   /** Spec / plan doc, relative to repo root, when one exists. */
   spec?: string;
+  /** Variant grouping (docs/plans/widget-variants-versioning.md). Widgets that
+   *  share a `role` are alternative implementations of the same functional slot
+   *  (e.g. Recommendations v1 vs v2). Absent = a standalone widget (no variants).
+   *  `type` stays the concrete implementation key; `role` groups variants. */
+  role?: string;
+  /** Human label distinguishing this variant within its `role`
+   *  (e.g. 'v1 · simple card', 'v2 · scored strategy cards'). */
+  variantLabel?: string;
+  /** The variant offered by default for its `role`. */
+  variantDefault?: boolean;
 }
 
 /** Presentation metadata per kind: label, the CSS token that colours its badge
@@ -139,6 +166,40 @@ export const KIND_META: Record<
   },
 };
 
+/** Presentation metadata per data source: badge label, colour token, and a
+ *  one-line blurb. Distinct from KIND_META — provenance is orthogonal to kind.
+ *  Tokens only (styles.scss); see docs/reference/data-provenance.md. */
+export const PROVENANCE_META: Record<
+  WidgetDataSource,
+  { label: string; token: string; blurb: string }
+> = {
+  simulation: {
+    label: 'Simulation',
+    token: '--app-positive',
+    blurb: 'Real Flatland run / real session data.',
+  },
+  derived: {
+    label: 'Derived',
+    token: '--app-kind-decision-support',
+    blurb: 'Frontend proxy computed from simulation data (not a backend KPI).',
+  },
+  mock: {
+    label: 'Mock',
+    token: '--app-severity-warn',
+    blurb: 'Placeholder data, not from the simulation (mock in every mode).',
+  },
+  mixed: {
+    label: 'Mixed',
+    token: '--app-kind-prediction',
+    blurb: 'Combination — e.g. real data plus derived proxies, or a mock fallback.',
+  },
+  none: {
+    label: 'Control',
+    token: '--sbb-color-granite',
+    blurb: 'Pure control / UI surface — no data source of its own.',
+  },
+};
+
 export const WIDGET_KIND_ORDER: WidgetKind[] = [
   'event',
   'context',
@@ -165,6 +226,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'situation-summary',
     title: 'Situation Summary',
+    dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview',
     status: 'shipped',
@@ -179,6 +241,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'notifications',
     title: 'Notifications',
+    dataSource: 'mock',
     kind: 'event',
     granularity: 'overview',
     status: 'shipped',
@@ -193,6 +256,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'toggle-view',
     title: 'Track Layout & Timetable',
+    dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview-detail',
     status: 'shipped',
@@ -207,6 +271,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'flatland-map',
     title: 'Track Layout (Map)',
+    dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview-detail',
     status: 'shipped',
@@ -221,8 +286,28 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
 
   // ── Context ──────────────────────────────────────────────────────────────
   {
+    type: 'timetable',
+    title: 'Timetable',
+    dataSource: 'simulation',
+    kind: 'context',
+    granularity: 'overview',
+    status: 'shipped',
+    description: 'Schedule board: train, from→to (shared labels), dep/arr, live position + status.',
+    promise: 'Read every train’s route + schedule keyed to the map labels, plus where it is and how it’s doing now.',
+    grounding: 'Operator timetable / departure board (control-room practice); tabular counterpart to the Marey graphic timetable.',
+    availableModes: 'all',
+    perMode: ALL_MODES,
+    defaultZone: 'left',
+    minHeight: 160,
+    spec: 'docs/plans/widget-timetable.md',
+    role: 'timetable',
+    variantLabel: 'v1 · compact board',
+    variantDefault: true,
+  },
+  {
     type: 'agents',
     title: 'Trains',
+    dataSource: 'simulation',
     kind: 'context',
     granularity: 'overview',
     status: 'shipped',
@@ -237,6 +322,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'agent-inspector',
     title: 'Agent Inspector',
+    dataSource: 'simulation',
     kind: 'context',
     granularity: 'detail',
     status: 'shipped',
@@ -252,6 +338,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     type: 'impact',
     catalogId: 'impact',
     title: 'Impact',
+    dataSource: 'simulation',
     kind: 'context',
     granularity: 'detail',
     status: 'shipped',
@@ -272,6 +359,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'goal-achievement',
     title: 'Goal Achievement',
+    dataSource: 'simulation',
     kind: 'context',
     granularity: 'overview',
     status: 'shipped',
@@ -292,6 +380,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'marey',
     title: 'Graphic Timetable',
+    dataSource: 'simulation',
     kind: 'prediction',
     granularity: 'overview-detail',
     status: 'shipped',
@@ -305,29 +394,31 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   },
   {
     catalogId: 'B1',
-    type: '',
-    title: 'What-if Branch Compare ("A3S-light")',
+    type: 'whatif-compare',
+    title: 'What-if Compare ("My solution vs. AI")',
+    dataSource: 'simulation',
     kind: 'prediction',
     granularity: 'detail',
-    status: 'planned',
-    description: 'Branch a decision point: AI plan vs override, simulate both, compare KPI deltas.',
-    promise: 'Try a decision both ways and compare the futures before committing.',
+    status: 'first-cut',
+    description: 'Branch a decision point: AI plan vs your action — the selected train\'s own fate (arrives/delay/deadlock) primary, system effect secondary, both paths drawn on the map (blue=you, yellow=AI).',
+    promise: 'Try a decision both ways — see your train\'s outcome and the two map paths — before committing.',
     grounding:
-      'AI4REALNET/agent-as-a-service-trace-rl (A3S) — Flatland-configured; reuse restore/simulate/action-space. Human steps blue, AI-simulated yellow.',
+      'AI4REALNET/agent-as-a-service-trace-rl (A3S) — Flatland-configured; reuse restore/simulate/action-space. Human steps blue, AI-simulated yellow. This cut reuses the in-repo what-if-override forward-sim (same contract).',
     availableModes: 'all',
     perMode: {
-      recommendation: 'Compare the recommended plan against an operator override side-by-side.',
-      'co-learning': 'The dual-path core (§3.3): formulate-own vs AI plan, both simulated forward.',
-      director: 'Supervisory what-if — inspect a branch without taking per-step control.',
+      recommendation: 'Compare your action against the AI’s current course (incl. any active suggestion).',
+      'co-learning': 'The dual-path core (§3.3): formulate-own vs AI plan, both simulated forward, neither marked “right”; committing feeds reflection.',
+      director: 'Read-only supervisory what-if — inspect a branch; Commit hidden (AI owns actuation).',
     },
     defaultZone: 'right',
     minHeight: 200,
-    spec: 'docs/plans/widget-catalog.md',
+    spec: 'docs/plans/widget-b1-whatif-compare.md',
   },
   {
     catalogId: 'B2',
     type: '',
     title: 'Conflict-aware Marey (ribbons + predicted lines)',
+    dataSource: 'simulation',
     kind: 'prediction',
     granularity: 'overview-detail',
     status: 'planned',
@@ -344,6 +435,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     catalogId: 'B3',
     type: '',
     title: 'Network Correlation Graph',
+    dataSource: 'derived',
     kind: 'context',
     granularity: 'overview-detail',
     status: 'planned',
@@ -366,6 +458,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'scenario',
     title: 'Scenario',
+    dataSource: 'mixed',
     kind: 'decision-support',
     granularity: 'overview',
     status: 'shipped',
@@ -383,17 +476,21 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   },
   {
     type: 'recommendations',
+    role: 'recommendations',
+    variantLabel: 'v2 · scored strategy cards',
+    variantDefault: true,
     title: 'Recommendations',
+    dataSource: 'mixed',
     kind: 'decision-support',
     granularity: 'overview',
     status: 'shipped',
-    description: 'AI recommendations: confidence, countdown, accept/reject, route preview.',
-    promise: 'Act on a ranked AI suggestion — accept or reject with a reason.',
+    description: 'Scored strategy cards (A/B/C) with a WHY column; accept/reject, route preview.',
+    promise: 'Compare ranked AI strategies by score + trade-offs, then accept or reject.',
     grounding:
       'Decision Assistance, Recommendation framing (advisory under Human-in-Control). The signature surface of Recommendation mode.',
     availableModes: ['recommendation'],
     perMode: {
-      recommendation: 'The signature surface — ranked suggestion + confidence + accept/reject with countdown.',
+      recommendation: 'The signature surface — scored strategy cards + WHY reasons + accept/reject with countdown.',
       'co-learning': null,
       director: null,
     },
@@ -401,9 +498,33 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     minHeight: 160,
   },
   {
+    type: 'recommendations-classic',
+    role: 'recommendations',
+    variantLabel: 'v1 · simple card',
+    title: 'Recommendations (classic)',
+    dataSource: 'simulation',
+    kind: 'decision-support',
+    granularity: 'overview',
+    status: 'shipped',
+    description: 'AI recommendations: confidence, countdown, accept/reject, route preview.',
+    promise: 'Act on a ranked AI suggestion — accept or reject with a reason.',
+    grounding:
+      'Pre-rebuild variant, kept selectable. Same role as v2 (docs/plans/widget-variants-versioning.md).',
+    availableModes: ['recommendation'],
+    perMode: {
+      recommendation: 'The original single-card suggestion + confidence + accept/reject with countdown.',
+      'co-learning': null,
+      director: null,
+    },
+    defaultZone: 'right',
+    minHeight: 160,
+    spec: 'docs/plans/widget-variants-versioning.md',
+  },
+  {
     catalogId: 'C1',
     type: '',
     title: 'Trade-off Frontier / Scenario Small-multiples',
+    dataSource: 'simulation',
     kind: 'decision-support',
     granularity: 'overview',
     status: 'planned',
@@ -425,6 +546,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     catalogId: 'C2',
     type: '',
     title: 'Triage’d Event Feed (act-now sorting)',
+    dataSource: 'mixed',
     kind: 'event',
     granularity: 'overview',
     status: 'planned',
@@ -442,6 +564,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'toolbar',
     title: 'Toolbar',
+    dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
     status: 'shipped',
@@ -456,6 +579,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'kpi-filter',
     title: 'KPI Filter',
+    dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
     status: 'shipped',
@@ -474,6 +598,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'layer-visibility',
     title: 'Layer Visibility',
+    dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
     status: 'shipped',
@@ -488,6 +613,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'director-directive',
     title: 'Director Directive',
+    dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
     status: 'shipped',
@@ -508,6 +634,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     catalogId: 'D1',
     type: '',
     title: 'Autonomy Dial / Allocation Panel',
+    dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
     status: 'planned',
@@ -531,6 +658,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     type: 'decision-log',
     catalogId: 'A2',
     title: 'Decision Log & Accountability Strip',
+    dataSource: 'simulation',
     kind: 'capitalization',
     granularity: 'detail',
     status: 'first-cut',
@@ -551,6 +679,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   {
     type: 'co-learning-reflection',
     title: 'Co-Learning Reflection',
+    dataSource: 'mixed',
     kind: 'capitalization',
     granularity: 'detail',
     status: 'shipped',
@@ -573,6 +702,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     type: 'risk-uncertainty',
     catalogId: 'A1',
     title: 'Risk & Uncertainty',
+    dataSource: 'derived',
     kind: 'trust',
     granularity: 'overview-detail',
     status: 'first-cut',
@@ -597,6 +727,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     catalogId: 'A3',
     type: '',
     title: 'AI Track Record / Reliability History',
+    dataSource: 'mixed',
     kind: 'trust',
     granularity: 'overview',
     status: 'planned',
@@ -614,6 +745,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     catalogId: 'D2',
     type: '',
     title: 'Partial Non-Control Zones',
+    dataSource: 'simulation',
     kind: 'trust',
     granularity: 'detail',
     status: 'planned',

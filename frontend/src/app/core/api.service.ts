@@ -8,6 +8,7 @@ import {
   PolicyInfo,
   PolicyName,
   ScenarioPoliciesConfig,
+  ScenarioPreset,
   SessionInfo,
   SessionState,
   StepResponse,
@@ -40,6 +41,10 @@ export class ApiService {
 
   createSession(opts: any = {}): Observable<SessionInfo> {
     return this.http.post<SessionInfo>(`${API_BASE}/session`, opts);
+  }
+
+  listScenarioPresets(): Observable<ScenarioPreset[]> {
+    return this.http.get<ScenarioPreset[]>(`${API_BASE}/session/scenario-presets`);
   }
 
   getState(id: string): Observable<SessionState> {
@@ -92,8 +97,9 @@ export class ApiService {
     return this.http.get<ScenarioOption[]>(`${API_BASE}/session/${id}/hmi/scenarios`, { params: kpiParams(kpi) });
   }
 
-  getRecommendations(id: string, kpi?: KpiPriorities) {
-    return this.http.get<Recommendation[]>(`${API_BASE}/session/${id}/hmi/recommendations`, { params: kpiParams(kpi) });
+  getRecommendations(id: string, kpi?: KpiPriorities, guarantee = false) {
+    const params = guarantee ? { ...kpiParams(kpi), guarantee: 'true' } : kpiParams(kpi);
+    return this.http.get<Recommendation[]>(`${API_BASE}/session/${id}/hmi/recommendations`, { params });
   }
 
   getImpact(id: string) {

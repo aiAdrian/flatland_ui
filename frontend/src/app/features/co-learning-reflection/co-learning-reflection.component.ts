@@ -1,6 +1,9 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
+import { RationaleCaptureComponent } from '../rationale-capture/rationale-capture.component';
+import { LearningRecordsComponent } from '../learning-records/learning-records.component';
 
 interface ReflectionQuestion {
   key: string;
@@ -20,6 +23,7 @@ interface ReflectionQuestion {
 @Component({
   selector: 'app-co-learning-reflection',
   standalone: true,
+  imports: [CommonModule, RationaleCaptureComponent, LearningRecordsComponent],
   templateUrl: './co-learning-reflection.component.html',
   styleUrl: './co-learning-reflection.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -32,9 +36,13 @@ export class CoLearningReflectionComponent {
    * Single source of truth for the panel's open/closed state. Driven by
    * `reflectionRequested` (toggled from the panel header, and set by the
    * impact-panel nudge after a resolved decision) and forced open once the
-   * episode is done. Mirrors the app's panel-shell collapse pattern.
+   * episode is done — and also forced open while a "why?" override prompt is
+   * pending (Workstream B Tier 1), so the capture surface is never hidden in a
+   * collapsed panel. Mirrors the app's panel-shell collapse pattern.
    */
-  readonly reflectionOpen = computed(() => this.store.reflectionRequested() || this.store.episodeDone());
+  readonly reflectionOpen = computed(
+    () => this.store.reflectionRequested() || this.store.episodeDone() || this.store.pendingRationale() != null,
+  );
 
   // ── Mirroring [MR]: the operator's own run, reflected back ──────────
   readonly interventions = computed(() => this.store.coLearningFeedback());

@@ -46,7 +46,6 @@ const LEGACY_DEBT = [
   'src/app/features/marey-chart/marey-chart.component.scss',
   'src/app/features/mode-intro/mode-intro.component.scss',
   'src/app/features/notifications-panel/notifications-panel.component.scss',
-  'src/app/features/recommendations-panel/recommendations-panel.component.scss',
   'src/app/features/scenario-panel/scenario-panel.component.scss',
   'src/app/features/simulation-slider/simulation-slider.component.scss',
   'src/app/features/situation-summary/situation-summary.component.scss',
