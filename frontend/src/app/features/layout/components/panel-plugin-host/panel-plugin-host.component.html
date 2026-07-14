@@ -98,6 +98,10 @@
       <app-decision-log-panel [embedded]="true"></app-decision-log-panel>
     }
 
+    @case ('llm-chat') {
+      <app-llm-chat-panel [embedded]="true"></app-llm-chat-panel>
+    }
+
     @case ('flatland-map') {
       @if (isViewVisible('flatland-map')) {
         <div class="panel-plugin-host__map">

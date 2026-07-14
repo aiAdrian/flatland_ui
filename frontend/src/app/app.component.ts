@@ -252,6 +252,20 @@ export class AppComponent implements OnInit {
     sizeMode: 'auto',
   };
 
+  /** Chat with whichever LLM the backend is configured for — the test surface for
+   *  the LLM seam (docs/reference/llm-setup.md). Collapsed by default so it does
+   *  not push the dispatcher panels down for people not using it. */
+  readonly panelLlmChat: PanelInstance = {
+    id: 'runtime-llm-chat',
+    type: 'llm-chat',
+    title: 'LLM Chat',
+    zone: 'left',
+    order: 40,
+    collapsed: true,
+    hidden: false,
+    sizeMode: 'auto',
+  };
+
   /** Co-Learning §3.3 dual-path centrepiece: formulate your own action and
    *  compare it side-by-side with the AI plan (Widget B1). Placed in the
    *  co-learning right pane by the hardcoded default layout; available in every

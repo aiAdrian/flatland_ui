@@ -33,33 +33,100 @@ The frontend follows the official [SBB Design System](https://digital.sbb.ch/en/
 
 ## Quick start
 
-Requires **Python 3.12+** and **Node.js 20+ / npm 10+**. Use **two terminals**.
+Prerequisites:
+
+| Need | Version | Notes |
+|---|---|---|
+| **Python** | 3.12+ | |
+| **Node.js** | **22.22.3+**, 24.15+, or 26+ | Angular 22 rejects older Node — including all of Node 20 — and odd-numbered releases (21/23/25) are not supported. |
+| **[Ollama](https://ollama.com)** | any current | Serves the local model behind the LLM Chat panel. |
+
+Budget ~**4 GB of disk** for the two models and ideally **8 GB+ of free RAM**; on a
+smaller machine use `qwen3.5:2b` (see [llm-setup.md](docs/reference/llm-setup.md)).
+
+### 1. Clone
 
 ```bash
 git clone -b experiment/vibecoding-playground https://github.com/danib8005/flatland_ui.git
 cd flatland_ui
 ```
 
-**Terminal 1 — backend (port 8000):**
+### 2. Install Ollama
+
+It runs natively on all three OSes and picks up your GPU automatically — no
+configuration, no API key, and nothing leaves your machine.
 
 ```bash
-cd backend
-python -m venv .venv
+brew install ollama                  # macOS  (or the app: https://ollama.com/download)
+winget install Ollama.Ollama         # Windows (no WSL needed)
+curl -fsSL https://ollama.com/install.sh | sh   # Linux
+```
+
+> **Do not run Ollama in Docker on macOS** — Docker Desktop cannot reach the Apple
+> GPU, so the model falls back to CPU and is unusably slow. Details in
+> [docs/reference/llm-setup.md](docs/reference/llm-setup.md).
+
+### 3. Install dependencies (once)
+
+```bash
+cd backend && python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+pip install -r requirements.txt && cd ..
+
+cd frontend && npm install && cd ..
+
+./scripts/setup-llm.sh                                          # macOS / Linux
+powershell -ExecutionPolicy Bypass -File scripts\setup-llm.ps1  # Windows
 ```
 
-**Terminal 2 — frontend (port 4200):**
+The last step downloads the two models — `qwen3.5:4b` (3.4 GB, the chat model) and
+`nomic-embed-text` (274 MB, used to search the docs) — and smoke-tests the chat model.
+
+### 4. Run
+
+One command starts the model server, the backend and the frontend together, and
+stops them all again on **Ctrl-C**:
 
 ```bash
-cd frontend
-npm install
-npm run start
+./scripts/start.sh                                          # macOS / Linux
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1  # Windows
 ```
+
+It only stops what it started: an Ollama already running as a system service
+(brew, menu-bar/tray app, systemd) is left alone, because it may be serving other
+things.
 
 Then open **http://localhost:4200**. Interactive API docs are at
 **http://localhost:8000/docs** (Swagger UI — the authoritative endpoint list).
+
+### Or by hand, in two terminals
+
+```bash
+# Terminal 1 — backend (port 8000)
+cd backend && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 — frontend (port 4200)
+cd frontend && npm run start
+```
+
+This assumes Ollama is already serving (`ollama serve`, or a system service).
+
+### Running the tests
+
+Backend tests need the dev dependencies (pytest, ruff — `requirements.txt` alone is
+not enough). No model or API key is required: the LLM tests use a fake provider, and
+the one live test skips itself when nothing is running.
+
+```bash
+cd backend
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+pytest                               # ruff check app/ tests/   for linting
+
+cd ../frontend
+npm test -- --watch=false            # ChromeHeadless
+```
 
 ---
 
@@ -72,6 +139,11 @@ experiments. It combines:
 - **FastAPI backend** — simulation control, conflict detection, recommendations
 - **Angular frontend** (standalone components + signals) using **SBB Lyne**
 - **Human-in-the-loop decision support** — scenarios, KPIs, recommendations, what-if analysis
+- **LLM seam + docs Q&A** — an **LLM Chat** panel that answers questions about the
+  project, grounded in these docs and citing them. It runs on a local model by
+  default (no API key, nothing leaves the machine); pointing it at Claude or a
+  cloud endpoint is one `.env` variable. See
+  [docs/reference/llm-setup.md](docs/reference/llm-setup.md).
 
 ### Three collaboration modes
 

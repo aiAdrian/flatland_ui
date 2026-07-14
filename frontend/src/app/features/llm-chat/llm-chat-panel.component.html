@@ -1,0 +1,89 @@
+@if (embedded) {
+  <ng-container [ngTemplateOutlet]="chatContent"></ng-container>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel llm-chat-lyne-panel" color="white" size="s" expanded>
+    <sbb-expansion-panel-header>
+      <span class="lyne-panel-title">LLM Chat</span>
+    </sbb-expansion-panel-header>
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="chatContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #chatContent>
+  <div class="llm-chat">
+
+    <!-- Which model am I actually talking to? -->
+    <div class="llm-chat__status">
+      <span
+        class="llm-chat__dot"
+        [class.llm-chat__dot--up]="chat.reachable() === true"
+        [class.llm-chat__dot--down]="chat.reachable() === false"
+      ></span>
+      @if (chat.model()) {
+        <span class="llm-chat__model">{{ chat.model() }}</span>
+        <span class="llm-chat__provider">{{ chat.provider() }}</span>
+      } @else {
+        <span class="llm-chat__model">checking…</span>
+      }
+      @if (!chat.isEmpty()) {
+        <button type="button" class="llm-chat__clear" (click)="clear()">Clear</button>
+      }
+    </div>
+
+    <!-- The model is down: say why, don't let the user type into a void. -->
+    @if (chat.reachable() === false && chat.healthDetail()) {
+      <p class="llm-chat__offline">
+        {{ chat.healthDetail() }}
+      </p>
+    }
+
+    <div class="llm-chat__scroller" #scroller>
+      @if (chat.isEmpty() && !chat.pending()) {
+        <p class="llm-chat__empty">
+          Ask about the project — answers are grounded in the repo docs.
+        </p>
+      }
+
+      @for (turn of chat.messages(); track $index) {
+        <div class="llm-chat__msg" [class.llm-chat__msg--user]="turn.role === 'user'"
+             [class.llm-chat__msg--assistant]="turn.role === 'assistant'">
+          <span class="llm-chat__role">{{ turn.role === 'user' ? 'You' : 'Model' }}</span>
+          <p class="llm-chat__text">{{ turn.content }}</p>
+          @if (turn.sources?.length) {
+            <p class="llm-chat__sources">Sources: {{ turn.sources!.join(' · ') }}</p>
+          }
+        </div>
+      }
+
+      @if (chat.pending()) {
+        <div class="llm-chat__msg llm-chat__msg--assistant llm-chat__msg--pending">
+          <span class="llm-chat__role">Model</span>
+          <sbb-loading-indicator-circle size="s"></sbb-loading-indicator-circle>
+        </div>
+      }
+
+      @if (chat.error()) {
+        <p class="llm-chat__error">{{ chat.error() }}</p>
+      }
+    </div>
+
+    <div class="llm-chat__composer">
+      <input
+        class="llm-chat__input"
+        type="text"
+        placeholder="Ask the model…"
+        aria-label="Message to the model"
+        [value]="draft()"
+        (input)="onInput($event)"
+        (keydown.enter)="send()"
+        [disabled]="chat.pending()"
+      />
+      <sbb-button size="s" (click)="send()" [disabled]="chat.pending() || !draft().trim()">
+        Send
+      </sbb-button>
+    </div>
+
+  </div>
+</ng-template>

@@ -677,6 +677,24 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     spec: 'docs/plans/widget-a2-decision-log.md',
   },
   {
+    type: 'llm-chat',
+    title: 'LLM Chat',
+    dataSource: 'none',
+    kind: 'decision-support',
+    granularity: 'detail',
+    status: 'first-cut',
+    description: 'Ask about the project — answers are grounded in the repo docs and cite them.',
+    promise: 'Answer "how does this work / how do I do that" from the docs, on whichever model is live.',
+    grounding:
+      'LLM seam + docs retrieval (docs/reference/llm-setup.md). It answers from the documentation, ' +
+      'not from the running simulation — it cannot see trains, conflicts or the current step.',
+    availableModes: 'all',
+    perMode: ALL_MODES,
+    defaultZone: 'left',
+    minHeight: 240,
+    spec: 'docs/reference/llm-setup.md',
+  },
+  {
     type: 'co-learning-reflection',
     title: 'Co-Learning Reflection',
     dataSource: 'mixed',

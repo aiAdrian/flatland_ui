@@ -8,3 +8,9 @@ numpy>=1.26.0,<2.0.0
 Pillow>=10.4.0
 python-dotenv>=1.0.1
 recordtype>=1.4
+
+# LLM seam (app/llm) — see docs/reference/llm-setup.md
+# openai: OpenAI-compatible wire format, used for local Ollama AND cloud vLLM/TGI
+# anthropic: Claude, via the official SDK (not an OpenAI shim)
+openai>=2.45.0
+anthropic>=0.116.0

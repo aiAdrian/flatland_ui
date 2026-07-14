@@ -16,6 +16,7 @@ The authoritative specs and guides for how the app works today.
 - [data-provenance.md](reference/data-provenance.md) — real simulation vs mock vs derived per widget/endpoint; why **Demo ≠ Mock** (grounds `WidgetMeta.dataSource` + the gallery badge)
 - [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub + Railway KPI catalog (confirmed in AI4REALNET org) — re-check at real WP 4.3 requirements
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
+- [llm-setup.md](reference/llm-setup.md) — LLM provider seam (local Ollama / Claude / cloud endpoint) + the docs Q&A the chat panel answers from
 - [OVERVIEW.md](reference/OVERVIEW.md) — high-level overview + further-ideas index
 - [ui-exploration-synthesis.md](reference/ui-exploration-synthesis.md) — cross-model widget ideas (convergence), grounding for the widget catalog
 - [ui-exploration-prompt.md](reference/ui-exploration-prompt.md) — reusable prompt for generating/refining widget ideas

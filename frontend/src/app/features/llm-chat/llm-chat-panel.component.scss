@@ -1,0 +1,199 @@
+/* Colours come from tokens only (see docs/reference/frontend-lyne-conventions.md).
+   Human = blue, AI = yellow follows the AI4REALNET A3S/TraceRL convention already
+   used by what-if compare, so "who said this" reads the same way across the HMI. */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-bottom: 1px solid var(--sbb-color-cloud);
+  padding: var(--sbb-spacing-fixed-3x) var(--sbb-spacing-fixed-4x);
+  background: var(--sbb-color-milk);
+  overflow-y: auto;
+}
+
+:host(.embedded) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: initial;
+  padding: 0;
+  margin: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.llm-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sbb-spacing-fixed-2x);
+  min-height: 0;
+}
+
+/* --- status line: which model, is it up ----------------------------------- */
+
+.llm-chat__status {
+  display: flex;
+  align-items: center;
+  gap: var(--sbb-spacing-fixed-2x);
+  font-size: 0.75rem;
+  color: var(--sbb-color-granite);
+}
+
+.llm-chat__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--sbb-color-cloud); /* unknown / still probing */
+}
+
+.llm-chat__dot--up {
+  background: var(--app-positive);
+}
+
+.llm-chat__dot--down {
+  background: var(--app-severity-error);
+}
+
+.llm-chat__model {
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.llm-chat__provider {
+  color: var(--sbb-color-granite);
+}
+
+.llm-chat__clear {
+  margin-inline-start: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--sbb-color-granite);
+  text-decoration: underline;
+}
+
+.llm-chat__clear:hover {
+  color: var(--sbb-color-charcoal);
+}
+
+.llm-chat__offline {
+  margin: 0;
+  padding: var(--sbb-spacing-fixed-2x);
+  border-radius: 2px;
+  font-size: 0.75rem;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--app-severity-error);
+}
+
+/* --- transcript ------------------------------------------------------------ */
+
+.llm-chat__scroller {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sbb-spacing-fixed-2x);
+  max-height: 320px;
+  overflow-y: auto;
+  padding-inline-end: var(--sbb-spacing-fixed-1x);
+}
+
+.llm-chat__empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sbb-color-granite);
+}
+
+.llm-chat__msg {
+  padding: var(--sbb-spacing-fixed-2x);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 2px;
+  background: var(--sbb-color-white);
+}
+
+.llm-chat__msg--user {
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--app-whatif-human);
+}
+
+.llm-chat__msg--assistant {
+  border-left: 3px solid var(--app-whatif-ai);
+}
+
+.llm-chat__msg--pending {
+  display: flex;
+  align-items: center;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.llm-chat__role {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sbb-color-granite);
+}
+
+.llm-chat__text {
+  margin: var(--sbb-spacing-fixed-1x) 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+  white-space: pre-wrap; /* models emit newlines; keep them */
+  overflow-wrap: anywhere;
+}
+
+.llm-chat__sources {
+  margin: var(--sbb-spacing-fixed-1x) 0 0;
+  font-size: 0.6875rem;
+  color: var(--sbb-color-granite);
+  overflow-wrap: anywhere;
+}
+
+.llm-chat__error {
+  margin: 0;
+  padding: var(--sbb-spacing-fixed-2x);
+  border-radius: 2px;
+  font-size: 0.75rem;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-white);
+  border-left: 3px solid var(--app-severity-error);
+  overflow-wrap: anywhere;
+}
+
+/* --- composer -------------------------------------------------------------- */
+
+.llm-chat__composer {
+  display: flex;
+  align-items: center;
+  gap: var(--sbb-spacing-fixed-2x);
+}
+
+.llm-chat__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sbb-spacing-fixed-2x);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 2px;
+  font-family: var(--sbb-typo-font-family);
+  font-size: 0.8125rem;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-white);
+}
+
+.llm-chat__input:focus {
+  outline: 2px solid var(--app-select-color);
+  outline-offset: 1px;
+}
+
+.llm-chat__input:disabled {
+  color: var(--sbb-color-granite);
+  background: var(--sbb-color-milk);
+}

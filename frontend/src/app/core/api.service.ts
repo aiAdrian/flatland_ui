@@ -32,6 +32,30 @@ export interface HmiBundle {
   recommendations: Recommendation[];
 }
 
+/** One turn of the chat transcript. Mirrors the backend `ChatTurn`. */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface LlmChatResponse {
+  text: string;
+  provider: string;
+  model: string;
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+  /** Docs snippets the answer was grounded in ("path › heading"); null = ungrounded. */
+  sources?: string[] | null;
+}
+
+export interface LlmHealth {
+  provider: string;
+  model: string;
+  reachable: boolean;
+  models?: string[] | null;
+  detail?: string | null;
+}
+
 // Same-origin in production, localhost:8000 during local dev — see backend-origin.
 const API_BASE = backendHttpBase();
 
@@ -146,6 +170,18 @@ export class ApiService {
       `${API_BASE}/session/${id}/what-if-override`,
       { overrides },
     );
+  }
+
+  // --- LLM seam (docs/reference/llm-setup.md) ---------------------------------
+  // Which model is live, and is it actually up? Never 500s — a dead backend comes
+  // back as reachable:false so the UI can say so instead of throwing.
+  llmHealth(): Observable<LlmHealth> {
+    return this.http.get<LlmHealth>(`${API_BASE}/llm/health`);
+  }
+
+  /** Multi-turn chat. The API is stateless, so we resend the transcript each turn. */
+  llmChat(messages: ChatTurn[], system?: string): Observable<LlmChatResponse> {
+    return this.http.post<LlmChatResponse>(`${API_BASE}/llm/chat`, { messages, system });
   }
 
 }
