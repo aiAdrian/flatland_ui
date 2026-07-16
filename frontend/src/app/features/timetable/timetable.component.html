@@ -16,7 +16,13 @@
       </thead>
       <tbody>
         @for (r of rows(); track r.handle) {
-          <tr>
+          <tr
+            class="tt-row"
+            [class.is-selected]="isSelected(r.handle)"
+            [class.is-hovered]="isHovered(r.handle)"
+            (click)="onRowClick(r.handle)"
+            (mouseenter)="onRowEnter(r.handle)"
+            (mouseleave)="onRowLeave()">
             <td class="tt-train">
               <span class="tt-chip" [style.background]="r.color"></span>
               <span class="tt-train-id">#{{ r.handle }}</span>

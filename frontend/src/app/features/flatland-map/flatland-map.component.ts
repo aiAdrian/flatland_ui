@@ -868,6 +868,31 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     return s.row * this.cellSize + this.cellSize / 2;
   }
 
+  /** Handles of trains that start or end at this station cell. */
+  stationHandles(s: { row: number; col: number }): number[] {
+    const key = `${s.row},${s.col}`;
+    return this.store
+      .agents()
+      .filter((a) => {
+        const ip = a.initial_position;
+        const tg = a.target;
+        return (
+          (ip && `${Number(ip[0])},${Number(ip[1])}` === key) ||
+          (tg && `${Number(tg[0])},${Number(tg[1])}` === key)
+        );
+      })
+      .map((a) => a.handle);
+  }
+
+  /** Hover a station → highlight its trains (cross-links to the timetable). */
+  onStationEnter(s: { row: number; col: number }): void {
+    this.store.setNotificationHoverAgents(this.stationHandles(s));
+  }
+
+  onStationLeave(): void {
+    this.store.clearAgentHoverAgents();
+  }
+
   readonly mergeCells = computed<DecisionCell[]>(() => {
     const state = this.store.state();
     const all = (state?.decision_cells ?? []) as DecisionCell[];

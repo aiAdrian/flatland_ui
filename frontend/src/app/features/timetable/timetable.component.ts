@@ -91,4 +91,27 @@ export class TimetableComponent {
       };
     }),
   );
+
+  // ── Cross-linking with the map (shared selection/hover in the store) ──────
+  isSelected(handle: number): boolean {
+    return this.store.selectedHandles().has(handle);
+  }
+
+  isHovered(handle: number): boolean {
+    return this.store.notificationHoverHandles().has(handle);
+  }
+
+  /** Click a row → select that train (the map focuses/highlights it). */
+  onRowClick(handle: number): void {
+    this.store.toggleAgentSelection(handle);
+  }
+
+  /** Hover a row → highlight that train on the map. */
+  onRowEnter(handle: number): void {
+    this.store.setAgentHoverAgent(handle);
+  }
+
+  onRowLeave(): void {
+    this.store.clearAgentHoverAgents();
+  }
 }

@@ -145,8 +145,14 @@
          train-coloured. -->
     @if (store.layerVisibility().stations) {
       @for (s of stations(); track s.id) {
-        <g class="station-marker" pointer-events="none">
-          <circle [attr.cx]="stationX(s)" [attr.cy]="stationY(s)" r="7" class="station-dot" />
+        <g class="station-marker">
+          <circle
+            [attr.cx]="stationX(s)"
+            [attr.cy]="stationY(s)"
+            r="7"
+            class="station-dot"
+            (mouseenter)="onStationEnter(s)"
+            (mouseleave)="onStationLeave()" />
           <text
             [attr.x]="stationX(s)"
             [attr.y]="stationY(s) - 11"

@@ -42,6 +42,18 @@
   font-variant-numeric: tabular-nums;
 }
 
+.tt-row {
+  cursor: pointer;
+}
+
+.tt-row.is-hovered td {
+  background: var(--sbb-color-milk, #f6f6f6);
+}
+
+.tt-row.is-selected td {
+  background: var(--sbb-color-cloud, #d2d2d2);
+}
+
 .tt-stop {
   font-weight: 600;
   color: var(--sbb-color-charcoal, #212121);
