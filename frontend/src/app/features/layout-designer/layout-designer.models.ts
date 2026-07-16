@@ -3,6 +3,8 @@ export type ToggleSplitOrientation = 'vertical' | 'horizontal';
 export interface DesignerPanelSettings {
   toggleSplitOrientation?: ToggleSplitOrientation;
   splitOrientation?: ToggleSplitOrientation;
+  /** For the `view-tabs` container: which center-view types appear as tabs. */
+  tabs?: string[];
   [key: string]: unknown;
 }
 

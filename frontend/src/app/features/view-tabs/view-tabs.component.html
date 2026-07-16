@@ -1,0 +1,19 @@
+<div class="view-tabs">
+  <div class="view-tabs__bar" role="tablist">
+    @for (t of tabs(); track t.type) {
+      <button
+        type="button"
+        role="tab"
+        class="view-tabs__tab"
+        [class.on]="active()?.type === t.type"
+        [attr.aria-selected]="active()?.type === t.type"
+        (click)="select(t.type)">{{ t.label }}</button>
+    }
+  </div>
+
+  <div class="view-tabs__body">
+    @if (activeComponent(); as cmp) {
+      <ng-container *ngComponentOutlet="cmp; inputs: activeInputs()"></ng-container>
+    }
+  </div>
+</div>
