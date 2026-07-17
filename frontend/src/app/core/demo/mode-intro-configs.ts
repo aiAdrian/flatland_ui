@@ -15,6 +15,9 @@ export interface ModeIntro {
   title: string;
   tagline: string;
   whatHappens: string;
+  /** Where the operator should look in this mode — the primary view/surface.
+   *  Grounded in the mode↔presentation design (docs/plans/center-view-tabs.md). */
+  focusView: string;
   yourRole: string;
   whatYouCanControl: string[];
   watchFor: string[];
@@ -29,6 +32,8 @@ export const MODE_INTROS: ModeIntro[] = [
     tagline: 'AI suggests, you decide.',
     whatHappens:
       'As trains run, the AI watches for conflicts. When one appears, it proposes a preferred solution with a confidence score.',
+    focusView:
+      'The map — you act on each conflict where it happens; the recommendation card on the right is the AI’s suggested fix.',
     yourRole:
       'You stay in charge — accept the AI’s suggestion, or choose differently yourself.',
     whatYouCanControl: [
@@ -49,6 +54,8 @@ export const MODE_INTROS: ModeIntro[] = [
     tagline: 'Neutral options, you decide and reflect.',
     whatHappens:
       'Same kind of situation — but this time the AI doesn’t push a favorite. It lays out the options neutrally.',
+    focusView:
+      'The map — compare your own action (blue) against the AI’s plan (yellow) right where the trains run; the what-if compare on the right deepens it. Reflection opens separately when you’re ready.',
     yourRole:
       'You choose freely; every decision is recorded. Afterwards, you reflect on what you did — and get the AI’s perspective on it too.',
     whatYouCanControl: [
@@ -71,6 +78,8 @@ export const MODE_INTROS: ModeIntro[] = [
     tagline: 'You set the goal, the AI acts.',
     whatHappens:
       'Before starting, you set a high-level directive (priorities, policy). The AI then dispatches all trains on its own.',
+    focusView:
+      'The Goal Achievement dashboard — you supervise overall goals, not individual trains. At this scale the map is for the big picture, not per-train steering.',
     yourRole:
       'Supervise via live goal-tracking; step in only if you feel you need to.',
     whatYouCanControl: [
