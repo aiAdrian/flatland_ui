@@ -3,6 +3,32 @@
   border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
 }
 
+.calm-nudge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--app-positive);
+}
+
+.calm-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--app-positive);
+  flex-shrink: 0;
+  animation: calm-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes calm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 .reflection-panel {
   padding: 12px 16px;
   background: var(--sbb-color-milk, #f6f6f6);

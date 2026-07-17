@@ -44,6 +44,11 @@ export class CoLearningReflectionComponent {
     () => this.store.reflectionRequested() || this.store.episodeDone() || this.store.pendingRationale() != null,
   );
 
+  /** §3.2: nudge the operator that now is a good moment to reflect — only
+   *  while the panel is still collapsed; once they've opened it (for any
+   *  reason) the nudge has done its job. */
+  readonly showCalmNudge = computed(() => this.store.isCalm() && !this.reflectionOpen());
+
   // ── Mirroring [MR]: the operator's own run, reflected back ──────────
   readonly interventions = computed(() => this.store.coLearningFeedback());
   readonly interventionCount = computed(() => this.interventions().length);
