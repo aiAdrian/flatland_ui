@@ -51,16 +51,30 @@ the container:**
 Generalises the Map/Marey `view-toggle` checkboxes into a configurable
 one-at-a-time tab bar. Active tab is component-local (a signal) for now.
 
+## Mode → default center view
+
+Each interaction mode opens on the view that fits its work (until the operator
+picks a tab; a mode switch resets to the default):
+
+| Mode | Default view | Why |
+| --- | --- | --- |
+| Recommendation | **Map** | act on concrete trains/conflicts spatially (small scale) |
+| Co-Learning | **Map** | the "my plan vs AI" compare (widget B1) is drawn on the map, blue=you / yellow=AI — not Marey. Marey stays an optional analytical tab |
+| Director | **Goal Achievement** | supervise goals at scale (hundreds of trains); the map is too dense |
+
+Recommendation and Co-Learning share Map — they differ in the side panels
+(ranked recommendations vs. neutral options + what-if) and the map overlays, not
+the base view. Implemented in `MODE_DEFAULT_VIEW` (view-tabs.component.ts).
+
 ## Done
 
 - Registry + generic `NgComponentOutlet` rendering (no hardwired views).
 - Config-driven tab selection via the layout designer (`settings.tabs`).
+- Mode-aware default tab (`MODE_DEFAULT_VIEW`), reset on mode switch.
 
 ## Open questions / next
 
 - **Persist the active tab** (per session / per mode) — currently component-local.
-- **Mode-aware default tab** — e.g. Director opens on Goal Achievement, Co-Learning
-  on Marey. Deferred; the container is mode-agnostic for now.
 - **Reorder tabs in the designer** — order currently follows the registry; a
   drag-to-reorder in the settings group is a small follow-up.
 - **Power diagram** and other future views slot in with one `center-views.ts`
