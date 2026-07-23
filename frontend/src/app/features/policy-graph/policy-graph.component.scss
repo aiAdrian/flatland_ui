@@ -1,0 +1,373 @@
+// Policy-Divergence Event Graph.
+// Colours come from Lyne semantic tokens / app tokens only (no raw hex) so
+// a future dark mode stays a config flip — see frontend-lyne-conventions.md.
+
+:host {
+  display: block;
+  min-height: 0;
+  height: 100%;
+}
+
+:host(.policy-graph--fullscreen) {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: var(--sbb-color-white);
+}
+
+.pg {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--sbb-color-white);
+}
+
+// ── header ──────────────────────────────────────────────────────────
+
+.pg__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--sbb-color-cloud);
+  font-size: 12px;
+}
+
+.pg__title {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.pg__policies {
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--sbb-color-cloud);
+  font-weight: 600;
+}
+
+.pg__stat {
+  color: var(--sbb-color-granite);
+
+  &--muted { opacity: 0.7; }
+  &--warn { color: var(--sbb-color-red); font-weight: 600; }
+  &--dead { color: var(--sbb-color-red); }
+}
+
+.pg__spacer { flex: 1 1 auto; }
+
+.pg__budget {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--sbb-color-granite);
+
+  input {
+    width: 62px;
+    padding: 2px 4px;
+    border: 1px solid var(--sbb-color-cloud);
+    border-radius: 3px;
+    background: var(--sbb-color-white);
+    font: inherit;
+    color: inherit;
+  }
+}
+
+.pg__budget--check {
+  gap: 5px;
+  cursor: pointer;
+
+  input { width: auto; }
+}
+
+.pg__btn {
+  padding: 3px 10px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: var(--sbb-color-milk);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--sbb-color-cloud); }
+  &:disabled { opacity: 0.6; cursor: default; }
+
+  &--icon {
+    padding: 3px 8px;
+    line-height: 1;
+  }
+}
+
+.pg__error {
+  padding: 8px 10px;
+  color: var(--sbb-color-red);
+  background: var(--sbb-color-milk);
+}
+
+.pg__empty {
+  padding: 14px;
+  color: var(--sbb-color-granite);
+  font-size: 12px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+
+  &--map {
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+}
+
+// ── split layout ────────────────────────────────────────────────────
+
+.pg__split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1px;
+  background: var(--sbb-color-cloud);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+// Narrow panels stack instead of squeezing both panes unreadably.
+@media (max-width: 900px) {
+  .pg__split { grid-template-columns: minmax(0, 1fr); }
+}
+
+.pg__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--sbb-color-white);
+}
+
+.pg__pane-label {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sbb-color-granite);
+  border-bottom: 1px solid var(--sbb-color-milk);
+}
+
+.pg__pane-sub {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.pg__danger { color: var(--sbb-color-red); font-weight: 600; }
+.pg__warn { color: var(--sbb-color-orange, var(--sbb-color-red)); }
+
+.pg__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+
+  &--map {
+    display: flex;
+    padding: 6px;
+  }
+}
+
+// ── graph ───────────────────────────────────────────────────────────
+
+.pg__svg {
+  display: block;
+}
+
+.pg__edge {
+  fill: none;
+  stroke: var(--sbb-color-graphite);
+  stroke-width: 1.2;
+  opacity: 0.45;
+
+  &--divergence {
+    stroke: var(--sbb-color-granite);
+    opacity: 0.9;
+    stroke-width: 1.6;
+  }
+}
+
+.pg__edge-label {
+  font-size: 8px;
+  fill: var(--sbb-color-granite);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.pg__node {
+  cursor: pointer;
+}
+
+.pg__hit {
+  fill: transparent;
+}
+
+.pg__glyph {
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+
+  &--root {
+    fill: var(--sbb-color-white);
+    stroke: var(--sbb-color-charcoal);
+    stroke-width: 2;
+  }
+
+  // AI-simulated futures use the yellow family (A3S/TraceRL convention);
+  // blue stays reserved for human-influenced branches.
+  &--divergence {
+    fill: var(--sbb-color-peach, var(--sbb-color-milk));
+    stroke: var(--sbb-color-charcoal);
+  }
+
+  &--arrival {
+    fill: var(--sbb-color-green, var(--sbb-color-granite));
+    stroke: none;
+  }
+
+  &--deadlock {
+    stroke: var(--sbb-color-red);
+    stroke-width: 2;
+    fill: none;
+  }
+
+  &--terminal {
+    fill: var(--sbb-color-granite);
+    stroke: none;
+  }
+
+  &--truncated {
+    fill: var(--sbb-color-cloud);
+    stroke: var(--sbb-color-granite);
+  }
+}
+
+.pg__node--active .pg__glyph {
+  stroke: var(--sbb-color-red);
+  stroke-width: 2.4;
+}
+
+.pg__node--pinned .pg__glyph {
+  stroke-dasharray: 2 1.5;
+}
+
+.pg__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 5px 10px;
+  border-top: 1px solid var(--sbb-color-milk);
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+
+  span { display: inline-flex; align-items: center; gap: 4px; }
+}
+
+.lg {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border: 1px solid var(--sbb-color-charcoal);
+
+  &--root { border-radius: 50%; background: var(--sbb-color-white); }
+  &--div { transform: rotate(45deg); background: var(--sbb-color-peach, var(--sbb-color-milk)); }
+  &--arr { border-radius: 50%; border: 0; background: var(--sbb-color-green, var(--sbb-color-granite)); }
+  &--dead { border: 0; background: var(--sbb-color-red); }
+  &--term { border: 0; background: var(--sbb-color-granite); }
+  &--trunc { background: var(--sbb-color-cloud); }
+}
+
+// ── preview map ─────────────────────────────────────────────────────
+
+.pg__map {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+}
+
+.pg__tile {
+  opacity: 0.3;
+}
+
+.pg__target {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 2 2;
+  opacity: 0.8;
+}
+
+.pg__train {
+  stroke: var(--sbb-color-white);
+  stroke-width: 1.5;
+}
+
+.pg__train-dir {
+  fill: var(--sbb-color-white);
+}
+
+.pg__train-label {
+  font-size: 8px;
+  font-weight: 700;
+  fill: var(--sbb-color-white);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+// ── decision readout ────────────────────────────────────────────────
+
+.pg__diff {
+  border-top: 1px solid var(--sbb-color-milk);
+  padding: 6px 10px 8px;
+  font-size: 11px;
+  max-height: 34%;
+  overflow: auto;
+}
+
+.pg__diff-title {
+  font-weight: 600;
+  color: var(--sbb-color-granite);
+  margin-bottom: 4px;
+}
+
+.pg__diff-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 5px;
+  border-radius: 3px;
+  opacity: 0.6;
+
+  &--taken {
+    opacity: 1;
+    background: var(--sbb-color-milk);
+    font-weight: 600;
+  }
+}
+
+.pg__diff-policy {
+  flex: 0 0 auto;
+  min-width: 96px;
+}
+
+.pg__diff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pg__diff-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.pg__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}

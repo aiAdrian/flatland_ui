@@ -188,6 +188,13 @@
           }
         </div>
 
+        <!-- Policy Divergence Graph: tree of policy futures + state preview.
+             Below the map because it is a wide split view; collapsed by
+             default and has its own full-screen toggle. -->
+        <section class="center-policy-graph">
+          <app-panel-shell [panel]="panelPolicyGraph"></app-panel-shell>
+        </section>
+
         <!-- Co-Learning (WP 3.3): reflection surfaces centrally, as a widget
              below the map (like the Marey view) — no longer buried bottom-right.
              Collapsed by default; the operator opens it when they choose. -->

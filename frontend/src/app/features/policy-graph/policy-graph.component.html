@@ -1,0 +1,220 @@
+<div class="pg" [class.pg--fullscreen]="fullscreen()">
+  <!-- ── header ─────────────────────────────────────────────────── -->
+  <div class="pg__head">
+    <span class="pg__title">Policy Divergence Graph</span>
+
+    @if (summary(); as s) {
+      <span class="pg__policies">{{ s.policies }}</span>
+      <span class="pg__stat" title="Nodes in the graph">{{ s.nodes }} states</span>
+      <span class="pg__stat" title="Points where the policies produce different futures">
+        {{ s.divergences }} divergences
+      </span>
+      <span class="pg__stat pg__stat--muted"
+            title="Disagreements that did NOT branch: same resulting state, or the same decision continuing">
+        {{ s.avoided }} non-events
+      </span>
+      @if (s.deadEnds) {
+        <span class="pg__stat pg__stat--dead"
+              title="Branches abandoned at a deadlock: a deadlocked train can never reach its target, so nothing downstream is a usable plan. The deadlock itself is still shown.">
+          {{ s.deadEnds }} dead ends
+        </span>
+      }
+      @if (s.truncated) {
+        <span class="pg__stat pg__stat--warn"
+              title="Branches cut short by the node/time budget — their futures are unknown">
+          {{ s.truncated }} truncated
+        </span>
+      }
+      <span class="pg__stat pg__stat--muted">{{ s.seconds | number: '1.0-1' }}s</span>
+    }
+
+    <span class="pg__spacer"></span>
+
+    <label class="pg__budget" title="Node budget — higher explores more of the run, but takes longer">
+      nodes
+      <input type="number" min="10" max="20000" step="50"
+             [value]="maxNodes()"
+             (change)="maxNodes.set(+$any($event.target).value)" />
+    </label>
+    <label class="pg__budget" title="Wall-clock budget in seconds">
+      max s
+      <input type="number" min="1" max="600" step="5"
+             [value]="maxWallS()"
+             (change)="maxWallS.set(+$any($event.target).value)" />
+    </label>
+
+    <label class="pg__budget pg__budget--check"
+           title="A train mid-section is committed — it cannot re-route, so a policy disagreement there changes timing, not routing. Off = also branch on those timing differences (much larger tree).">
+      <input type="checkbox" [checked]="routingOnly()"
+             (change)="routingOnly.set($any($event.target).checked)" />
+      routing decisions only
+    </label>
+
+    <button class="pg__btn" type="button" (click)="load(true)" [disabled]="loading()">
+      {{ loading() ? 'Building…' : graph() ? 'Rebuild' : 'Build graph' }}
+    </button>
+    <button class="pg__btn pg__btn--icon" type="button" (click)="toggleFullscreen()"
+            [title]="fullscreen() ? 'Exit full screen' : 'Full screen'">
+      {{ fullscreen() ? '✕' : '⛶' }}
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <div class="pg__error">{{ err }}</div>
+  }
+
+  @if (!graph() && !loading() && !error()) {
+    <div class="pg__empty">
+      Rolls every available policy forward from the current state and marks
+      where they would produce <em>different futures</em>. Hover a node to see
+      that world on the right.
+      <button class="pg__btn" type="button" (click)="load()">Build graph</button>
+    </div>
+  }
+
+  <!-- ── split: graph | preview ─────────────────────────────────── -->
+  @if (graph()) {
+    <div class="pg__split">
+      <!-- left: the tree of futures -->
+      <div class="pg__pane pg__pane--graph">
+        <div class="pg__pane-label">
+          Futures — x = simulation step
+        </div>
+        <div class="pg__scroll">
+          <svg class="pg__svg"
+               [attr.width]="layout().width"
+               [attr.height]="layout().height"
+               (mouseleave)="onNodeLeave()">
+            <!-- edges -->
+            @for (e of layout().edges; track e.edge.from + '>' + e.edge.to) {
+              <path class="pg__edge"
+                    [class.pg__edge--divergence]="e.isDivergence"
+                    [attr.d]="e.path" />
+              @if (e.label) {
+                <text class="pg__edge-label" [attr.x]="e.midX" [attr.y]="e.midY">{{ e.label }}</text>
+              }
+            }
+            <!-- nodes -->
+            @for (n of layout().nodes; track n.node.id) {
+              <g class="pg__node"
+                 [class.pg__node--active]="isActive(n.node.id)"
+                 [class.pg__node--pinned]="isPinned(n.node.id)"
+                 (mouseenter)="onNodeEnter(n.node.id)"
+                 (click)="onNodeClick(n.node.id)">
+                <!-- generous invisible hit area: the glyphs are small -->
+                <circle class="pg__hit" [attr.cx]="n.x" [attr.cy]="n.y" r="11" />
+                @switch (n.glyph) {
+                  @case ('root') {
+                    <circle class="pg__glyph pg__glyph--root" [attr.cx]="n.x" [attr.cy]="n.y" r="6" />
+                  }
+                  @case ('deadlock') {
+                    <path class="pg__glyph pg__glyph--deadlock"
+                          [attr.d]="'M ' + (n.x - 5) + ' ' + (n.y - 5) + ' l 10 10 M ' + (n.x + 5) + ' ' + (n.y - 5) + ' l -10 10'" />
+                  }
+                  @case ('arrival') {
+                    <circle class="pg__glyph pg__glyph--arrival" [attr.cx]="n.x" [attr.cy]="n.y" r="5" />
+                  }
+                  @case ('truncated') {
+                    <path class="pg__glyph pg__glyph--truncated"
+                          [attr.d]="'M ' + (n.x - 4) + ' ' + (n.y - 5) + ' l 7 5 l -7 5 z'" />
+                  }
+                  @case ('terminal') {
+                    <rect class="pg__glyph pg__glyph--terminal"
+                          [attr.x]="n.x - 4" [attr.y]="n.y - 4" width="8" height="8" />
+                  }
+                  @default {
+                    <rect class="pg__glyph pg__glyph--divergence"
+                          [attr.x]="n.x - 5" [attr.y]="n.y - 5" width="10" height="10"
+                          [attr.transform]="'rotate(45 ' + n.x + ' ' + n.y + ')'" />
+                  }
+                }
+              </g>
+            }
+          </svg>
+        </div>
+
+        <div class="pg__legend">
+          <span><i class="lg lg--root"></i> start</span>
+          <span><i class="lg lg--div"></i> divergence</span>
+          <span><i class="lg lg--arr"></i> arrival</span>
+          <span><i class="lg lg--dead"></i> deadlock</span>
+          <span><i class="lg lg--term"></i> end of run</span>
+          <span><i class="lg lg--trunc"></i> cut by budget</span>
+        </div>
+      </div>
+
+      <!-- right: the world at the hovered node -->
+      <div class="pg__pane pg__pane--map">
+        @if (activeNode(); as n) {
+          <div class="pg__pane-label">
+            State at step {{ n.step }}
+            <span class="pg__pane-sub">
+              @if (isPinned(n.id) && !hoveredId()) { pinned · }
+              {{ objectKeys(n.agents).length }} running
+              @if (previewOffMap().arrived) { · {{ previewOffMap().arrived }} arrived }
+              @if (previewOffMap().waiting) { · {{ previewOffMap().waiting }} waiting }
+              @if (n.deadlocked.length) {
+                · <span class="pg__danger">{{ n.deadlocked.length }} deadlocked</span>
+              }
+              @if (n.truncated) { · <span class="pg__warn">future unknown (budget)</span> }
+            </span>
+          </div>
+
+          <div class="pg__scroll pg__scroll--map">
+            <svg class="pg__map"
+                 [attr.viewBox]="'0 0 ' + mapWidth() + ' ' + mapHeight()"
+                 preserveAspectRatio="xMidYMid meet">
+              <!-- rail: the same tile sprites the main map uses -->
+              @for (t of tiles(); track t.r + '_' + t.c) {
+                <image class="pg__tile"
+                       [attr.href]="tileHref(t)"
+                       [attr.x]="tileX(t)" [attr.y]="tileY(t)"
+                       [attr.width]="cellSize" [attr.height]="cellSize"
+                       [attr.transform]="tileTransform(t)" />
+              }
+              <!-- targets -->
+              @for (t of previewTargets(); track t.handle) {
+                <rect class="pg__target"
+                      [attr.x]="t.x - 5" [attr.y]="t.y - 5" width="10" height="10"
+                      [attr.stroke]="t.color" />
+              }
+              <!-- trains in this future -->
+              @for (a of previewAgents(); track a.handle) {
+                <g [attr.transform]="'translate(' + a.x + ',' + a.y + ')'">
+                  <circle class="pg__train" r="9" [attr.fill]="a.color" />
+                  <path class="pg__train-dir"
+                        d="M 0 -6 L 4 3 L 0 1 L -4 3 Z"
+                        [attr.transform]="'rotate(' + a.rotation + ')'" />
+                  <text class="pg__train-label" y="4">{{ a.handle }}</text>
+                </g>
+              }
+            </svg>
+          </div>
+
+          @if (activeEdges().length) {
+            <div class="pg__diff">
+              <div class="pg__diff-title">The decision that led here</div>
+              @for (e of activeEdges(); track e.from + '>' + e.to) {
+                <div class="pg__diff-row" [class.pg__diff-row--taken]="e.to === n.id">
+                  <span class="pg__diff-policy">
+                    {{ e.policy_ids.length ? e.policy_ids.join(' + ') : '—' }}
+                  </span>
+                  <span class="pg__diff-actions">
+                    @for (h of objectKeys(e.action_diff); track h) {
+                      <span class="pg__diff-act">
+                        <i class="pg__dot" [style.background]="agentColor(+h)"></i>
+                        T{{ h }}: {{ e.action_diff[h] }}
+                      </span>
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <div class="pg__empty pg__empty--map">Hover a node to preview its state.</div>
+        }
+      </div>
+    </div>
+  }
+</div>

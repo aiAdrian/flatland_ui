@@ -182,3 +182,66 @@ export interface DecisionCell {
   directions?: number[]; // 0=N, 1=E, 2=S, 3=W (incoming)
   switch_exits?: number[];   // for SWITCH cells: directions a train can leave by
 }
+
+// ── Policy-divergence event graph ───────────────────────────────────
+// Graph of where the available policies would produce *different
+// futures*, built by rolling them forward in lockstep from the current
+// state. See docs/plans/policy-divergence-event-graph.md.
+
+export interface PolicyGraphNode {
+  id: string;
+  /** Simulation step this state belongs to (x-axis of the graph). */
+  step: number;
+  event: 'root' | 'divergence' | 'arrival' | 'deadlock';
+  /** On-map trains only: handle → position/direction/state. */
+  agents: Record<string, { pos: [number, number]; dir: number; state: string }>;
+  /** Cumulative at this node. */
+  arrived: number[];
+  deadlocked: number[];
+  /** All trains done or the episode ended here. */
+  terminal: boolean;
+  /** Expansion was cut by a node/time budget — the future is unknown. */
+  truncated: boolean;
+}
+
+export interface PolicyGraphEdge {
+  from: string;
+  to: string;
+  /** Steps of agreement compressed into this edge. */
+  steps: number;
+  /** Policies whose proposal led here; empty on arrival/deadlock edges. */
+  policy_ids: string[];
+  /** Actions of THIS branch for the trains the policies disagreed about. */
+  action_diff: Record<string, string>;
+}
+
+export interface PolicyGraphStats {
+  nodes: number;
+  edges: number;
+  divergences: number;
+  false_divergences: number;
+  ongoing_dispute_steps: number;
+  non_decision_disputes: number;
+  pruned_deadlock_branches: number;
+  merges: number;
+  arrival_events: number;
+  deadlock_events: number;
+  truncated_nodes: number;
+  max_depth_reached: number;
+  forks: number;
+  steps_simulated: number;
+  policy_errors: number;
+  build_seconds: number;
+}
+
+export interface PolicyGraph {
+  root_id: string;
+  policy_ids: string[];
+  num_agents: number;
+  /** Static per episode, sent once rather than per node. */
+  agent_targets: Record<string, [number, number]>;
+  nodes: Record<string, PolicyGraphNode>;
+  edges: PolicyGraphEdge[];
+  stats: PolicyGraphStats;
+  cached?: boolean;
+}

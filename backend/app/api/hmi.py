@@ -641,3 +641,100 @@ def debug_hmi_state(session_id: str):
         "override_hash": override_hash,
         "env_exists": env is not None,
     }
+
+
+# ── policy-divergence graph ─────────────────────────────────────────
+
+# Tiny per-session cache: the graph is a pure function of (env state,
+# participants, budget), and building it is expensive (seconds to
+# minutes), so never recompute while the env has not advanced.
+# {session_id: (cache_key, graph_dict)} — one entry per session.
+_policy_graph_cache: dict[str, tuple[str, dict]] = {}
+
+
+@router.get("/{session_id}/hmi/policy-graph")
+async def get_policy_graph(
+    session_id: str,
+    max_nodes: int = Query(800, ge=10, le=20000, description="Node budget. ~750 covers a complete 8-train whole-run graph on the Guided Demo network."),
+    max_wall_s: float = Query(60.0, ge=1.0, le=600.0, description="Wall-clock budget in seconds."),
+    horizon: Optional[int] = Query(None, ge=1, le=2000, description="Step cap; defaults to the whole episode."),
+    policies: Optional[str] = Query(None, description="Comma-separated policy ids; defaults to all deterministic scenario policies."),
+    decision_cells_only: bool = Query(True, description="Only branch where a disputed train still has a choice (on a switch or the cell before one). A train mid-section is committed, so a disagreement there is a timing difference, not a routing decision."),
+    prune_deadlocks: bool = Query(True, description="Stop expanding a branch once a train is hard-deadlocked: it can never reach its target, so nothing downstream is a usable plan. The deadlock node itself stays in the graph."),
+    refresh: bool = Query(False, description="Bypass the cache and rebuild."),
+):
+    """Event graph of where the available policies would diverge.
+
+    All participating policies are run in lockstep from the current
+    state; nodes mark the points where they produce *different futures*
+    (plus train arrivals and deadlocks). See
+    `docs/plans/policy-divergence-event-graph.md`.
+
+    The build is CPU-bound and can take seconds, so it runs in a thread
+    (never blocking the event loop) and is cached per (session, step,
+    participants, budget).
+    """
+    from starlette.concurrency import run_in_threadpool
+
+    from app.core.policy_divergence_graph import (
+        PolicyDivergenceGraphBuilder,
+        PolicyGraphLimits,
+        default_participants,
+    )
+    from app.policies.registry import get_policy_spec
+
+    sess = session_manager.get(session_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    env = getattr(sess, "env", None)
+    if env is None:
+        raise HTTPException(status_code=409, detail="Session has no environment")
+
+    if policies:
+        participants = []
+        for pid in (p.strip() for p in policies.split(",") if p.strip()):
+            spec = get_policy_spec(pid)
+            if spec is None:
+                raise HTTPException(status_code=400, detail=f"Unknown policy id: {pid}")
+            participants.append((spec.id, spec.branch_factory))
+        if not participants:
+            raise HTTPException(status_code=400, detail="No valid policies given")
+    else:
+        participants = default_participants()
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    ids = ",".join(pid for pid, _f in participants)
+    cache_key = f"{elapsed}:{ids}:{max_nodes}:{max_wall_s}:{horizon}:{decision_cells_only}:{prune_deadlocks}"
+    cached = _policy_graph_cache.get(session_id)
+    if not refresh and cached and cached[0] == cache_key:
+        return {**cached[1], "cached": True}
+
+    def _build() -> dict:
+        builder = PolicyDivergenceGraphBuilder(
+            env,
+            participants,
+            PolicyGraphLimits(
+                max_depth=horizon,
+                max_nodes=max_nodes,
+                max_wall_s=max_wall_s,
+            ),
+            decision_cells_only=decision_cells_only,
+            prune_deadlocks=prune_deadlocks,
+        )
+        return builder.build().to_dict()
+
+    t0 = time.perf_counter()
+    try:
+        graph = await run_in_threadpool(_build)
+    except Exception as e:
+        _perf_log.warning("Policy graph failed for %s: %r", session_id, e)
+        raise HTTPException(status_code=500, detail=f"Policy graph build failed: {e}")
+    _perf_log.info(
+        "[PGR] session=%s step=%s policies=%s nodes=%s div=%s compute=%.1fms",
+        session_id, elapsed, ids,
+        graph["stats"]["nodes"], graph["stats"]["divergences"],
+        (time.perf_counter() - t0) * 1000,
+    )
+
+    _policy_graph_cache[session_id] = (cache_key, graph)
+    return {**graph, "cached": False}

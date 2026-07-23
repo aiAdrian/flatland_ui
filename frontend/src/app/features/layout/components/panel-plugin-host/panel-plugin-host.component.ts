@@ -11,6 +11,7 @@ import { RecommendationsClassicComponent } from '../../../recommendations-classi
 import { ImpactPanelComponent } from '../../../impact-panel/impact-panel.component';
 import { WhatifCompareComponent } from '../../../whatif-compare/whatif-compare.component';
 import { RiskUncertaintyPanelComponent } from '../../../risk-uncertainty/risk-uncertainty-panel.component';
+import { PolicyGraphComponent } from '../../../policy-graph/policy-graph.component';
 import { DecisionLogPanelComponent } from '../../../decision-log/decision-log-panel.component';
 import { FlatlandMapComponent } from '../../../flatland-map/flatland-map.component';
 import { GraphicTimetableComponent } from '../../../graphic-timetable/graphic-timetable.component';
@@ -46,6 +47,7 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     ImpactPanelComponent,
     WhatifCompareComponent,
     RiskUncertaintyPanelComponent,
+    PolicyGraphComponent,
     DecisionLogPanelComponent,
     FlatlandMapComponent,
     GraphicTimetableComponent,

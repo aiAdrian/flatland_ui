@@ -267,6 +267,21 @@ export class AppComponent implements OnInit {
     sizeMode: 'auto',
   };
 
+  /** Policy Divergence Graph: the whole run as a tree of futures, with a
+   *  state preview beside it. Sits below the map like the reflection panel
+   *  (it is a wide split view) and carries its own full-screen toggle;
+   *  collapsed by default so it never costs map space unasked. */
+  readonly panelPolicyGraph: PanelInstance = {
+    id: 'runtime-policy-graph',
+    type: 'policy-graph',
+    title: 'Policy Divergence Graph',
+    zone: 'center',
+    order: 50,
+    collapsed: true,
+    hidden: false,
+    sizeMode: 'auto',
+  };
+
   readonly panelKpiFilter: PanelInstance = {
     id: 'runtime-kpi-filter',
     type: 'kpi-filter',

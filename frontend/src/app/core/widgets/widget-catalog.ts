@@ -415,6 +415,29 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     spec: 'docs/plans/widget-b1-whatif-compare.md',
   },
   {
+    type: 'policy-graph',
+    title: 'Policy Divergence Graph',
+    dataSource: 'simulation',
+    kind: 'prediction',
+    granularity: 'overview-detail',
+    status: 'first-cut',
+    description:
+      'Tree of futures: rolls every policy forward in lockstep and marks where they would produce different outcomes.',
+    promise:
+      'See at a glance what each policy would do over the whole run, and exactly where — and about which train — they disagree.',
+    grounding:
+      'AI4REALNET/agent-as-a-service-trace-rl (A3S/TraceRL) branching-trajectory tree; AI-simulated branches in the yellow family (blue reserved for human-influenced). Divergence decided on resulting states, not actions.',
+    availableModes: 'all',
+    perMode: {
+      recommendation: 'Shows where the recommending policy departs from the alternatives, and what each would do instead.',
+      'co-learning': 'Neutral side-by-side of policy futures — no branch marked "right"; hovering a node previews that world.',
+      director: 'Supervisory overview of the autonomous policy\'s course and the points where another policy would have chosen differently.',
+    },
+    defaultZone: 'center',
+    minHeight: 320,
+    spec: 'docs/plans/policy-divergence-event-graph.md',
+  },
+  {
     catalogId: 'B2',
     type: '',
     title: 'Conflict-aware Marey (ribbons + predicted lines)',

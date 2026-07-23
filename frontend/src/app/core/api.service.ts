@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { backendHttpBase } from './backend-origin';
 import {
   ActionInt,
   PlayRequest,
+  PolicyGraph,
   PolicyInfo,
   PolicyName,
   ScenarioPoliciesConfig,
@@ -146,6 +147,24 @@ export class ApiService {
       `${API_BASE}/session/${id}/what-if-override`,
       { overrides },
     );
+  }
+
+  /** Policy-divergence event graph: where the available policies would
+   *  produce different futures, from the current state to the end of the
+   *  run. CPU-heavy on the backend — cached there per (session, step). */
+  policyGraph(
+    id: string,
+    opts: { maxNodes?: number; maxWallS?: number; horizon?: number; policies?: string[]; decisionCellsOnly?: boolean; refresh?: boolean } = {},
+  ) {
+    let params = new HttpParams();
+    if (opts.maxNodes != null) params = params.set('max_nodes', String(opts.maxNodes));
+    if (opts.maxWallS != null) params = params.set('max_wall_s', String(opts.maxWallS));
+    if (opts.horizon != null) params = params.set('horizon', String(opts.horizon));
+    if (opts.policies?.length) params = params.set('policies', opts.policies.join(','));
+    if (opts.decisionCellsOnly != null)
+      params = params.set('decision_cells_only', String(opts.decisionCellsOnly));
+    if (opts.refresh) params = params.set('refresh', 'true');
+    return this.http.get<PolicyGraph>(`${API_BASE}/session/${id}/hmi/policy-graph`, { params });
   }
 
 }
