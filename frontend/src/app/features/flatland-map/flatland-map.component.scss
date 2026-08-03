@@ -710,6 +710,36 @@
   stroke: color-mix(in srgb, var(--app-whatif-human) 35%, transparent);
 }
 
+/* Director plan overlay: each train's committed route as a dashed line
+   while the mouse is on the Director Weights widget. Stroke is the
+   train's unique plan colour (AgentColorService.getPlanColor, set in
+   the template); trains sharing a track are offset into close parallel
+   lines in the component and the dash phase is staggered per train, so
+   no route hides another. The casing lifts the dashes off the rails.
+   Dash period (dash + gap) must stay in sync with DASH_PERIOD in
+   flatland-map.component.ts. */
+.director-plan-lines {
+  pointer-events: none !important;
+}
+
+.director-plan-line-casing {
+  stroke: light-dark(var(--sbb-color-white), var(--sbb-color-black));
+  stroke-width: 4.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 6 4;
+  opacity: 0.8;
+  fill: none !important;
+  pointer-events: none !important;
+}
+
+.director-plan-line {
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 6 4;
+  fill: none !important;
+  pointer-events: none !important;
+}
+
 @keyframes trajectory-flow-forward {
   from {
     stroke-dashoffset: 15;

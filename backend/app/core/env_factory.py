@@ -9,6 +9,7 @@ import flatland.envs.timetable_generators as ttg
 from flatland.envs.persistence import RailEnvPersister
 from app.core.infrastructure_scene_adapter import scene_to_line_generator, scene_to_rail_generator
 from app.core.scenario_presets import get_preset
+from app.core.station_aware_env import StationAwareRailEnv
 
 
 class EnvGenerationError(Exception):
@@ -193,7 +194,10 @@ def _build_once(
         )
 
     def make_env(extra_kwargs):
-        return RailEnv(
+        # StationAwareRailEnv only adds retention of the generator's station
+        # grouping (which platform cells belong to which city); everything
+        # else is RailEnv. See app/core/station_aware_env.py.
+        return StationAwareRailEnv(
             width=width,
             height=height,
             number_of_agents=number_of_agents,

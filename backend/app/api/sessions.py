@@ -480,14 +480,312 @@ def set_session_policy(session_id: str, req: PolicyChangeRequest):
     if req.policy not in enabled:
         raise HTTPException(400, f"Policy '{req.policy}' is not enabled for this session")
     session.policy = req.policy
-    # Invalidate the scenario cache so the next /hmi/scenarios call
-    # recomputes with the new baseline.
+    _invalidate_scenario_forecasts(session_id)
+    return {"session_id": session_id, "policy": session.policy}
+
+
+def _invalidate_scenario_forecasts(session_id: str) -> None:
+    """Drop the session's cached scenario forecasts so the next
+    /hmi/scenarios call recomputes them — required whenever what drives
+    the session changes without a step (policy switch, committed re-plan,
+    enabled-policy change)."""
     try:
         from app.core.scenario_cache import scenario_cache
         scenario_cache.clear_session(session_id)
     except Exception:
         pass
-    return {"session_id": session_id, "policy": session.policy}
+
+
+# ── Director-mode planner dials (goal_directed policy) ──
+class DirectorWeightsBody(BaseModel):
+    punctuality: float
+    connections: float
+    stability: float
+
+
+class DirectorWeightsRequest(DirectorWeightsBody):
+    # Plan under the new dials NOW (blocking for the planning duration)
+    # instead of lazily on the next step — the map overlay wants the new
+    # paths the moment the slider settles.
+    plan: bool = False
+
+
+@router.post("/{session_id}/director/weights")
+def set_director_weights_for_session(
+    session_id: str, req: DirectorWeightsRequest
+):
+    """Set this session's Director dials.
+
+    Default: the next `goal_directed` step re-plans under the new
+    weights (from scratch before the first step, from the current state
+    mid-episode). With `plan: true` that happens right here — the
+    response then carries the fresh plan and its drawable paths, so the
+    HMI can update its overlay instantly.
+    """
+    from app.policies.goal_directed_policy import (
+        GoalDirectedPolicy,
+        plan_info,
+        plan_paths,
+        plan_player,
+        replan_now,
+        set_env_weights,
+    )
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+    try:
+        set_env_weights(
+            session.env, req.punctuality, req.connections, req.stability
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    replanned = False
+    if req.plan:
+        if plan_player(session.env) is None:
+            # Not planned yet (or dropped at step zero): plan from scratch.
+            GoalDirectedPolicy(session.env)
+            replanned = plan_info(session.env) is not None
+        else:
+            # Running episode: residual re-plan from the current state,
+            # ungated — the user changed the objective.
+            replanned = (
+                replan_now(session.env, reason="weights change", gate=False)
+                is not None
+            )
+        if replanned:
+            _invalidate_scenario_forecasts(session_id)
+    return {
+        "session_id": session_id,
+        "weights": {
+            "punctuality": req.punctuality,
+            "connections": req.connections,
+            "stability": req.stability,
+        },
+        "replanned": replanned,
+        "plan": plan_info(session.env) if req.plan else None,
+        "paths": plan_paths(session.env) if req.plan else None,
+    }
+
+
+@router.get("/{session_id}/director")
+def get_director_state(session_id: str):
+    """The session's dials and, once the policy has planned, the plan's
+    provenance — source, weighted score, per-axis utilities — plus the
+    plan's drawable per-train paths for the map overlay."""
+    from app.policies.goal_directed_policy import (
+        env_weights,
+        plan_info,
+        plan_paths,
+    )
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+    punctuality, connections, stability = env_weights(session.env)
+    return {
+        "session_id": session_id,
+        "weights": {
+            "punctuality": punctuality,
+            "connections": connections,
+            "stability": stability,
+        },
+        "plan": plan_info(session.env),
+        "paths": plan_paths(session.env),
+    }
+
+
+@router.post("/{session_id}/director/verify")
+def verify_director_plan(session_id: str):
+    """Ground-truth the committed plan: replay it on a pristine fork of
+    the session's episode (persister clone + state-only reset — same
+    rail, same timetable, step zero) and report what actually happens
+    next to what the models predicted. The live session is not touched.
+    """
+    import tempfile
+    import uuid as uuid_module
+    from pathlib import Path as PathLib
+
+    from flatland.envs.persistence import RailEnvPersister
+
+    from app.policies.goal_based_policies.infrastructure_graph import (
+        build_decision_point_graph,
+    )
+    from app.policies.goal_based_policies.search import verify_plan
+    from app.policies.goal_based_policies.stations import resolve_stations
+    from app.policies.goal_directed_policy import plan_info, plan_schedules
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+    schedules = plan_schedules(session.env)
+    info = plan_info(session.env)
+    if schedules is None or info is None:
+        raise HTTPException(
+            400, "No committed plan — step under 'goal_directed' first")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = PathLib(tmp) / f"verify-{uuid_module.uuid4().hex}.pkl"
+        RailEnvPersister.save(session.env, str(path))
+        fork, _ = RailEnvPersister.load_new(str(path))
+    fork.reset(regenerate_rail=False, regenerate_schedule=False)
+
+    graph = build_decision_point_graph(fork)
+    verified = verify_plan(fork, graph, resolve_stations(fork), schedules)
+    return {
+        "session_id": session_id,
+        "predicted": {
+            "weighted": info.get("weighted"),
+            "utilities": info.get("utilities"),
+            "source": info.get("source"),
+        },
+        "verified": verified,
+    }
+
+
+@router.post("/{session_id}/director/replan")
+def replan_director_now(session_id: str):
+    """Re-plan the episode's remainder from the current state, now, under
+    the session's weights — the manual counterpart of the malfunction
+    trigger. The result is spliced into the live plan only when it
+    out-scores continuing; either way the verdict lands in the plan
+    info's `replans` list."""
+    from app.policies.goal_directed_policy import (
+        plan_info,
+        plan_paths,
+        replan_now,
+    )
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+    event = replan_now(session.env, reason="manual")
+    if event is None:
+        raise HTTPException(
+            400,
+            "Nothing to re-plan — needs a committed plan under "
+            "'goal_directed' and installed models",
+        )
+    if event.get("source") == "research":
+        _invalidate_scenario_forecasts(session_id)
+    return {
+        "session_id": session_id,
+        "event": event,
+        "plan": plan_info(session.env),
+        "paths": plan_paths(session.env),
+    }
+
+
+@router.post("/{session_id}/director/whatif")
+def director_what_if(session_id: str, req: DirectorWeightsBody):
+    """What-if from the current state: on two forks of the live episode,
+    simulate (a) continuing the committed plan and (b) re-planning under
+    the candidate weights, both to the episode's end, and report the
+    outcomes side by side. The A3S restore → simulate-forward → report
+    contract (see `replan.py`), in-process; the live session is not
+    touched, and both forks share the same future malfunction stream.
+
+    Connection outcomes count station calls from the fork point (`step`)
+    onward — calls that already happened are invisible to both branches
+    alike, so the comparison stays fair.
+    """
+    import copy
+
+    from app.policies.goal_based_policies.connections import (
+        evaluate_connections,
+        observed_times,
+        planned_connections,
+        station_watch_cells,
+    )
+    from app.policies.goal_based_policies.ensemble import DirectorWeights
+    from app.policies.goal_based_policies.replan import (
+        apply_residual_plan,
+        residual_plan,
+        simulate_forward,
+    )
+    from app.policies.goal_based_policies.schedule import SchedulePlayer
+    from app.policies.goal_based_policies.stations import resolve_stations
+    from app.policies.goal_directed_policy import (
+        loaded_models,
+        plan_player,
+        plan_schedules,
+    )
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+    player = plan_player(session.env)
+    schedules = plan_schedules(session.env)
+    models = loaded_models()
+    if player is None or schedules is None:
+        raise HTTPException(
+            400, "No committed plan — step under 'goal_directed' first")
+    if models is None:
+        raise HTTPException(400, "No models installed — what-if needs them")
+    try:
+        weights = DirectorWeights(
+            req.punctuality, req.connections, req.stability)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    graph = player.graph
+    snapshot = player.snapshot()
+    stations = resolve_stations(session.env)
+    connections = planned_connections(session.env, stations)
+    watch = station_watch_cells(stations)
+    step = int(getattr(session.env, "_elapsed_steps", 0) or 0)
+
+    def branch_outcome(outcome):
+        report = evaluate_connections(
+            connections, observed_times(stations, outcome["occupancy"])
+        )
+        return {
+            "total_delay": outcome["total_delay"],
+            "arrived": outcome["arrived"],
+            "trains": outcome["trains"],
+            "all_arrived": outcome["all_arrived"],
+            "steps": outcome["steps"],
+            "connections_total": int(report.total),
+            "connections_kept": int(report.kept),
+            "kept_ratio": float(report.kept_ratio),
+        }
+
+    fork_a = copy.deepcopy(session.env)
+    player_a = SchedulePlayer(graph, fork_a)
+    player_a.restore(snapshot)
+    continued = branch_outcome(
+        simulate_forward(fork_a, player_a, watch_cells=watch))
+
+    fork_b = copy.deepcopy(session.env)
+    player_b = SchedulePlayer(graph, fork_b)
+    player_b.restore(snapshot)
+    plan = residual_plan(
+        fork_b, graph, weights, *models,
+        player=player_b, schedules=schedules, reason="what-if",
+    )
+    apply_residual_plan(player_b, plan)
+    replanned = branch_outcome(
+        simulate_forward(fork_b, player_b, watch_cells=watch))
+    replanned["source"] = plan.source
+    replanned["changed"] = sorted(plan.tails)
+    replanned["predicted"] = {
+        "weighted": plan.score.weighted,
+        "utilities": dict(plan.score.breakdown["utilities"]),
+        "considered": dict(plan.considered),
+    }
+
+    return {
+        "session_id": session_id,
+        "step": step,
+        "weights": {
+            "punctuality": req.punctuality,
+            "connections": req.connections,
+            "stability": req.stability,
+        },
+        "continue": continued,
+        "replan": replanned,
+    }
 
 
 @router.get("/{session_id}/scenario-policies")
@@ -544,11 +842,7 @@ def set_scenario_policies(session_id: str, req: ScenarioPoliciesUpdateRequest):
         default_id = next((spec.id for spec in policy_specs(include_hidden=True) if spec.is_default and spec.id in session.enabled_policy_ids), None)
         session.policy = default_id or sorted(session.enabled_policy_ids)[0]
 
-    try:
-        from app.core.scenario_cache import scenario_cache
-        scenario_cache.clear_session(session_id)
-    except Exception:
-        pass
+    _invalidate_scenario_forecasts(session_id)
 
     return {
         "session_id": session_id,

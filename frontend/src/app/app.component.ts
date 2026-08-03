@@ -11,6 +11,7 @@ import { LayerVisibilityComponent } from './features/layer-visibility/layer-visi
 import { NotificationsPanelComponent } from './features/notifications-panel/notifications-panel.component';
 import { ScenarioPanelComponent } from './features/scenario-panel/scenario-panel.component';
 import { KpiFilterComponent } from './features/kpi-filter/kpi-filter.component';
+import { DirectorWeightsComponent } from './features/director-weights/director-weights.component';
 import { RecommendationsPanelComponent } from './features/recommendations-panel/recommendations-panel.component';
 import { CoLearningReflectionComponent } from './features/co-learning-reflection/co-learning-reflection.component';
 import { SituationSummaryComponent } from './features/situation-summary/situation-summary.component';
@@ -69,6 +70,7 @@ type RuntimeLayoutOption = {
     NotificationsPanelComponent,
     ScenarioPanelComponent,
     KpiFilterComponent,
+    DirectorWeightsComponent,
     RecommendationsPanelComponent,
     CoLearningReflectionComponent,
     SituationSummaryComponent,
@@ -236,7 +238,10 @@ export class AppComponent implements OnInit {
     title: 'Scenario',
     zone: 'right',
     order: 20,
-    collapsed: false,
+    // Collapsed by default in both hosting modes (Co-Learning, Director):
+    // the compare surface opens on demand — in Director the Director
+    // Weights panel is the directive lever (panel-mode-matrix.md).
+    collapsed: true,
     hidden: false,
     sizeMode: 'auto',
   };
@@ -273,6 +278,17 @@ export class AppComponent implements OnInit {
     title: 'KPI Filter',
     zone: 'right',
     order: 40,
+    collapsed: false,
+    hidden: false,
+    sizeMode: 'auto',
+  };
+
+  readonly panelDirectorWeights: PanelInstance = {
+    id: 'runtime-director-weights',
+    type: 'director-weights',
+    title: 'Director Weights',
+    zone: 'right',
+    order: 41,
     collapsed: false,
     hidden: false,
     sizeMode: 'auto',

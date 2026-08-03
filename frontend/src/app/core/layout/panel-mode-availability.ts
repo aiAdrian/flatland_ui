@@ -24,12 +24,18 @@ export const PANEL_MODE_AVAILABILITY: Record<string, InteractionMode[]> = {
   // Strategic (policy) surface. In Recommendation the `recommendations` panel is
   // the policy surface, so `scenario` would only duplicate it — hide it there.
   // Co-Learning uses it as the *neutral* compare surface (and the §3.3 what-if
-  // base); Director uses it as the swap lever (expanded by default).
+  // base); Director uses it as the swap lever (collapsed until opened).
   scenario: ['co-learning', 'director'],
-  // Objective (KPI weights) is the primary directive lever only in Director
-  // (brief §4.5: "optional" in Rec/Co-L). In Co-Learning the neutral, unranked
-  // options don't react to weights at all, so the slider earns its place only here.
-  'kpi-filter': ['director'],
+  // Offered in NO mode (empty ≠ absent: absent would mean all modes). The
+  // Director directive lever is `director-weights`; a second, unconnected
+  // weight surface in the same mode confused more than it steered. The
+  // kpiPriorities signal itself stays, at its defaults, because the
+  // scenario/recommendation fetches read it in every mode. Rationale:
+  // docs/reference/panel-mode-matrix.md.
+  'kpi-filter': [],
+  // The goal_directed planner's dials + plan provenance. Only meaningful
+  // where the AI runs autonomously on high-level directives.
+  'director-weights': ['director'],
 };
 
 /** True if the given panel type is offered in the given interaction mode. */

@@ -130,6 +130,17 @@ export class SessionStore {
     branch: WhatIfTrajById;
     handles: number[];
   } | null>(null);
+
+  /** Director plan map overlay: the committed plan's per-train cell
+   *  paths (planned entry step per cell, so the map clips to the
+   *  future). Kept fresh by the Director Weights panel — its poll, and
+   *  instantly after a slider settles or a re-plan. Drawn only while
+   *  `directorPlanHover` is true (mouse on the panel), so it cannot
+   *  collide with the scenario or what-if overlays. */
+  readonly directorPlanPaths = signal<
+    Record<string, Array<{ step: number; row: number; col: number }>> | null
+  >(null);
+  readonly directorPlanHover = signal<boolean>(false);
   // Backwards-compat: components that still call .has(h) on a Set.
   readonly selectedHandles = computed<Set<number>>(() => {
     const h = this.selectedHandle();
@@ -591,6 +602,10 @@ export class SessionStore {
     this.demoIntroPending.set(false);
   }
 
+  /** The policy that was active before Director mode took over, so
+   *  leaving the mode can hand the trains back to it. */
+  private _policyBeforeDirector: PolicyName | null = null;
+
   setInteractionMode(mode: InteractionMode): void {
     const prev = this.interactionMode();
     if (mode === prev) return;
@@ -605,6 +620,32 @@ export class SessionStore {
     if (prev === 'director' && this.playing()) {
       this.pause();
     }
+
+    // Director mode drives the trains with its own planner: entering
+    // selects the goal_directed policy for the session, leaving restores
+    // whatever was active before. If the user hand-picked a different
+    // policy *while in* Director, that choice wins — no restore over it.
+    if (mode === 'director' && this.activePolicy() !== 'goal_directed') {
+      this._policyBeforeDirector = this.activePolicy();
+      this._applySessionPolicy('goal_directed');
+    } else if (prev === 'director') {
+      const before = this._policyBeforeDirector;
+      this._policyBeforeDirector = null;
+      if (before && this.activePolicy() === 'goal_directed') {
+        this._applySessionPolicy(before);
+      }
+    }
+  }
+
+  /** Switch the session's policy backend-first, mirroring the toolbar's
+   *  own flow: the local signal follows only when the backend accepted. */
+  private _applySessionPolicy(policy: PolicyName): void {
+    const sess = this.session();
+    if (!sess) return;
+    this.api.setPolicy(sess.id, policy).subscribe({
+      next: () => this.setActivePolicy(policy),
+      error: (e) => this.error.set(`Set policy failed: ${e?.message ?? e}`),
+    });
   }
 
   /** Top AI recommendation title right now, used to annotate Co-Learning logs. */
@@ -1018,6 +1059,14 @@ export class SessionStore {
         if (opts.policyControlIds != null) {
           this.setEnabledControlPolicyIds(opts.policyControlIds);
         }
+        // A session born while Director mode is active runs under the
+        // Director's planner from its first step — same coupling as
+        // switching into the mode with a session already open.
+        if (this.interactionMode() === 'director'
+            && this.activePolicy() !== 'goal_directed') {
+          this._policyBeforeDirector = this.activePolicy();
+          this._applySessionPolicy('goal_directed');
+        }
         this.ws.connect(s.id);
         this.refreshState(true);
       },
@@ -1156,6 +1205,8 @@ export class SessionStore {
     this.pendingRationale.set(null);
     this.previewScenarioId.set(null);
     this.whatIfPreview.set(null);
+    this.directorPlanPaths.set(null);
+    this.directorPlanHover.set(false);
   }
 
   reset() {

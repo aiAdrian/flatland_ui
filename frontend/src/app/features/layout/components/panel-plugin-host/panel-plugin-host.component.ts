@@ -5,6 +5,7 @@ import { NotificationsPanelComponent } from '../../../notifications-panel/notifi
 import { AgentsPanelComponent } from '../../../agents-panel/agents-panel.component';
 import { TimetableComponent } from '../../../timetable/timetable.component';
 import { KpiFilterComponent } from '../../../kpi-filter/kpi-filter.component';
+import { DirectorWeightsComponent } from '../../../director-weights/director-weights.component';
 import { ScenarioPanelComponent } from '../../../scenario-panel/scenario-panel.component';
 import { RecommendationsPanelComponent } from '../../../recommendations-panel/recommendations-panel.component';
 import { RecommendationsClassicComponent } from '../../../recommendations-classic/recommendations-classic.component';
@@ -40,6 +41,7 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     AgentsPanelComponent,
     TimetableComponent,
     KpiFilterComponent,
+    DirectorWeightsComponent,
     ScenarioPanelComponent,
     RecommendationsPanelComponent,
     RecommendationsClassicComponent,

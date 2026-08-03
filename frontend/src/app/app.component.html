@@ -220,10 +220,15 @@
             <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
           }
           @case ('director') {
+            <!-- kpi-filter is offered in no mode (PANEL_MODE_AVAILABILITY);
+                 kept wired so re-enabling it is a config flip. -->
             @if (panelAvailable('kpi-filter')) {
               <div class="right-kpi-filter">
                 <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
               </div>
+            }
+            @if (panelAvailable('director-weights')) {
+              <app-panel-shell [panel]="panelDirectorWeights"></app-panel-shell>
             }
             <app-panel-shell [panel]="panelScenario"></app-panel-shell>
             <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
