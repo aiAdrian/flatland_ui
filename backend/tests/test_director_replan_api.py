@@ -54,6 +54,28 @@ def test_manual_replan_records_an_event_and_leaves_the_episode_alone():
     assert after["elapsed_steps"] == before["elapsed_steps"]
 
 
+def test_play_drives_director_mode_with_the_director_policy():
+    """/play gates on the control-policy set (like /step and /policy), not
+    the scenario set. goal_directed is control-enabled but not
+    scenario-capable — gating on the scenario set rejected it, and the
+    frontend's recovery then silently switched a running Director session
+    back to deadlock avoidance."""
+    sid = _make_session()
+    r = client.post(f"/session/{sid}/policy", json={"policy": "goal_directed"})
+    assert r.status_code == 200, r.text
+
+    r = client.post(f"/session/{sid}/play",
+                    json={"policy": "goal_directed", "speed": 20})
+    assert r.status_code == 200, r.text
+    assert r.json()["policy"] == "goal_directed"
+    r = client.post(f"/session/{sid}/pause")
+    assert r.status_code == 200, r.text
+
+    # The gate itself must survive: hidden policies stay unplayable.
+    r = client.post(f"/session/{sid}/play", json={"policy": "do_nothing"})
+    assert r.status_code == 400
+
+
 def test_scenario_rollouts_use_the_director_plan_as_baseline():
     """In Director mode the trains follow the committed Director plan —
     so the scenario baseline must roll out *that plan*, never a proxy
