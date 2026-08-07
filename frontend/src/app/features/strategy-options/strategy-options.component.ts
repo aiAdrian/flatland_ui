@@ -16,6 +16,7 @@ import {
   DirectorStrategies,
   DirectorStrategy,
   DirectorWeights,
+  DirectorWhatIf,
 } from '../../core/api.service';
 import { SessionStore } from '../../core/session.store';
 import { OperatorModelService } from '../../core/operator-model.service';
@@ -154,6 +155,61 @@ function divergingTrains(s: DirectorStrategy): { reroutes: number; holds: number
   return s.plan ? { reroutes: s.plan.changed.length, holds: 0 } : null;
 }
 
+/**
+ * What a focus does when it is actually played out, from
+ * `POST /director/whatif`: two forks of the live episode from the same RNG
+ * state — continue the committed plan vs. re-plan under this focus — both
+ * simulated to the end.
+ *
+ * Why this exists next to the planner's utilities: they can point the other way.
+ * Measured on the demo environment, the focus the models scored *worst* (0.44 vs
+ * 0.75) was the only one that improved the simulated outcome — delay 442 → 324,
+ * arrivals 1 → 3, transfers 6 → 8 — while the best-scoring one lost two
+ * transfers. `director-mode.md` §3.8 states the reason plainly: the models rank
+ * residual plans optimistically, so recovery is judged on simulated outcomes,
+ * not scores. A tile that only shows scores can therefore recommend the wrong
+ * goal with confident-looking numbers.
+ */
+export interface MeasuredOutcome {
+  /** Simulation step the fork was taken at. */
+  step: number;
+  deltaDelay: number;
+  deltaArrived: number;
+  deltaKept: number;
+  keptOf: number;
+  delay: number;
+  arrived: number;
+  trains: number;
+  kept: number;
+  /** The re-planner kept the current plan — this focus changes nothing here. */
+  changesNothing: boolean;
+  /** True when the simulation contradicts the model's ranking of this focus. */
+  contradictsScore: boolean;
+}
+
+function measuredFrom(res: DirectorWhatIf): MeasuredOutcome {
+  const base = res.continue;
+  const opt = res.replan;
+  return {
+    step: res.step,
+    deltaDelay: opt.total_delay - base.total_delay,
+    deltaArrived: opt.arrived - base.arrived,
+    deltaKept: opt.connections_kept - base.connections_kept,
+    keptOf: opt.connections_total,
+    delay: opt.total_delay,
+    arrived: opt.arrived,
+    trains: opt.trains,
+    kept: opt.connections_kept,
+    changesNothing: opt.source === 'continue' || opt.changed.length === 0,
+    // `considered` carries both sides of the planner's own comparison, so the
+    // disagreement can be named rather than guessed at.
+    contradictsScore:
+      opt.predicted.considered.research > opt.predicted.considered.continue
+        ? opt.total_delay > base.total_delay
+        : opt.total_delay < base.total_delay,
+  };
+}
+
 /** A tile as the template consumes it. */
 export interface StrategyTile {
   strategy: DirectorStrategy;
@@ -210,6 +266,8 @@ export interface StrategyTile {
   isPreferred: boolean;
   /** Why it is marked, in the operator's own history. Null unless marked. */
   preferredWhy: string | null;
+  /** Simulated outcome, once the operator asked for it (~7 s per focus). */
+  measured: MeasuredOutcome | null;
 }
 
 /**
@@ -318,6 +376,7 @@ export class StrategyOptionsComponent {
       this.strategies.set([]);
       this.computedAtStep.set(null);
       this.unavailableReason.set(null);
+      this.measured.set({});
       this.clearPreview();
       if (sid) this.load();
     });
@@ -395,11 +454,23 @@ export class StrategyOptionsComponent {
    */
   readonly preferred = computed(() => preferredFocus(this.model.profile()));
 
+  /**
+   * Simulated outcomes per focus id, on request only.
+   *
+   * `/director/whatif` plays two whole episodes per call (~7 s measured), so it
+   * cannot run for all three tiles automatically — and it is state-dependent, so
+   * it is dropped whenever the strategies are recomputed.
+   */
+  readonly measured = signal<Record<string, MeasuredOutcome>>({});
+  readonly simulating = signal<string | null>(null);
+  readonly simulateError = signal<string | null>(null);
+
   readonly tiles = computed<StrategyTile[]>(() => {
     const previewId = this.store.directorPreviewStrategyId();
     const active = this.activeFocus();
     const current = this.current();
     const preferred = this.preferred();
+    const measured = this.measured();
     return this.strategies().map((s) => ({
       strategy: s,
       ident: s.ident,
@@ -432,8 +503,35 @@ export class StrategyOptionsComponent {
       isPreviewed: previewId === s.id,
       isPreferred: preferred?.focus === s.focus,
       preferredWhy: preferred?.focus === s.focus ? preferred.why : null,
+      measured: measured[s.id] ?? null,
     }));
   });
+
+  /**
+   * Play this focus out to the end of the episode and report what happened.
+   *
+   * Explicit, per focus, and never automatic: two full simulations cost ~7 s
+   * (measured), and the answer is only wanted for the option the operator is
+   * actually weighing.
+   */
+  simulate(tile: StrategyTile): void {
+    const sid = this.store.session()?.id;
+    if (!sid || this.simulating()) return;
+    this.simulating.set(tile.strategy.id);
+    this.simulateError.set(null);
+    this.api.whatIfDirector(sid, tile.strategy.weights).subscribe({
+      next: (res) => {
+        this.measured.update((m) => ({ ...m, [tile.strategy.id]: measuredFrom(res) }));
+        this.simulating.set(null);
+      },
+      error: () => {
+        this.simulating.set(null);
+        this.simulateError.set(
+          'Die Simulation ist fehlgeschlagen — es bleiben die Modellwerte oben.',
+        );
+      },
+    });
+  }
 
   /** True once at least one tile carries a planned answer. */
   readonly hasPlans = computed(() => this.strategies().some((s) => s.plan !== null));
@@ -507,6 +605,10 @@ export class StrategyOptionsComponent {
     this.api.getDirectorStrategies(sid).subscribe({
       next: (res) => {
         this.phase.set('idle');
+        // A simulation describes the state it was forked from. Keeping it past a
+        // recompute would put measured numbers from an older step under a fresh
+        // plan — the same stale-under-a-new-label problem as the map overlay.
+        if (res.step !== this.computedAtStep()) this.measured.set({});
         this.strategies.set(res.strategies);
         this.current.set(res.current ?? null);
         this.unavailableReason.set(res.available ? null : res.reason);

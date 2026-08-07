@@ -916,6 +916,137 @@ describe('StrategyOptionsComponent', () => {
     expect(cmp.tiles().every((t) => !t.isActive)).toBeTrue();
   });
 
+  // ── the simulated outcome (director-mode.md §3.8) ─────────────────────────
+  describe('playing a focus out', () => {
+    /** A what-if answer: continue vs re-plan, both simulated to the end. */
+    function whatIf(over: {
+      delay: [number, number];
+      arrived?: [number, number];
+      kept?: [number, number];
+      source?: 'research' | 'continue';
+      changed?: number[];
+      considered?: { research: number; continue: number };
+    }) {
+      const [baseDelay, optDelay] = over.delay;
+      const [baseArrived, optArrived] = over.arrived ?? [1, 1];
+      const [baseKept, optKept] = over.kept ?? [6, 6];
+      return {
+        session_id: 's1',
+        step: 12,
+        weights: { punctuality: 2, connections: 5, stability: 2 },
+        continue: {
+          total_delay: baseDelay, arrived: baseArrived, trains: 6,
+          all_arrived: false, steps: 200,
+          connections_total: 17, connections_kept: baseKept, kept_ratio: baseKept / 17,
+        },
+        replan: {
+          total_delay: optDelay, arrived: optArrived, trains: 6,
+          all_arrived: false, steps: 200,
+          connections_total: 17, connections_kept: optKept, kept_ratio: optKept / 17,
+          source: over.source ?? 'research',
+          changed: over.changed ?? [1, 2],
+          predicted: {
+            weighted: 0.4,
+            utilities: { punctuality: 0.87, connections: 1, stability: 0.03 },
+            considered: over.considered ?? { research: 0.4, continue: 0.3 },
+          },
+        },
+      };
+    }
+
+    it('reports the measured deltas, on request only', () => {
+      flushStrategies();
+      // Never automatic: two whole episodes cost ~7 s (measured).
+      http.expectNone((r) => r.url.endsWith('/director/whatif'));
+
+      cmp.simulate(cmp.tiles()[2]);
+      const req = http.expectOne((r) => r.url.endsWith('/director/whatif'));
+      expect(req.request.body).toEqual({ punctuality: 2, connections: 2, stability: 5 });
+      req.flush(whatIf({ delay: [442, 324], arrived: [1, 3], kept: [6, 8] }));
+      fixture.detectChanges();
+
+      const m = cmp.tiles()[2].measured!;
+      expect(m.deltaDelay).toBe(-118);
+      expect(m.deltaArrived).toBe(2);
+      expect(m.deltaKept).toBe(2);
+      expect(m.changesNothing).toBeFalse();
+
+      const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
+      expect(text).toContain('Nachgespielt bis Episodenende (ab Schritt 12)');
+      expect(text).toContain('Verspätung -118');
+      expect(text).toContain('Ankünfte +2 (3/6)');
+      expect(text).toContain('Anschlüsse +2 (8/17)');
+      // Only the tile that was simulated says anything.
+      expect(cmp.tiles()[0].measured).toBeNull();
+    });
+
+    it('says when the re-planner keeps the current plan', () => {
+      flushStrategies();
+      cmp.simulate(cmp.tiles()[1]);
+      http.expectOne((r) => r.url.endsWith('/director/whatif')).flush(
+        whatIf({ delay: [442, 442], source: 'continue', changed: [] }),
+      );
+      fixture.detectChanges();
+
+      expect(cmp.tiles()[1].measured!.changesNothing).toBeTrue();
+      expect(fixture.nativeElement.textContent).toContain('bleibt beim laufenden Plan');
+    });
+
+    it('names it when the simulation contradicts the score', () => {
+      // §3.8: the models rank residual plans optimistically. Measured on the demo
+      // env, the worst-scored focus was the only one that improved the outcome —
+      // a tile that only shows scores recommends the wrong goal confidently.
+      flushStrategies();
+      cmp.simulate(cmp.tiles()[0]);
+      http.expectOne((r) => r.url.endsWith('/director/whatif')).flush(
+        whatIf({
+          delay: [442, 470],
+          considered: { research: 0.8, continue: 0.3 }, // planner preferred re-planning
+        }),
+      );
+      fixture.detectChanges();
+
+      expect(cmp.tiles()[0].measured!.contradictsScore).toBeTrue();
+      const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
+      expect(text).toContain('widerspricht der Bewertung');
+      expect(text).toContain('im Zweifel gilt das Nachspielen');
+    });
+
+    it('drops a simulation once the state it was taken from moved on', () => {
+      flushStrategies({ step: 12 });
+      cmp.simulate(cmp.tiles()[0]);
+      http.expectOne((r) => r.url.endsWith('/director/whatif')).flush(
+        whatIf({ delay: [442, 400] }),
+      );
+      expect(cmp.tiles()[0].measured).not.toBeNull();
+
+      cmp.load(true);
+      http.expectOne((r) => r.url.endsWith('/director/strategies')).flush({
+        session_id: 's1', step: 30, available: true, reason: null,
+        current: null, strategies: THREE,
+      });
+      for (const req of http.match((r) => r.url.endsWith('/director'))) {
+        req.flush({ session_id: 's1', weights: { punctuality: 1, connections: 1, stability: 1 }, plan: null, paths: null });
+      }
+      // Measured numbers from an older step under a fresh plan would be the same
+      // stale-under-a-new-label problem the map overlay had.
+      expect(cmp.tiles()[0].measured).toBeNull();
+    });
+
+    it('keeps the model values when the simulation fails', () => {
+      flushStrategies();
+      cmp.simulate(cmp.tiles()[0]);
+      http.expectOne((r) => r.url.endsWith('/director/whatif')).error(
+        new ProgressEvent('error'), { status: 400, statusText: 'no models' },
+      );
+      fixture.detectChanges();
+
+      expect(cmp.tiles()[0].measured).toBeNull();
+      expect(cmp.simulating()).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Simulation ist fehlgeschlagen');
+    });
+  });
+
   // ── the learned preference, where the decision is made ────────────────────
   describe('learned preference', () => {
     let model: OperatorModelService;

@@ -199,6 +199,89 @@ describe('ShiftReviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('kein Sprachmodell');
   });
 
+  // ── the plan, replayed (director-mode.md §3.7) ────────────────────────────
+  describe('ground truth', () => {
+    let http: HttpTestingController;
+
+    beforeEach(() => {
+      http = TestBed.inject(HttpTestingController);
+      store.session.set({ id: 's1' } as never);
+      store.shiftEnded.set(true);
+    });
+
+    afterEach(() => {
+      store.shiftEnded.set(false);
+      store.session.set(null);
+    });
+
+    it('replays the plan and reports what it actually achieves', () => {
+      withAgents();
+      fixture.detectChanges();
+
+      const req = http.expectOne((r) => r.url.endsWith('/director/verify'));
+      expect(req.request.method).toBe('POST');
+      req.flush({
+        session_id: 's1',
+        predicted: {
+          weighted: 0.27,
+          utilities: { punctuality: 0.72, connections: 0.1, stability: 0.005 },
+          source: 'search',
+        },
+        verified: {
+          total_delay: 442, all_arrived: false, bucket: 5,
+          connections_total: 17, connections_kept: 6, kept_ratio: 0.3529,
+          safety: 0.0045, steps: 200,
+        },
+      });
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
+      expect(text).toContain('Der Plan, nachgespielt');
+      expect(text).toContain('442');
+      expect(text).toContain('6/17');
+      expect(text).toContain('35 %');
+      // The prediction is named as the clamped search value, not as a rival truth.
+      expect(text).toContain('10 %');
+      expect(text).toContain('gekappter geometrischer Mittelwert');
+      // And the claim is bounded: this is the plan on the episode, not the history.
+      expect(text).toContain('nicht „so lief die Schicht ab');
+    });
+
+    it('stays silent when there is nothing to replay', () => {
+      // 400 without a committed plan (no models, never planned) is a normal
+      // outcome of this deployment, not something to report at the operator.
+      withAgents();
+      fixture.detectChanges();
+      http.expectOne((r) => r.url.endsWith('/director/verify')).error(
+        new ProgressEvent('error'), { status: 400, statusText: 'no plan' },
+      );
+      fixture.detectChanges();
+
+      expect(cmp.predictedVsVerified()).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('nachgespielt');
+    });
+
+    it('asks once, not on every change detection', () => {
+      withAgents();
+      fixture.detectChanges();
+      http.expectOne((r) => r.url.endsWith('/director/verify')).flush({
+        session_id: 's1',
+        predicted: { weighted: 0.5, utilities: null, source: 'search' },
+        verified: {
+          total_delay: 10, all_arrived: true, bucket: 1,
+          connections_total: 4, connections_kept: 4, kept_ratio: 1,
+          safety: 0.5, steps: 120,
+        },
+      });
+      fixture.detectChanges();
+      cmp.savePreferences();
+      http.match((r) => r.url.endsWith('/end-session')).forEach((r) => r.flush(profileFixture()));
+      fixture.detectChanges();
+
+      http.expectNone((r) => r.url.endsWith('/director/verify'));
+    });
+  });
+
   // ── carrying the shift over ───────────────────────────────────────────────
   describe('saving the preferences', () => {
     let http: HttpTestingController;

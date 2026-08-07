@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
+import { ApiService, DirectorVerification } from '../../core/api.service';
 import { AgentDTO } from '../../core/models';
 import { OperatorModelService, ValueAxis } from '../../core/operator-model.service';
 import { SessionStore } from '../../core/session.store';
@@ -36,6 +45,41 @@ import { ShiftKpis, buildShiftReview, statedReason } from '../../core/shift-revi
 export class ShiftReviewComponent {
   store = inject(SessionStore);
   private model = inject(OperatorModelService);
+  private api = inject(ApiService);
+
+  /**
+   * The plan, replayed on a pristine fork of the same episode
+   * (`POST /director/verify`, `search.verify_plan` — director-mode.md §3.7).
+   *
+   * This is the only ground truth the review has: everything else on this screen
+   * is either counted from the live fleet or predicted by the value models. It
+   * costs ~0.1 s (an open-loop replay, no model calls), so it is fetched
+   * outright rather than hidden behind a button.
+   *
+   * What it does *not* claim: it replays the **final committed** schedules from
+   * step zero, and those are origin-anchored full-horizon plans (invariant 5).
+   * So it answers "what does this plan do on this episode", not "this is exactly
+   * how the shift went" — the copy says so.
+   */
+  readonly verification = signal<DirectorVerification | null>(null);
+  readonly verifyFailed = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const sid = this.store.session()?.id;
+      const open = this.store.shiftReviewOpen();
+      if (!sid || !open) return;
+      untracked(() => {
+        if (this.verification() || this.verifyFailed()) return;
+        this.api.verifyDirectorPlan(sid).subscribe({
+          next: (v) => this.verification.set(v),
+          // 400 without a committed plan (no models, never planned) is a normal
+          // outcome, not an error to report at the operator.
+          error: () => this.verifyFailed.set(true),
+        });
+      });
+    });
+  }
 
   private isMalfunctioning(a: AgentDTO): boolean {
     return (
@@ -169,6 +213,34 @@ export class ShiftReviewComponent {
     if (response === 'no') return 'als Präferenz verneint';
     return null;
   }
+
+  /**
+   * Where the models' promise and the replay part ways.
+   *
+   * The plan info carries predicted per-axis utilities; the replay carries what
+   * the plan actually achieves. Naming the gap is the point — §3.8 of the
+   * reference states that residual plans are scored optimistically, so a review
+   * that only repeats the prediction would repeat its bias too.
+   */
+  readonly predictedVsVerified = computed(() => {
+    const v = this.verification();
+    if (!v) return null;
+    const predictedConnections = v.predicted.utilities?.connections ?? null;
+    return {
+      verified: v.verified,
+      source: v.predicted.source,
+      // Both are shares of transfers kept, so they are directly comparable —
+      // except the prediction is the search's clamped geometric mean, which is
+      // why it can sit far below the replayed share (§3.5).
+      predictedConnectionPct:
+        predictedConnections == null ? null : Math.round(predictedConnections * 100),
+      verifiedConnectionPct: Math.round(v.verified.kept_ratio * 100),
+      predictedStabilityPct:
+        v.predicted.utilities?.stability == null
+          ? null
+          : Math.round(v.predicted.utilities.stability * 100),
+    };
+  });
 
   /** Share of trains that reached their target, for the headline. */
   readonly arrivedPct = computed(() => {

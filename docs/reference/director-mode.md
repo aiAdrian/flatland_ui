@@ -37,13 +37,14 @@ the file assumes; §3 is the bulk of the API surface.
 | 437–473 | 3.9 `goal_directed_policy.py` | caches, re-plan lifecycle, threading, re-anchoring |
 | 474–491 | 3.10 `dataset.py` | encoding, timing helpers, the hard caps |
 | 492–505 | 3.11 Models | the two checkpoints, the optional prior, env vars |
-| 506–517 | 4. HTTP API | the five `/director*` endpoints and their payloads |
-| 518–532 | 5. Frontend surface | store signals, widgets, mode gating |
-| 533–553 | 6. Offline tooling | training / eval / dataset / calibration CLIs |
-| 554–578 | **7. Invariants** | what must not break (read before editing the planner) |
-| 579–599 | 8. Known limits | failure modes, incl. the re-plan latency window |
-| 600–651 | 9. Recipes | runnable snippets for the common tasks |
-| 652–668 | 10. Tests | which test file covers what |
+| 506–520 | 4. HTTP API | the seven `/director*` endpoints and their payloads |
+| 521–569 | 5. Frontend surface | the A/B/C presets, store signals, widgets, mode gating |
+| 550–569 | · 5.1 | the three kinds of number a tile shows, and which one wins |
+| 570–590 | 6. Offline tooling | training / eval / dataset / calibration CLIs |
+| 591–615 | **7. Invariants** | what must not break (read before editing the planner) |
+| 616–636 | 8. Known limits | failure modes, incl. the re-plan latency window |
+| 637–688 | 9. Recipes | runnable snippets for the common tasks |
+| 689–706 | 10. Tests | which test file covers what |
 
 ---
 
@@ -513,22 +514,59 @@ and degrades to `"avoidance (no models)"`.
 | `POST /session/{id}/director/replan` | Manual residual re-plan (gated) → `{event, plan, paths}`; 400 without a committed plan or models |
 | `POST /session/{id}/director/whatif` | Candidate weights → two forks (continue vs re-plan), both simulated to the end → `{continue, replan}` with delay/arrivals/connections. Same RNG stream; live session untouched |
 
+| `GET /session/{id}/director/strategies` | The A/B/C tiles: one plan per focus preset (§5), each on its own fork. `{step, available, reason, current, strategies:[{id, ident, focus, weights, plan:{source, weighted, utilities, reported, changed}, paths, divergence}]}`. Cached on `_strategy_cache_key` (step + weights + source + replan count) — three plans cost ~16–20 s. **Before step 0 the options are planned with `director_plan`** (so they get the portfolio guarantee, like the driving plan); mid-episode with `residual_plan` (the past must stay pinned). `reported` is `search._reported(breakdown)`: `keptRatio`, `connectionCount`, the four safety sub-scores. `divergence` is per train what the option changes against the driving plan — `reroute` (deviating stretch + branch cell) or `hold` (same cells, later) |
+| `GET /session/{id}/director/activity` | Supervisory feed (~1 KB, vs ~172 KB for `/director` with the full trace): `{disruptions, replans, decided, planned, workload:{decisions, replans}, next:{step, inSteps, handle}}`. The trace holds *planned* times, so history and plan are reported apart |
+
 `_invalidate_scenario_forecasts(session_id)` is called whenever the committed plan changed.
 
 ## 5. Frontend surface
 
+The supervisory decision the HMI asks of the human is **which objective** the plan should
+pursue, so the dial surface is three presets (A/B/C), each answered by a real plan:
+
+| Preset | Weights (p/c/s) | Wins on |
+| --- | --- | --- |
+| A · Verspätung minimieren | 5 / 2 / 2 | punctuality |
+| B · Anschlüsse halten | 2 / 5 / 2 | connections |
+| C · Stabilität maximieren | 2 / 2 / 5 | stability |
+
+No axis is ever zeroed and each preset weights its own axis strictly highest: the choice is
+a statement about values, not a quality ranking. `DIRECTOR_STRATEGY_PRESETS` in
+`app/api/sessions.py` is the single source; `test_director_strategies_api.py` asserts both
+properties.
+
 | File | Role |
 | --- | --- |
-| `core/session.store.ts` | `interactionMode`, `aiInControl` (= director), `optionPresentation === 'none'`, `_policyBeforeDirector` (auto-switch to/from `goal_directed`), `directorPlanPaths`, `directorPlanHover` |
-| `core/api.service.ts` | `getDirectorState`, `setDirectorWeights`, `verifyDirectorPlan`, `replanDirectorNow`, `whatIfDirector` + all `Director*` interfaces (mirror of the payloads above) |
-| `features/director-directive/` | Pre-run directive: KPI priorities + policy + "Start autonomous run" |
-| `features/director-weights/` | The three dials (0–5 discrete points → weight ratio), scorecard (source/utilities), trace, re-plan list, verify + what-if buttons; polls director state; sets `directorPlanPaths` |
-| `features/goal-achievement/` | Supervisory KPI panel (arrived %, mean delay vs target) |
-| `features/flatland-map/` | Draws `directorPlanPaths` while `directorPlanHover` is true |
-| `core/layout/panel-mode-availability.ts` | `goal-achievement`, `director-directive`, `director-weights` are director-only; `scenario` is co-learning + director |
+| `core/session.store.ts` | `interactionMode`, `aiInControl` (= director), `optionPresentation === 'none'`, `_policyBeforeDirector`; overlay state `directorPlanPaths` / `directorPlanHover` / `directorPreviewPaths` / `directorPreviewDivergence` / `directorPreviewIsCommitted` / `directorPreviewIsFullPlan` / `directorHoverHandle`; `directorNextDecision`, `directorAiWorkload`, `directorFocusOutlook`; `shiftEnded` + `shiftReviewOpen` |
+| `core/api.service.ts` | `getDirectorState`, `setDirectorWeights`, `getDirectorStrategies`, `getDirectorActivity`, `verifyDirectorPlan`, `replanDirectorNow`, `whatIfDirector` + all `Director*` interfaces |
+| `features/strategy-options/` | **The A/B/C tiles** — per-axis bars as deltas against the driving plan, `reported` figures instead of the raw utilities, "Auf Karte" (divergence overlay), "Übernehmen" (`setDirectorWeights(…, plan=true)`), "Nachspielen" (`whatIfDirector`, ~7 s) |
+| `features/director-directive/` | One-line state bar: aggregate fleet numbers, run control, "Schicht beenden" |
+| `features/strategy-forecast/` | Rule-based projection of the selected focus's per-axis deltas (labelled as such — not a simulation) |
+| `features/ai-activity/` | What the planner did and will do next, from `/director/activity` |
+| `features/strategy-reflection/` | Asks *why* after a focus is committed (reason chips + free text, yes/once/no); the only preference evidence Director produces |
+| `features/shift-review/` | Schichtabschluss as its own screen: balance, ≤3 reflection moments with the scoring trace, `verifyDirectorPlan` as ground truth, and saving the operator profile |
+| `features/flatland-map/` | Draws `directorPlanPaths` on hover; a previewed option as **branch marks** (one per rerouted train) plus hold marks, its route only for the train under the pointer; red ring + tooltip on a disrupted train |
+| `core/layout/panel-mode-availability.ts` | `director-directive` is director-only. Director deliberately does **not** show Situation Summary, Agents, Director Weights, Scenario, Agent Inspector, Goal Achievement or Recommendations — see the mode's own docs |
 
-Dials are discrete on purpose: small continuous nudges barely move a normalised weight
-ratio, so every click must be a change the planner can respond to.
+### 5.1 Why the tiles show three different kinds of number
+
+1. **Model utilities** (the bars) — `CandidateScore.utilities`, cheap, computed for all three
+   options at once. Two are unfit as displayed values, so `reported` replaces/annotates them
+   (§3.5, §3.6): `kept_ratio` for connections, the limiting safety sub-score for stability.
+2. **Rule-based projection** (the forecast strip) — a template over the per-axis deltas. No
+   simulation; the strip says so.
+3. **Simulated outcome** ("Nachspielen", `/director/whatif`) — two forks from the same RNG
+   state, both played to the end, ~7 s. This is the one that decides when they disagree:
+   §3.8 says residual plans are scored optimistically. Measured on the demo environment, the
+   focus the models scored *worst* (0.44 vs 0.75) was the only one that improved the outcome
+   (delay 442 → 324, arrivals 1 → 3, transfers 6 → 8), and in another session A/B/C had
+   nearly identical bars (92/28/0 vs 91/28/0) while the replay separated them by 728 delay.
+   The tile names the contradiction when it occurs.
+
+`verifyDirectorPlan` costs ~0.1 s (open-loop replay, no model calls), which is why the shift
+review fetches it outright. It replays the **final committed** origin-anchored schedules from
+step 0 (invariant 5), so it answers "what does this plan achieve on this episode", not "this
+is how the shift went".
 
 ## 6. Offline tooling
 
@@ -664,5 +702,14 @@ connection_model = ConnectionTransformer(hidden=16, rounds=1, layers=1, heads=2,
 | `test_goal_based_search_dataset.py`, `…_priors.py`, `…_eval_set.py` | offline pipelines |
 | `test_goal_directed_policy.py` | registration, weights, degradation without checkpoints, cache survival across policy rebuilds, malfunction-triggered re-plan |
 | `test_director_weights_api.py`, `test_director_replan_api.py` | HTTP contracts, forecast invalidation, what-if isolation, director-mode play |
+| `test_director_strategies_api.py` | the A/B/C presets (no dominated option, no zeroed axis), the planner used per phase (`director_plan` at t=0, `residual_plan` after), caching and its invalidation, degradation without models |
+| `test_director_divergence.py` | `_divergence`: reroute vs hold, the deviating stretch and its branch cell, "changes nothing" |
+| `test_director_activity_api.py` | the supervisory feed: history vs plan kept apart, workload, next decision |
+| `test_operator_model.py`, `test_operator_api.py`, `test_operator_loop.py` | the operator model: evidence gate, value profile, confirmed learnings, cross-session carry-over and its file persistence |
+
+Frontend specs live next to their components (`ng test`, 200 specs): `strategy-options` (tile
+figures, divergence gating, simulated outcome, learned-preference badge), `shift-review`
+(balance, moments, ground truth, saving), `core/shift-review.spec.ts`,
+`core/reflection-moments.spec.ts`, `core/strategy-forecast.spec.ts`.
 
 Run a subset: `cd backend && python -m pytest tests/test_goal_based_search.py -q`.

@@ -99,6 +99,41 @@
       </div>
     }
 
+    <!-- 2b. Der Plan, nachgespielt -->
+    @if (predictedVsVerified(); as pv) {
+      <div class="sv-block">
+        <span class="sv-block__title">Der Plan, nachgespielt</span>
+        <p class="sv-line">
+          Auf einer frischen Kopie derselben Episode — gleiche Gleise, gleicher
+          Fahrplan, gleiche Störungen — ergibt der Plan
+          <strong>{{ pv.verified.total_delay }}</strong> Verspätung,
+          @if (pv.verified.all_arrived) {
+            <strong>alle Züge am Ziel</strong>
+          } @else {
+            <strong>nicht alle Züge am Ziel</strong>
+          }
+          und <strong>{{ pv.verified.connections_kept }}/{{ pv.verified.connections_total }}</strong>
+          gehaltene Anschlüsse ({{ pv.verifiedConnectionPct }} %) über
+          {{ pv.verified.steps }} Schritte.
+        </p>
+        @if (pv.predictedConnectionPct !== null) {
+          <p class="sv-note">
+            Die Modelle hatten für die Anschlüsse {{ pv.predictedConnectionPct }} %
+            angesetzt — der Suchwert ist ein gekappter geometrischer Mittelwert
+            und liegt bewusst tiefer als der Anteil, der zählt.
+            @if (pv.predictedStabilityPct !== null) {
+              Stabilität war mit {{ pv.predictedStabilityPct }} % bewertet.
+            }
+          </p>
+        }
+        <p class="sv-note">
+          Nachgespielt wird der <em>zuletzt übernommene</em> Plan ab Schritt 0.
+          Das ist die Aussage „was leistet dieser Plan auf dieser Episode" — nicht
+          „so lief die Schicht ab", denn zwischendurch wurde umgeplant.
+        </p>
+      </div>
+    }
+
     </div><!-- /sv-col -->
     <div class="sv-col">
 
