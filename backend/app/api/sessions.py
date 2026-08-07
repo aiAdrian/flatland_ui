@@ -455,6 +455,7 @@ def delete_session(session_id: str):
         raise HTTPException(404, f"Session {session_id} not found")
     override_manager.clear_all(session_id)
     notification_manager.clear_session(session_id)
+    _STRATEGY_CACHE.pop(session_id, None)
     return {"deleted": session_id}
 
 
@@ -494,6 +495,10 @@ def _invalidate_scenario_forecasts(session_id: str) -> None:
         scenario_cache.clear_session(session_id)
     except Exception:
         pass
+    # Same reasoning for the strategy answers: they compare each focus against
+    # the plan that drives, so a changed plan invalidates them too. The key check
+    # would catch it, but dropping it here keeps stale payloads from lingering.
+    _STRATEGY_CACHE.pop(session_id, None)
 
 
 # ── Director-mode planner dials (goal_directed policy) ──
@@ -567,6 +572,383 @@ def set_director_weights_for_session(
         "plan": plan_info(session.env) if req.plan else None,
         "paths": plan_paths(session.env) if req.plan else None,
     }
+
+
+# The three strategy focuses the Director offers as A/B/C tiles. Each is a
+# dial preset that wins on exactly one axis and pays for it on the others —
+# no dominated option, so the choice is a genuine trade-off rather than a
+# quality ranking. Points are the same 0–5 grid the dials use.
+def _divergence(current: list | None, option: list | None) -> dict | None:
+    """Where an option's route differs from the plan that is driving.
+
+    Drawing each option's *full* planned routes was unusable: nearly every train
+    gets re-planned, so the map filled with 7–8 dashed lines spanning the whole
+    grid — and they were almost identical between the options, because most
+    trains keep their path. The only informative part is the stretch where the
+    new plan deviates.
+
+    Two kinds of difference, and they need different marks:
+
+    - **reroute** — the cell sequence differs. Returns just the deviating
+      stretch, with one cell of context on each side so it visibly branches off
+      and rejoins.
+    - **hold** — the cells are identical but the option arrives later: the train
+      waits rather than taking another route. A line cannot show that; the
+      caller marks the spot instead.
+
+    Returns None when the option changes nothing for this train.
+    """
+    cur = [(int(p["row"]), int(p["col"])) for p in (current or [])]
+    opt = [(int(p["row"]), int(p["col"])) for p in (option or [])]
+    if not opt:
+        return None
+
+    if cur == opt[: len(cur)] or opt == cur[: len(opt)]:
+        # Same route as far as both go → the only possible difference is timing.
+        if current and option:
+            delay = int(option[0].get("step", 0)) - int(current[0].get("step", 0))
+            if delay >= 1:
+                return {
+                    "kind": "hold",
+                    "steps": delay,
+                    "row": int(option[0]["row"]),
+                    "col": int(option[0]["col"]),
+                }
+        return None
+
+    first = next(
+        (i for i in range(min(len(cur), len(opt))) if cur[i] != opt[i]),
+        min(len(cur), len(opt)),
+    )
+    # Last index at which they still differ, so a detour that rejoins is cut off
+    # at the merge point instead of running to the end of the plan.
+    last = first
+    for i in range(min(len(cur), len(opt))):
+        if cur[i] != opt[i]:
+            last = i
+    if len(opt) > len(cur):
+        last = len(opt) - 1
+
+    start = max(0, first - 1)
+    end = min(len(opt) - 1, last + 1)
+    stretch = option[start : end + 1]
+    if len(stretch) < 2:
+        return None
+    # The branch point is what the map marks by default. Measured on the demo
+    # environment, the deviating stretches run 19–96 cells: these options are not
+    # small detours but substantially different routes, so drawing them all as
+    # lines is unreadable however well they are filtered. One mark per train at
+    # the cell where it starts to differ is the readable minimum; the stretch
+    # itself is drawn only for the train the operator points at.
+    branch = option[first] if first < len(option) else stretch[0]
+    return {
+        "kind": "reroute",
+        "points": stretch,
+        "branch": {
+            "row": int(branch["row"]),
+            "col": int(branch["col"]),
+            "step": int(branch.get("step", 0)),
+        },
+    }
+
+
+_STRATEGY_CACHE: dict[str, tuple[tuple, dict]] = {}
+
+
+def _strategy_cache_key(env, info: dict) -> tuple:
+    """What makes a strategy answer valid: the state it was planned from, and the
+    plan it was compared against. Both change → re-plan; neither → reuse."""
+    return (
+        int(getattr(env, "_elapsed_steps", 0) or 0),
+        tuple(info.get("weights") or ()),
+        info.get("source"),
+        len(info.get("replans") or []),
+    )
+
+
+DIRECTOR_STRATEGY_PRESETS: list[dict[str, object]] = [
+    {
+        "id": "focus_delay",
+        "ident": "A",
+        "focus": "punctuality",
+        "weights": {"punctuality": 5, "connections": 2, "stability": 2},
+    },
+    {
+        "id": "focus_connections",
+        "ident": "B",
+        "focus": "connections",
+        "weights": {"punctuality": 2, "connections": 5, "stability": 2},
+    },
+    {
+        "id": "focus_stability",
+        "ident": "C",
+        "focus": "stability",
+        "weights": {"punctuality": 2, "connections": 2, "stability": 5},
+    },
+]
+
+
+@router.get("/{session_id}/director/activity")
+def get_director_activity(session_id: str, limit: int = 12):
+    """What the autonomous planner has actually been doing, newest first.
+
+    Director mode's supervisory question is "what is the AI doing, and did it
+    react to what just happened?" — and the answer already exists in the plan
+    info: every committed decision (`trace`) and every mid-episode re-plan
+    (`replans`, including the ones it decided *against*). None of it was
+    reachable in the UI.
+
+    A dedicated endpoint rather than reading `/director`: that response carries
+    the full trace with every weighed option per decision — measured at
+    **172 KB** for a 64-decision episode — which is far too much to poll for a
+    feed that needs a handful of one-liners. Here the options are reduced to
+    their count and the chosen branch, so the payload stays flat in the episode
+    length.
+    """
+    from app.policies.goal_directed_policy import plan_info
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    info = plan_info(session.env) or {}
+    step = int(getattr(session.env, "_elapsed_steps", 0) or 0)
+    entries: list[dict] = []
+
+    for event in info.get("replans") or []:
+        considered = event.get("considered") or {}
+        entries.append({
+            "kind": "replan",
+            "step": int(event.get("step", 0)),
+            "reason": event.get("reason"),
+            # 'research' = the plan was replaced; 'continue' = it was kept, either
+            # on score or because the paired rollout gate vetoed the switch.
+            "verdict": event.get("source"),
+            "gate": event.get("gate"),
+            "changed": len(event.get("changed") or []),
+            "scoreResearch": considered.get("research"),
+            "scoreContinue": considered.get("continue"),
+        })
+
+    for item in info.get("trace") or []:
+        options = item.get("options") or []
+        chosen_idx = item.get("chosen")
+        chosen = (
+            options[chosen_idx]
+            if isinstance(chosen_idx, int) and 0 <= chosen_idx < len(options)
+            else None
+        )
+        entries.append({
+            "kind": "decision",
+            "step": int(round(float(item.get("time", 0) or 0))),
+            "handle": item.get("handle"),
+            "stuck": bool(item.get("stuck")) or chosen is None,
+            "wait": (chosen or {}).get("wait"),
+            "toNode": (chosen or {}).get("to_node"),
+            "optionCount": len(options),
+            "score": (chosen or {}).get("weighted"),
+        })
+
+    # The trace is a *plan*, not a log: each entry's `time` is the planned moment
+    # of that decision, so entries beyond the current step have not happened yet.
+    # Conflating the two would have shown "the AI just did X" for something
+    # scheduled 30 steps into the future. Split instead — which turns one feed
+    # into the two questions supervision actually asks: what did it just do, and
+    # what is it about to do?
+    cap = max(1, min(limit, 100))
+
+    # Re-plans get their own channel rather than competing for slots in the
+    # decision history. They are rare and they are the point: a disruption hits,
+    # the planner weighs replacing the plan, and either commits or is vetoed by
+    # the paired simulation. In a shared 6-entry window the single most
+    # informative event of a run scrolled out within a few steps.
+    replans = [e for e in entries if e["kind"] == "replan"]
+    replans.sort(key=lambda e: e["step"], reverse=True)
+
+    decisions = [e for e in entries if e["kind"] == "decision"]
+    recent = sorted(
+        (e for e in decisions if e["step"] <= step), key=lambda e: e["step"], reverse=True
+    )
+    upcoming = sorted((e for e in decisions if e["step"] > step), key=lambda e: e["step"])
+
+    return {
+        "session_id": session_id,
+        "step": step,
+        "source": info.get("source"),
+        "totalDecisions": len(decisions),
+        "totalReplans": len(replans),
+        "replans": replans[:cap],
+        "recent": recent[:cap],
+        "upcoming": upcoming[:cap],
+    }
+
+
+@router.get("/{session_id}/director/strategies")
+def get_director_strategies(session_id: str):
+    """Plan the episode's remainder under each strategy focus — minimise
+    delay / hold connections / maximise stability — and report what each
+    focus promises plus its drawable reroute.
+
+    This backs the A/B/C strategy tiles: the supervisory decision is which
+    objective the autonomous plan should pursue, so each tile has to be
+    answered by an actual plan under those dials, not by a label.
+
+    Planning only, no forward simulation to the episode's end (that is what
+    `/director/whatif` is for) — three residual plans are fast enough to
+    answer while the operator is still looking at the tiles, and the
+    per-axis utilities are the planner's own scores for the branch it would
+    commit. Each focus is planned on its own fork; the live session and its
+    committed plan are untouched.
+
+    Degrades instead of failing: when the session has not planned yet or no
+    models are installed, the presets come back with `available: false` and
+    no numbers, so the tiles can still be offered as pure directives.
+    """
+    import copy
+
+    from app.policies.goal_based_policies.schedule import SchedulePlayer
+    from app.policies.goal_directed_policy import (
+        loaded_models,
+        plan_info,
+        plan_player,
+        plan_schedules,
+    )
+
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    # The running plan, so each focus can be read as a difference to what is
+    # driving right now instead of as an absolute score in a vacuum.
+    info = plan_info(session.env) or {}
+    current = (
+        {
+            "source": info.get("source"),
+            "weighted": info.get("weighted"),
+            "utilities": info.get("utilities"),
+            "reported": info.get("reported"),
+        }
+        if info.get("utilities")
+        else None
+    )
+
+    def shell(reason: str | None = None) -> dict:
+        return {
+            "session_id": session_id,
+            "step": int(getattr(session.env, "_elapsed_steps", 0) or 0),
+            "available": reason is None,
+            "reason": reason,
+            "current": current,
+            "strategies": [
+                {
+                    **preset, "plan": None, "paths": None,
+                    "divergence": {"reroutes": {}, "holds": []},
+                }
+                for preset in DIRECTOR_STRATEGY_PRESETS
+            ],
+        }
+
+    player = plan_player(session.env)
+    schedules = plan_schedules(session.env)
+    models = loaded_models()
+    if player is None or schedules is None:
+        return shell("No committed plan yet — step under 'goal_directed' first")
+    if models is None:
+        return shell("No models installed — strategy plans need them")
+
+    # Imported only past the models gate: the ensemble pulls in torch, which a
+    # model-free deployment does not have. Without this the "no models"
+    # degradation would itself crash with an ImportError.
+    from app.policies.goal_based_policies.ensemble import DirectorWeights
+    from app.policies.goal_based_policies.replan import (
+        apply_residual_plan,
+        residual_plan,
+    )
+    from app.policies.goal_based_policies.search import _reported as _reported_figures
+
+    # Three residual plans cost ~16s (measured), and an unchanged request costs
+    # exactly the same again — which made re-entering Director, a second panel
+    # instance or a stray refresh a 16s stall for an answer we already had.
+    cache_key = _strategy_cache_key(session.env, info)
+    cached = _STRATEGY_CACHE.get(session_id)
+    if cached and cached[0] == cache_key:
+        return {**cached[1], "cached": True}
+
+    graph = player.graph
+    snapshot = player.snapshot()
+    handles = [int(schedule.handle) for schedule in schedules]
+    # The plan that is driving, to diff each option against.
+    live_paths = {h: player.future_path(h) for h in handles}
+
+    out = []
+    for preset in DIRECTOR_STRATEGY_PRESETS:
+        w = preset["weights"]
+        try:
+            weights = DirectorWeights(
+                w["punctuality"], w["connections"], w["stability"])
+        except ValueError as e:  # pragma: no cover — presets are static
+            raise HTTPException(500, str(e))
+
+        fork = copy.deepcopy(session.env)
+        fork_player = SchedulePlayer(graph, fork)
+        fork_player.restore(snapshot)
+        plan = residual_plan(
+            fork, graph, weights, *models,
+            player=fork_player, schedules=schedules,
+            reason=f"strategy-{preset['id']}",
+        )
+        if plan is None:
+            out.append({
+                **preset, "plan": None, "paths": None,
+                "divergence": {"reroutes": {}, "holds": []},
+            })
+            continue
+        apply_residual_plan(fork_player, plan)
+        option_paths = {h: fork_player.future_path(h) for h in handles}
+        reroutes: dict[str, list] = {}
+        holds: list[dict] = []
+        for handle in handles:
+            diff = _divergence(live_paths.get(handle), option_paths.get(handle))
+            if diff is None:
+                continue
+            if diff["kind"] == "reroute":
+                reroutes[str(handle)] = {
+                    "branch": diff["branch"],
+                    "points": diff["points"],
+                }
+            else:
+                holds.append({
+                    "handle": handle,
+                    "row": diff["row"],
+                    "col": diff["col"],
+                    "steps": diff["steps"],
+                })
+        out.append({
+            **preset,
+            # The minimal honest overlay: only what this option changes.
+            "divergence": {"reroutes": reroutes, "holds": holds},
+            "plan": {
+                "source": plan.source,
+                "weighted": plan.score.weighted,
+                "utilities": dict(plan.score.breakdown["utilities"]),
+                # Display figures — see `search._reported`. The raw utilities stay
+                # for the ranking; the tiles show these.
+                "reported": _reported_figures(plan.score.breakdown),
+                "changed": sorted(plan.tails),
+            },
+            "paths": {str(handle): option_paths[handle] for handle in handles},
+        })
+
+    payload = {
+        "session_id": session_id,
+        "step": int(getattr(session.env, "_elapsed_steps", 0) or 0),
+        "available": True,
+        "reason": None,
+        "current": current,
+        "strategies": out,
+    }
+    _STRATEGY_CACHE[session_id] = (cache_key, payload)
+    return {**payload, "cached": False}
 
 
 @router.get("/{session_id}/director")

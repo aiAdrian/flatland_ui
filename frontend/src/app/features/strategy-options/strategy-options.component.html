@@ -1,0 +1,201 @@
+<div class="so">
+
+  <div class="so-head">
+    <span class="so-title">Strategie wählen</span>
+    <span class="so-sub">Welches Ziel soll der autonome Plan verfolgen?</span>
+
+    <!-- The deadline, diegetic rather than invented: the plan's next committed
+         decision. Nothing expires — after that the AI simply acts on the goal
+         currently set. -->
+    @if (store.directorNextDecision(); as next) {
+      <span class="so-deadline" [class.is-soon]="next.inSteps <= 3">
+        ⏳ Nächste KI-Entscheidung
+        @if (next.handle !== null) {
+          (Zug {{ next.handle }})
+        }
+        in <strong>{{ next.inSteps }}</strong> Schritt(en) · t={{ next.step }}
+      </span>
+    }
+
+    <!-- Forced: pressing the button is an explicit "yes, compute now" even while
+         the run is going, where the automatic load deliberately holds back. -->
+    <button type="button" class="so-refresh" (click)="load(true)" [disabled]="loading()">
+      @if (loading()) {
+        Planung läuft …
+      } @else if (hasPlans()) {
+        Neu berechnen
+      } @else {
+        Optionen berechnen
+      }
+    </button>
+  </div>
+
+  @if (unavailableReason() && !loading()) {
+    <p class="so-note so-note--warn">
+      Keine Prognose: {{ unavailableReason() }} — die Kacheln wirken trotzdem,
+      sie setzen die Ziele des Planers.
+    </p>
+  }
+
+  @if (loading()) {
+    <!-- Name the phase and the expected wait. Both are slow (~10s and ~20s,
+         measured), and an unnamed 30s of nothing is what made the tiles look
+         broken. The tiles themselves stay usable: „Übernehmen“ works without a
+         forecast. -->
+    <p class="so-note so-note--busy">
+      @if (phase() === 'first-plan') {
+        Erstplan wird berechnet (~10&nbsp;s) — danach die drei Strategien.
+      } @else {
+        Jede Strategie wird als eigener Plan durchgerechnet (drei Varianten,
+        ~20&nbsp;s, auf Kopien) — die laufende Session bleibt unberührt.
+        Übernehmen geht schon jetzt.
+      }
+    </p>
+  } @else if (waitingForPause()) {
+    <!-- Not a missing feature: a 20s forecast against a moving state is stale
+         before it arrives, and it competes with the simulation for CPU. -->
+    <p class="so-note so-note--warn">
+      Die Prognose rechne ich, sobald du pausierst — sie dauert ~20&nbsp;s, und
+      während der Fahrt wäre sie beim Eintreffen schon überholt. Ziele
+      übernehmen kannst du jederzeit.
+    </p>
+  } @else if (stale()) {
+    <p class="so-note so-note--warn">
+      Berechnet für Schritt {{ computedAtStep() }}, aktuell {{ store.elapsedSteps() }}
+      @if (store.playing()) {
+        — bei Pause rechne ich neu.
+      }
+    </p>
+  } @else if (allFocusesAgree()) {
+    <p class="so-note so-note--agree">
+      Alle drei Ziele führen hier zum selben Plan — es gibt gerade keinen Zug,
+      der sie gegeneinander abwägt. Die Wahl greift erst am nächsten Konflikt.
+    </p>
+  }
+
+  <div class="so-grid">
+    @for (tile of tiles(); track tile.strategy.id) {
+      <div class="so-tile"
+           [class.is-active]="tile.isActive"
+           [class.is-previewed]="tile.isPreviewed"
+           [class.is-preferred]="tile.isPreferred">
+
+        <div class="so-tile__head">
+          <span class="so-ident">{{ tile.ident }}</span>
+          <h4 class="so-tile__title" [attr.title]="tile.copy.goal">{{ tile.copy.title }}</h4>
+          @if (tile.isActive) {
+            <span class="so-badge">Aktiv</span>
+          }
+        </div>
+
+        <!-- The warm start, made visible where the decision happens. A nudge with
+             its evidence attached: the order of the tiles is untouched, and the
+             AI still sets nothing by itself. -->
+        @if (tile.isPreferred) {
+          <p class="so-preferred" [attr.title]="tile.preferredWhy">
+            <span class="so-preferred__mark" aria-hidden="true">◆</span>
+            Passt zu deiner gelernten Präferenz — {{ tile.preferredWhy }}.
+            Vorschlag, keine Vorauswahl.
+          </p>
+        }
+
+        <!-- The trade-off in one line: every focus wins on its own axis and pays
+             elsewhere, so this is the actual content of the choice. -->
+        <p class="so-tradeoff">
+          <span class="so-plus">+ {{ tile.copy.gives }}</span>
+          <span class="so-sep">·</span>
+          <span class="so-minus">− {{ tile.copy.costs }}</span>
+        </p>
+
+        @if (tile.strategy.plan) {
+          <div class="so-axes">
+            @for (axis of tile.axes; track axis.focus) {
+              <div class="so-axis" [class.is-focus]="axis.isFocus">
+                <span class="so-axis__label">{{ axis.label }}</span>
+                <span class="so-axis__bar">
+                  <span class="so-axis__fill" [style.width.%]="axis.pct"></span>
+                </span>
+                <span class="so-axis__val">{{ axis.pct }}%</span>
+                @if (axis.scope) {
+                  <span class="so-axis__scope">{{ axis.scope }}</span>
+                }
+                <!-- Against the plan currently driving: "what changes if I pick
+                     this?" rather than an absolute score. -->
+                @if (axis.delta !== null && axis.delta !== 0) {
+                  <span class="so-axis__delta"
+                        [class.is-up]="axis.delta > 0"
+                        [class.is-down]="axis.delta < 0">
+                    {{ axis.delta > 0 ? '+' : '' }}{{ axis.delta }}
+                  </span>
+                } @else if (axis.delta === 0) {
+                  <span class="so-axis__delta is-flat">±0</span>
+                }
+              </div>
+            }
+          </div>
+
+          <p class="so-changed">
+            <!-- Counted from the divergence, the same source the map marks and
+                 the look-ahead button use. -->
+            @if (tile.changed === 0 && !tile.holds) {
+              Fährt jeden Zug wie der laufende Plan.
+            } @else {
+              @if (tile.changed) {
+                Leitet {{ tile.changed }} Zug/Züge um.
+              }
+              @if (tile.holds) {
+                {{ tile.holds }} warten statt umzufahren.
+              }
+            }
+            <!-- Names which of the four stability factors makes the product
+                 small, instead of leaving a bare "0 %" unexplained. -->
+            @if (tile.stabilityHint) {
+              <span class="so-nolever">Stabilität {{ tile.stabilityHint }}.</span>
+            }
+          </p>
+        } @else if (waitingForPause()) {
+          <p class="so-changed">Prognose bei Pause.</p>
+        } @else if (loading()) {
+          <!-- A placeholder with the axis names, so the tile shows its shape
+               while the numbers are computed instead of collapsing to nothing. -->
+          <div class="so-axes so-axes--pending" aria-hidden="true">
+            @for (axis of tile.axes; track axis.focus) {
+              <div class="so-axis" [class.is-focus]="axis.isFocus">
+                <span class="so-axis__label">{{ axis.label }}</span>
+                <span class="so-axis__bar"><span class="so-axis__pending"></span></span>
+              </div>
+            }
+          </div>
+          <p class="so-changed">Prognose wird berechnet …</p>
+        } @else {
+          <p class="so-changed">Noch keine Prognose berechnet.</p>
+        }
+
+        <div class="so-actions">
+          <button type="button"
+                  class="so-btn so-btn--preview"
+                  [class.is-on]="tile.isPreviewed"
+                  [disabled]="!tile.previewPaths && !tile.fullPaths"
+                  [attr.aria-pressed]="tile.isPreviewed"
+                  [attr.title]="previewBlockedReason(tile)"
+                  (click)="togglePreview(tile)">
+            {{ previewLabel(tile) }}
+          </button>
+          <button type="button"
+                  class="so-btn so-btn--apply"
+                  [disabled]="tile.isActive || applying() !== null"
+                  (click)="apply(tile)">
+            @if (applying() === tile.strategy.id) {
+              Übernehme …
+            } @else if (tile.isActive) {
+              Übernommen
+            } @else {
+              Übernehmen
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>

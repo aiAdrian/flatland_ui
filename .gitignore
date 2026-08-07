@@ -18,3 +18,8 @@ node_modules/
 /backend/outputs/
 /backend/logs/
 /backend/static/
+# Operator profiles written at runtime (carried-over preferences per operator).
+# Runtime state, not source — and it names whoever ran the demo.
+/backend/data/
+# Local test browser for `ng test` (CHROME_BIN), ~150 MB.
+/frontend/chrome-headless-shell/

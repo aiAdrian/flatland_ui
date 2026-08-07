@@ -16,6 +16,13 @@ import { RecommendationsPanelComponent } from './features/recommendations-panel/
 import { CoLearningReflectionComponent } from './features/co-learning-reflection/co-learning-reflection.component';
 import { SituationSummaryComponent } from './features/situation-summary/situation-summary.component';
 import { GoalAchievementComponent } from './features/goal-achievement/goal-achievement.component';
+import { StrategyForecastComponent } from './features/strategy-forecast/strategy-forecast.component';
+import { StrategyOptionsComponent } from './features/strategy-options/strategy-options.component';
+import { CoLearningEffectComponent } from './features/co-learning-effect/co-learning-effect.component';
+import { StrategyReflectionComponent } from './features/strategy-reflection/strategy-reflection.component';
+import { AiActivityComponent } from './features/ai-activity/ai-activity.component';
+import { ShiftReviewComponent } from './features/shift-review/shift-review.component';
+import { LearningRecordsComponent } from './features/learning-records/learning-records.component';
 import { DirectorDirectiveComponent } from './features/director-directive/director-directive.component';
 import { SurveyComponent } from './features/survey/survey.component';
 import { ImpactPanelComponent } from './features/impact-panel/impact-panel.component';
@@ -75,6 +82,13 @@ type RuntimeLayoutOption = {
     CoLearningReflectionComponent,
     SituationSummaryComponent,
     GoalAchievementComponent,
+    StrategyForecastComponent,
+    StrategyOptionsComponent,
+    CoLearningEffectComponent,
+    StrategyReflectionComponent,
+    AiActivityComponent,
+    ShiftReviewComponent,
+    LearningRecordsComponent,
     DirectorDirectiveComponent,
     SurveyComponent,
     ImpactPanelComponent,
@@ -305,9 +319,31 @@ export class AppComponent implements OnInit {
    * reading interactionMode() here keeps it reactive in the template. Replaces
    * scattered isCoLearning()/aiInControl() gating for the mode-specific panels.
    */
+  /** How many trains the look-ahead currently draws — the legend says it out
+   *  loud, because "2 Züge" and "8 Züge" are very different pictures. */
+  previewedTrainCount(): number {
+    return Object.keys(this.store.directorPreviewPaths() ?? {}).length;
+  }
+
+  /** How many trains would take another route under the previewed option. */
+  previewedBranchCount(): number {
+    return Object.keys(this.store.directorPreviewDivergence()?.reroutes ?? {}).length;
+  }
+
   panelAvailable(type: string): boolean {
     return isPanelAvailableInMode(type, this.store.interactionMode());
   }
+
+  /**
+   * The Schichtabschluss takes over the working area as its own screen.
+   *
+   * It first lived in the centre column above the map, where it had ~330px and
+   * competed with a running simulation for attention. A debrief is not a panel:
+   * it is what the operator looks at when the work is done.
+   */
+  readonly shiftScreenOpen = computed(
+    () => this.store.interactionMode() === 'director' && this.store.shiftReviewOpen(),
+  );
 
   /** Label of the currently active collaboration mode (for the header dropdown). */
   currentModeLabel(): string {
@@ -328,10 +364,20 @@ export class AppComponent implements OnInit {
   newMaxRailsBetweenCities = signal(2);
   newMaxRailPairsInCity = signal(2);
   newLineLength = signal(4);
-  newMalfunctionsEnabled = signal(false);
-  newMalfunctionRate = signal(0.001);
-  newMalfunctionMinDuration = signal(5);
-  newMalfunctionMaxDuration = signal(20);
+  /** Malfunctions ON by default, at the rate the guided demo environment was
+   *  already tuned to (0.02, 10–22 steps).
+   *
+   *  They used to be off, which quietly removed the subject of the whole
+   *  application: with no disruptions the AI has nothing to absorb, the impact
+   *  panel and the activity feed have nothing to report, and the three strategy
+   *  focuses collapse onto the same plan because no situation trades punctuality
+   *  against connections. Measured on a disruption-free run: 120 steps, zero
+   *  notifications, zero impact items. Switch off in Settings for a clean
+   *  baseline run. */
+  newMalfunctionsEnabled = signal(true);
+  newMalfunctionRate = signal(0.02);
+  newMalfunctionMinDuration = signal(10);
+  newMalfunctionMaxDuration = signal(22);
 
   settingsMode = signal(false);
   /** Session Settings dialog tab: Basic (grid only), Advanced (everything else), Colours. */
@@ -448,8 +494,9 @@ export class AppComponent implements OnInit {
   openSurvey() {
     // Answering is gated to the end of a run. In the guided demo, "Finish mode
     // & survey" is itself the deliberate end of that mode, so it is allowed even
-    // before episodeDone; a regular session must have finished its episode.
-    if (!this.store.episodeDone() && !this.store.demoActive()) return;
+    // before episodeDone; a regular session must have finished its episode — or
+    // the operator must have ended the shift, which is the same statement.
+    if (!this.store.shiftReviewOpen() && !this.store.demoActive()) return;
     this.surveyActive.set(true);
     this.blurActiveElement();
   }

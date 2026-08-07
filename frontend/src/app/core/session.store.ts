@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
-import { ApiService } from './api.service';
+import { ApiService, DirectorDivergence } from './api.service';
 import {
   VISUAL_ENCODING_PRESETS,
   VisualEncoding,
@@ -12,6 +12,7 @@ import {
   DECISION_LOG_CAP,
   DecisionLogEntry,
   DecisionOwner,
+  DecisionValueAxis,
   actionLabelFor,
 } from './decision-log';
 import {
@@ -25,6 +26,7 @@ import {
   ScenarioOption,
   WhatIfTrajById,
 } from './events/event-types';
+import { ForecastSignals } from './strategy-forecast';
 import { WebSocketService } from './websocket.service';
 import {
   LearningRecord,
@@ -141,6 +143,99 @@ export class SessionStore {
     Record<string, Array<{ step: number; row: number; col: number }>> | null
   >(null);
   readonly directorPlanHover = signal<boolean>(false);
+
+  /** Strategy look-ahead: the per-train paths of a strategy focus the operator
+   *  is *considering* but has not committed. Set by the strategy tiles, it
+   *  takes precedence over `directorPlanPaths` on the map and is drawn on its
+   *  own (no hover needed) — the whole point is to study the reroute a focus
+   *  would cause before choosing it. `directorPreviewStrategyId` names the
+   *  tile that owns the overlay so it can render as pinned. */
+  readonly directorPreviewPaths = signal<
+    Record<string, Array<{ step: number; row: number; col: number }>> | null
+  >(null);
+  readonly directorPreviewStrategyId = signal<string | null>(null);
+  /** True when the overlay shows the plan that is actually *driving* (right after
+   *  a focus was committed) rather than a hypothetical look-ahead. Same drawing,
+   *  opposite meaning — so the map legend must not call it "Vorausschau". */
+  readonly directorPreviewIsCommitted = signal<boolean>(false);
+  /**
+   * The overlay shows *all* of an option's routes because that option deviates
+   * from the running plan nowhere.
+   *
+   * Without this the tile could only disable its map button, which read as
+   * broken — most of all on tile A, whose plan often equals the one already
+   * driving. Showing the routes is still useful ("where is everyone headed?"),
+   * it just must not be labelled a look-ahead at a change that does not exist.
+   */
+  readonly directorPreviewIsFullPlan = signal<boolean>(false);
+
+  /** Which strategy focus the impact forecast should describe, published by the
+   *  strategy tiles for the forecast strip below the map. Null = no focus picked
+   *  yet, and the forecast says so instead of projecting a policy that is not
+   *  the one driving. */
+  readonly directorFocusOutlook = signal<{
+    subject: string;
+    signals: ForecastSignals;
+  } | null>(null);
+
+  /**
+   * When the autonomous plan makes its next committed decision — the operator's
+   * actual deadline in Director mode.
+   *
+   * Director has no artificial countdown: nothing expires, the AI simply keeps
+   * driving. But it is not open-ended either, and with no indication at all the
+   * question "how long do I have?" had no answer on screen. The plan's next
+   * scheduled decision is that answer, and it is diegetic rather than invented.
+   * Published by the activity feed, which polls the plan anyway.
+   */
+  readonly directorNextDecision = signal<{
+    step: number;
+    inSteps: number;
+    handle: number | null;
+  } | null>(null);
+
+  /** How much the autonomous planner did on its own this shift — published by
+   *  the activity feed, read by the shift review. */
+  readonly directorAiWorkload = signal<{ decisions: number; replans: number } | null>(null);
+
+  /**
+   * The operator declared the shift over ("Schicht beenden").
+   *
+   * Without this the review was unreachable in practice: `episodeDone` only
+   * turns true when the episode really runs out (400 steps by default), which
+   * nobody sits through in a demo — so the closing evaluation, the place where
+   * preferences are confirmed and saved, was written but never seen. A shift
+   * ends when the person on duty says it does, and it can be re-opened, so this
+   * is a view state and not a point of no return.
+   */
+  readonly shiftEnded = signal<boolean>(false);
+
+  /** Whether to show the closing review instead of the decision surfaces. */
+  readonly shiftReviewOpen = computed(() => this.episodeDone() || this.shiftEnded());
+
+  /** Declare the shift over: stop the run and switch to the review. */
+  endShift(): void {
+    if (this.playing()) this.pause();
+    this.shiftEnded.set(true);
+  }
+
+  /** Back to the running shift (only meaningful while the episode still runs). */
+  reopenShift(): void {
+    this.shiftEnded.set(false);
+  }
+
+  /**
+   * What the previewed option changes, as the map draws it: a branch mark per
+   * rerouted train and a wait mark per hold. Replaces drawing full planned
+   * routes, which was unreadable — the deviating stretches run 19–96 cells, so
+   * every option looked like the same bundle of long dashed lines.
+   */
+  readonly directorPreviewDivergence = signal<DirectorDivergence | null>(null);
+
+  /** Which train's deviating stretch to draw in full — set by pointing at its
+   *  branch mark. Only one at a time, on purpose. */
+  readonly directorHoverHandle = signal<number | null>(null);
+
   // Backwards-compat: components that still call .has(h) on a Set.
   readonly selectedHandles = computed<Set<number>>(() => {
     const h = this.selectedHandle();
@@ -520,6 +615,133 @@ export class SessionStore {
    *  on submit / dismiss / session reset. Mode-agnostic store, mode-specific
    *  capture surface (docs/plans/colearning-across-modes.md §2). */
   readonly pendingRationale = signal<PendingRationale | null>(null);
+
+  /**
+   * Director's own capture surface, the "Tier 2" the override prompt above
+   * defers to (see `setOverride`: the per-train "why?" is deliberately
+   * suppressed in Director).
+   *
+   * Director asks the human exactly one question — which objective should the
+   * plan pursue — so that is where its preference evidence comes from. It is a
+   * *better* signal than an override rationale: the axis is stated rather than
+   * inferred, the alternatives were on screen, and their costs were quantified.
+   * Without this the operator model gets nothing at all in Director, and the
+   * "what the AI learned about you" panel stays permanently empty.
+   */
+  readonly pendingStrategyReflection = signal<{
+    decisionSeq: number;
+    timestamp: number;
+    /** Focus title as shown on the tile, e.g. "Anschlüsse halten". */
+    title: string;
+    ident: string;
+    axis: DecisionValueAxis;
+    /** What it gave up, e.g. "−31 Pünktlichkeit". Null when nothing regressed. */
+    tradedAway: string | null;
+    hypothesis: string;
+  } | null>(null);
+
+  /**
+   * Log a committed strategy focus and open its reflection prompt.
+   * Returns the decision-log sequence number.
+   */
+  recordStrategyChoice(choice: {
+    title: string;
+    ident: string;
+    axis: DecisionValueAxis;
+    tradedAway: string | null;
+    hypothesis: string;
+  }): number {
+    const now = Date.now();
+    const seq = this._appendDecision({
+      t: now,
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      // Not about a single train: the objective governs the whole plan. -1 keeps
+      // the schema intact without pretending a handle was involved.
+      handle: -1,
+      accountableOwner: 'human',
+      action: 'strategy',
+      aiSuggestion: null,
+      decisionTimeMs: null,
+      valueAxis: choice.axis,
+      tradedAway: choice.tradedAway ?? undefined,
+    });
+    this.pendingStrategyReflection.set({
+      decisionSeq: seq,
+      timestamp: now,
+      title: choice.title,
+      ident: choice.ident,
+      axis: choice.axis,
+      tradedAway: choice.tradedAway,
+      hypothesis: choice.hypothesis,
+    });
+    return seq;
+  }
+
+  /**
+   * Answer the strategy reflection. 'yes' promotes the hypothesis to a rule the
+   * AI may apply; 'once' is the overfitting guard and explicitly must not;
+   * 'no' records nothing beyond the decision itself.
+   */
+  answerStrategyReflection(response: 'yes' | 'once' | 'no', reason?: string): void {
+    const pending = this.pendingStrategyReflection();
+    if (!pending) return;
+
+    // The stated situation is the condition half of the preference ("learn the
+    // condition, not the option"). Without one, the choice itself is still
+    // recorded — just as weaker evidence.
+    const rationale = reason
+      ? `Strategie: ${pending.title}; ${reason}`
+      : `Strategie: ${pending.title}`;
+
+    this.decisionLog.update((list) =>
+      list.map((e) =>
+        e.seq === pending.decisionSeq
+          ? {
+              ...e,
+              rationale,
+              preferenceHypothesis: pending.hypothesis,
+              hypothesisResponse: response,
+            }
+          : e,
+      ),
+    );
+
+    if (response === 'yes' || response === 'once') {
+      this.learning.addRecord({
+        id: `lr_strategy_${pending.timestamp}`,
+        createdAt: pending.timestamp,
+        mode: this.interactionMode(),
+        handle: -1,
+        action: 0,
+        strategyLabel: pending.title,
+        rationale:
+          reason ??
+          (pending.tradedAway
+            ? `Ziel gewählt, Preis: ${pending.tradedAway}`
+            : 'Ziel gewählt'),
+        hypothesis: pending.hypothesis,
+        response,
+        once: response === 'once',
+        context: {
+          connectionCritical: pending.axis === 'connection',
+          lowDelay: pending.axis === 'punctuality',
+          lowRipple: pending.axis === 'stability',
+          aiSuggestion: null,
+          simStep: this.elapsedSteps(),
+          hasScenario: true,
+          scenarioTitle: pending.title,
+        },
+      });
+    }
+
+    this.pendingStrategyReflection.set(null);
+  }
+
+  /** Dismiss without answering. The choice itself stays logged. */
+  dismissStrategyReflection(): void {
+    this.pendingStrategyReflection.set(null);
+  }
 
   /** Confirmed learning records (deck slide 5) — proxied from LearningStore so
    *  panels can read them through the store they already inject. */
@@ -1017,6 +1239,7 @@ export class SessionStore {
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
     this.pendingRationale.set(null);
+    this.pendingStrategyReflection.set(null);
     this.impact.set([]);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
@@ -1203,16 +1426,28 @@ export class SessionStore {
     this.coLearningFeedback.set([]);
     this.reflectionRequested.set(false);
     this.pendingRationale.set(null);
+    this.pendingStrategyReflection.set(null);
     this.previewScenarioId.set(null);
     this.whatIfPreview.set(null);
     this.directorPlanPaths.set(null);
     this.directorPlanHover.set(false);
+    this.directorPreviewPaths.set(null);
+    this.directorPreviewStrategyId.set(null);
+    this.directorPreviewIsCommitted.set(false);
+    this.directorPreviewIsFullPlan.set(false);
+    this.directorFocusOutlook.set(null);
+    this.directorNextDecision.set(null);
+    this.directorAiWorkload.set(null);
+    this.directorPreviewDivergence.set(null);
+    this.directorHoverHandle.set(null);
+    this.shiftEnded.set(false);
   }
 
   reset() {
     const s = this.session();
     if (!s) return;
     this.panResetTrigger.update((v) => v + 1);
+    this.shiftEnded.set(false);
     this.loading.set(true);
     this.error.set(null);
     this.message.set(null);
@@ -1220,6 +1455,7 @@ export class SessionStore {
     this._resetTrajectories();
     this.coLearningFeedback.set([]);
     this.pendingRationale.set(null);
+    this.pendingStrategyReflection.set(null);
     this.impact.set([]);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);

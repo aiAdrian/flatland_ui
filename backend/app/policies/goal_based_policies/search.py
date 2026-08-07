@@ -77,6 +77,33 @@ class SearchLimits:
     c_puct: float = 1.4        # mcts strategy: exploration constant
 
 
+def _reported(breakdown: Dict[str, object]) -> Dict[str, object]:
+    """Pull the human-readable figures out of a score breakdown.
+
+    Two of the three optimisation utilities are unsuitable as displayed values:
+
+    - `connections` is a geometric mean clamped at 1e-4, so a single hopeless
+      transfer drags it to ~0 (deliberate veto semantics for the search). The
+      plain share of transfers kept — `kept_ratio` — is what an operator means
+      by "how many connections hold".
+    - `stability` is `slack × deadlock × track × cascade`; a product of four
+      sub-scores is small whenever any one of them is, so "0 %" says nothing
+      about *which* reserve ran out. The sub-scores name the limiting factor.
+    """
+    safety = breakdown.get("safety") or {}
+    connection_probabilities = breakdown.get("connection_probabilities") or []
+    return {
+        "keptRatio": breakdown.get("kept_ratio"),
+        "connectionCount": len(connection_probabilities),
+        "safety": {
+            "slack": safety.get("slack_score"),
+            "deadlock": safety.get("deadlock_score"),
+            "track": safety.get("track_score"),
+            "cascade": safety.get("cascade_score"),
+        },
+    }
+
+
 @dataclass
 class SearchOutcome:
     schedules: List[TrainSchedule]
@@ -107,6 +134,14 @@ class DirectorPlan:
                 "connections": self.score.connections,
                 "stability": self.score.stability,
             },
+            # The figures meant for *display* rather than for the search. The
+            # connections utility is a geometric mean with veto semantics (one
+            # doomed transfer pulls it to ~0) and stability is a product of four
+            # sub-scores, so both read as "0 %" in any busy scenario — true as a
+            # ranking signal, misleading as a number on a card. See the ensemble
+            # module docstring: "kept_ratio … is the number to *report*, not the
+            # one to optimise."
+            "reported": _reported(self.score.breakdown),
             "considered": dict(self.considered),
             "decisions": self.decisions,
             "stuck": list(self.stuck),

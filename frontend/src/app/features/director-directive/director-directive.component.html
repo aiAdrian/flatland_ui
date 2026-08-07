@@ -1,26 +1,43 @@
-<div class="directive">
-  <div class="dir-text">
-    <div class="dir-title">
-      <span class="dir-icon">▸</span>
-      Director directive
-    </div>
-    <p class="dir-desc">
-      The AI will run all trains autonomously on your high-level directive.
-      Set KPI priorities (Options, right) and the policy, then start.
-    </p>
+<!-- One row: state on the left, run control on the right. Everything here is
+     height the map and the tiles do not get, so it stays a single line. -->
+<div class="directive" [class.is-running]="store.playing()" role="status">
+  @if (store.playing()) {
+    <span class="dir-dot" aria-hidden="true"></span>
+    <span class="dir-lead">KI fährt</span>
+  } @else {
+    <span class="dir-icon" aria-hidden="true">▸</span>
+    <span class="dir-lead">Bereit</span>
+  }
 
-    <div class="dir-summary">
-      <span class="dir-chip">
-        Policy: <strong>{{ policyLabel() }}</strong>
-      </span>
-      <span class="dir-chip">
-        Priority:
-        <strong>{{ priorities()[0].label }}</strong> {{ pct(priorities()[0].value) }}%
-      </span>
-    </div>
-  </div>
+  <span class="dir-stats">
+    <span class="dir-stat">
+      <strong>{{ active() }}</strong> aktiv
+    </span>
+    <span class="dir-stat" [class.warn]="delayedCount() > 0">
+      <strong>{{ delayedCount() }}</strong> verspätet
+    </span>
+    <span class="dir-stat" [class.alert]="malfunctions() > 0">
+      <strong>{{ malfunctions() }}</strong> Störung(en)
+    </span>
+    <span class="dir-stat">
+      <strong>{{ arrived() }}/{{ total() }}</strong> angekommen
+    </span>
+  </span>
 
-  <button class="dir-start" type="button" (click)="start()">
-    {{ started() ? 'Resume autonomous run' : 'Start autonomous run' }}
+  <span class="dir-chip">{{ policyLabel() }}</span>
+
+  <button class="dir-start" type="button" (click)="start()" [disabled]="store.playing()">
+    {{ started() ? 'Fortsetzen' : 'Autonomen Lauf starten' }}
   </button>
+
+  <!-- The way into the closing review. Without it the review waited for the
+       episode to run out (400 steps), i.e. it was never reached — and with it
+       the point where preferences get confirmed and saved. Re-openable, so this
+       is not a decision the operator can regret. -->
+  @if (started()) {
+    <button class="dir-end" type="button" (click)="endShift()"
+            title="Beendet die Schicht und zeigt die Auswertung — du kannst zurück.">
+      Schicht beenden
+    </button>
+  }
 </div>

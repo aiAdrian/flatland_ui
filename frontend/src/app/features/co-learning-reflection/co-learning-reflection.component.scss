@@ -96,6 +96,49 @@
   overflow-y: auto;
 }
 
+// ── selected reflection moments (core/reflection-moments.ts) ────────────────
+.moment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.moment {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.moment-step {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-granite);
+}
+
+.moment-case {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.moment-detail {
+  flex: 1 1 auto;
+  color: var(--sbb-color-iron);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moment-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
 .intervention {
   display: flex;
   gap: 8px;

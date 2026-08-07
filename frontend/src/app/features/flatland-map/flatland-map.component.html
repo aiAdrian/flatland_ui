@@ -140,31 +140,6 @@
         </g>
       }
 
-      <!-- Director plan overlay: every train's committed planned route as a
-           dashed line with a unique per-train colour, shown while the mouse
-           is on the Director Weights widget. Trains sharing a track render
-           as close parallel lines (lateral offset computed in the component)
-           with staggered dash phases, so each route stays traceable.
-           Updates instantly when a slider settles or a re-plan commits. -->
-      @if (directorPlanLines().length > 0) {
-        <g class="director-plan-lines" pointer-events="none">
-          @for (line of directorPlanLines(); track line.id) {
-            <path
-              [attr.d]="line.d"
-              [style.stroke-dashoffset.px]="line.dashOffset"
-              class="director-plan-line-casing"
-              fill="none"
-              pointer-events="none" />
-            <path
-              [attr.d]="line.d"
-              [attr.stroke]="line.color"
-              [style.stroke-dashoffset.px]="line.dashOffset"
-              class="director-plan-line"
-              fill="none"
-              pointer-events="none" />
-          }
-        </g>
-      }
     <!-- Stations layer: one neutral marker + shared label ("S1", "S2", …) per
          stop used by the trains. Same labels appear in the timetable tile so a
          stop on the map maps to a row in the schedule. Toggleable, not
@@ -344,6 +319,78 @@
       }
     }
 
+    <!-- Director plan / strategy look-ahead: every train's planned route as a
+         dashed line in its own colour, parallel-offset and dash-staggered where
+         routes share a track.
+
+         Drawn here, immediately before the train markers, and NOT earlier:
+         station markers, switch exits, decision layers and decision pills all
+         paint opaque shapes, and with the overlay below them the look-ahead was
+         covered exactly at the junctions where it matters. Trains still sit on
+         top, because "where is the train now" beats "where is it headed". -->
+    @if (directorPlanLines().length > 0) {
+      <g class="director-plan-lines" pointer-events="none">
+        @for (line of directorPlanLines(); track line.id) {
+          <path
+            [attr.d]="line.d"
+            [style.stroke-dashoffset.px]="line.dashOffset"
+            class="director-plan-line-casing"
+            fill="none"
+            pointer-events="none" />
+          <path
+            [attr.d]="line.d"
+            [attr.stroke]="line.color"
+            [style.stroke-dashoffset.px]="line.dashOffset"
+            class="director-plan-line"
+            fill="none"
+            pointer-events="none" />
+        }
+      </g>
+    }
+
+    <!-- Option overlay, minimal form: one mark per train that would take another
+         route, at the cell where it starts to differ. The route itself appears
+         only for the train under the pointer — the deviating stretches measured
+         19–96 cells, so drawing them all buried the information in lines. -->
+    @for (mark of directorBranchMarks(); track mark.handle) {
+      <g class="branch-mark"
+         [class.is-active]="mark.active"
+         (mouseenter)="onBranchEnter(mark.handle)"
+         (mouseleave)="onBranchLeave()">
+        <title>Zug {{ mark.handle }} fährt ab hier anders — zeigen: Maus draufhalten</title>
+        <circle
+          class="branch-mark__hit"
+          [attr.cx]="mark.x"
+          [attr.cy]="mark.y"
+          [attr.r]="cellSize * 0.7" />
+        <circle
+          class="branch-mark__dot"
+          [attr.cx]="mark.x"
+          [attr.cy]="mark.y"
+          [attr.r]="cellSize * 0.34"
+          [attr.fill]="mark.color" />
+        <text class="branch-mark__label" [attr.x]="mark.x" [attr.y]="mark.y + 4">
+          {{ mark.handle }}
+        </text>
+      </g>
+    }
+
+    <!-- A hold has no alternative route to draw: the difference is waiting. -->
+    @for (hold of directorHoldMarks(); track hold.handle) {
+      <g class="hold-mark">
+        <title>Zug {{ hold.handle }} wartet hier {{ hold.steps }} Schritt(e) statt umzufahren</title>
+        <circle
+          class="hold-mark__dot"
+          [attr.cx]="hold.x"
+          [attr.cy]="hold.y"
+          [attr.r]="cellSize * 0.34"
+          [attr.stroke]="hold.color" />
+        <text class="hold-mark__label" [attr.x]="hold.x" [attr.y]="hold.y + 4">
+          ⏱
+        </text>
+      </g>
+    }
+
     <!-- Agents (ALWAYS visible - never gated by any layer toggle) -->
     @for (a of agents(); track trackByAgent($index, a)) {
       <g
@@ -398,6 +445,27 @@
           </g>
         }
 
+
+        <!-- Disruption ring. The red "!" badge below is a 9.5-unit circle, which
+             at the map's typical viewBox scale (~0.39) arrives as ~4 screen px —
+             correct but unfindable. This ring is sized against the grid (a cell
+             is the natural visual unit) and stroked in screen pixels, so a
+             malfunction is visible at a glance and at any zoom. -->
+        @if (isMalfunctioning(a)) {
+          <circle
+            class="disruption-ring"
+            [attr.cx]="agentX(a)"
+            [attr.cy]="agentY(a)"
+            [attr.r]="cellSize * 0.85"
+            pointer-events="none" />
+        }
+
+        <!-- What is wrong with *this* train. The ring says "there is a problem
+             here"; without this the operator had to guess which one. Native SVG
+             <title> so it needs no tooltip machinery and no extra state. -->
+        @if (hasAgentProblem(a)) {
+          <title>Zug {{ a.handle }}: {{ agentProblemLines(a).join(' · ') }}</title>
+        }
 
         @if (isMalfunctioning(a)) {
           <circle

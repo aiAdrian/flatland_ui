@@ -315,6 +315,19 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       add(h);
     }
 
+    // Option preview: while an alternative is previewed (hovered or pinned in
+    // the A/B/C options), show the planned reroute for *every* train that option
+    // moves — not just a selected one. Without this the operator has to pick a
+    // train first to see what the option would actually do, which is exactly the
+    // look-ahead the Director view is for.
+    const previewId = this.store.previewScenarioId();
+    if (previewId) {
+      const previewed = this.store.scenarios().find((s) => s.id === previewId);
+      for (const key of Object.keys(previewed?.trajectories ?? {})) {
+        add(Number(key));
+      }
+    }
+
     return handles;
   });
 
@@ -443,11 +456,75 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
    *  close parallel lines, and the dash phase is staggered per train, so
    *  no route ever hides another. The panel refreshes
    *  `store.directorPlanPaths` instantly after a slider settles or a
-   *  re-plan, so the routes always show the plan as it currently stands. */
+   *  re-plan, so the routes always show the plan as it currently stands.
+   *
+   *  A strategy look-ahead (`directorPreviewPaths`, set by the A/B/C strategy
+   *  tiles) takes precedence and draws without the hover gate: it shows the
+   *  reroute of a focus the operator is still only considering, which they
+   *  need to *study* — it must not vanish when the pointer leaves the tile. */
   readonly directorPlanLines = computed<DirectorPlanLine[]>(() => {
-    if (!this.store.directorPlanHover()) return [];
-    const paths = this.store.directorPlanPaths();
+    // With a divergence overlay the map shows branch marks, not routes — except
+    // for the one train the operator points at. Drawing all of them was
+    // unreadable: the deviating stretches run 19–96 cells, so every option
+    // looked like the same bundle of long dashed lines.
+    const divergence = this.store.directorPreviewDivergence();
+    if (divergence) {
+      const handle = this.store.directorHoverHandle();
+      if (handle == null) return [];
+      const entry = divergence.reroutes[String(handle)];
+      if (!entry) return [];
+      return this._planLinesFrom({ [String(handle)]: entry.points });
+    }
+
+    const preview = this.store.directorPreviewPaths();
+    const paths = preview ?? (this.store.directorPlanHover() ? this.store.directorPlanPaths() : null);
     if (!paths) return [];
+    return this._planLinesFrom(paths);
+  });
+
+  /** Branch marks: one per rerouted train, at the cell where its route starts to
+   *  differ. The default overlay — small, countable, and pointing at the decision
+   *  rather than redrawing the whole plan. */
+  readonly directorBranchMarks = computed(() => {
+    const divergence = this.store.directorPreviewDivergence();
+    if (!divergence) return [];
+    return Object.entries(divergence.reroutes).map(([key, entry]) => {
+      const handle = Number(key);
+      return {
+        handle,
+        x: entry.branch.col * this.cellSize + this.cellSize / 2,
+        y: entry.branch.row * this.cellSize + this.cellSize / 2,
+        color: this._planColorForHandle(handle),
+        active: this.store.directorHoverHandle() === handle,
+      };
+    });
+  });
+
+  /** Wait marks: a hold cannot be drawn as a line, so the place and length of
+   *  the wait is marked instead. */
+  readonly directorHoldMarks = computed(() => {
+    const divergence = this.store.directorPreviewDivergence();
+    if (!divergence) return [];
+    return divergence.holds.map((h) => ({
+      handle: h.handle,
+      steps: h.steps,
+      x: h.col * this.cellSize + this.cellSize / 2,
+      y: h.row * this.cellSize + this.cellSize / 2,
+      color: this._planColorForHandle(h.handle),
+    }));
+  });
+
+  onBranchEnter(handle: number): void {
+    this.store.directorHoverHandle.set(handle);
+  }
+
+  onBranchLeave(): void {
+    this.store.directorHoverHandle.set(null);
+  }
+
+  private _planLinesFrom(
+    paths: Record<string, Array<{ step: number; row: number; col: number }>>,
+  ): DirectorPlanLine[] {
 
     const now = this.store.elapsedSteps();
     const railCells = new Set(this.tiles().map((t) => `${t.r}_${t.c}`));
@@ -482,7 +559,10 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
 
     const SPREAD = 5; // px between neighbouring trains' lines on a shared cell
     const SAMPLE_TS = [0, 0.25, 0.5, 0.75, 1]; // polyline samples per cell branch
-    const DASH_PERIOD = 10; // keep in sync with stroke-dasharray in the SCSS
+    // Keep in sync with stroke-dasharray in the SCSS (9 + 5). The lines use
+    // `vector-effect: non-scaling-stroke`, so dash lengths — and therefore this
+    // phase offset — are screen pixels, not user units.
+    const DASH_PERIOD = 14;
 
     const lines: DirectorPlanLine[] = [];
     for (let idx = 0; idx < trains.length; idx++) {
@@ -526,7 +606,7 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       });
     }
     return lines;
-  });
+  }
 
   /** Plan-overlay colour: unique per train; the selected agent keeps the
    *  global selected colour. */
@@ -1634,6 +1714,53 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
 
 
 
+
+  /**
+   * What is wrong with *this* train — the answer to pointing at a red ring.
+   *
+   * The ring says "there is a problem here"; without this the operator had to
+   * guess which one. Everything comes from state the session already carries:
+   * the malfunction counter, the accumulated delay, and the impact analysis that
+   * names who is blocked by whom. Returns null for a train with nothing wrong,
+   * so healthy trains get no tooltip.
+   */
+  agentProblemLines(a: AgentDTO): string[] {
+    const lines: string[] = [];
+    const remaining = Number(a.malfunction_remaining ?? 0);
+    if (this.isMalfunctioning(a)) {
+      lines.push(
+        remaining > 0
+          ? `Störung — noch ${remaining} Schritt(e)`
+          : 'Störung',
+      );
+    }
+    const delay = Number(a.delay ?? 0);
+    if (delay > 0) lines.push(`Verspätung ${delay}`);
+
+    // The impact analysis is the only place that knows the blocking relation —
+    // both directions, because "who blocks me" and "whom do I block" are
+    // different questions for a supervisor.
+    for (const item of this.store.impact()) {
+      if (item.handle !== a.handle) continue;
+      lines.push(
+        `blockiert von Zug ${item.blocked_by} bei ` +
+          `(${item.blocked_cell[0]}, ${item.blocked_cell[1]}) — ` +
+          `erreicht in ${item.eta_steps}, frei in ${item.clears_in_steps}`,
+      );
+    }
+    const blocked = this.store
+      .impact()
+      .filter((i) => i.blocked_by === a.handle)
+      .map((i) => i.handle);
+    if (blocked.length > 0) {
+      lines.push(`blockiert Zug ${blocked.join(', ')}`);
+    }
+    return lines;
+  }
+
+  hasAgentProblem(a: AgentDTO): boolean {
+    return this.agentProblemLines(a).length > 0;
+  }
 
   onAgentMouseEnter(handle: number): void {
     this.hoveredTrajectoryHandle.set(handle);

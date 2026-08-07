@@ -4,6 +4,13 @@ import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
 import { RationaleCaptureComponent } from '../rationale-capture/rationale-capture.component';
 import { LearningRecordsComponent } from '../learning-records/learning-records.component';
+import {
+  REFLECTION_CASE_LABELS,
+  ReflectionCaseType,
+  VALUE_AXIS_LABELS,
+  selectReflectionMoments,
+} from '../../core/reflection-moments';
+import { ValueAxis } from '../../core/operator-model.service';
 
 interface ReflectionQuestion {
   key: string;
@@ -43,6 +50,21 @@ export class CoLearningReflectionComponent {
   readonly reflectionOpen = computed(
     () => this.store.reflectionRequested() || this.store.episodeDone() || this.store.pendingRationale() != null,
   );
+
+  /**
+   * The few decisions worth discussing, picked by transparent scoring
+   * (`core/reflection-moments.ts`) — a whole shift is too much to review, and a
+   * fixed questionnaire ignores what actually happened.
+   */
+  readonly moments = computed(() => selectReflectionMoments(this.store.decisionLog()));
+
+  caseLabel(caseType: ReflectionCaseType): string {
+    return REFLECTION_CASE_LABELS[caseType];
+  }
+
+  axisLabel(axis: ValueAxis | null): string {
+    return axis ? VALUE_AXIS_LABELS[axis] : '—';
+  }
 
   // ── Mirroring [MR]: the operator's own run, reflected back ──────────
   readonly interventions = computed(() => this.store.coLearningFeedback());

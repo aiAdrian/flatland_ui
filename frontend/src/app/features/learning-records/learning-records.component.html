@@ -10,7 +10,13 @@
         <div class="lr-card__head">
           <div class="lr-card__title">
             <span class="lr-card__strat">{{ r.strategyLabel }}</span>
-            <span class="lr-card__train">Zug {{ r.handle }}</span>
+            <!-- A Director strategy choice governs the whole plan, not one train
+                 (handle -1). Showing "Zug -1" leaked that placeholder. -->
+            @if (r.handle >= 0) {
+              <span class="lr-card__train">Zug {{ r.handle }}</span>
+            } @else {
+              <span class="lr-card__train">Gesamtplan</span>
+            }
           </div>
           <app-score-badge
             [score]="scoreFor(r)"

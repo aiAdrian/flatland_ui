@@ -1,0 +1,48 @@
+@if (hasData()) {
+  <div class="sf">
+    <div class="sf-head">
+      <span class="sf-title">Wirkung über die nächsten 30 Minuten</span>
+      <span class="sf-option">{{ subjectLabel() }}</span>
+    </div>
+
+    <table class="sf-table">
+      <thead>
+        <tr>
+          <th class="sf-rowhead"></th>
+          @for (c of forecast().columns; track c.label) {
+            <th class="sf-col" [attr.data-conf]="c.confidence">{{ c.label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of forecast().rows; track row.label) {
+          <tr>
+            <td class="sf-rowhead">
+              <span class="sf-icon" aria-hidden="true">{{ row.icon }}</span>
+              {{ row.label }}
+            </td>
+            @for (cell of row.cells; track $index) {
+              <td class="sf-cell">
+                <span class="sf-chip" [attr.data-level]="cell.level">{{ cell.label }}</span>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <p class="sf-horizon" [class.ok]="horizonOk()">
+      @if (horizonOk()) {
+        Belastbar bis +{{ forecast().horizonMinutes }} min ·
+        {{ openProblems() }} offene Problem(e)
+      } @else {
+        Belastbar nur bis
+        {{ forecast().horizonMinutes === 0 ? 'jetzt' : '+' + forecast().horizonMinutes + ' min' }}
+        · {{ openProblems() }} offene Problem(e) — mehr Offenes macht die Zukunft
+        unsicherer
+      }
+    </p>
+
+    <p class="sf-note">{{ noteText() }}</p>
+  </div>
+}

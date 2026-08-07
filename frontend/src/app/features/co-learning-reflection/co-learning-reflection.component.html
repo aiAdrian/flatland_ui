@@ -16,6 +16,34 @@
            Co-Learning mode. Renders only while a rationale is pending. -->
       <app-rationale-capture />
 
+      <!-- Mirroring [MR]: the few decisions actually worth discussing, picked by
+           transparent scoring (core/reflection-moments.ts) instead of reviewing
+           the whole shift. -->
+      @if (moments().length > 0) {
+        <div class="rp-section">
+          <span class="rp-mode" title="Supportive-AI mode: Mirroring">MR · worth reflecting on</span>
+          <ul class="moment-list">
+            @for (m of moments(); track m.entry.seq) {
+              <li class="moment">
+                <span class="moment-step">step {{ m.entry.simStep }}</span>
+                <span class="moment-case">{{ caseLabel(m.caseType) }}</span>
+                @if (m.caseType === 'pattern_deviation') {
+                  <span class="moment-detail">
+                    sonst {{ axisLabel(m.expectedAxis) }} → diesmal {{ axisLabel(m.axis) }}
+                  </span>
+                } @else if (m.entry.rationale) {
+                  <span class="moment-detail">{{ m.entry.rationale }}</span>
+                }
+              </li>
+            }
+          </ul>
+          <p class="moment-note">
+            Aus {{ store.decisionLog().length }} Entscheidungen ausgewählt — nach
+            Musterbruch, Override und Übergabe an die KI.
+          </p>
+        </div>
+      }
+
       <!-- Mirroring [MR]: the operator's own run, reflected back -->
       <div class="rp-section">
         <span class="rp-mode" title="Supportive-AI mode: Mirroring">MR · your run</span>

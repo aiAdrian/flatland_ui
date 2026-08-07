@@ -297,6 +297,10 @@ def _finish_replan(
         info["source"] = "replan-research"
         info["weighted"] = plan.score.weighted
         info["utilities"] = dict(plan.score.breakdown["utilities"])
+        # Keep the display figures in sync with the utilities; without this a
+        # re-planned session shows the new score against stale reported numbers.
+        from app.policies.goal_based_policies.search import _reported
+        info["reported"] = _reported(plan.score.breakdown)
         info["decisions"] = plan.decisions
         if plan.trace:
             info["trace"] = plan.trace
@@ -510,6 +514,7 @@ class GoalDirectedPolicy(Policy):
                     DirectorWeights,
                 )
                 from app.policies.goal_based_policies.search import (
+                    _reported,
                     director_plan,
                 )
 
@@ -523,6 +528,9 @@ class GoalDirectedPolicy(Policy):
                         "connections": plan.score.connections,
                         "stability": plan.score.stability,
                     },
+                    # Operator-readable counterparts of the two utilities that
+                    # are unreadable by construction — see `search._reported`.
+                    "reported": _reported(plan.score.breakdown),
                     "weights": list(weights),
                     "decisions": plan.decisions,
                     # Per decision: every option's scores and the chosen

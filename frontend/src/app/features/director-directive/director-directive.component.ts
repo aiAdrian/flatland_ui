@@ -1,11 +1,26 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { AgentDTO } from '../../core/models';
 
 /**
- * Pre-run directive for Director mode (WP 3.4). The human sets a high-level
- * directive — KPI priorities (the "objective" lever) and the policy/algorithm
- * the AI runs — then explicitly starts the autonomous run. This replaces
- * per-decision prompting (optionPresentation === 'none').
+ * The Director bar: one row carrying the aggregate operating state and the
+ * run control.
+ *
+ * It absorbed two surfaces that each cost a lot of screen for little content:
+ *
+ * - The old 121px directive block, whose prose pointed at a "KPI priorities"
+ *   panel that is offered in no mode any more. The objective is set by the
+ *   A/B/C strategy tiles below, which show the same three axes with real
+ *   planned consequences.
+ * - The Situation Summary panel, which held a whole left column for four
+ *   numbers. In Director those numbers *are* the supervisory picture — how many
+ *   trains run, how many are late, how many are broken — so they belong on the
+ *   permanently visible bar, not in a column of their own. Removing that column
+ *   is what gives the map and the forecast their width.
+ *
+ * Deliberately shown while playing too: the state matters most while the AI
+ * drives, so this replaces the separate "AI in control" banner instead of
+ * alternating with it.
  */
 @Component({
   selector: 'app-director-directive',
@@ -26,26 +41,43 @@ export class DirectorDirectiveComponent {
     return this.store.availablePolicies().find((p) => p.id === id)?.label ?? id;
   });
 
-  /** KPI priorities sorted high→low, as the directive's objective weighting. */
-  readonly priorities = computed(() => {
-    const w = this.store.kpiPriorities();
-    const labels: Record<string, string> = {
-      time: 'Time',
-      energy: 'Energy',
-      platformRouting: 'Platform',
-      trainRouting: 'Train routing',
-    };
-    return (Object.keys(labels) as (keyof typeof w)[])
-      .map((k) => ({ label: labels[k], value: w[k] }))
-      .sort((a, b) => b.value - a.value);
-  });
-
-  pct(v: number): number {
-    return Math.round(v * 100);
+  // ── Aggregate state (carried over from the Situation Summary) ─────────────
+  private isMalfunctioning(a: AgentDTO): boolean {
+    return (
+      !!a.is_malfunctioning ||
+      (a.malfunction_remaining ?? 0) > 0 ||
+      String(a.state ?? '')
+        .toUpperCase()
+        .includes('MALFUNCTION')
+    );
   }
+
+  readonly total = computed(() => this.store.agents().length);
+  readonly arrived = computed(
+    () =>
+      this.store.agents().filter((a) => String(a.state).toUpperCase() === 'DONE').length,
+  );
+  readonly active = computed(
+    () =>
+      this.store.agents().filter((a) => {
+        const s = String(a.state).toUpperCase();
+        return s !== 'DONE' && s !== 'WAITING';
+      }).length,
+  );
+  readonly delayedCount = computed(
+    () => this.store.agents().filter((a) => (a.delay ?? 0) > 0).length,
+  );
+  readonly malfunctions = computed(
+    () => this.store.agents().filter((a) => this.isMalfunctioning(a)).length,
+  );
 
   start(): void {
     const policy = this.store.activePolicy() || this.store.defaultPolicy();
     this.store.play(policy, this.store.playSpeed());
+  }
+
+  /** Declare the shift over — pauses the run and opens the review. */
+  endShift(): void {
+    this.store.endShift();
   }
 }
