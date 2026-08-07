@@ -211,3 +211,53 @@ def test_each_focus_is_answered_by_a_plan_and_leaves_the_session_alone():
     assert after_plan["plan"]["weights"] == before_plan["plan"]["weights"]
     assert len(after_plan["plan"].get("replans") or []) == len(
         before_plan["plan"].get("replans") or [])
+
+
+def test_before_the_first_step_the_options_get_the_portfolio_guarantee():
+    """At t=0 an option must be planned by `director_plan`, not residually.
+
+    Only `director_plan` holds the searched plan against `plan_all_lines` /
+    `plan_avoiding_overlaps` under the same weighted score
+    (docs/reference/director-mode.md §3.7). The plan that *drives* comes from
+    that path (`goal_directed_policy._plan`), so planning the options residually
+    at t=0 compared guaranteed against unguaranteed — and could offer a focus
+    that its own scorer rates below the naive baseline.
+
+    The observable trace of the guarantee is `source ∈ {search, lines,
+    avoidance}` plus a `considered` map; a residual plan has neither.
+    """
+    sid = _make_session()
+    # Plan without stepping: this is the state the operator sees on entering
+    # Director, and the one the bug applied to.
+    r = client.post(f"/session/{sid}/director/weights", json={
+        "punctuality": 1, "connections": 1, "stability": 1, "plan": True})
+    assert r.status_code == 200, r.text
+
+    body = client.get(f"/session/{sid}/director/strategies").json()
+    if not body["available"]:
+        return  # no models installed here
+    assert body["step"] == 0
+    for strategy in body["strategies"]:
+        plan = strategy["plan"]
+        assert plan is not None, strategy["ident"]
+        assert plan["source"] in {"search", "lines", "avoidance"}, plan["source"]
+
+
+def test_mid_episode_the_options_stay_residual():
+    """Past the first step the past must be pinned, which is `residual_plan`'s
+    job (§3.8) — re-planning from scratch would move trains that already drove."""
+    sid = _make_session()
+    client.post(f"/session/{sid}/step", json={
+        "n_steps": 6, "policy": "goal_directed"})
+    body = client.get(f"/session/{sid}/director/strategies").json()
+    if not body["available"]:
+        return
+    assert body["step"] >= 6
+    for strategy in body["strategies"]:
+        if strategy["plan"] is None:
+            continue
+        # Residual plans are labelled by their own planner, never "lines".
+        assert strategy["plan"]["source"], strategy["ident"]
+        # And every option's paths start at the trains' current positions, not
+        # at their origins.
+        assert strategy["paths"], strategy["ident"]

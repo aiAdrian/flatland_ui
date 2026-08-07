@@ -652,6 +652,20 @@ def _divergence(current: list | None, option: list | None) -> dict | None:
     }
 
 
+def _schedule_entries(schedules: list, handle: int) -> tuple:
+    """One train's schedule as a comparable tuple, or () when it has none.
+
+    Schedules are absolute and origin-anchored (director-mode.md §2, invariant 5),
+    so two schedules for the same train are directly comparable entry by entry.
+    """
+    for schedule in schedules or ():
+        if int(schedule.handle) == int(handle):
+            return tuple(
+                (int(entry.node_id), int(entry.wait)) for entry in schedule.entries
+            )
+    return ()
+
+
 _STRATEGY_CACHE: dict[str, tuple[tuple, dict]] = {}
 
 
@@ -865,6 +879,7 @@ def get_director_strategies(session_id: str):
         residual_plan,
     )
     from app.policies.goal_based_policies.search import _reported as _reported_figures
+    from app.policies.goal_based_policies.search import director_plan
 
     # Three residual plans cost ~16s (measured), and an unchanged request costs
     # exactly the same again — which made re-entering Director, a second panel
@@ -879,6 +894,17 @@ def get_director_strategies(session_id: str):
     handles = [int(schedule.handle) for schedule in schedules]
     # The plan that is driving, to diff each option against.
     live_paths = {h: player.future_path(h) for h in handles}
+    # Before the first step there is no past to pin, and `director_plan` is the
+    # planner the driving plan itself came from (`goal_directed_policy._plan`).
+    # It is not interchangeable with `residual_plan`: only it runs the
+    # **portfolio guarantee** — the searched plan is held against
+    # `plan_all_lines` / `plan_avoiding_overlaps` under the same weighted score
+    # (docs/reference/director-mode.md §3.7). Planning the options residually at
+    # t=0 skipped that step, so an option could be offered that its own scorer
+    # rates below the naive baseline — against a baseline plan that *did* get the
+    # guarantee. That asymmetry is what let a focus come out worse on its own
+    # axis than the plan already driving.
+    at_start = int(getattr(session.env, "_elapsed_steps", 0) or 0) == 0
 
     out = []
     for preset in DIRECTOR_STRATEGY_PRESETS:
@@ -892,18 +918,31 @@ def get_director_strategies(session_id: str):
         fork = copy.deepcopy(session.env)
         fork_player = SchedulePlayer(graph, fork)
         fork_player.restore(snapshot)
-        plan = residual_plan(
-            fork, graph, weights, *models,
-            player=fork_player, schedules=schedules,
-            reason=f"strategy-{preset['id']}",
-        )
-        if plan is None:
-            out.append({
-                **preset, "plan": None, "paths": None,
-                "divergence": {"reroutes": {}, "holds": []},
-            })
-            continue
-        apply_residual_plan(fork_player, plan)
+        if at_start:
+            plan = director_plan(fork, graph, weights, *models)
+            # A full-horizon plan replaces the schedules outright; there is no
+            # captured head to splice onto (§3.8 splices tails, §3.7 does not).
+            for schedule in plan.schedules:
+                fork_player.set_schedule(schedule)
+            changed = sorted(
+                handle for handle in handles
+                if _schedule_entries(plan.schedules, handle)
+                != _schedule_entries(schedules, handle)
+            )
+        else:
+            plan = residual_plan(
+                fork, graph, weights, *models,
+                player=fork_player, schedules=schedules,
+                reason=f"strategy-{preset['id']}",
+            )
+            if plan is None:
+                out.append({
+                    **preset, "plan": None, "paths": None,
+                    "divergence": {"reroutes": {}, "holds": []},
+                })
+                continue
+            apply_residual_plan(fork_player, plan)
+            changed = sorted(plan.tails)
         option_paths = {h: fork_player.future_path(h) for h in handles}
         reroutes: dict[str, list] = {}
         holds: list[dict] = []
@@ -934,7 +973,7 @@ def get_director_strategies(session_id: str):
                 # Display figures — see `search._reported`. The raw utilities stay
                 # for the ranking; the tiles show these.
                 "reported": _reported_figures(plan.score.breakdown),
-                "changed": sorted(plan.tails),
+                "changed": changed,
             },
             "paths": {str(handle): option_paths[handle] for handle in handles},
         })
