@@ -236,6 +236,11 @@ export interface DirectorStrategy {
      *  card. The backend calls these "the number to report". */
     reported?: DirectorReportedFigures | null;
     changed: number[];
+    /** The planner's own comparison behind `source`: at step 0 the portfolio
+     *  (`search` / `lines` / `avoidance`), mid-episode `research` / `continue`.
+     *  Lets the UI say when a focus's plan is really the conflict-blind
+     *  baseline, instead of presenting it as a searched answer. */
+    considered?: Record<string, number> | null;
   } | null;
   paths: DirectorPlanPaths | null;
   /** Only what this option changes — what the map actually draws. */

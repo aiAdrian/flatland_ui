@@ -161,6 +161,15 @@
             @if (tile.stabilityHint) {
               <span class="so-nolever">Stabilität {{ tile.stabilityHint }}.</span>
             }
+            <!-- The portfolio guarantee, when it fires: the search found nothing
+                 better than a baseline planner, so this is the obvious plan
+                 rather than a considered one. -->
+            @if (tile.fellBackTo) {
+              <span class="so-nolever">
+                Der Planer nimmt hier {{ tile.fellBackTo }} — die Suche fand
+                nichts Besseres.
+              </span>
+            }
           </p>
         } @else if (waitingForPause()) {
           <p class="so-changed">Prognose bei Pause.</p>

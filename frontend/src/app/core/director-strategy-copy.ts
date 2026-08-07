@@ -33,7 +33,13 @@ export const STRATEGY_COPY: Record<DirectorFocus, StrategyCopy> = {
   connections: {
     title: 'Anschlüsse halten',
     goal: 'Umsteigebeziehungen sichern — dafür wird gewartet.',
-    gives: 'mehr Anschlüsse',
+    // Deliberately an intent, not a promise. The acceptance sweep (12 scenarios,
+    // every row verified by a full episode — director-mode.md §8) shows the
+    // connections dial is the weakest lever: 0.736 kept vs 0.753 for the
+    // conflict-blind baseline, at 15 more delay. Punctuality and stability do win
+    // on their own axis; this one does not yet, so the tile says what it
+    // prioritises and lets the measured delta and "Nachspielen" speak.
+    gives: 'Anschlüsse haben Vorrang',
     costs: 'Warten kostet Zeit',
   },
   stability: {

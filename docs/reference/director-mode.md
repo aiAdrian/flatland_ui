@@ -633,6 +633,27 @@ are not (they score schedules, not decisions).
   `resolve_stations(env)` *without* the session's `scenario_preset_id` /
   `infrastructure_scene` — presets with a station fixture are not honoured there.
 - `WAIT_MENU` granularity (0/1/3/5/10) is unvalidated; tune on the sweep.
+- **The connections dial is the weakest lever.** Sweep, 12 scenarios of
+  `TRAINING_MIX`, seed 42, greedy, every row verified by a full episode
+  (`python -m app.policies.goal_based_policies.search --scenarios 12 --seed 42 …`):
+
+  | weights | mean delay | arrived rate | mean kept ratio | mean safety |
+  | --- | --- | --- | --- | --- |
+  | lines (baseline) | 62.9 | 0.50 | **0.753** | 0.258 |
+  | avoidance (baseline) | 74.7 | 0.08 | 0.604 | 0.184 |
+  | punctuality (1,0,0) | **55.7** | 0.58 | 0.601 | 0.221 |
+  | connections (0,1,0) | 70.6 | 0.50 | 0.736 | 0.280 |
+  | stability (0,0,1) | 60.1 | 0.50 | 0.660 | **0.379** |
+  | balanced (1,1,1) | 58.7 | 0.58 | 0.712 | 0.374 |
+
+  Punctuality and stability each win on their own axis, so those two dials do
+  steer ground truth. Connections does **not**: 0.736 kept is below the
+  conflict-blind `lines` baseline at 0.753, while it pays 15 delay. Consistent
+  with §3.5 — the connection utility saturates and stops discriminating. Caveats:
+  extreme weights (the HMI presets never zero an axis), n = 12, `TRAINING_MIX`
+  rather than a demo layout. Consequence for the HMI: a "hold more connections"
+  promise on the B tile is not yet backed by ground truth; re-run the sweep with
+  the preset ratios before claiming it.
 - Phantom overlaps between two pinned pasts in residual plans (see §3.8).
 
 ## 9. Recipes

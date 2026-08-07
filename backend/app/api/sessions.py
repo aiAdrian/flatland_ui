@@ -974,6 +974,12 @@ def get_director_strategies(session_id: str):
                 # for the ranking; the tiles show these.
                 "reported": _reported_figures(plan.score.breakdown),
                 "changed": changed,
+                # The planner's own comparison. At t=0 that is the portfolio
+                # (search vs lines vs avoidance, §3.7); mid-episode it is
+                # research vs continue. Forwarded because `source` alone hides
+                # *how close* the call was — and a focus whose plan is really the
+                # conflict-blind baseline is worth saying out loud.
+                "considered": {k: float(v) for k, v in (plan.considered or {}).items()},
             },
             "paths": {str(handle): option_paths[handle] for handle in handles},
         })

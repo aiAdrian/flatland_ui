@@ -615,6 +615,31 @@ describe('StrategyOptionsComponent', () => {
     expect(store.directorPreviewIsFullPlan()).toBeFalse();
   });
 
+  it('says when the plan behind a focus is a baseline, not a searched one', () => {
+    // §3.7's portfolio guarantee can hand back `plan_all_lines` /
+    // `plan_avoiding_overlaps`. Presenting that as a searched answer would
+    // overstate what the planner did for this goal.
+    flushStrategies({
+      strategies: [
+        { ...THREE[0], plan: { ...THREE[0].plan!, source: 'lines', considered: { search: 0.4, lines: 0.6, avoidance: 0.5 } } },
+        THREE[1],
+        THREE[2],
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(cmp.tiles()[0].fellBackTo).toContain('Linienplan');
+    expect(cmp.tiles()[1].fellBackTo).toBeNull();
+    const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
+    expect(text).toContain('die Suche fand nichts Besseres');
+  });
+
+  it('stays quiet when the search won', () => {
+    flushStrategies();
+    expect(cmp.tiles().every((t) => t.fellBackTo === null)).toBeTrue();
+    expect(fixture.nativeElement.textContent).not.toContain('nichts Besseres');
+  });
+
   it('says the tile text and the button agree on what is shown', () => {
     flushStrategies({
       strategies: THREE.map((s) => ({

@@ -268,6 +268,29 @@ export interface StrategyTile {
   preferredWhy: string | null;
   /** Simulated outcome, once the operator asked for it (~7 s per focus). */
   measured: MeasuredOutcome | null;
+  /** Set when the plan behind this focus is not the searched one — the search
+   *  found nothing better than a baseline planner. Null when it is. */
+  fellBackTo: string | null;
+}
+
+/** German names for the planners `DirectorPlan.source` can name (§3.7). */
+const PLAN_SOURCE_LABEL: Record<string, string> = {
+  lines: 'den direkten Linienplan (ohne Konfliktbetrachtung)',
+  avoidance: 'den Ausweichplan (Konflikte umgangen, ohne Suche)',
+};
+
+/**
+ * Name the planner when it is *not* the search.
+ *
+ * `director_plan` holds the searched plan against `plan_all_lines` /
+ * `plan_avoiding_overlaps` and takes whichever scores highest (§3.7, the
+ * portfolio guarantee). When a baseline wins, the tile is showing a plan nobody
+ * searched for — the operator should know that the option is "the obvious plan",
+ * not a considered one.
+ */
+function fallbackLabel(plan: DirectorStrategy['plan']): string | null {
+  if (!plan) return null;
+  return PLAN_SOURCE_LABEL[plan.source] ?? null;
 }
 
 /**
@@ -504,6 +527,7 @@ export class StrategyOptionsComponent {
       isPreferred: preferred?.focus === s.focus,
       preferredWhy: preferred?.focus === s.focus ? preferred.why : null,
       measured: measured[s.id] ?? null,
+      fellBackTo: fallbackLabel(s.plan),
     }));
   });
 
