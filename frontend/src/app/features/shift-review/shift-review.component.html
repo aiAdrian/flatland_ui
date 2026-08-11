@@ -1,0 +1,274 @@
+@if (review(); as r) {
+  <div class="sv">
+
+    <div class="sv-head">
+      <span class="sv-title">Schichtabschluss</span>
+      <span class="sv-sub">
+        {{ r.kpis.arrived }}/{{ r.kpis.total }} Züge am Ziel ({{ arrivedPct() }} %)
+      </span>
+      <!-- Top right, where a way out belongs on a full screen. A review must not
+           be a trap; only offered while the shift could actually go on. -->
+      @if (canReopen()) {
+        <button class="sv-btn sv-back" type="button" (click)="reopenShift()">
+          ← Zurück zur laufenden Schicht
+        </button>
+      }
+    </div>
+
+    <div class="sv-cols">
+    <div class="sv-col">
+
+    <!-- 1. Bilanz -->
+    <div class="sv-kpis">
+      <span class="sv-kpi">
+        <strong>{{ r.kpis.arrived }}/{{ r.kpis.total }}</strong> angekommen
+      </span>
+      <span class="sv-kpi" [class.warn]="r.kpis.delayed > 0">
+        <strong>{{ r.kpis.delayed }}</strong> verspätet
+      </span>
+      <span class="sv-kpi">
+        <strong>{{ r.kpis.totalDelay }}</strong> Verspätung gesamt
+      </span>
+      <span class="sv-kpi" [class.alert]="r.kpis.malfunctions > 0">
+        <strong>{{ r.kpis.malfunctions }}</strong> Störung(en) am Ende
+      </span>
+    </div>
+
+    @if (r.ai; as ai) {
+      <p class="sv-line">
+        Die KI hat <strong>{{ ai.decisions }}</strong> Entscheidungen selbst
+        getroffen
+        @if (ai.replans > 0) {
+          und <strong>{{ ai.replans }}</strong>× umgeplant
+        }
+        — du hast <strong>{{ r.choices.length }}</strong>× das Ziel gesetzt.
+      </p>
+    }
+
+    @if (r.ranUnattended) {
+      <!-- A legitimate outcome, not an empty state: the shift ran without a
+           single goal being set, and that is worth reporting as such. -->
+      <p class="sv-note sv-note--warn">
+        Du hast in dieser Schicht kein Ziel gesetzt — die KI ist durchgehend auf
+        der Ausgangsvorgabe gefahren. Damit gibt es auch nichts, was ich über
+        deine Prioritäten lernen konnte.
+      </p>
+    }
+
+    <!-- 2. Momente -->
+    @if (r.moments.length > 0) {
+      <div class="sv-block">
+        <span class="sv-block__title">
+          Worüber es sich zu sprechen lohnt ({{ r.moments.length }})
+        </span>
+        @for (m of r.moments; track m.entry.seq) {
+          <div class="sv-moment">
+            <div class="sv-moment__head">
+              <span class="sv-badge">{{ caseLabel(m.caseType) }}</span>
+              <span class="sv-moment__step">Schritt {{ m.entry.simStep }}</span>
+              @if (m.axis) {
+                <span class="sv-moment__axis">{{ axisLabel(m.axis) }}</span>
+              }
+            </div>
+
+            @if (m.caseType === 'pattern_deviation' && m.expectedAxis) {
+              <p class="sv-moment__text">
+                Hier hast du <strong>{{ axisLabel(m.axis) }}</strong> gewählt,
+                sonst meist <strong>{{ axisLabel(m.expectedAxis) }}</strong>.
+              </p>
+            }
+            @if (reasonOf(m.entry.rationale); as reason) {
+              <p class="sv-moment__text">Dein Grund: „{{ reason }}“</p>
+            }
+            @if (m.entry.tradedAway) {
+              <p class="sv-moment__text sv-moment__cost">
+                Preis: {{ m.entry.tradedAway }}
+              </p>
+            }
+            @if (responseLabel(m.entry.hypothesisResponse); as label) {
+              <p class="sv-moment__text">{{ label }}</p>
+            }
+
+            <!-- The scoring trace. The selection is a heuristic, so it has to be
+                 arguable rather than trusted. -->
+            <p class="sv-moment__why">
+              Ausgewählt weil: {{ m.reasons.join(' · ') }}
+            </p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- 2b. Der Plan, nachgespielt -->
+    @if (predictedVsVerified(); as pv) {
+      <div class="sv-block">
+        <span class="sv-block__title">Der Plan, nachgespielt</span>
+        <p class="sv-line">
+          Auf einer frischen Kopie derselben Episode — gleiche Gleise, gleicher
+          Fahrplan, gleiche Störungen — ergibt der Plan
+          <strong>{{ pv.verified.total_delay }}</strong> Verspätung,
+          @if (pv.verified.all_arrived) {
+            <strong>alle Züge am Ziel</strong>
+          } @else {
+            <strong>nicht alle Züge am Ziel</strong>
+          }
+          und <strong>{{ pv.verified.connections_kept }}/{{ pv.verified.connections_total }}</strong>
+          gehaltene Anschlüsse ({{ pv.verifiedConnectionPct }} %) über
+          {{ pv.verified.steps }} Schritte.
+        </p>
+        @if (pv.predictedConnectionPct !== null) {
+          <p class="sv-note">
+            Die Modelle hatten für die Anschlüsse {{ pv.predictedConnectionPct }} %
+            angesetzt — der Suchwert ist ein gekappter geometrischer Mittelwert
+            und liegt bewusst tiefer als der Anteil, der zählt.
+            @if (pv.predictedStabilityPct !== null) {
+              Stabilität war mit {{ pv.predictedStabilityPct }} % bewertet.
+            }
+          </p>
+        }
+        <p class="sv-note">
+          Nachgespielt wird der <em>zuletzt übernommene</em> Plan ab Schritt 0.
+          Das ist die Aussage „was leistet dieser Plan auf dieser Episode" — nicht
+          „so lief die Schicht ab", denn zwischendurch wurde umgeplant.
+        </p>
+      </div>
+    }
+
+    </div><!-- /sv-col -->
+    <div class="sv-col">
+
+    <!-- 3. Was die KI gelernt hat -->
+    <div class="sv-block">
+      <span class="sv-block__title">Was ich über dich gelernt habe</span>
+
+      @if (r.confirmed.length === 0) {
+        @if (carriedLearnings().length > 0) {
+          <!-- Nothing new this shift, but the profile is not empty — saying
+               "noch keine Präferenz" over a carried-over rule would contradict
+               the very badge on the tiles. -->
+          <p class="sv-note">
+            In dieser Schicht hast du keine neue Präferenz bestätigt. Aus früheren
+            Schichten gilt weiterhin:
+          </p>
+          @for (lrn of carriedLearnings(); track lrn.statement) {
+            <div class="sv-learn">
+              <span class="sv-badge sv-badge--confirmed">früher bestätigt</span>
+              <span>{{ lrn.statement }}</span>
+            </div>
+          }
+        } @else {
+          <p class="sv-note">
+            Noch keine bestätigte Präferenz. Ohne bestätigte Regel bleibt das
+            Ranking rein auf der KPI-Bewertung — ich rate nichts dazu.
+          </p>
+        }
+      } @else {
+        @for (rec of r.confirmed; track rec.id) {
+          <div class="sv-learn">
+            <span class="sv-badge sv-badge--confirmed">bestätigt</span>
+            <span>{{ rec.hypothesis }}</span>
+          </div>
+        }
+      }
+
+      @if (valueProfile(); as vp) {
+        @if (vp.dominant) {
+          <p class="sv-line">
+            Muster: <strong>{{ vp.label }}</strong> ({{ vp.dominantPct }} % von
+            {{ vp.total }} bewussten
+            Entscheidungen{{ patternIsCarried() ? ' aus früheren Schichten' : '' }}).
+          </p>
+        }
+      }
+
+      @if (weights(); as w) {
+        <p class="sv-line">
+          Daraus abgeleitete Zielgewichte — Pünktlichkeit <strong>{{ w.punctuality }}</strong>,
+          Anschlüsse <strong>{{ w.connections }}</strong>,
+          Stabilität <strong>{{ w.stability }}</strong>.
+          Sie gelten als Vorschlag, nicht als Regel.
+        </p>
+      }
+
+      @if (r.oneOffs.length > 0) {
+        <!-- Deliberately listed apart: a one-off must never read as a rule. -->
+        <p class="sv-note">
+          {{ r.oneOffs.length }} Entscheidung(en) hast du als Einzelfall markiert.
+          Die habe ich <em>nicht</em> gelernt — genau dafür ist die Option da.
+        </p>
+      }
+
+      @if (r.contradiction; as c) {
+        <p class="sv-note sv-note--question">🧠 {{ c.question }}</p>
+      }
+    </div>
+
+    <!-- 4. Übernahme in die nächste Schicht -->
+    <div class="sv-block">
+      <span class="sv-block__title">Für die nächste Schicht</span>
+
+      @if (!hasCarryOver()) {
+        <p class="sv-note">
+          Es gibt nichts zu übernehmen: ohne bewusste Entscheidung in dieser
+          Schicht habe ich keine Evidenz, die ich mitnehmen könnte.
+        </p>
+      } @else {
+        @switch (saveState()) {
+          @case ('saved') {
+            <p class="sv-saved">
+              ✓ Gespeichert. Deine Präferenzen gelten ab der nächsten Schicht als
+              <strong>Startvorschlag</strong> — Profil aus
+              {{ priorSessions() }} abgeschlossene(n) Schicht(en).
+              Die passende Kachel wird dort markiert; gesetzt wird sie nicht
+              automatisch.
+            </p>
+          }
+          @case ('error') {
+            <p class="sv-note sv-note--warn">
+              Speichern hat nicht funktioniert. Nichts wurde übernommen — die
+              nächste Schicht startet unverändert.
+              <button class="sv-btn" type="button" (click)="savePreferences()">
+                Erneut versuchen
+              </button>
+            </p>
+          }
+          @default {
+            <p class="sv-line">
+              {{ decisionsThisShift() }} Zielentscheidung(en) dieser Schicht
+              können in dein Langzeitprofil übernommen werden
+              @if (wasWarm()) {
+                — es enthält bereits {{ priorSessions() }} frühere Schicht(en).
+              } @else {
+                — es ist bisher deine erste.
+              }
+            </p>
+            <button class="sv-btn sv-btn--primary" type="button"
+                    [disabled]="saveState() === 'saving'"
+                    (click)="savePreferences()">
+              @if (saveState() === 'saving') {
+                Speichere …
+              } @else {
+                Präferenzen für die nächste Schicht speichern
+              }
+            </button>
+            <!-- Said before the click, not after: what is kept and what is not. -->
+            <p class="sv-note">
+              Übernommen wird die gezählte Evidenz und die bestätigten Regeln.
+              Einzelfälle („nur diesmal“) und passive Zustimmungen bleiben außen
+              vor. Ohne Klick startet die nächste Schicht kalt.
+            </p>
+          }
+        }
+      }
+
+    </div>
+
+    </div><!-- /sv-col -->
+    </div><!-- /sv-cols -->
+
+    <p class="sv-note sv-note--method">
+      Regelbasierte Auswertung aus dem Entscheidungsprotokoll dieser Schicht —
+      kein Sprachmodell, keine Interpretation über die gezeigten Zahlen hinaus.
+    </p>
+  </div>
+}

@@ -29,11 +29,11 @@ export class ScenarioPanelComponent {
   /** Tracks which card is currently being confirmed. */
   confirming = signal<string | null>(null);
 
-  /** Collapsible panel. Default: collapsed in Recommendation/Co-Learning (focus on
-   *  the per-train decision), expanded in Director (policy is the directive). */
-  readonly collapsed = signal<boolean>(false);
+  /** Collapsible panel. Default: collapsed in every mode — in Director
+   *  the Director Weights panel is the directive lever, so the scenario
+   *  compare is opened on demand. */
+  readonly collapsed = signal<boolean>(true);
   toggleCollapsed(): void { this.collapsed.update((v) => !v); }
-  private _lastDirector: boolean | null = null;
 
   /**
    * Scenarios ordered by the operator's KPI priorities. The baseline always
@@ -102,16 +102,6 @@ export class ScenarioPanelComponent {
     // baseline at the moment Play started. They re-snap to current
     // state when the user pauses. This matches the typical workflow:
     // 'plan → play → inspect → adjust'.
-    // Default collapse state by mode (re-applies on entering/leaving Director;
-    // manual toggle persists within a mode).
-    effect(() => {
-      const director = this.store.aiInControl();
-      if (director !== this._lastDirector) {
-        this._lastDirector = director;
-        this.collapsed.set(!director);
-      }
-    });
-
     let lastSessionId: string | null = null;
     let lastPlaying = false;
     effect(() => {

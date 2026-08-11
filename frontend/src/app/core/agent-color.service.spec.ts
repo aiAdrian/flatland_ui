@@ -48,4 +48,16 @@ describe('AgentColorService', () => {
     expect(svc.getLabel(0)).toBe('Normal');
     expect(svc.getLabel(1)).toBe('Intercity');
   });
+
+  it('plan colours are deterministic per handle', () => {
+    expect(svc.getPlanColor(3)).toBe(svc.getPlanColor(3));
+  });
+
+  it('plan colours are unique for every train in a 20-train episode', () => {
+    const colors = new Set<string>();
+    for (let h = 0; h < 20; h++) {
+      colors.add(svc.getPlanColor(h));
+    }
+    expect(colors.size).toBe(20);
+  });
 });

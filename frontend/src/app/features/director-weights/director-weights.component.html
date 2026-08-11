@@ -1,0 +1,186 @@
+@if (embedded) {
+  <ng-container [ngTemplateOutlet]="directorWeightsContent"></ng-container>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel director-weights-lyne-panel" color="white" size="s" expanded>
+    <sbb-expansion-panel-header>
+      <span class="lyne-panel-title">Director weights</span>
+    </sbb-expansion-panel-header>
+
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="directorWeightsContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #directorWeightsContent>
+  <div class="director-weights" [class.busy]="busy()">
+    @if (busy()) {
+      <div class="plan-loading" role="status" aria-live="polite">
+        <span class="plan-loading-spinner" aria-hidden="true"></span>
+        <span class="plan-loading-label">
+          {{ replanning() ? 'Re-planning …' : 'Planning with the new weights …' }}
+        </span>
+      </div>
+    }
+    <p class="hint">What the autonomous plan should value</p>
+
+    @if (!usingDirectorPolicy()) {
+      <p class="policy-note">
+        Dials apply when the <strong>Director Planner</strong> policy drives the session.
+      </p>
+    }
+
+    <div class="dial-list">
+      @for (dial of dials; track dial.key) {
+        <div class="dial-row">
+          <div class="dial-head">
+            <span class="dial-label">{{ dial.label }}</span>
+            <span class="dial-share">{{ share(dial.key) }}</span>
+          </div>
+          <div class="dial-dots" role="group" [attr.aria-label]="dial.label + ' points'">
+            @for (filled of dots(weights()[dial.key]); track $index; let i = $index) {
+              <button
+                type="button"
+                class="dial-dot"
+                [class.filled]="filled"
+                [attr.aria-label]="dial.label + ': set ' + (i + 1) + ' of ' + MAX_POINTS + ' points'"
+                [attr.aria-pressed]="filled"
+                (click)="setPoints(dial.key, i + 1)"
+              ></button>
+            }
+            <span class="dial-points">{{ weights()[dial.key] }}/{{ MAX_POINTS }}</span>
+          </div>
+          <span class="dial-hint">{{ dial.hint }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="scorecard">
+      <div class="scorecard-head">
+        <span class="scorecard-title">Committed plan</span>
+        @if (plan(); as p) {
+          <span class="source-badge" [attr.data-kind]="sourceKind(p.source)">
+            {{ sourceLabel(p.source) }}
+          </span>
+        }
+      </div>
+
+      @if (plan(); as p) {
+        @if (p.utilities; as u) {
+          <div class="utility-list">
+            <div class="utility-row">
+              <span class="utility-label">Punctuality</span>
+              <span class="utility-bar"><span class="utility-fill" [style.width.%]="utilityPct(u.punctuality)"></span></span>
+              <span class="utility-value">{{ utilityPct(u.punctuality) }}%</span>
+            </div>
+            <div class="utility-row">
+              <span class="utility-label">Connections</span>
+              <span class="utility-bar"><span class="utility-fill" [style.width.%]="utilityPct(u.connections)"></span></span>
+              <span class="utility-value">{{ utilityPct(u.connections) }}%</span>
+            </div>
+            <div class="utility-row">
+              <span class="utility-label">Stability</span>
+              <span class="utility-bar"><span class="utility-fill" [style.width.%]="utilityPct(u.stability)"></span></span>
+              <span class="utility-value">{{ utilityPct(u.stability) }}%</span>
+            </div>
+          </div>
+        }
+      } @else if (planPending()) {
+        <p class="scorecard-empty">Planning with the new weights …</p>
+      } @else {
+        <p class="scorecard-empty">No plan yet — step the session under the Director Planner.</p>
+      }
+
+      @if (plan()) {
+        <div class="verify-row">
+          <button
+            type="button"
+            class="verify-button"
+            [disabled]="verifying()"
+            (click)="verify()"
+          >
+            {{ verifying() ? 'Verifying …' : 'Verify plan' }}
+          </button>
+          @if (verification(); as v) {
+            <span class="verify-summary">
+              simulated: {{ v.verified.total_delay }} min delay ·
+              {{ v.verified.all_arrived ? 'all arrive' : 'trains lost' }} ·
+              {{ (v.verified.kept_ratio * 100).toFixed(0) }}% transfers ·
+              safety {{ v.verified.safety.toFixed(2) }}
+            </span>
+          }
+        </div>
+
+        <div class="verify-row">
+          <button
+            type="button"
+            class="verify-button"
+            [disabled]="whatIfRunning()"
+            (click)="runWhatIf()"
+            title="Simulate continuing vs re-planning under the current dials on forks of the live episode — nothing is committed"
+          >
+            {{ whatIfRunning() ? 'Simulating …' : 'What-if from now' }}
+          </button>
+          <button
+            type="button"
+            class="verify-button"
+            [disabled]="replanning()"
+            (click)="replanNow()"
+            title="Re-plan the remainder from the current state, now; committed only if it out-scores continuing"
+          >
+            {{ replanning() ? 'Re-planning …' : 'Re-plan now' }}
+          </button>
+        </div>
+
+        @if (whatIf(); as w) {
+          <div class="whatif-compare">
+            <div class="whatif-branch" data-branch="continue">
+              <span class="whatif-label">continue</span>
+              <span class="whatif-outcome">
+                {{ w.continue.total_delay }} min delay ·
+                {{ w.continue.arrived }}/{{ w.continue.trains }} arrive ·
+                {{ (w.continue.kept_ratio * 100).toFixed(0) }}% transfers
+              </span>
+            </div>
+            <div class="whatif-branch" data-branch="replan">
+              <span class="whatif-label">re-plan</span>
+              <span class="whatif-outcome">
+                {{ w.replan.total_delay }} min delay ·
+                {{ w.replan.arrived }}/{{ w.replan.trains }} arrive ·
+                {{ (w.replan.kept_ratio * 100).toFixed(0) }}% transfers
+                @if (w.replan.source === 'continue') {
+                  · would keep the plan
+                }
+              </span>
+            </div>
+            <span class="whatif-note">simulated from t={{ w.step }}, transfers counted from there</span>
+          </div>
+        }
+      }
+
+      @if (replans().length > 0) {
+        <details class="trace">
+          <summary>Re-plans ({{ replans().length }})</summary>
+          <ol class="trace-list">
+            @for (event of replans(); track $index) {
+              <li>{{ replanSummary(event) }}</li>
+            }
+          </ol>
+        </details>
+      }
+
+      @if (plan()?.trace; as trace) {
+        @if (trace.length > 0) {
+          <details class="trace">
+            <summary>Decision trace ({{ trace.length }} decisions)</summary>
+            <ol class="trace-list">
+              @for (entry of trace; track $index) {
+                <li>{{ traceSummary(entry) }}</li>
+              }
+            </ol>
+          </details>
+        }
+      }
+    </div>
+  </div>
+</ng-template>

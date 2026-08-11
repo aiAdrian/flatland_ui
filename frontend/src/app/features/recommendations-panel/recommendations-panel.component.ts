@@ -10,6 +10,7 @@ import { MetricChipComponent } from '../../shared/ui/metric-chip.component';
 import { ReasoningListComponent, ReasoningItem } from '../../shared/ui/reasoning-list.component';
 import { RationaleCaptureComponent } from '../rationale-capture/rationale-capture.component';
 import { LearningRecordsComponent } from '../learning-records/learning-records.component';
+import { CoLearningEffectComponent } from '../co-learning-effect/co-learning-effect.component';
 
 type MetricLevel = 'good' | 'fair' | 'low' | 'neutral';
 interface CardMetric {
@@ -35,7 +36,7 @@ export interface StrategyCard {
 @Component({
   selector: 'app-recommendations-panel',
   standalone: true,
-  imports: [CommonModule, ScoreBadgeComponent, MetricChipComponent, ReasoningListComponent, RationaleCaptureComponent, LearningRecordsComponent],
+  imports: [CommonModule, ScoreBadgeComponent, MetricChipComponent, ReasoningListComponent, RationaleCaptureComponent, LearningRecordsComponent, CoLearningEffectComponent],
   templateUrl: './recommendations-panel.component.html',
   styleUrl: './recommendations-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -170,15 +171,45 @@ export class RecommendationsPanelComponent implements OnDestroy {
     return this.store.scenarios().some((s) => s.id === r.scenarioId);
   }
 
+  /** A pinned option keeps its look-ahead on the map after the mouse leaves. */
+  readonly pinnedScenarioId = signal<string | null>(null);
+
   previewOn(r: Recommendation): void {
     if (this.previewable(r)) this.store.previewScenarioId.set(r.scenarioId!);
   }
 
   previewOff(r: Recommendation): void {
-    // Only clear if we're the ones who set it (avoid stomping another source).
+    // A pinned option stays on the map; otherwise clear — but only if we're the
+    // ones who set it (avoid stomping another source).
+    const pinned = this.pinnedScenarioId();
+    if (pinned) {
+      this.store.previewScenarioId.set(pinned);
+      return;
+    }
     if (this.store.previewScenarioId() === r.scenarioId) {
       this.store.previewScenarioId.set(null);
     }
+  }
+
+  isPinned(r: Recommendation): boolean {
+    return this.pinnedScenarioId() === r.scenarioId;
+  }
+
+  /**
+   * Pin / unpin an option's look-ahead. Hover is fine for a quick glance, but to
+   * *study* how an option reroutes the trains the overlay has to survive the
+   * mouse leaving the card — especially in Director mode, where the options sit
+   * above the map and comparing them is the whole job.
+   */
+  togglePin(r: Recommendation): void {
+    if (!this.previewable(r)) return;
+    if (this.isPinned(r)) {
+      this.pinnedScenarioId.set(null);
+      this.store.previewScenarioId.set(null);
+      return;
+    }
+    this.pinnedScenarioId.set(r.scenarioId!);
+    this.store.previewScenarioId.set(r.scenarioId!);
   }
 
   remaining(r: Recommendation): number | null {
@@ -207,6 +238,7 @@ export class RecommendationsPanelComponent implements OnDestroy {
   readonly strategyCards = computed<StrategyCard[]>(() => {
     const recs = this.store.recommendations();
     const scenarios = this.store.scenarios();
+
     return recs.map((rec, i) => {
       const s = scenarios.find((sc) => sc.id === rec.scenarioId);
       return {

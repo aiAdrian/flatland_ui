@@ -1,0 +1,112 @@
+// Colours are Lyne / app design tokens only — the stylelint colour gate guards
+// this file (docs/reference/frontend-lyne-conventions.md §1).
+:host {
+  display: block;
+}
+
+.sf {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 9px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  background-color: var(--sbb-color-white);
+}
+
+// Stacks in a narrow column (the Director right pane) instead of squeezing the
+// subject label into two characters.
+.sf-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.sf-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sbb-color-granite);
+}
+
+.sf-option {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+}
+
+.sf-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sf-col {
+  padding: 2px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--sbb-color-granite);
+
+  // Confidence bands: the further out, the less certain — and 'unknown' beyond
+  // the reliable horizon.
+  &[data-conf='high'] { color: var(--app-positive); }
+  &[data-conf='medium'] { color: var(--app-severity-warn); }
+  &[data-conf='lower'] { color: var(--app-whatif-ai); }
+  &[data-conf='unknown'] { color: var(--sbb-color-granite); }
+}
+
+.sf-rowhead {
+  padding: 2px 4px 2px 0;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+  color: var(--sbb-color-charcoal);
+}
+
+.sf-icon {
+  margin-right: 2px;
+}
+
+.sf-cell {
+  padding: 2px 1px;
+  text-align: center;
+}
+
+.sf-chip {
+  display: inline-block;
+  padding: 1px 5px;
+  white-space: nowrap;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid currentcolor;
+
+  &[data-level='good'] { color: var(--app-positive); }
+  &[data-level='fair'] { color: var(--app-severity-warn); }
+  &[data-level='bad'] { color: var(--app-severity-error); }
+  &[data-level='unknown'] {
+    color: var(--sbb-color-granite);
+    border-style: dashed;
+  }
+}
+
+.sf-horizon {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--app-severity-warn);
+
+  &.ok {
+    color: var(--app-positive);
+  }
+}
+
+.sf-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}

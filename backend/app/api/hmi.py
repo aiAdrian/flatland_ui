@@ -41,6 +41,33 @@ def _policy_factory_for(policy_id: str):
     return _ALL_POLICIES.get(policy_id)
 
 
+def _rollout_baseline(sess, enabled: set):
+    """`(baseline_id, factory)` — what actually drives this session.
+
+    A Director-driven session (`goal_directed`) rolls out its *committed
+    Director plan* as the baseline (`director_replay_factory` —
+    model-free replay on the fork), never a proxy policy. The
+    scenario-policy fallback applies only before a plan is committed,
+    and for ordinary sessions. May add to `enabled` when even the
+    fallback needs repair.
+    """
+    baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
+    if baseline_id == "goal_directed":
+        from app.policies.goal_directed_policy import director_replay_factory
+
+        factory = director_replay_factory(sess.env)
+        if factory is not None:
+            return baseline_id, factory
+    if baseline_id not in enabled:
+        baseline_id = sorted(enabled)[0]
+    factory = _policy_factory_for(baseline_id)
+    if factory is None:
+        baseline_id = "deadlock_avoidance"
+        factory = _policy_factory_for("deadlock_avoidance")
+        enabled.add(baseline_id)
+    return baseline_id, factory
+
+
 _perf_log = logging.getLogger("flatland.perf")
 _perf_log.setLevel(logging.INFO)
 if not _perf_log.handlers:
@@ -146,16 +173,9 @@ def get_scenarios(
     if not enabled:
         enabled = {"deadlock_avoidance"}
 
-    # Determine baseline: active session policy if enabled, otherwise first enabled.
-    baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
-    if baseline_id not in enabled:
-        baseline_id = sorted(enabled)[0]
-
-    baseline_factory = _policy_factory_for(baseline_id)
-    if baseline_factory is None:
-        baseline_id = "deadlock_avoidance"
-        baseline_factory = _policy_factory_for("deadlock_avoidance")
-        enabled.add(baseline_id)
+    # Baseline = what actually drives the session (Director plan replay
+    # for goal_directed sessions — see _rollout_baseline).
+    baseline_id, baseline_factory = _rollout_baseline(sess, enabled)
 
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
     # Smart default: simulate until episode end (cap 1000 steps; the
@@ -286,10 +306,7 @@ def get_recommendations(
     if not enabled:
         enabled = {"deadlock_avoidance"}
 
-    baseline_id = getattr(sess, "policy", None) or "deadlock_avoidance"
-    if baseline_id not in enabled:
-        baseline_id = sorted(enabled)[0]
-    baseline_factory = _policy_factory_for(baseline_id) or _policy_factory_for("deadlock_avoidance")
+    baseline_id, baseline_factory = _rollout_baseline(sess, enabled)
 
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
     max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)

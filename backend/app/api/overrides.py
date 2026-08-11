@@ -22,6 +22,23 @@ def _policy_factory_for(policy_id: str):
     return factories.get(policy_id, factories["deadlock_avoidance"])
 
 
+def _policy_factory_for_session(session):
+    """The factory that reproduces what actually drives this session.
+
+    A Director-driven session's what-if branches roll out the committed
+    Director plan (model-free replay), not a proxy policy. Fallback to
+    the scenario policies only when no plan is committed yet, and for
+    ordinary sessions."""
+    policy_id = getattr(session, "policy", None) or "deadlock_avoidance"
+    if policy_id == "goal_directed":
+        from app.policies.goal_directed_policy import director_replay_factory
+
+        factory = director_replay_factory(session.env)
+        if factory is not None:
+            return factory
+    return _policy_factory_for(policy_id)
+
+
 def _estimate_branch_kpis(env, policy_factory, overrides: dict, horizon: int) -> tuple[int, int]:
     from app.core.scenario_runner import TrajectoryBranchRunner
 
@@ -131,8 +148,7 @@ def set_override(session_id: str, handle: int, req: OverrideRequest):
         elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
         max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)
         horizon = min(max(50, max_ep - elapsed) if max_ep else 200, 250)
-        policy_id = getattr(session, "policy", None) or "deadlock_avoidance"
-        policy_factory = _policy_factory_for(policy_id)
+        policy_factory = _policy_factory_for_session(session)
 
         before_deadlocks, before_done = _estimate_branch_kpis(env, policy_factory, before_overrides, horizon)
         after_overrides = dict(override_manager.get_all(session_id))
@@ -206,8 +222,7 @@ def what_if_override(session_id: str, req: WhatIfRequest):
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
     max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)
     horizon = min(max(50, max_ep - elapsed) if max_ep else 200, 250)
-    policy_id = getattr(session, "policy", None) or "deadlock_avoidance"
-    policy_factory = _policy_factory_for(policy_id)
+    policy_factory = _policy_factory_for_session(session)
 
     # Baseline = current course (already-committed overrides). Branch = baseline
     # plus the proposed override(s), which win on conflicting handles.

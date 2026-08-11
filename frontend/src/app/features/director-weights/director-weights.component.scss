@@ -1,0 +1,332 @@
+:host {
+  display: block;
+
+  &.embedded {
+    height: 100%;
+    overflow: auto;
+  }
+}
+
+.director-weights {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  // While a new plan is being computed the widget grays out and the
+  // overlay below blocks input — a half-applied slider state must not
+  // accept more changes it would silently drop.
+  &.busy > :not(.plan-loading) {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+.plan-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  pointer-events: all;
+}
+
+.plan-loading-spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 3px solid var(--sbb-color-cloud);
+  border-top-color: var(--sbb-color-red);
+  animation: plan-loading-spin 0.9s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 2.5s;
+  }
+}
+
+.plan-loading-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+}
+
+@keyframes plan-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--sbb-color-granite);
+}
+
+.policy-note {
+  margin: 0;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  border-left: 3px solid var(--app-severity-warn);
+}
+
+.dial-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.dial-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.dial-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.dial-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+}
+
+.dial-share {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-granite);
+}
+
+// Dot meter (design carried over from the retired KPI filter): 5 discrete
+// points per metric — every click changes the ratio enough for the planner
+// to respond, where a continuous slider invites meaningless nudges.
+.dial-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0;
+}
+
+.dial-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sbb-color-cloud);
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.1s ease;
+
+  &:hover {
+    transform: scale(1.2);
+    background: var(--sbb-color-granite);
+  }
+
+  &.filled {
+    background: var(--sbb-color-charcoal);
+
+    &:hover {
+      background: var(--sbb-color-black);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sbb-color-red);
+    outline-offset: 1px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.dial-points {
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-granite);
+}
+
+.dial-hint {
+  font-size: 0.7rem;
+  color: var(--sbb-color-granite);
+}
+
+.scorecard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: var(--sbb-color-milk);
+}
+
+.scorecard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scorecard-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sbb-color-granite);
+}
+
+.source-badge {
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  color: var(--sbb-color-white);
+  background: var(--sbb-color-granite);
+
+  &[data-kind='search'] {
+    background: var(--app-positive);
+  }
+
+  &[data-kind='fallback'] {
+    background: var(--app-severity-warn);
+  }
+}
+
+.utility-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.utility-row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.utility-label {
+  font-size: 0.75rem;
+  color: var(--sbb-color-charcoal);
+}
+
+.utility-bar {
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--sbb-color-cloud);
+}
+
+.utility-fill {
+  display: block;
+  height: 100%;
+  background: var(--sbb-color-metal);
+}
+
+.utility-value {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--sbb-color-granite);
+}
+
+.scorecard-empty {
+  margin: 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--sbb-color-granite);
+}
+
+.verify-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.verify-button {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--sbb-color-graphite);
+  border-radius: 4px;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.verify-summary {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-charcoal);
+}
+
+.whatif-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+// Branch accents follow the consortium A3S convention (CLAUDE.md):
+// human-influenced futures blue, AI-simulated continuation yellow —
+// mapped onto the app's kind tokens (decision-support / trust).
+.whatif-branch {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-left: 0.375rem;
+  border-left: 3px solid var(--app-kind-trust);
+
+  &[data-branch='replan'] {
+    border-left-color: var(--app-kind-decision-support);
+  }
+}
+
+.whatif-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  min-width: 3.5rem;
+  color: var(--sbb-color-charcoal);
+}
+
+.whatif-outcome {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-charcoal);
+}
+
+.whatif-note {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--sbb-color-granite);
+}
+
+.trace {
+  font-size: 0.7rem;
+  color: var(--sbb-color-granite);
+
+  summary {
+    cursor: pointer;
+  }
+}
+
+.trace-list {
+  margin: 0.25rem 0 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-variant-numeric: tabular-nums;
+}

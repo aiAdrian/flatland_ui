@@ -1,0 +1,57 @@
+<div class="cle">
+  <!-- 1) "Weil du mir das beigebracht hast …" — a confirmed preference changed
+          the ranking. Only shown when the hint really came from a learning. -->
+  @if (confirmedCallout(); as adj) {
+    <div class="cle-callout">
+      <span class="cle-icon" aria-hidden="true">🧠</span>
+      <div class="cle-callout-body">
+        <p class="cle-callout-lead">
+          Weil du mir das bestätigt hast, gewichte ich
+          <strong>{{ axisLabel(adj.targetValue) }}</strong> jetzt höher.
+        </p>
+        <p class="cle-learning">„{{ adj.appliedLearning }}"</p>
+        <p class="cle-note">Ranking-Nudge, keine harte Regel.</p>
+      </div>
+    </div>
+  }
+
+  <!-- 2) Reward weights inferred from the operator's own deliberate decisions,
+          offered for the Director dials. Opt-in: the AI never moves them. -->
+  @if (weightsDiffer() && suggestedWeights(); as w) {
+    <div class="cle-weights">
+      <p class="cle-title">Aus deinen Entscheidungen abgeleitet</p>
+      <ul class="cle-dials">
+        <li><span>Pünktlichkeit</span><strong>{{ w.punctuality }}</strong></li>
+        <li><span>Anschlüsse</span><strong>{{ w.connections }}</strong></li>
+        <li><span>Stabilität</span><strong>{{ w.stability }}</strong></li>
+      </ul>
+      @if (applied()) {
+        <p class="cle-applied">Übernommen — der Planer rechnet damit neu.</p>
+      } @else {
+        <button
+          type="button"
+          class="cle-apply"
+          [disabled]="applying()"
+          (click)="applySuggestedWeights()"
+        >
+          {{ applying() ? 'Übernehme …' : 'Für Director übernehmen' }}
+        </button>
+      }
+      <p class="cle-note">
+        Nur bewusste Entscheidungen zählen — schnelle Zustimmungen bleiben außen vor.
+      </p>
+    </div>
+  }
+
+  <!-- 3) Cross-session context: the AI starts warm. -->
+  @if (isWarm() && profile(); as p) {
+    <p class="cle-warm">
+      Aus {{ p.priorSessions }} früheren Session(s):
+      <strong>{{ p.valueProfile.label }}</strong>
+      @if (p.valueProfile.dominantPct > 0) {
+        ({{ p.valueProfile.dominantPct }}%)
+      }
+      · {{ p.confirmedLearnings.length }} bestätigte Präferenz(en)
+    </p>
+  }
+</div>

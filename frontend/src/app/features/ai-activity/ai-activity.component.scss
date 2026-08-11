@@ -1,0 +1,124 @@
+:host {
+  display: block;
+  border-bottom: 1px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-milk);
+}
+
+.aa {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+}
+
+.aa-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.aa-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.aa-count {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+  font-variant-numeric: tabular-nums;
+}
+.aa-count--replan {
+  color: var(--app-severity-warning);
+  font-weight: 600;
+}
+
+.aa-caret {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+  transition: transform 0.15s ease;
+  transform: rotate(-90deg);
+}
+.aa-caret.open {
+  transform: none;
+}
+
+.aa-source {
+  margin: 0;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.aa-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.aa-group__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--sbb-color-granite);
+}
+
+.aa-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0 2px 6px;
+  border-left: 2px solid var(--sbb-color-cloud);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--sbb-color-charcoal);
+}
+.aa-item--alert {
+  border-left-color: var(--app-severity-error);
+}
+.aa-item--replan {
+  border-left-color: var(--app-severity-warning);
+  font-weight: 600;
+}
+.aa-item--hold {
+  border-left-color: var(--sbb-color-violet);
+}
+/* Planned, not done — visually quieter than history so the two never read alike. */
+.aa-item--planned {
+  color: var(--sbb-color-granite);
+  border-left-style: dashed;
+}
+
+.aa-item__step {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-granite);
+}
+
+.aa-item__text {
+  min-width: 0;
+}
+
+.aa-item__detail {
+  color: var(--sbb-color-granite);
+  font-size: 11px;
+}
+.aa-item__detail::before {
+  content: ' · ';
+}
+
+.aa-empty {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+}

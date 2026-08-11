@@ -70,6 +70,12 @@
   cursor: help;
 }
 
+// Pinned = this option's look-ahead is the one currently drawn on the map.
+.option-card.is-pinned {
+  border-color: var(--sbb-color-violet);
+  box-shadow: inset 3px 0 0 0 var(--sbb-color-violet);
+}
+
 .option-card__meta {
   display: flex;
   align-items: center;
@@ -133,6 +139,27 @@
   font-style: italic;
   line-height: 1.4;
   color: var(--sbb-color-granite);
+}
+
+.preview-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.btn-pin {
+  align-self: flex-start;
+  font-size: 10px;
+  padding: 3px 7px;
+  color: var(--sbb-color-granite);
+}
+.btn-pin.is-pinned {
+  background: var(--sbb-color-violet);
+  border-color: var(--sbb-color-violet);
+  color: var(--sbb-color-white);
+}
+.btn-pin.is-pinned:hover {
+  background: var(--sbb-color-violet);
 }
 
 .preview-hint {

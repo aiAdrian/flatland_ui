@@ -3,56 +3,87 @@
   flex-shrink: 0;
 }
 
+// Single row, ~44px. It used to be a 121px block, which pushed the Flatland map
+// entirely below the fold on a laptop screen.
 .directive {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 6px 16px;
   background: var(--sbb-color-white, #fff);
   border: 1px solid var(--sbb-color-cloud, #d2d2d2);
   border-left: 4px solid var(--sbb-color-orange, #ffaa00);
   color: var(--sbb-color-charcoal, #212121);
 }
-
-.dir-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.dir-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
+.directive.is-running {
+  border-left-color: var(--app-positive, var(--sbb-color-green, #00a099));
 }
 
 .dir-icon {
+  flex-shrink: 0;
+  font-weight: 700;
   color: var(--sbb-color-orange, #ffaa00);
 }
 
-.dir-desc {
-  margin: 4px 0 8px;
-  font-size: 12px;
-  color: var(--sbb-color-granite, #686868);
-  line-height: 1.4;
+.dir-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--app-positive, var(--sbb-color-green, #00a099));
+  animation: dir-pulse 1.4s ease-in-out infinite;
 }
 
-.dir-summary {
+@keyframes dir-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.dir-lead {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dir-stats {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 14px;
+  min-width: 0;
+}
+
+.dir-stat {
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--sbb-color-granite, #686868);
+}
+.dir-stat strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-charcoal, #212121);
+}
+.dir-stat.warn strong {
+  color: var(--app-severity-warning, var(--sbb-color-orange, #ffaa00));
+}
+.dir-stat.alert strong {
+  color: var(--app-severity-error, var(--sbb-color-red, #eb0000));
 }
 
 .dir-chip {
-  font-size: 11px;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 12px;
   background: var(--sbb-color-milk, #f6f6f6);
   border: 1px solid var(--sbb-color-cloud, #d2d2d2);
   border-radius: 9px;
   padding: 2px 10px;
   color: var(--sbb-color-charcoal, #212121);
 }
-.dir-chip strong { color: #b36b00; }
 
 .dir-start {
   flex-shrink: 0;
@@ -62,10 +93,33 @@
   font: inherit;
   font-weight: 700;
   font-size: 13px;
-  padding: 10px 18px;
+  padding: 5px 14px;
   border-radius: 4px;
   cursor: pointer;
 }
-.dir-start:hover {
-  background: #ffbb33;
+.dir-start:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.dir-start:disabled {
+  background: var(--sbb-color-milk, #f6f6f6);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  color: var(--sbb-color-granite, #686868);
+  cursor: default;
+}
+
+// Secondary on purpose: ending the shift is the rarer action, and it must not
+// compete with the run control for the eye.
+.dir-end {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  color: var(--sbb-color-charcoal, #212121);
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.dir-end:hover {
+  background: var(--sbb-color-milk, #f6f6f6);
 }

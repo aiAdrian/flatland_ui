@@ -134,33 +134,56 @@
         }
       </div>
     } @else {
-    <div class="three-col">
-      <aside class="left-pane">
-        <app-panel-shell [panel]="panelSituationSummary"></app-panel-shell>
-        <app-panel-shell [panel]="panelNotifications"></app-panel-shell>
-        <app-panel-shell [panel]="panelAgents"></app-panel-shell>
-      </aside>
+    <!-- Director drops the left column entirely: its three panels were the
+         situation numbers (now on the Director bar, always visible), the event
+         feed (moved to the right column, next to the other supervisory
+         surfaces) and the per-train table (dispatcher detail the human does not
+         own here). The freed ~280px go to the map and to the forecast, which
+         needs its four time columns to fit. -->
+    <!-- The closing review gets a screen of its own (below), so the working area
+         steps aside instead of the review being squeezed into the column above
+         the map. Hidden rather than destroyed: the strategy tiles hold plans that
+         cost ~20 s to compute, and "← Zurück zur laufenden Schicht" must not pay
+         for them again. -->
+    <div class="three-col"
+         [class.two-col]="store.interactionMode() === 'director'"
+         [class.is-behind]="shiftScreenOpen()">
+      @if (store.interactionMode() !== 'director') {
+        <aside class="left-pane">
+          <app-panel-shell [panel]="panelSituationSummary"></app-panel-shell>
+          <app-panel-shell [panel]="panelNotifications"></app-panel-shell>
+          <app-panel-shell [panel]="panelAgents"></app-panel-shell>
+        </aside>
+      }
 
       <section class="center-pane">
-        @if (panelAvailable('director-directive')) {
-          @if (store.playing()) {
-            <div class="ai-control-banner" role="status">
-              <span class="ai-control-dot"></span>
-              <span class="ai-control-text">
-                <strong>AI in control</strong> — the agent dispatches autonomously.
-                Adjust the <em>KPI filter</em> to steer its priorities; an override counts as a manual intervention.
-              </span>
-            </div>
-          } @else if (!store.episodeDone()) {
-            <app-director-directive></app-director-directive>
-          }
+        <!-- One bar for both states. The former pair (a "Set your directive"
+             block when paused, an "AI in control" banner while playing) told the
+             operator to use a KPI filter that is offered in no mode, and hid the
+             situation numbers exactly while the AI was driving. -->
+        @if (panelAvailable('director-directive') && !store.shiftReviewOpen()) {
+          <app-director-directive></app-director-directive>
         }
 
-        <!-- Director (WP 3.4): goal-achievement as the central supervision
-             dashboard, above the map. Situation overview lives in the middle. -->
+        <!-- Director (WP 3.4): the central supervision surface above the map.
+             Goal-achievement was the dashboard here; Director now leads with the
+             A/B/C *strategy focuses* — minimise delay / hold connections /
+             maximise stability — plus their forecast, because the supervisory
+             decision is which objective the autonomous plan should pursue. -->
         @if (panelAvailable('goal-achievement')) {
           <section class="center-dashboard">
             <app-goal-achievement></app-goal-achievement>
+          </section>
+        } @else if (store.interactionMode() === 'director') {
+          <!-- Decide here, see it on the map below, read the consequence under
+               the map. The forecast used to sit in this slot too, which pushed
+               the map off screen entirely on a laptop.
+
+               Once the shift is over the tiles have nothing left to decide, so
+               the same slot carries the review — with the map still below it as
+               the closing picture. -->
+          <section class="center-dashboard center-dashboard--options">
+            <app-strategy-options></app-strategy-options>
           </section>
         }
 
@@ -178,6 +201,41 @@
           @if (store.showMap()) {
             <section class="map-section">
               <app-panel-shell [panel]="panelFlatlandMap"></app-panel-shell>
+
+              <!-- Without this the dashed routes were "some lines on the map":
+                   correct, but not readable as a look-ahead. Names the subject
+                   and the encoding, and disappears with the overlay. -->
+              @if (store.directorPreviewPaths() && store.directorFocusOutlook(); as outlook) {
+                <div class="map-lookahead-badge"
+                     [class.is-committed]="store.directorPreviewIsCommitted()"
+                     role="status">
+                  <span class="map-lookahead-badge__dash" aria-hidden="true"></span>
+                  <span>
+                    @if (store.directorPreviewIsCommitted()) {
+                      <strong>Aktiver Plan: {{ outlook.subject }}</strong> —
+                    } @else if (store.directorPreviewIsFullPlan()) {
+                      <!-- No deviation exists, so calling this a look-ahead at a
+                           change would be a claim the overlay cannot support. -->
+                      <strong>Plan: {{ outlook.subject }}</strong> — identisch mit
+                      dem laufenden Plan,
+                    } @else {
+                      <strong>Vorausschau: {{ outlook.subject }}</strong> —
+                    }
+                    @if (store.directorPreviewDivergence(); as d) {
+                      <!-- Only the difference is marked; the route follows on
+                           hover. Naming the counts keeps the map honest about
+                           how much actually changes. -->
+                      {{ previewedBranchCount() }} Zug/Züge fahren anders
+                      @if (d.holds.length > 0) {
+                        , {{ d.holds.length }} warten
+                      }
+                      · Maus auf eine Marke zeigt die Route
+                    } @else {
+                      gestrichelt = Route je Zug
+                    }
+                  </span>
+                </div>
+              }
             </section>
           }
 
@@ -220,13 +278,55 @@
             <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
           }
           @case ('director') {
-            @if (panelAvailable('kpi-filter')) {
-              <div class="right-kpi-filter">
-                <app-panel-shell [panel]="panelKpiFilter"></app-panel-shell>
-              </div>
+            <!-- Deliberately short. Director asks one question — which objective
+                 should the plan pursue — so this column answers only "what did
+                 the AI learn about me" and "who is affected". Removed:
+                 · director-weights → the A/B/C tiles *are* the dial surface;
+                   two levers for the same weights invited "which one wins?"
+                 · scenario (policy swap) → a different lever than objectives
+                 · agent-inspector → per-train drill-down the human does not own here
+                 · kpi-filter → offered in no mode, kept wired in the config only. -->
+            @if (panelAvailable('director-weights')) {
+              <app-panel-shell [panel]="panelDirectorWeights"></app-panel-shell>
             }
-            <app-panel-shell [panel]="panelScenario"></app-panel-shell>
-            <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
+
+            <!-- Consequence of the chosen strategy. It lives here rather than
+                 under the map because the centre has to fit "decide → see it on
+                 the map" on one screen; stacking the forecast there as well put
+                 the map back off screen. It describes the *focus* published by
+                 the tiles, not a policy scenario — under the Director planner the
+                 baseline scenario is not even the plan that drives. -->
+            <section class="right-outlook">
+              @if (store.directorFocusOutlook(); as outlook) {
+                <app-strategy-forecast
+                  [signals]="outlook.signals"
+                  [subject]="outlook.subject"
+                  derivedFrom="Regelbasierte Projektion, keine Neusimulation."
+                ></app-strategy-forecast>
+              } @else {
+                <p class="right-outlook__empty">
+                  <strong>Wirkung über 30 Minuten</strong><br />
+                  Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um
+                  ihre Prognose zu sehen.
+                </p>
+              }
+            </section>
+
+            <!-- The supervisory feed. NOT the notifications panel: that one
+                 reports malfunctions, operator overrides and per-train "decision
+                 pending" hints — two of which cannot happen in Director, so it
+                 stayed empty over a measured 120 steps. This shows what the
+                 planner decided, when it re-planned, and what it will do next. -->
+            <app-ai-activity></app-ai-activity>
+
+            <!-- The reflection agent's voice in Director: it answers the one
+                 decision this mode asks of the human (which objective), which is
+                 also the only preference evidence the operator model can get
+                 here. Appears right after a strategy is committed. -->
+            <app-strategy-reflection></app-strategy-reflection>
+
+            <app-co-learning-effect></app-co-learning-effect>
+            <app-learning-records></app-learning-records>
             <app-panel-shell [panel]="panelImpact"></app-panel-shell>
           }
         }
@@ -251,6 +351,15 @@
         ></app-panel-shell>
       </ng-template>
     </div>
+
+    <!-- Schichtabschluss: a screen of its own. Squeezed into the column above
+         the map it competed with a live simulation for attention and had ~330px
+         to say what the shift amounted to. A debrief is not a panel. -->
+    @if (shiftScreenOpen()) {
+      <section class="shift-screen" role="region" aria-label="Schichtabschluss">
+        <app-shift-review></app-shift-review>
+      </section>
+    }
     }
     }
   } @else {
@@ -687,7 +796,9 @@
         @if (store.loading()) {
           <span class="loading">Loading…</span>
         }
-        @if (store.episodeDone()) {
+        <!-- A shift the operator declared over is finished for questionnaire
+             purposes too; waiting for step 400 would only hide the survey. -->
+        @if (store.shiftReviewOpen()) {
           <button class="footer-survey-btn" type="button" (click)="openSurvey()">
             Post-session survey →
           </button>
