@@ -254,6 +254,27 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     minHeight: 140,
   },
   {
+    type: 'ai-activity',
+    title: 'AI Activity',
+    dataSource: 'simulation',
+    kind: 'event',
+    granularity: 'overview-detail',
+    status: 'shipped',
+    description: 'Supervisory feed: what the planner just decided, re-planned, and will do next.',
+    promise: 'Follow what the autonomous AI is doing without having to ask it.',
+    grounding:
+      'Adjustable autonomy (WP 3.4) — supervision needs a channel of its own. Replaces `notifications` in Director, which reports malfunctions, operator overrides and per-train hints; two of those cannot occur under an autonomous planner, so it measured zero entries over 120 steps.',
+    availableModes: ['director'],
+    perMode: {
+      recommendation: null,
+      'co-learning': null,
+      director:
+        'Disruptions (trigger) · committed decisions up to the current step, re-plans with their verdict · scheduled decisions ahead. Planned and past are kept apart so a decision 30 steps out is not announced as having just happened. Carries the plan provenance ("Plan aus: modellgeführte Suche", "10 Optionen geprüft").',
+    },
+    defaultZone: 'right',
+    minHeight: 180,
+  },
+  {
     type: 'toggle-view',
     title: 'Track Layout & Timetable',
     dataSource: 'simulation',
@@ -330,8 +351,13 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     description: 'Train roster grouped by state: position, arrival, deadline, actions.',
     promise: 'Scan every train by state and jump to the one that needs attention.',
     grounding: 'Rolling-stock roster (control-room practice).',
-    availableModes: 'all',
-    perMode: ALL_MODES,
+    availableModes: ['recommendation', 'co-learning'],
+    perMode: {
+      recommendation: 'Same in all modes — no mode-specific branching.',
+      'co-learning': 'Same in all modes — no mode-specific branching.',
+      director:
+        'Withdrawn: dispatcher-level detail. Director supervises objectives while the AI owns individual trains, so a per-train table is noise there.',
+    },
     defaultZone: 'left',
     minHeight: 180,
   },
@@ -382,11 +408,12 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     description: 'Progress toward the operational goal with status badge & progress bar.',
     promise: 'Track how close the run is to the directive / operational goal.',
     grounding: 'Director supervisory goal readout (WP 3.4).',
-    availableModes: ['director'],
+    availableModes: [],
     perMode: {
       recommendation: null,
       'co-learning': null,
-      director: 'The supervisory goal readout — progress against the standing directive.',
+      director:
+        'Superseded by `strategy-options` as the central Director surface — the supervisory decision is which objective the plan should pursue, not how far along a standing one is. Offered in no mode (empty ≠ absent), kept wired so re-enabling is a config flip.',
     },
     defaultZone: 'right',
     minHeight: 140,
@@ -407,6 +434,28 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     perMode: ALL_MODES,
     defaultZone: 'center',
     minHeight: 260,
+  },
+  {
+    type: 'strategy-forecast',
+    title: 'Strategy Impact Forecast',
+    dataSource: 'derived',
+    kind: 'prediction',
+    granularity: 'overview',
+    status: 'shipped',
+    description: 'Now / +10 / +20 / +30 min projection for conflict, connections and delay side effect.',
+    promise: 'See what the next half hour looks like before committing to an option.',
+    grounding:
+      'Anticipation (interaction-framework §2) — proactive intervention needs a horizon, not just a current state. Rule-based projection over KPI deltas; states its own limits, since the reliable horizon shrinks as problems pile up. Not a re-simulation — contrast `whatif-compare`, which does restore/simulate (A3S).',
+    availableModes: ['director'],
+    perMode: {
+      recommendation:
+        'Not offered yet. Would project the *recommended* scenario option from its KPI deltas (the component already supports this default subject) — the natural pairing with an accept/reject decision.',
+      'co-learning': 'Not offered yet. Same default-subject path as Recommendation; would need neutral framing (no single "recommended" option) to fit §3.3.',
+      director:
+        'Explicit subject: the caller passes the strategy *focus* signals, because what is being decided here is an objective, not a policy. Reading the scenario options would be wrong — under the Director planner the baseline scenario is not the plan that drives.',
+    },
+    defaultZone: 'right',
+    minHeight: 200,
   },
   {
     catalogId: 'B1',
@@ -481,14 +530,36 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     description: 'Scenario cards compared by KPIs (done / deadlock / delay) with policy switch.',
     promise: 'Compare candidate scenarios/policies by KPI and pick one.',
     grounding: 'Scenario-panel per-scenario KPIs; T3.2 policy-ensemble framing.',
-    availableModes: ['co-learning', 'director'],
+    availableModes: ['co-learning'],
     perMode: {
       recommendation: null,
       'co-learning': 'The neutral policy-compare surface — options unranked, no KPI-score ordering; base for the §3.3 what-if.',
-      director: 'Neutral framing, **collapsed by default** — the Director Weights panel is the directive lever; the baseline card rolls out the committed Director plan.',
+      director:
+        'Withdrawn: swapping the *algorithm* is a different question from setting the *objective*, and both on one screen was the main source of "which of these actually steers the AI?". `strategy-options` is the objective lever here.',
     },
     defaultZone: 'right',
     minHeight: 160,
+  },
+  {
+    type: 'strategy-options',
+    title: 'Strategy Options (A/B/C)',
+    dataSource: 'simulation',
+    kind: 'decision-support',
+    granularity: 'overview-detail',
+    status: 'shipped',
+    description: 'Three planned strategy focuses — minimise delay / hold connections / maximise stability — each with its price.',
+    promise: 'Choose which objective the autonomous plan should pursue, seeing what each one costs.',
+    grounding:
+      'Adjustable autonomy (WP 3.4) — the directive is a high-level goal, not a dispatch action. Each option is a real plan: three variants computed on session copies (~20 s) via the goal_directed planner, so the tiles carry measured per-axis utilities rather than labels. Evaluative AI per T2.3 (`AI4REALNET/T2.3_explaining_action_alternatives`): expected outcome per alternative, with the limiting factor named instead of an opaque aggregate.',
+    availableModes: ['director'],
+    perMode: {
+      recommendation: null,
+      'co-learning': null,
+      director:
+        'The central surface. Decision-support at the **directive** altitude, not the dispatch altitude the kind blurb suppresses in Director: the human picks an objective, the AI still owns every train. Doubles as the control — committing a tile sets the planner\'s three weights, which is why `director-weights` is withdrawn (two levers for one objective invited "which one wins?").',
+    },
+    defaultZone: 'center',
+    minHeight: 320,
   },
   {
     type: 'recommendations',
@@ -601,7 +672,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     status: 'shipped',
     description: 'KPI weight sliders (time / energy / platform / routing) as dot meters.',
     promise: 'Express which KPIs matter, shaping how options are ranked.',
-    grounding: 'Operator priority elicitation; offered in no mode — the Director directive lever is the Director Weights panel.',
+    grounding: 'Operator priority elicitation; offered in no mode — the Director directive lever is `strategy-options`.',
     availableModes: [],
     perMode: {
       recommendation: null,
@@ -621,11 +692,12 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     description: 'Planner point meters (punctuality / connections / stability, 0-5 dots each) + committed-plan scorecard, what-if compare and gated mid-episode re-planning.',
     promise: 'Steer what the autonomous plan optimises, see what the committed plan promises and where it came from, and test or trigger a re-plan from the current state.',
     grounding: 'Adjustable autonomy (WP 3.4): high-level directives to the goal_directed planner; provenance per Evaluative AI; what-if per the A3S restore/simulate/report contract.',
-    availableModes: ['director'],
+    availableModes: [],
     perMode: {
       recommendation: null,
       'co-learning': null,
-      director: 'The planner\'s **objective dials**; scorecard shows source (search vs baseline) and predicted per-axis utilities.',
+      director:
+        'Withdrawn in favour of `strategy-options`, which sets the same three weights but says what each setting costs; two levers for one objective made it unclear which one governs. Offered in no mode (empty ≠ absent), kept wired so re-enabling is a config flip — the raw dials plus the plan scorecard (source: search vs baseline, predicted per-axis utilities) are still the better surface for debugging the planner.',
     },
     defaultZone: 'right',
     minHeight: 200,
@@ -710,6 +782,73 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     defaultZone: 'right',
     minHeight: 160,
     spec: 'docs/plans/widget-a2-decision-log.md',
+  },
+  {
+    type: 'strategy-reflection',
+    title: 'Strategy Reflection',
+    dataSource: 'derived',
+    kind: 'capitalization',
+    granularity: 'overview',
+    status: 'shipped',
+    description: 'Plays a committed strategy back with its price, then asks: as a rule / just this once / no.',
+    promise: 'Have your objective choice answered, and decide whether it becomes a standing preference.',
+    grounding:
+      'The reflection agent\'s voice in Director. Mirroring [MR] per the FHNW Supportive-AI modes (Hamouche et al., T3.3), reusing the same `operator-model.service` / `ValueAxis` machinery as `co-learning-reflection`. The "just this once" option is the overfitting guard — a single situational choice must not silently become a profile.',
+    availableModes: ['director'],
+    perMode: {
+      recommendation: null,
+      'co-learning': null,
+      director:
+        'Director suppresses the per-train "why did you hold train 7?" prompt (the human does not dispatch), which left the operator model with no evidence at all and "what the AI learned about you" permanently empty. This is the one decision the mode does ask, so it is the one place the co-learning loop can close. Contradictions against a carried-over profile are raised as a question, never as a correction.',
+    },
+    defaultZone: 'right',
+    minHeight: 160,
+  },
+  {
+    type: 'co-learning-effect',
+    title: 'Co-Learning Effect',
+    dataSource: 'derived',
+    kind: 'capitalization',
+    granularity: 'overview',
+    status: 'shipped',
+    description: '"Because you taught me this…" — names the confirmed learning behind a re-ranking, and offers the weights it implies.',
+    promise: 'See what your confirmed preferences actually changed, and apply them if you want to.',
+    grounding:
+      'The visible half of Level B (`docs/plans/co-learning-direction.md`): making the *consequence* of confirmed preferences explicit instead of only counting them. Strictly opt-in — the AI never moves the dials on its own; a ranking nudge, not a hard rule.',
+    availableModes: ['director'],
+    perMode: {
+      recommendation:
+        'Not offered yet. Strong candidate: the same "because you taught me this" callout would explain why a recommendation is ranked where it is.',
+      'co-learning':
+        'Not offered yet, despite the name — a gap worth closing. Co-Learning is the mode that generates the confirmed learnings; today only Director shows what they did.',
+      director:
+        'Names the learning behind the operator model\'s re-ranking hint, and proposes the punctuality / connections / stability weights inferred from the operator\'s own deliberate decisions.',
+    },
+    defaultZone: 'right',
+    minHeight: 160,
+  },
+  {
+    type: 'shift-review',
+    title: 'Shift Review (Schichtabschluss)',
+    dataSource: 'mixed',
+    kind: 'capitalization',
+    granularity: 'detail',
+    status: 'shipped',
+    description: 'End-of-shift debrief: how it ended, at most three moments worth discussing, what the AI learned.',
+    promise: 'Close a shift by reviewing what happened and what the AI took from it — not just a survey link.',
+    grounding:
+      'Post-run reflection module per the FHNW Co-Learning HMI (T3.3): statistics plus open questions. Moments are picked by transparent scoring (`core/reflection-moments.ts`) with the trace shown, so the selection can be argued with rather than trusted. No LLM — every sentence is a template over measured values.',
+    availableModes: ['director'],
+    perMode: {
+      recommendation:
+        'Not offered yet. The material (decision log, accept/override record) exists; the debrief structure would transfer directly.',
+      'co-learning':
+        'Not offered yet. Overlaps `co-learning-reflection`, which covers the in-run reflection — the open question is whether the two merge into one shared closing surface.',
+      director:
+        'Bilanz (how the shift ended, how much the AI ran alone) · Momente (≤3 scored decisions) · Was die KI gelernt hat (confirmed preferences, implied weights, one-offs kept apart, open tensions). Takes over the screen rather than sharing a column: a debrief competing with a live simulation for attention had ~330px to say what a shift amounted to.',
+    },
+    defaultZone: 'floating',
+    minHeight: 400,
   },
   {
     type: 'co-learning-reflection',

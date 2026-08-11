@@ -50,6 +50,23 @@ export const PANEL_MODE_AVAILABILITY: Record<string, InteractionMode[]> = {
   // Per-train table: dispatcher-level detail. Director supervises objectives
   // while the AI owns individual trains, so it is noise there.
   agents: ['recommendation', 'co-learning'],
+
+  // ── Director strategy surfaces ───────────────────────────────────────────
+  // These render from fixed slots in AppComponent rather than through
+  // panel-plugin-host (they carry layout constraints a free-floating column
+  // cannot express — see the comments at their call sites). They are listed
+  // here anyway so that *availability* is data, not a template condition:
+  // `panelAvailable('…')` is now the gate, and the Widget Gallery can show
+  // them with their per-mode behaviour like every other widget.
+  'strategy-options': ['director'],
+  'strategy-forecast': ['director'],
+  'strategy-reflection': ['director'],
+  'ai-activity': ['director'],
+  // Named for Co-Learning, offered only in Director today — the mode that
+  // *generates* confirmed learnings does not yet show what they changed.
+  // Deliberate gap, not an oversight; see the catalog entry.
+  'co-learning-effect': ['director'],
+  'shift-review': ['director'],
 };
 
 /** True if the given panel type is offered in the given interaction mode. */

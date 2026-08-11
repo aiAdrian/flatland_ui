@@ -174,7 +174,7 @@
           <section class="center-dashboard">
             <app-goal-achievement></app-goal-achievement>
           </section>
-        } @else if (store.interactionMode() === 'director') {
+        } @else if (panelAvailable('strategy-options')) {
           <!-- Decide here, see it on the map below, read the consequence under
                the map. The forecast used to sit in this slot too, which pushed
                the map off screen entirely on a laptop.
@@ -296,36 +296,44 @@
                  the map back off screen. It describes the *focus* published by
                  the tiles, not a policy scenario — under the Director planner the
                  baseline scenario is not even the plan that drives. -->
-            <section class="right-outlook">
-              @if (store.directorFocusOutlook(); as outlook) {
-                <app-strategy-forecast
-                  [signals]="outlook.signals"
-                  [subject]="outlook.subject"
-                  derivedFrom="Regelbasierte Projektion, keine Neusimulation."
-                ></app-strategy-forecast>
-              } @else {
-                <p class="right-outlook__empty">
-                  <strong>Wirkung über 30 Minuten</strong><br />
-                  Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um
-                  ihre Prognose zu sehen.
-                </p>
-              }
-            </section>
+            @if (panelAvailable('strategy-forecast')) {
+              <section class="right-outlook">
+                @if (store.directorFocusOutlook(); as outlook) {
+                  <app-strategy-forecast
+                    [signals]="outlook.signals"
+                    [subject]="outlook.subject"
+                    derivedFrom="Regelbasierte Projektion, keine Neusimulation."
+                  ></app-strategy-forecast>
+                } @else {
+                  <p class="right-outlook__empty">
+                    <strong>Wirkung über 30 Minuten</strong><br />
+                    Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um
+                    ihre Prognose zu sehen.
+                  </p>
+                }
+              </section>
+            }
 
             <!-- The supervisory feed. NOT the notifications panel: that one
                  reports malfunctions, operator overrides and per-train "decision
                  pending" hints — two of which cannot happen in Director, so it
                  stayed empty over a measured 120 steps. This shows what the
                  planner decided, when it re-planned, and what it will do next. -->
-            <app-ai-activity></app-ai-activity>
+            @if (panelAvailable('ai-activity')) {
+              <app-ai-activity></app-ai-activity>
+            }
 
             <!-- The reflection agent's voice in Director: it answers the one
                  decision this mode asks of the human (which objective), which is
                  also the only preference evidence the operator model can get
                  here. Appears right after a strategy is committed. -->
-            <app-strategy-reflection></app-strategy-reflection>
+            @if (panelAvailable('strategy-reflection')) {
+              <app-strategy-reflection></app-strategy-reflection>
+            }
 
-            <app-co-learning-effect></app-co-learning-effect>
+            @if (panelAvailable('co-learning-effect')) {
+              <app-co-learning-effect></app-co-learning-effect>
+            }
             <app-learning-records></app-learning-records>
             <app-panel-shell [panel]="panelImpact"></app-panel-shell>
           }
