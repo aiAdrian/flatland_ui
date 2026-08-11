@@ -27,7 +27,8 @@ Designs and roadmaps not yet (fully) built.
 - [widget-catalog.md](plans/widget-catalog.md) — candidate widgets: sources (D3.1/D3.2/UIX/owner), effort, changes, contribution to core questions
 - [widget-a1-risk-uncertainty.md](plans/widget-a1-risk-uncertainty.md) — spec: Risk & Uncertainty (Trust kind) — first widget
 - [widget-a2-decision-log.md](plans/widget-a2-decision-log.md) — spec: Decision Log & Accountability Strip (Capitalization kind) — incl. WP4 validation-KPI alignment
-- [mode-scoped-layouts-plan.md](plans/mode-scoped-layouts-plan.md)
+- [mode-scoped-layouts-plan.md](plans/mode-scoped-layouts-plan.md) — *which* layout renders per interaction mode
+- [layout-grid-model-plan.md](plans/layout-grid-model-plan.md) — *what a layout can say*: grid areas + per-widget `minWidth` instead of px columns
 - [interaction-logging-plan.md](plans/interaction-logging-plan.md)
 - [scripted-events-plan.md](plans/scripted-events-plan.md)
 - [recommender-roadmap.md](plans/recommender-roadmap.md)
