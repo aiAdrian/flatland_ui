@@ -72,6 +72,55 @@ the **`AI4REALNET` GitHub org** and align naming/semantics with them:
 If a referenced repo's API or naming differs from this repo, prefer the
 consortium convention and note the divergence in the PR.
 
+⚠️ **The AI4REALNET org mirrors six `flatland-association` repos as forks that
+are months stale** (`flatland-rl`, `flatland-book`, `flatland-scenarios`,
+`flatland-baselines`, `ai4realnet-orchestrators`,
+`flatland-benchmarks-f3-starterkit` — last pushed 2025-09-30 … 2026-02-03).
+Always read those from `flatland-association`, never from the AI4REALNET mirror.
+
+Two more AI4REALNET repos worth knowing, both found 2026-08-16:
+[`flatland-blackbox`](https://github.com/AI4REALNET/flatland-blackbox) is the
+**canonical CBS/PP solver source** that `Tokener` and `T3.4-with-HMI` both vendor
+(it alone has tests), and
+[`maze-flatland`](https://github.com/AI4REALNET/maze-flatland) (enliteAI, MIT,
+`flatland-rl==4.2.3`) contributes a reward-objective taxonomy, a KPI calculator
+and decision-point action masking.
+
+## Two upstreams, not one — know which is authoritative for what
+
+AI4REALNET is **not** the reference for everything Flatland-shaped. For the
+environment itself, scenarios, timetables and the scenario tooling, the
+authority is the
+[**`flatland-association`**](https://github.com/orgs/flatland-association/repositories)
+org (MIT, actively maintained, it runs Flatland):
+
+- **Scenarios / timetables / the drawing tool:**
+  [`flatland-scenarios`](https://github.com/flatland-association/flatland-scenarios)
+  — `scenario_generator/flatland_environment_drawing_tool.html` plus
+  `model/scenario.py` (`to_rail_env()`, `ScenarioBuilder`). Its JSON keys
+  (`gridDimensions`, `grid`, `overpasses`, `stations`, `lines`, `timetables`,
+  `trainCategories`, `flatlandLine`, `flatlandTimetable`) are the format to
+  target. ⚠️ The drawing board found in the AI4REALNET HMI repos is an older
+  **fork** of this tool using the vocabulary Flatland 3 deprecated
+  ("Schedule"/"Train Class" instead of "Timetable"/"Train Category") — do not
+  align to it. Also here: **Olten**, a real Swiss network with lat/lon mapping
+  in three disruption variants.
+- **Sibling HMI with our exact stack:**
+  [`flatland-hmi`](https://github.com/flatland-association/flatland-hmi) —
+  Angular + FastAPI + Flatland-RL, MIT. Source for the Link Map / ZWL port
+  (widget B4) and a working reference for trajectory fork/step endpoints.
+  ⚠️ Its npm package `@flatland-association/flatland-ui` is **identity/branding
+  components only** (Angular 20 + Tailwind) — not a widget library, not adopted.
+- **WP4 validation campaign:**
+  [`ai4realnet-orchestrators`](https://github.com/flatland-association/ai4realnet-orchestrators)
+  — the five railway KPIs (AF-029, AF-051, NF-045, PF-026, RS-058) and the
+  interactive-loop runner live here, not in the AI4REALNET org.
+
+**Check the installed `flatland-rl` before planning to build a capability.**
+Trajectory forking, targeted malfunction injection and multi-objective rewards
+are already in the version we pin. Full survey, per-item plan and the version
+delta: [`docs/plans/flatland-ecosystem-reuse-plan.md`](docs/plans/flatland-ecosystem-reuse-plan.md).
+
 **Reuse, don't reinvent, the algorithms.** For anything with an AI4REALNET
 reference implementation — e.g. **`agent-as-a-service-trace-rl`** (A3S/TraceRL)
 for what-if/branch-compare (widget B1), **`RL_agent_failure_forecast`** (INESC,
