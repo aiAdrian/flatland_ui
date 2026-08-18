@@ -1,0 +1,3259 @@
+{
+  "scenario_id": "disruption_cascade",
+  "name": "Disruption Cascade",
+  "difficulty": "Hard",
+  "seed": 123,
+  "total_steps": 400,
+  "description": "Additional disruptions appear during the session. Recommendations can change, and goal conflicts between delay, connection protection and network stability sharpen. Existing preference patterns may reach their limits.",
+  "decision_points": [
+    {
+      "step": 1,
+      "time_label": "13:05",
+      "operational_pressure": "MEDIUM",
+      "sim_step": 41,
+      "next_event_min": 15,
+      "event": {
+        "kind": "conflict",
+        "icon": "⚠️",
+        "text": "Routine conflict resolved by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "Situation still calm, but the forecast flags a possible disruption ahead.",
+        "time_label": "13:05",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 2,
+        "ripple_risk": "low",
+        "expected_follow_up_conflicts": 0,
+        "forecast_confidence": "high",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "risk"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "center",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "minimize_delay",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 3,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 2,
+      "time_label": "13:11",
+      "operational_pressure": "MEDIUM",
+      "sim_step": 73,
+      "next_event_min": 15,
+      "event": {
+        "kind": "conflict",
+        "icon": "⚠️",
+        "text": "Routine conflict resolved by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "Situation still calm, but the forecast flags a possible disruption ahead.",
+        "time_label": "13:11",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 2,
+        "ripple_risk": "low",
+        "expected_follow_up_conflicts": 0,
+        "forecast_confidence": "high",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "risk"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "center",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "minimize_delay",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 3,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 3,
+      "time_label": "13:17",
+      "operational_pressure": "MEDIUM",
+      "sim_step": 105,
+      "next_event_min": 15,
+      "event": {
+        "kind": "connection_risk",
+        "icon": "🔗",
+        "text": "Connection at risk while disruption propagates",
+        "severity": "intervention"
+      },
+      "situation": {
+        "description": "Situation still calm, but the forecast flags a possible disruption ahead.",
+        "time_label": "13:17",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": true,
+        "connection_buffer_min": 4,
+        "current_delay_min": 2,
+        "ripple_risk": "low",
+        "expected_follow_up_conflicts": 0,
+        "forecast_confidence": "high",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "risk"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "center",
+        "critical_connection": [
+          "train_5",
+          "train_6"
+        ],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "minimize_delay",
+      "personalized_recommendation": "protect_critical_connection",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 3,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 4,
+      "time_label": "13:23",
+      "operational_pressure": "MEDIUM",
+      "sim_step": 136,
+      "next_event_min": 15,
+      "event": {
+        "kind": "conflict",
+        "icon": "⚠️",
+        "text": "Routine conflict resolved by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "Situation still calm, but the forecast flags a possible disruption ahead.",
+        "time_label": "13:23",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 3,
+        "ripple_risk": "medium",
+        "expected_follow_up_conflicts": 0,
+        "forecast_confidence": "medium",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "risk"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "center",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "minimize_delay",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 3,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 5,
+      "time_label": "13:29",
+      "operational_pressure": "HIGH",
+      "sim_step": 168,
+      "next_event_min": 8,
+      "event": {
+        "kind": "disruption",
+        "icon": "🌩",
+        "text": "Disruption detected: track blocked near East Junction",
+        "severity": "intervention"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:29",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": true,
+        "connection_buffer_min": 4,
+        "current_delay_min": 3,
+        "ripple_risk": "medium",
+        "expected_follow_up_conflicts": 1,
+        "forecast_confidence": "medium",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [
+          "train_5",
+          "train_6"
+        ],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "minimize_delay",
+      "personalized_recommendation": "protect_critical_connection",
+      "learning_influence": true,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 4,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 4,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 6,
+      "time_label": "13:35",
+      "operational_pressure": "HIGH",
+      "sim_step": 200,
+      "next_event_min": 8,
+      "event": {
+        "kind": "track_blocked",
+        "icon": "🚧",
+        "text": "Reduced capacity near Lehrte — rerouted by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:35",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 3,
+        "ripple_risk": "medium",
+        "expected_follow_up_conflicts": 1,
+        "forecast_confidence": "medium",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 4,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 4,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 7,
+      "time_label": "13:41",
+      "operational_pressure": "HIGH",
+      "sim_step": 231,
+      "next_event_min": 8,
+      "event": {
+        "kind": "connection_risk",
+        "icon": "🔗",
+        "text": "Connection at risk while disruption propagates",
+        "severity": "intervention"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:41",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": true,
+        "connection_buffer_min": 4,
+        "current_delay_min": 4,
+        "ripple_risk": "medium",
+        "expected_follow_up_conflicts": 1,
+        "forecast_confidence": "medium",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [
+          "train_5",
+          "train_6"
+        ],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "protect_critical_connection",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 4,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 4,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 4,
+              "values": {
+                "additional_delay_min": 6,
+                "connection": "Broken",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 8,
+      "time_label": "13:47",
+      "operational_pressure": "HIGH",
+      "sim_step": 263,
+      "next_event_min": 8,
+      "event": {
+        "kind": "track_blocked",
+        "icon": "🚧",
+        "text": "Reduced capacity near Lehrte — rerouted by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:47",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 4,
+        "ripple_risk": "medium",
+        "expected_follow_up_conflicts": 1,
+        "forecast_confidence": "medium",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 4,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 4,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 9,
+      "time_label": "13:53",
+      "operational_pressure": "HIGH",
+      "sim_step": 295,
+      "next_event_min": 8,
+      "event": {
+        "kind": "connection_risk",
+        "icon": "🔗",
+        "text": "Connection at risk while disruption propagates",
+        "severity": "intervention"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:53",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": true,
+        "connection_buffer_min": 4,
+        "current_delay_min": 4,
+        "ripple_risk": "high",
+        "expected_follow_up_conflicts": 2,
+        "forecast_confidence": "low",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [
+          "train_5",
+          "train_6"
+        ],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "protect_critical_connection",
+      "learning_influence": true,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 5,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 5,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 10,
+      "time_label": "13:59",
+      "operational_pressure": "STRESS",
+      "sim_step": 326,
+      "next_event_min": 4,
+      "event": {
+        "kind": "track_blocked",
+        "icon": "🚧",
+        "text": "Reduced capacity near Lehrte — rerouted by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:59",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 5,
+        "ripple_risk": "high",
+        "expected_follow_up_conflicts": 2,
+        "forecast_confidence": "low",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 5,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 5,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 11,
+      "time_label": "13:65",
+      "operational_pressure": "STRESS",
+      "sim_step": 358,
+      "next_event_min": 4,
+      "event": {
+        "kind": "connection_risk",
+        "icon": "🔗",
+        "text": "Connection at risk while disruption propagates",
+        "severity": "intervention"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:65",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": true,
+        "connection_buffer_min": 4,
+        "current_delay_min": 5,
+        "ripple_risk": "high",
+        "expected_follow_up_conflicts": 2,
+        "forecast_confidence": "low",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [
+          "train_5",
+          "train_6"
+        ],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "protect_critical_connection",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 5,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 5,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 4,
+              "values": {
+                "additional_delay_min": 7,
+                "connection": "Broken",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": 12,
+      "time_label": "13:71",
+      "operational_pressure": "STRESS",
+      "sim_step": 390,
+      "next_event_min": 4,
+      "event": {
+        "kind": "track_blocked",
+        "icon": "🚧",
+        "text": "Reduced capacity near Lehrte — rerouted by AI",
+        "severity": "info"
+      },
+      "situation": {
+        "description": "A track disruption has appeared. Protecting the critical connection now competes with delay and network stability.",
+        "time_label": "13:71",
+        "affected_trains": [
+          "train_1",
+          "train_4",
+          "train_5",
+          "train_6",
+          "train_9"
+        ],
+        "main_conflict": "Disruption-driven conflict: delay vs connection vs stability",
+        "critical_connection": false,
+        "connection_buffer_min": null,
+        "current_delay_min": 5,
+        "ripple_risk": "high",
+        "expected_follow_up_conflicts": 2,
+        "forecast_confidence": "low",
+        "passengers": null
+      },
+      "network": {
+        "nodes": [
+          {
+            "id": "west_junction",
+            "x": 80,
+            "y": 190,
+            "label": "West Jct"
+          },
+          {
+            "id": "harburg",
+            "x": 300,
+            "y": 190,
+            "label": "Harburg"
+          },
+          {
+            "id": "center",
+            "x": 560,
+            "y": 190,
+            "label": "Center"
+          },
+          {
+            "id": "lehrte",
+            "x": 830,
+            "y": 190,
+            "label": "Lehrte"
+          },
+          {
+            "id": "east_junction",
+            "x": 1080,
+            "y": 190,
+            "label": "East Jct"
+          },
+          {
+            "id": "north",
+            "x": 560,
+            "y": 80,
+            "label": "North Yard"
+          },
+          {
+            "id": "south",
+            "x": 560,
+            "y": 300,
+            "label": "South Yard"
+          }
+        ],
+        "edges": [
+          {
+            "from": "west_junction",
+            "to": "harburg"
+          },
+          {
+            "from": "harburg",
+            "to": "center"
+          },
+          {
+            "from": "center",
+            "to": "lehrte",
+            "status": "risk"
+          },
+          {
+            "from": "lehrte",
+            "to": "east_junction",
+            "status": "conflict"
+          },
+          {
+            "from": "north",
+            "to": "center",
+            "status": "risk"
+          },
+          {
+            "from": "center",
+            "to": "south"
+          }
+        ],
+        "conflict_node": "east_junction",
+        "critical_connection": [],
+        "trains": [
+          {
+            "id": "train_1",
+            "label": "T1",
+            "x": 160,
+            "y": 190,
+            "status": "+3 min"
+          },
+          {
+            "id": "train_4",
+            "label": "T4",
+            "x": 560,
+            "y": 110,
+            "status": "+1 min"
+          },
+          {
+            "id": "train_5",
+            "label": "T5",
+            "x": 720,
+            "y": 190,
+            "status": "+2 min"
+          },
+          {
+            "id": "train_6",
+            "label": "T6",
+            "x": 560,
+            "y": 270,
+            "status": "on time"
+          },
+          {
+            "id": "train_9",
+            "label": "T9",
+            "x": 980,
+            "y": 190,
+            "status": "+4 min"
+          }
+        ]
+      },
+      "strategies": [
+        "minimize_delay",
+        "protect_critical_connection",
+        "stabilize_network",
+        "avoid_follow_up_conflicts"
+      ],
+      "strategy_effects": {
+        "minimize_delay": {
+          "delay_impact": "+1 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "medium"
+        },
+        "protect_critical_connection": {
+          "delay_impact": "+3 min",
+          "connection_impact": "Protected",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "low"
+        },
+        "stabilize_network": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "low",
+          "follow_up_conflict_risk": "medium"
+        },
+        "avoid_follow_up_conflicts": {
+          "delay_impact": "+2 min",
+          "connection_impact": "At risk",
+          "ripple_risk": "medium",
+          "follow_up_conflict_risk": "low"
+        }
+      },
+      "baseline_recommendation": "avoid_follow_up_conflicts",
+      "personalized_recommendation": "stabilize_network",
+      "learning_influence": false,
+      "outcomes": {
+        "minimize_delay": {
+          "expected": {
+            "additional_delay_min": 1,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 1,
+                "connection": "Broken",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "protect_critical_connection": {
+          "expected": {
+            "additional_delay_min": 5,
+            "connection": "Protected",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 5,
+                "connection": "Protected",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "stabilize_network": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            }
+          ]
+        },
+        "avoid_follow_up_conflicts": {
+          "expected": {
+            "additional_delay_min": 2,
+            "connection": "At risk",
+            "follow_up_conflicts": 0,
+            "network_state": "stable"
+          },
+          "observed": [
+            {
+              "weight": 3,
+              "values": {
+                "additional_delay_min": 2,
+                "connection": "At risk",
+                "follow_up_conflicts": 0,
+                "network_state": "stable"
+              }
+            },
+            {
+              "weight": 1,
+              "values": {
+                "additional_delay_min": 3,
+                "connection": "At risk",
+                "follow_up_conflicts": 1,
+                "network_state": "strained"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

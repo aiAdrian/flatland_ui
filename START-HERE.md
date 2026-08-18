@@ -118,10 +118,13 @@ cd backend  && .venv-run/bin/python -m pytest tests/ -q
 
 ## Die andere Demo (ohne Flatland)
 
-Der Streamlit-Prototyp liegt separat und läuft unabhängig:
+Der Streamlit-Prototyp liegt in diesem Repo unter `director-reflection-playground/`
+(Branch `roman/director-reflection-playground`) und läuft unabhängig:
 
 ```bash
-cd ../director-reflection-playground && ./start-demo.sh    # http://localhost:8501
+cd director-reflection-playground && ./start-demo.sh    # http://localhost:8501
 ```
+
+Eigene Anleitung dort in `START-HERE.md`.
 
 Beide können gleichzeitig laufen (Port 8000 und 8501).
