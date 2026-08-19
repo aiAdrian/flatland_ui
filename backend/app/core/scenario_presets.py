@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 _FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "ecml2026"
+_STRESS = Path(__file__).resolve().parent.parent / "fixtures" / "stress"
 
 
 # id -> metadata. `path` points at the pickled env; the width/height/agents are
@@ -30,6 +31,30 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "height": 120,
         "agents": 6,
         "source": "flatland-association/ecml2026-starterkit",
+    },
+    # Hard *and* provably solvable, which is why it is shipped as a preset
+    # rather than a seed: procedural generation is not reproducible
+    # (`env_factory` leaves `RailEnv(random_seed=...)` unset), so the only way
+    # to hand the same hard instance to two people is to persist the env.
+    #
+    # Two cities, seven trains, one bottleneck and a 49-step horizon. Measured
+    # on this exact file:
+    #   deadlock_avoidance (the UI default)  0/7 arrive
+    #   shortest_path                        4/7 arrive
+    #   Director planner (balanced dials)    7/7 arrive, 0 delay, 9/9
+    #                                        connections kept, 40 steps
+    # Static safety of that winning plan is 0.11 — it works, with almost no
+    # room to absorb anything. Reproduce with
+    # `build_demo_env(seed=9, width=30, height=30, number_of_agents=7,
+    #                 max_num_cities=2, line_length=4)`.
+    "stress-bottleneck-30x30-7t": {
+        "id": "stress-bottleneck-30x30-7t",
+        "name": "Stress — Bottleneck (30×30, 7 trains)",
+        "path": _STRESS / "stress_bottleneck_30x30_7t.pkl",
+        "width": 30,
+        "height": 30,
+        "agents": 7,
+        "source": "generated: build_demo_env seed 9, 2 cities, line_length 4",
     },
 }
 

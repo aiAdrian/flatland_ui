@@ -1,42 +1,33 @@
 """Mid-episode re-planning for the Director.
 
-The residual problem is deliberately expressed in the language the value
-models already speak: a full-horizon schedule from each train's origin,
-in which everything up to the train's current position is *pinned* and
-reality's delay is folded into a virtual wait at the train's frontier
-node. State-conditioning happens through the existing encoding — pinned
-prefixes and waits are ordinary schedule features the models were
-trained on — so the installed checkpoints stay valid and no re-training
-or new input scheme is needed. The trade-offs of that choice:
-
-- Past occupancies keep their *nominal* times, not their actual ones.
-  Harmless for the future (past windows cannot conflict with future
-  ones), but the overlap pruner may see phantom overlaps between two
-  pinned pasts; the search's clean-preference already degrades softly to
-  score-only in that case.
-- The models rank residual plans optimistically, so recovery re-plans
-  are committed on simulated outcomes, not scores — see `rollout_gate`
-  for the measured rationale.
+Splicing a new plan into a running episode is the delicate part, and it is
+all here. The planning itself is the ordinary tree search, rooted on the
+live situation instead of on an empty timetable (`tree_search.director`);
+what this module owns is reading the world atomically, turning a re-plan
+into player entries the trains can actually join, and deciding whether the
+switch is worth making.
 
 Capture (`capture_progress`) reads the live `SchedulePlayer`: per train,
 the entries already consumed, where it stands on the current edge, the
 wait already served, and the remaining malfunction time. From that it
 builds, per train:
 
-- a *seed prefix* the search continues from — executed nodes plus the
-  frontier node, whose wait is set so that the nominal departure time
-  from the frontier equals the earliest the train can actually leave;
+- a *seed prefix* — executed nodes plus the frontier node, whose wait is
+  set so that the nominal departure from the frontier equals the earliest
+  the train can actually leave;
 - the *continue candidate* — seed plus the rest of the committed plan —
-  the do-nothing baseline every re-plan must beat;
+  which is what keeps driving if the re-plan is not taken;
 - the splice bookkeeping (`pin_wait`, `serve_base`, `tail_anchor`) that
   turns a chosen absolute schedule back into player entries: the player
   serves `serve_base` (dwell still owed, malfunction remaining) plus
   whatever extra hold the search added on top of the pin.
 
-`residual_plan` runs the ordinary search strategies from those seeds
-(`seeds=` parameter) and holds the result against the continue
-candidate under the same weighted score — mid-episode, ties keep the
-current plan: churn needs to pay for itself.
+Whether to commit is decided by simulation, not by the search's own score
+— `rollout_gate` plays both branches forward on forks of the live episode
+that share its future malfunctions, and commits only on a strictly better
+outcome. A planner scoring its own proposal is exactly the comparison that
+should not be trusted, and the measured history of this code base is that
+it over-chooses re-planning when allowed to.
 
 What-if / simulate-forward: `simulate_forward` drives a forked env from
 its current state to the episode end under a player and reports absolute
@@ -50,36 +41,28 @@ service can replace it.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.step_utils.states import TrainState
 
-from app.policies.goal_based_policies.dataset import edge_time_windows
-from app.policies.goal_based_policies.ensemble import (
-    CandidateScore,
-    DirectorWeights,
-    ScenarioContext,
-    score_candidates,
-)
 from app.policies.goal_based_policies.infrastructure_graph import (
     DecisionPointGraph,
 )
-from app.policies.goal_based_policies.safety import SafetyParams
 from app.policies.goal_based_policies.schedule import (
     ScheduleEntry,
     SchedulePlayer,
     TrainSchedule,
+    edge_time_windows,
 )
-from app.policies.goal_based_policies.search import (
-    STRATEGIES,
-    SearchLimits,
-)
+from app.policies.tree_search import director
+from app.policies.tree_search.metrics import DirectorWeights
+from app.policies.tree_search.scenario import Scenario
 
-# A malfunction shorter than this resolves faster than a re-plan can pay
-# off; the trigger ignores it.
-MIN_MALFUNCTION_STEPS = 3
+# Steps a malfunction must still have to run for it to be worth re-planning
+# around. Anything shorter is over before a search would finish.
+MIN_MALFUNCTION_STEPS = 4
 
 
 @dataclass(frozen=True)
@@ -264,12 +247,13 @@ class ResidualPlan:
     schedules: List[TrainSchedule]        # full absolute schedules chosen
     tails: Dict[int, List[ScheduleEntry]]  # per-handle player splice
     source: str                            # "research" | "continue"
-    score: CandidateScore
+    weighted: float
+    utilities: Dict[str, float]
     considered: Dict[str, float]
-    trace: List[Dict[str, object]]
     decisions: int
     step: int
     reason: str
+    trace: List[Dict[str, object]] = field(default_factory=list)
 
     def event(self) -> Dict[str, object]:
         """The JSON-able record of this re-plan for the plan info."""
@@ -277,100 +261,111 @@ class ResidualPlan:
             "step": self.step,
             "reason": self.reason,
             "source": self.source,
-            "weighted": self.score.weighted,
-            "utilities": dict(self.score.breakdown["utilities"]),
+            "weighted": self.weighted,
+            "utilities": dict(self.utilities),
             "considered": dict(self.considered),
             "decisions": self.decisions,
             "changed": sorted(self.tails),
         }
 
 
+def _absolute(
+    progress: TrainProgress, tail: TrainSchedule
+) -> TrainSchedule:
+    """A re-plan's tail, expressed as a schedule from the origin.
+
+    The search plans from where the train stands, so its first entries are
+    the node it is at (or the one it drove out of, mid-edge). `splice_entries`
+    works on absolute schedules, so the captured prefix is put back in front
+    — overlapping entries matched by node id rather than assumed, since a
+    mid-edge train's anchor is two entries deep and a standing one's is one.
+    """
+    seed = list(progress.seed)
+    entries = list(tail.entries)
+    if not seed or not entries:
+        return TrainSchedule(handle=tail.handle, entries=seed or entries)
+    for overlap in (2, 1):
+        if len(seed) >= overlap and len(entries) >= overlap and all(
+            seed[-overlap + i].node_id == entries[i].node_id
+            for i in range(overlap)
+        ):
+            return TrainSchedule(
+                handle=tail.handle,
+                entries=seed[:len(seed) - overlap] + entries,
+            )
+    # No overlap: the train is somewhere the re-plan did not start from.
+    # Returning the seed alone makes `splice_entries` decline it, which is
+    # the safe answer — better to keep driving than to teleport the plan.
+    return TrainSchedule(handle=tail.handle, entries=seed)
+
+
 def residual_plan(
     env: RailEnv,
     graph: DecisionPointGraph,
     weights: DirectorWeights,
-    evaluator,
-    connection_model,
     player: SchedulePlayer,
     schedules: Sequence[TrainSchedule],
     reason: str = "",
-    safety_params: SafetyParams = SafetyParams(),
-    limits: SearchLimits = SearchLimits(),
-    strategy: str = "greedy",
-    context: Optional[ScenarioContext] = None,
     now: Optional[int] = None,
     progress: Optional[Dict[int, TrainProgress]] = None,
+    scenario: Optional[Scenario] = None,
+    budget: int = director.REPLAN_BUDGET,
+    models: Optional[Dict[str, object]] = None,
 ) -> ResidualPlan:
-    """Re-plan the episode's remainder from the captured state.
+    """Re-plan the episode's remainder from where the trains actually are.
 
-    The search decides only what is still open; the result competes with
-    simply continuing the committed plan, and — unlike at t=0 — ties keep
-    the current plan: mid-episode churn has to pay for itself.
+    The tree search is rooted on the live situation (`live.state_from_env`),
+    so it decides only what is still open and every train keeps the progress
+    it has made. What comes back are tails, which are put back behind the
+    captured prefixes so the caller can splice them exactly as before.
 
-    `progress` accepts a pre-captured state so the capture (which must
-    read the live player and env atomically with the step loop) can be
-    separated from the search (which reads only immutable env facts and
-    may therefore run on a background thread while the episode keeps
-    stepping). The tails in the result are anchored to that capture —
-    if the world moved since, re-anchor them with a fresh capture and
-    `splice_entries` before applying.
+    Whether the result is worth committing is *not* decided here. The
+    search's own score would be judging its own proposal; the decision is
+    made at application time by `rollout_gate`, which plays both branches
+    forward on forks of the live episode and compares what actually
+    happens.
+
+    `progress` accepts a pre-captured state so the capture — which must
+    read the live player and env atomically with the step loop — can be
+    separated from the search, which reads only immutable env facts and may
+    therefore run on a background thread while the episode keeps stepping.
+    The tails are anchored to that capture; if the world moved on, re-anchor
+    them with a fresh capture and `splice_entries` before applying.
     """
-    if strategy not in STRATEGIES:
-        raise ValueError(
-            f"unknown strategy '{strategy}'; one of {sorted(STRATEGIES)}")
     if now is None:
         now = int(getattr(env, "_elapsed_steps", 0) or 0)
-    if context is None:
-        context = ScenarioContext.build(env, graph)
-
     if progress is None:
         progress = capture_progress(env, graph, player, schedules, now=now)
-    order = sorted(progress)
-    seeds = {handle: progress[handle].seed for handle in order}
+    scenario = scenario or Scenario.build(env, graph)
 
-    outcome = STRATEGIES[strategy](
-        env, graph, context, weights, evaluator, connection_model,
-        safety_params, limits, seeds=seeds,
+    plan = director.replan(
+        scenario, env, weights=weights, budget=budget, models=models,
+        player=player,
     )
-    keep = [
-        TrainSchedule(handle=h, entries=list(progress[h].continue_entries))
-        for h in order
-    ]
-    keep_score = score_candidates(
-        context, [keep], weights, evaluator, connection_model, safety_params,
-    )[0]
-
-    considered = {
-        "research": outcome.score.weighted,
-        "continue": keep_score.weighted,
-    }
-    if outcome.score.weighted > keep_score.weighted:
-        source, score = "research", outcome.score
-        searched = {s.handle: s for s in outcome.schedules}
-        kept = {s.handle: s for s in keep}
-        chosen, tails = [], {}
-        for handle in order:
-            tail = splice_entries(progress[handle], searched[handle])
-            if tail is not None:
-                tails[handle] = tail
-                chosen.append(searched[handle])
-            else:
-                # Static trains — and dead-end fallbacks whose schedule
-                # abandoned the seed — keep their committed entries. The
-                # stored plan must describe what actually drives, or the
-                # *next* capture reads a plan the player never followed.
-                chosen.append(kept[handle])
-    else:
-        source, chosen, score, tails = "continue", keep, keep_score, {}
+    searched = {s.handle: s for s in plan.schedules}
+    chosen: List[TrainSchedule] = []
+    tails: Dict[int, List[ScheduleEntry]] = {}
+    for handle in sorted(progress):
+        committed = TrainSchedule(
+            handle=handle, entries=list(progress[handle].continue_entries))
+        tail = None
+        if handle in searched:
+            absolute = _absolute(progress[handle], searched[handle])
+            tail = splice_entries(progress[handle], absolute)
+        if tail is None:
+            chosen.append(committed)
+        else:
+            tails[handle] = tail
+            chosen.append(_absolute(progress[handle], searched[handle]))
 
     return ResidualPlan(
-        schedules=list(chosen),
+        schedules=chosen,
         tails=tails,
-        source=source,
-        score=score,
-        considered=considered,
-        trace=outcome.trace,
-        decisions=outcome.decisions,
+        source="research" if tails else "continue",
+        weighted=plan.weighted,
+        utilities=dict(plan.utilities),
+        considered={"research": plan.weighted},
+        decisions=plan.decisions,
         step=now,
         reason=reason,
     )
@@ -515,225 +510,6 @@ def simulate_forward(
     }
 
 
-def _benchmark(
-    scenarios: int,
-    seed: int,
-    mix_name: str,
-    evaluator,
-    connection_model,
-    rate: float,
-    min_duration: int,
-    max_duration: int,
-    horizon_factor: int,
-    strategy: str,
-    verbose: bool = True,
-) -> Dict[str, object]:
-    """The acceptance experiment: does reacting beat continuing?
-
-    Per scenario: plan at t=0 on a malfunction-prone env, run two
-    identical copies in lockstep until the first significant malfunction,
-    then let one branch continue the committed plan while the other
-    re-plans from the captured state — same malfunction stream (same
-    seeds, same actions up to the split), so the comparison is paired.
-    """
-    import random
-
-    from flatland.envs.malfunction_generators import (
-        MalfunctionParameters,
-        ParamMalfunctionGen,
-    )
-
-    from app.policies.goal_based_policies.dataset import Layout
-    from app.policies.goal_based_policies.eval_set import mixes_by_name
-    from app.policies.goal_based_policies.infrastructure_graph import (
-        build_decision_point_graph,
-    )
-    from app.policies.goal_based_policies.search import director_plan
-    from app.policies.goal_based_policies.visualization import build_demo_env
-
-    def build(layout: Layout, trains: int) -> RailEnv:
-        # `build_layout_env`'s exact flags, plus the malfunction stream —
-        # so the layouts match the training distribution.
-        env = build_demo_env(
-            seed=layout.seed, width=layout.size, height=layout.size,
-            number_of_agents=trains, max_num_cities=layout.cities,
-            line_length=layout.line_length, flexible_terminus=True,
-            malfunction_generator=ParamMalfunctionGen(MalfunctionParameters(
-                malfunction_rate=rate, min_duration=min_duration,
-                max_duration=max_duration,
-            )),
-        )
-        env._max_episode_steps = int(
-            (getattr(env, "_max_episode_steps", 0) or 200) * horizon_factor
-        )
-        return env
-
-    mix = mixes_by_name([mix_name])[0]
-    rng = random.Random(seed)
-    weights = DirectorWeights()
-    rows: List[Dict[str, object]] = []
-    attempts = 0
-
-    while len(rows) < scenarios and attempts < scenarios * 8:
-        attempts += 1
-        layout = Layout(
-            index=attempts, seed=rng.randint(*mix.seed_range),
-            size=rng.choice(mix.sizes), cities=rng.choice(mix.cities),
-            line_length=mix.line_length,
-        )
-        trains = rng.randint(mix.min_trains, mix.max_trains)
-        try:
-            env_a = build(layout, trains)
-            env_b = build(layout, trains)
-            graph_a = build_decision_point_graph(env_a)
-            graph_b = build_decision_point_graph(env_b)
-            plan = director_plan(
-                env_a, graph_a, weights, evaluator, connection_model,
-                strategy="greedy",
-            )
-        except Exception:
-            continue
-
-        player_a = SchedulePlayer(graph_a, env_a, plan.schedules)
-        player_b = SchedulePlayer(graph_b, env_b, plan.schedules)
-        handles = sorted(s.handle for s in plan.schedules)
-        limit = int(getattr(env_a, "_max_episode_steps", 0) or 200)
-
-        known: set = set()
-        trigger = None
-        step = 0
-        while step < limit and trigger is None:
-            env_a.step(player_a.act_many(handles))
-            env_b.step(player_b.act_many(handles))
-            step = int(getattr(env_a, "_elapsed_steps", step + 1) or step + 1)
-            fresh = new_malfunctions(env_a, known, now=step)
-            if fresh:
-                trigger = fresh[0]
-            if all(env_a.agents[h].state == TrainState.DONE for h in handles):
-                break
-        if trigger is None:
-            continue  # nothing to react to — not a re-planning scenario
-
-        continued = simulate_forward(env_a, player_a)
-        try:
-            residual = residual_plan(
-                env_b, graph_b, weights, evaluator, connection_model,
-                player_b, plan.schedules,
-                reason=f"malfunction on train {trigger[0]}",
-                strategy=strategy,
-            )
-        except Exception:
-            continue
-        source = residual.source
-        if source == "research":
-            # The shipped behavior: the paired rollout gate has the last
-            # word on whether the research plan is committed.
-            verdict = rollout_gate(env_b, player_b, residual)
-            if verdict["commit"]:
-                apply_residual_plan(player_b, residual)
-            else:
-                source = "continue (gated)"
-        replanned = simulate_forward(env_b, player_b)
-
-        rows.append({
-            "layout_seed": layout.seed, "size": layout.size,
-            "trains": trains, "trigger_step": residual.step,
-            "trigger_handle": trigger[0],
-            "source": source,
-            "predicted": residual.considered,
-            "continue": {
-                k: continued[k]
-                for k in ("total_delay", "arrived", "all_arrived", "steps")
-            },
-            "replan": {
-                k: replanned[k]
-                for k in ("total_delay", "arrived", "all_arrived", "steps")
-            },
-        })
-        if verbose:
-            row = rows[-1]
-            print(
-                f"  scenario {len(rows)}/{scenarios}: size {layout.size} "
-                f"trains {trains}, trigger t={row['trigger_step']} "
-                f"[{row['source']}] delay {row['continue']['total_delay']}"
-                f" -> {row['replan']['total_delay']} arrived "
-                f"{row['continue']['arrived']} -> {row['replan']['arrived']}"
-            )
-
-    researched = [r for r in rows if r["source"] == "research"]
-    summary = {
-        "scenarios": len(rows),
-        "chose_research": len(researched),
-        "gated": sum(1 for r in rows if r["source"] == "continue (gated)"),
-        "mean_delay_continue": (
-            sum(r["continue"]["total_delay"] for r in rows) / len(rows)
-            if rows else 0.0
-        ),
-        "mean_delay_replan": (
-            sum(r["replan"]["total_delay"] for r in rows) / len(rows)
-            if rows else 0.0
-        ),
-        "arrived_continue": sum(r["continue"]["arrived"] for r in rows),
-        "arrived_replan": sum(r["replan"]["arrived"] for r in rows),
-        "delay_wins": sum(
-            1 for r in researched
-            if r["replan"]["total_delay"] < r["continue"]["total_delay"]
-        ),
-        "delay_losses": sum(
-            1 for r in researched
-            if r["replan"]["total_delay"] > r["continue"]["total_delay"]
-        ),
-    }
-    return {"rows": rows, "summary": summary}
-
-
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    import argparse
-    import json
-
-    from app.policies.goal_based_policies.connection_model import (
-        ConnectionTransformer,
-    )
-    from app.policies.goal_based_policies.evaluator import ScheduleEvaluator
-
-    parser = argparse.ArgumentParser(description=_benchmark.__doc__)
-    parser.add_argument("--scenarios", type=int, default=10)
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--mix", default="control")
-    parser.add_argument("--evaluator", required=True)
-    parser.add_argument("--connection-model", required=True)
-    parser.add_argument("--rate", type=float, default=1 / 120)
-    parser.add_argument("--min-duration", type=int, default=10)
-    parser.add_argument("--max-duration", type=int, default=30)
-    parser.add_argument("--horizon-factor", type=int, default=2)
-    parser.add_argument("--strategy", default="greedy",
-                        choices=sorted(STRATEGIES))
-    parser.add_argument("--out", default=None)
-    args = parser.parse_args(argv)
-
-    payload = _benchmark(
-        scenarios=args.scenarios,
-        seed=args.seed,
-        mix_name=args.mix,
-        evaluator=ScheduleEvaluator.load(args.evaluator),
-        connection_model=ConnectionTransformer.load(args.connection_model),
-        rate=args.rate,
-        min_duration=args.min_duration,
-        max_duration=args.max_duration,
-        horizon_factor=args.horizon_factor,
-        strategy=args.strategy,
-    )
-    summary = payload["summary"]
-    print("summary:")
-    for key, value in summary.items():
-        print(f"  {key}: {value}")
-    if args.out:
-        with open(args.out, "w", encoding="utf-8") as handle:
-            json.dump(payload, handle, indent=2)
-        print(f"written: {args.out}")
-    return 0
-
-
 __all__ = [
     "MIN_MALFUNCTION_STEPS",
     "ResidualPlan",
@@ -747,6 +523,3 @@ __all__ = [
     "splice_entries",
 ]
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())

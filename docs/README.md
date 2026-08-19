@@ -9,6 +9,7 @@ The authoritative specs and guides for how the app works today.
 - [interaction-framework.md](reference/interaction-framework.md) — widget taxonomy (kind × granularity), function allocation, Human-in-Control, accountability seam
 - [widget-authoring-process.md](reference/widget-authoring-process.md) — how we develop a widget (spec template + build workflow)
 - [architecture.md](reference/architecture.md) — system architecture
+- [director-mode.md](reference/director-mode.md) — **agent reference** for Director mode: the decision-point planner, data structures, invariants, API/frontend surface, recipes
 - [mode-guide.md](reference/mode-guide.md) — the same task walked through all three modes
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones

@@ -467,31 +467,46 @@ def build_demo_env(
     from flatland.envs import line_generators as line_gen
     from flatland.envs import rail_generators as rail_gen
 
-    env = StationAwareRailEnv(
-        width=width,
-        height=height,
-        number_of_agents=number_of_agents,
-        random_seed=seed,
-        rail_generator=rail_gen.sparse_rail_generator(
-            max_num_cities=max_num_cities,
-            seed=seed,
-            grid_mode=False,
-            max_rails_between_cities=1,
-            max_rail_pairs_in_city=1,
-        ),
-        line_generator=line_gen.sparse_line_generator(
-            seed=seed, line_length=line_length
-        ),
-        timetable_generator=ttg.timetable_generator,
-        # None means none: the default stays the cache-free no-op. The
-        # safety calibration passes a ParamMalfunctionGen to disturb
-        # otherwise identical episodes.
-        malfunction_generator=(
-            malfunction_generator if malfunction_generator is not None
-            else _UncachedNoMalfunctionGen()
-        ),
-    )
-    env.reset()
+    # Flatland's generators warn per env: an internal seeding style
+    # complaint at generator construction, and one line-truncation warning
+    # per train at reset when a map has fewer cities than `line_length`
+    # asks for (expected — the docstring above documents the cap and the
+    # training mixes rely on it). At dataset scale that is thousands of
+    # identical lines drowning real progress output, so exactly these two
+    # known-benign messages are silenced here — anything else still
+    # surfaces.
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="Could not find path connecting")
+        warnings.filterwarnings(
+            "ignore", message="Line Generator should not have random state")
+        env = StationAwareRailEnv(
+            width=width,
+            height=height,
+            number_of_agents=number_of_agents,
+            random_seed=seed,
+            rail_generator=rail_gen.sparse_rail_generator(
+                max_num_cities=max_num_cities,
+                seed=seed,
+                grid_mode=False,
+                max_rails_between_cities=1,
+                max_rail_pairs_in_city=1,
+            ),
+            line_generator=line_gen.sparse_line_generator(
+                seed=seed, line_length=line_length
+            ),
+            timetable_generator=ttg.timetable_generator,
+            # None means none: the default stays the cache-free no-op. The
+            # safety calibration passes a ParamMalfunctionGen to disturb
+            # otherwise identical episodes.
+            malfunction_generator=(
+                malfunction_generator if malfunction_generator is not None
+                else _UncachedNoMalfunctionGen()
+            ),
+        )
+        env.reset()
     if flexible_terminus:
         _widen_terminus_targets(env)
     return env

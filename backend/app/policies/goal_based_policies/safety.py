@@ -52,13 +52,15 @@ from typing import Dict, FrozenSet, Iterator, List, Optional, Sequence, Tuple
 
 from flatland.envs.rail_env import RailEnv
 
-from app.policies.goal_based_policies.dataset import edge_time_windows
 from app.policies.goal_based_policies.infrastructure_graph import (
     Cell,
     DecisionPointGraph,
     GraphEdge,
 )
-from app.policies.goal_based_policies.schedule import TrainSchedule
+from app.policies.goal_based_policies.schedule import (
+    TrainSchedule,
+    edge_time_windows,
+)
 
 
 @dataclass(frozen=True)

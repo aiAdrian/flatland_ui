@@ -280,17 +280,21 @@ def test_a_real_scenario_scores_end_to_end():
     """The full path — env, graph, planned lines, assessment — has to hold
     together on a real network, and precomputing the per-network bypass
     analysis must not change the result."""
-    from app.policies.goal_based_policies.dataset import (
-        Layout, build_layout_env, plan_all_lines,
-    )
     from app.policies.goal_based_policies.infrastructure_graph import (
         build_decision_point_graph,
     )
+    from app.policies.goal_based_policies.schedule import plan_line
+    from app.policies.goal_based_policies.visualization import build_demo_env
 
-    env = build_layout_env(Layout(index=0, seed=2001, size=30, cities=2), 4)
+    env = build_demo_env(
+        seed=2001, width=30, height=30, number_of_agents=4,
+        max_num_cities=2, line_length=2,
+    )
     graph = build_decision_point_graph(env)
-    schedules = plan_all_lines(env, graph)
-    assert schedules is not None
+    schedules = [
+        plan_line(graph, env, handle) for handle in range(len(env.agents))
+    ]
+    assert all(schedule is not None for schedule in schedules)
 
     report = assess_safety(env, graph, schedules)
     assert 0.0 <= report.safety <= 1.0

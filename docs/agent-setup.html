@@ -1,0 +1,449 @@
+<title>Agent setup: tree search with learned node evaluation</title>
+<style>
+  :root {
+    --bg: #fdfcfa; --ink: #1f2429; --muted: #5c6670; --line: #d8d3ca;
+    --card: #f4f1ec; --accent: #b4552d; --accent-soft: #f3e2d8;
+    --good: #2c6e49; --cool: #2f5d8a; --cool-soft: #dfe9f3;
+    --code-bg: #ece8e1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #191c20; --ink: #e8e4dd; --muted: #9aa3ab; --line: #3a4046;
+      --card: #21262b; --accent: #e0764a; --accent-soft: #3a2c24;
+      --good: #6fbf8f; --cool: #82b4e0; --cool-soft: #23303c; --code-bg: #2a2f35;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191c20; --ink: #e8e4dd; --muted: #9aa3ab; --line: #3a4046;
+    --card: #21262b; --accent: #e0764a; --accent-soft: #3a2c24;
+    --good: #6fbf8f; --cool: #82b4e0; --cool-soft: #23303c; --code-bg: #2a2f35;
+  }
+  body { background: var(--bg); color: var(--ink);
+    font: 16px/1.6 Georgia, 'Times New Roman', serif; margin: 0;
+    padding: 2.5rem 1.25rem 5rem; }
+  main { max-width: 47rem; margin: 0 auto; }
+  h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .4rem; text-wrap: balance; }
+  .sub { color: var(--muted); margin: 0 0 2rem; font-style: italic; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 .7rem; padding-top: 1.3rem;
+       border-top: 1px solid var(--line); text-wrap: balance; }
+  h3 { font-size: 1rem; margin: 1.5rem 0 .4rem; }
+  p { margin: .7rem 0; }
+  ul, ol { margin: .7rem 0; padding-left: 1.3rem; }
+  li { margin: .3rem 0; }
+  code { font: .85em/1.4 ui-monospace, 'SF Mono', Menlo, monospace;
+    background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+  figure { margin: 1.5rem 0; padding: 1.1rem 1rem .8rem; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+  figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  figcaption { font-size: .84rem; color: var(--muted); margin-top: .8rem;
+    line-height: 1.5; font-family: system-ui, sans-serif; }
+  .callout { background: var(--accent-soft); border-left: 4px solid var(--accent);
+    padding: .8rem 1.1rem; border-radius: 0 8px 8px 0; margin: 1.3rem 0; }
+  .callout strong { color: var(--accent); }
+  .formula { background: var(--code-bg); border-radius: 8px; padding: .8rem 1.1rem;
+    margin: 1rem 0; font: .9rem/1.7 ui-monospace, 'SF Mono', Menlo, monospace;
+    overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 1.1rem 0;
+    font-family: system-ui, sans-serif; font-size: .85rem; }
+  th, td { text-align: left; padding: .45rem .6rem; vertical-align: top;
+    border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; }
+  svg text { font-family: system-ui, -apple-system, sans-serif; fill: var(--ink); }
+  .t { font-size: 12px; } .ts { font-size: 10.5px; fill: var(--muted); }
+  .tb { font-size: 12px; font-weight: 600; }
+  .bx { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+  .bx-a { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1; }
+  .bx-c { fill: var(--cool-soft); stroke: var(--cool); stroke-width: 1; }
+  .ln { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+  .ln-a { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+  .ln-d { stroke: var(--muted); stroke-width: 1.1; fill: none; stroke-dasharray: 4 3; }
+  .dim { opacity: .32; }
+</style>
+
+<main>
+<h1>Agent setup: tree search with learned node evaluation</h1>
+<p class="sub">A tree search over real network states; neural networks judge each state as it is, with nothing completed or planned ahead. Sections 1–7 are the design; §8 is what it replaced, §9 what is built today, §10 what comes next.</p>
+
+<h2>1&nbsp;&nbsp;The shape of the thing</h2>
+
+<p>One tree search. Nodes are <em>states of the railway</em>, edges are <em>joint decisions</em>. Every node is scored by neural networks that look at the raw, unfinished state — no shortest-path completion, no baseline planner, no simulated look-ahead. The score decides which part of the tree to grow next. The search runs continuously alongside the live simulation and always has a current best answer.</p>
+
+<figure>
+<svg viewBox="0 0 720 250" role="img" aria-label="One expansion cycle: pick a frontier node, enumerate joint actions, fast-forward the simulator, score the new states, put them back in the frontier.">
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--muted)"/></marker>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
+  </defs>
+  <rect class="bx-a" x="8" y="34" width="126" height="58" rx="7"/>
+  <text class="tb" x="71" y="56" text-anchor="middle">Pick a node</text>
+  <text class="ts" x="71" y="73" text-anchor="middle">best value + exploration</text>
+  <text class="ts" x="71" y="86" text-anchor="middle">bonus, across whole tree</text>
+
+  <rect class="bx" x="154" y="34" width="126" height="58" rx="7"/>
+  <text class="tb" x="217" y="56" text-anchor="middle">Enumerate actions</text>
+  <text class="ts" x="217" y="73" text-anchor="middle">all combinations of the</text>
+  <text class="ts" x="217" y="86" text-anchor="middle">trains deciding right now</text>
+
+  <rect class="bx" x="300" y="34" width="126" height="58" rx="7"/>
+  <text class="tb" x="363" y="56" text-anchor="middle">Fast-forward</text>
+  <text class="ts" x="363" y="73" text-anchor="middle">until the next train</text>
+  <text class="ts" x="363" y="86" text-anchor="middle">reaches a decision point</text>
+
+  <rect class="bx-c" x="446" y="34" width="126" height="58" rx="7"/>
+  <text class="tb" x="509" y="56" text-anchor="middle">Score the states</text>
+  <text class="ts" x="509" y="73" text-anchor="middle">one network per metric,</text>
+  <text class="ts" x="509" y="86" text-anchor="middle">weighted by the sliders</text>
+
+  <rect class="bx" x="592" y="34" width="120" height="58" rx="7"/>
+  <text class="tb" x="652" y="56" text-anchor="middle">Add to frontier</text>
+  <text class="ts" x="652" y="73" text-anchor="middle">prune what is</text>
+  <text class="ts" x="652" y="86" text-anchor="middle">dead or hopeless</text>
+
+  <path class="ln" marker-end="url(#a1)" d="M134 63 H152"/>
+  <path class="ln" marker-end="url(#a1)" d="M280 63 H298"/>
+  <path class="ln" marker-end="url(#a1)" d="M426 63 H444"/>
+  <path class="ln" marker-end="url(#a1)" d="M572 63 H590"/>
+  <path class="ln-a" marker-end="url(#a2)" d="M652 92 V116 H71 V94"/>
+  <text class="ts" x="360" y="132" text-anchor="middle">runs continuously — never "finishes"</text>
+
+  <rect class="bx" x="120" y="158" width="480" height="72" rx="8"/>
+  <text class="tb" x="360" y="180" text-anchor="middle">At any moment: the best complete solution found so far is the current plan</text>
+  <text class="ts" x="360" y="200" text-anchor="middle">The live simulation executes it. When a decision is actually taken, the tree is re-rooted on the</text>
+  <text class="ts" x="360" y="215" text-anchor="middle">matching child and everything already explored below it is kept.</text>
+  <path class="ln-d" marker-end="url(#a1)" d="M360 136 V156"/>
+</svg>
+<figcaption>The whole algorithm. Everything expensive — planning heuristics, completions, full episode simulations — is deliberately absent from the inner loop.</figcaption>
+</figure>
+
+<h2>2&nbsp;&nbsp;What a node is</h2>
+
+<p>The root is the state at the moment the <em>first</em> train reaches a decision point. Departures and the run up to that point involve no choices, so they are not part of the tree.</p>
+
+<p>A node holds the state of the whole railway at one instant. For the networks, that state is projected onto the decision-point graph: <strong>every train currently travelling between two nodes is drawn at the node it is heading for</strong>, together with the number of steps it still needs to get there. The projection is a representation device only — in the simulator the train really is mid-track and really has to finish those steps before it can decide anything.</p>
+
+<figure>
+<svg viewBox="0 0 720 200" role="img" aria-label="Three trains on the track, and the same situation projected onto the decision graph with arrival times.">
+  <text class="tb" x="16" y="18">Actual situation</text>
+  <path class="ln" d="M40 62 H330" stroke-width="3"/>
+  <path class="ln" d="M40 128 H330" stroke-width="3"/>
+  <circle cx="40" cy="62" r="8" class="bx-a"/><text class="ts" x="40" y="46" text-anchor="middle">n1</text>
+  <circle cx="200" cy="62" r="8" class="bx-a"/><text class="ts" x="200" y="46" text-anchor="middle">n2</text>
+  <circle cx="330" cy="62" r="8" class="bx-a"/><text class="ts" x="330" y="46" text-anchor="middle">n3</text>
+  <circle cx="40" cy="128" r="8" class="bx-a"/><text class="ts" x="40" y="152" text-anchor="middle">n4</text>
+  <circle cx="330" cy="128" r="8" class="bx-a"/><text class="ts" x="330" y="152" text-anchor="middle">n5</text>
+  <rect x="196" y="55" width="14" height="14" rx="3" fill="var(--accent)"/>
+  <text class="ts" x="222" y="78">T1 · standing on n2, deciding now</text>
+  <rect x="120" y="55" width="14" height="14" rx="3" fill="var(--cool)"/>
+  <text class="ts" x="96" y="36">T2 · 6 steps short of n2</text>
+  <rect x="255" y="121" width="14" height="14" rx="3" fill="var(--good)"/>
+  <text class="ts" x="240" y="115">T3 · 2 steps short of n5</text>
+
+  <path class="ln-a" marker-end="url(#a2)" d="M356 95 H400"/>
+  <text class="ts" x="378" y="86" text-anchor="middle">project</text>
+
+  <text class="tb" x="420" y="18">What the networks are shown</text>
+  <rect class="bx" x="418" y="30" width="292" height="140" rx="8"/>
+  <text class="t" x="432" y="54">T1 → n2, arrives in 0 &#160;(deciding)</text>
+  <text class="t" x="432" y="78">T2 → n2, arrives in 6</text>
+  <text class="t" x="432" y="102">T3 → n5, arrives in 2</text>
+  <text class="ts" x="432" y="126">plus, per train: its remaining stops, its deadline,</text>
+  <text class="ts" x="432" y="141">delay so far; plus the network's own structure</text>
+  <text class="ts" x="432" y="158">and the current time step.</text>
+</svg>
+<figcaption>Snapping trains forward keeps the state space inside the reduced graph, so the networks never have to learn a full Flatland grid. Keeping the true remaining travel time keeps two states that snap to the same nodes but are minutes apart distinguishable.</figcaption>
+</figure>
+
+<h2>3&nbsp;&nbsp;What an action is</h2>
+
+<p>What a train may choose is decided by the geometry it is standing in, and the two kinds of choice never occur together. A train can only pick a <em>direction</em> where the track actually divides ahead of it, and it can only be <em>held</em> where holding it achieves something.</p>
+
+<figure>
+<svg viewBox="0 0 720 260" role="img" aria-label="The three node kinds and the option list each of them offers.">
+  <text class="tb" x="14" y="18">A · Stop</text>
+  <path class="ln" d="M24 66 H216" stroke-width="3"/>
+  <circle cx="120" cy="66" r="10" class="bx-a"/>
+  <rect x="113" y="59" width="14" height="14" rx="3" fill="var(--accent)"/>
+  <text class="ts" x="120" y="94" text-anchor="middle">platform — nothing divides here</text>
+  <rect class="bx" x="14" y="108" width="212" height="52" rx="7"/>
+  <text class="ts" x="28" y="128">go on</text>
+  <text class="ts" x="28" y="148">wait 1 · wait 3 · wait 5 · wait 10</text>
+
+  <text class="tb" x="252" y="18">B · Merge — entering from a leg</text>
+  <path class="ln" d="M262 48 C312 48 322 66 360 66 H452" stroke-width="3"/>
+  <path class="ln" d="M262 86 C312 86 322 66 360 66" stroke-width="3"/>
+  <rect x="352" y="58" width="16" height="16" fill="var(--cool-soft)" stroke="var(--cool)"/>
+  <rect x="316" y="41" width="14" height="14" rx="3" fill="var(--good)"/>
+  <rect x="316" y="79" width="14" height="14" rx="3" fill="var(--good)"/>
+  <text class="ts" x="356" y="110" text-anchor="middle">hold on your leg and let the other branch through</text>
+  <rect class="bx" x="252" y="108" width="212" height="52" rx="7"/>
+  <text class="ts" x="266" y="128">go on&#160;&#160;— the route is forced by the geometry</text>
+  <text class="ts" x="266" y="148">wait 1 · wait 3 · wait 5 · wait 10</text>
+
+  <text class="tb" x="490" y="18">C · Split — entering from the head</text>
+  <path class="ln" d="M498 66 H590" stroke-width="3"/>
+  <path class="ln" d="M590 66 C628 66 638 44 690 44" stroke-width="3"/>
+  <path class="ln" d="M590 66 C628 66 638 88 690 88" stroke-width="3"/>
+  <rect x="582" y="58" width="16" height="16" fill="var(--cool-soft)" stroke="var(--cool)"/>
+  <rect x="544" y="59" width="14" height="14" rx="3" fill="var(--accent)"/>
+  <text class="ts" x="600" y="110" text-anchor="middle">the only place a direction exists</text>
+  <rect class="bx" x="490" y="108" width="216" height="52" rx="7"/>
+  <text class="ts" x="504" y="128">take the left branch · take the right branch</text>
+  <text class="ts" x="504" y="148">no wait — holding here is not an action</text>
+
+  <rect class="bx-a" x="14" y="180" width="692" height="66" rx="8"/>
+  <text class="tb" x="28" y="202">The one exception: two switches back to back</text>
+  <text class="ts" x="28" y="222">A decision cell is never a switch cell, so where the cell in front of a switch is itself a switch, the decision point is pushed back until it</text>
+  <text class="ts" x="28" y="238">reaches plain rail — and can land on another decision point. Such a node carries both choices, and its option list is their product. Rare by design.</text>
+</svg>
+<figcaption>Three node kinds, three option lists. The rule that follows: a node offers a wait choice <em>or</em> a direction choice, never both, unless two decision points collapsed onto the same cell.</figcaption>
+</figure>
+
+<p>A <strong>wait</strong> holds the train for <span class="num">1, 3, 5 or 10</span> steps and leaves it <em>on the same node</em>, which becomes a decision point again when the wait is over. Long holds are therefore built by waiting repeatedly, and a merge is re-evaluated after every hold against what the other trains did meanwhile. "Go" is simply wait 0: the train leaves.</p>
+
+<p class="callout" style="font-style:normal"><strong>Consequence worth knowing.</strong> A train approaching a split cannot be <em>chosen</em> to stop there. If the branch it takes is occupied, the simulator holds it anyway — it is just not a decision. Deliberate holding is expressed one node earlier, at the stop or merge the train came from.</p>
+
+<h3>The joint action</h3>
+
+<p>A branch of the tree is one <strong>joint action</strong>: the cross product of the option lists of every train standing at a decision point at that instant.</p>
+
+<figure>
+<svg viewBox="0 0 720 216" role="img" aria-label="A train at a split and a train at a merge give ten joint actions; the longest waits are dropped first when the cap binds.">
+  <rect class="bx-a" x="14" y="26" width="168" height="52" rx="7"/>
+  <text class="tb" x="98" y="46" text-anchor="middle">T1 — at a split</text>
+  <text class="ts" x="28" y="66">left · right&#160;&#160;(2 options)</text>
+
+  <rect class="bx-c" x="14" y="90" width="168" height="66" rx="7"/>
+  <text class="tb" x="98" y="110" text-anchor="middle">T2 — at a merge</text>
+  <text class="ts" x="28" y="130">go · wait 1 · wait 3</text>
+  <text class="ts" x="28" y="148">wait 5 · wait 10&#160;&#160;(5 options)</text>
+
+  <text class="t" x="200" y="96">×</text>
+
+  <rect class="bx" x="222" y="26" width="88" height="24" rx="4"/><text class="ts" x="266" y="42" text-anchor="middle">left, go</text>
+  <rect class="bx" x="318" y="26" width="88" height="24" rx="4"/><text class="ts" x="362" y="42" text-anchor="middle">left, wait 1</text>
+  <rect class="bx" x="414" y="26" width="88" height="24" rx="4"/><text class="ts" x="458" y="42" text-anchor="middle">left, wait 3</text>
+  <rect class="bx" x="510" y="26" width="88" height="24" rx="4"/><text class="ts" x="554" y="42" text-anchor="middle">left, wait 5</text>
+  <rect class="bx dim" x="606" y="26" width="98" height="24" rx="4"/><text class="ts dim" x="655" y="42" text-anchor="middle">left, wait 10</text>
+
+  <rect class="bx" x="222" y="58" width="88" height="24" rx="4"/><text class="ts" x="266" y="74" text-anchor="middle">right, go</text>
+  <rect class="bx" x="318" y="58" width="88" height="24" rx="4"/><text class="ts" x="362" y="74" text-anchor="middle">right, wait 1</text>
+  <rect class="bx" x="414" y="58" width="88" height="24" rx="4"/><text class="ts" x="458" y="74" text-anchor="middle">right, wait 3</text>
+  <rect class="bx" x="510" y="58" width="88" height="24" rx="4"/><text class="ts" x="554" y="74" text-anchor="middle">right, wait 5</text>
+  <rect class="bx dim" x="606" y="58" width="98" height="24" rx="4"/><text class="ts dim" x="655" y="74" text-anchor="middle">right, wait 10</text>
+
+  <text class="ts" x="655" y="98" text-anchor="middle">dropped first</text>
+
+  <rect class="bx" x="222" y="112" width="482" height="88" rx="8"/>
+  <text class="tb" x="236" y="134">Hard cap on children per node</text>
+  <text class="ts" x="236" y="154">When the product exceeds the cap, the <em>longest waits</em> are removed from the trains' option lists</text>
+  <text class="ts" x="236" y="170">until it fits — never a direction. A waiting train re-decides at the same node anyway, so a long hold</text>
+  <text class="ts" x="236" y="186">is only spread across levels, whereas a dropped direction is gone from the tree for good.</text>
+</svg>
+<figcaption>Because directions and waits live at different kinds of node, the branching factor stays modest: a node is only wide when several trains happen to decide in the same instant.</figcaption>
+</figure>
+
+<h3>Expanding to the child state</h3>
+
+<p>Once a joint action is fixed, a <strong>fast graph-level simulator</strong> advances the world: trains move along decision-graph edges at their travel time, waits count down, cell occupancy is respected. It runs until the next train arrives at a decision point — that instant is the child node. No Flatland stepping, no environment copies; milliseconds per node.</p>
+
+<div class="callout"><strong>The trade this makes.</strong> The fast simulator is a <em>model</em> of Flatland, not Flatland. It has to reproduce blocking, head-on deadlocks and arrival times faithfully enough that a plan good in the model is good in reality. That equivalence needs its own test suite — it is the single biggest correctness risk in the design.</div>
+
+<h2>4&nbsp;&nbsp;Choosing what to expand next</h2>
+
+<p>All unexpanded nodes across the whole tree sit in one frontier, ordered by</p>
+
+<div class="formula">priority(node) = V(node) &#160;+&#160; c / √( 1 + siblings already expanded )</div>
+
+<p>The first term is the networks' verdict; the second is a small bonus for branches whose neighbourhood has barely been touched, so the search cannot collapse into a single line early on. Because every network output is a utility between 0 and 1, the constant <code>c</code> has the same meaning everywhere and is one tunable number. The bonus only ever shrinks, which is what lets a queued priority be trusted as an upper bound and re-ranked lazily when it is popped — no rescoring of the whole frontier.</p>
+
+<p><strong>The value of a node</strong> is the weighted sum of the metric networks' outputs, using the user's sliders — the same dials that already exist in Director mode. A node where all trains have arrived is <em>terminal</em>: its metrics are measured exactly, no network involved.</p>
+
+<div class="callout"><strong>Why the search also has to dive.</strong> A node's value estimates the <em>end</em> it leads to, and that estimate does not shrink as the run progresses — so a half-finished state looks exactly as good as the best state below it, and pure best-first spreads sideways forever without ever finishing a run. Every so often, and always while no complete run is known yet, the search therefore follows its own preference straight down to the end. The dive does not evaluate anything: the states it passes are ordinary nodes, valued like any other, and only the terminal it reaches is measured. It is how solutions are <em>found</em>, not how they are judged.</div>
+
+<h2>5&nbsp;&nbsp;What the networks predict</h2>
+
+<p>One network per metric. Each takes the node state described in §2 — nothing else, and in particular nothing completed or planned ahead — and outputs a single number in 0–1.</p>
+
+<p>Crucially, that number is <strong>not</strong> "how good is this state right now". It is <em>how good the final solution will be if the search continues from here</em>, choosing high-value nodes as it always does. A half-empty state whose trains are all badly placed but from which the search reliably recovers should score high; a tidy-looking state that always ends in a deadlock should score low.</p>
+
+<p><strong>Start with one network</strong> — punctuality (all trains arrive, and total delay) — and get the whole loop working end to end. Connections and stability are added afterwards as identical copies with different labels; nothing in the search changes when they arrive, since the value is already a weighted sum.</p>
+
+<h2>6&nbsp;&nbsp;Training</h2>
+
+<p>This is a self-play loop in the AlphaZero shape, with the simulator in the role of the opponent-free judge.</p>
+
+<figure>
+<svg viewBox="0 0 720 230" role="img" aria-label="Training loop: search with current networks, execute, measure, label the taken path, retrain, repeat.">
+  <rect class="bx-a" x="12" y="34" width="128" height="52" rx="7"/>
+  <text class="tb" x="76" y="56" text-anchor="middle">Search</text>
+  <text class="ts" x="76" y="74" text-anchor="middle">with the current nets</text>
+
+  <rect class="bx" x="164" y="34" width="128" height="52" rx="7"/>
+  <text class="tb" x="228" y="56" text-anchor="middle">Execute</text>
+  <text class="ts" x="228" y="74" text-anchor="middle">run the chosen path</text>
+
+  <rect class="bx" x="316" y="34" width="128" height="52" rx="7"/>
+  <text class="tb" x="380" y="56" text-anchor="middle">Measure</text>
+  <text class="ts" x="380" y="74" text-anchor="middle">the real outcome</text>
+
+  <rect class="bx-c" x="468" y="34" width="128" height="52" rx="7"/>
+  <text class="tb" x="532" y="56" text-anchor="middle">Label</text>
+  <text class="ts" x="532" y="74" text-anchor="middle">every node on that path</text>
+
+  <rect class="bx" x="620" y="34" width="92" height="52" rx="7"/>
+  <text class="tb" x="666" y="56" text-anchor="middle">Retrain</text>
+  <text class="ts" x="666" y="74" text-anchor="middle">next generation</text>
+
+  <path class="ln" marker-end="url(#a1)" d="M140 60 H162"/>
+  <path class="ln" marker-end="url(#a1)" d="M292 60 H314"/>
+  <path class="ln" marker-end="url(#a1)" d="M444 60 H466"/>
+  <path class="ln" marker-end="url(#a1)" d="M596 60 H618"/>
+  <path class="ln-a" marker-end="url(#a2)" d="M666 86 V108 H76 V88"/>
+
+  <circle cx="90" cy="152" r="8" class="bx-a"/>
+  <circle cx="190" cy="152" r="8" class="bx-a"/>
+  <circle cx="290" cy="152" r="8" class="bx-a"/>
+  <circle cx="390" cy="152" r="8" class="bx-a"/>
+  <circle cx="490" cy="152" r="10" fill="var(--accent)" stroke="var(--accent)"/>
+  <path class="ln-a" marker-end="url(#a2)" d="M98 152 H180"/>
+  <path class="ln-a" marker-end="url(#a2)" d="M198 152 H280"/>
+  <path class="ln-a" marker-end="url(#a2)" d="M298 152 H380"/>
+  <path class="ln-a" marker-end="url(#a2)" d="M398 152 H478"/>
+  <circle cx="150" cy="196" r="7" class="bx dim"/><circle cx="250" cy="196" r="7" class="bx dim"/>
+  <circle cx="350" cy="196" r="7" class="bx dim"/><circle cx="450" cy="196" r="7" class="bx dim"/>
+  <path class="ln-d dim" d="M90 160 L150 189 M190 160 L250 189 M290 160 L350 189 M390 160 L450 189"/>
+  <text class="ts" x="510" y="156">terminal: measured</text>
+  <text class="ts" x="524" y="196">explored but not taken → no value label</text>
+  <text class="ts" x="90" y="216" text-anchor="middle">all five get the same measured outcome as their label</text>
+</svg>
+<figcaption>The value target is the outcome that was actually achieved from that state, exactly as AlphaZero labels every position of a self-play game with the game's result. Nodes that were explored but never played get no value label — they were judged, not lived through.</figcaption>
+</figure>
+
+<h3>The three things that make this work</h3>
+
+<ol>
+  <li><strong>Cold start.</strong> Generation 0 has untrained networks, so the search is effectively undirected — that is fine and expected. It still produces complete solutions (badly), those get measured, and generation 1 has something to learn from. Each generation's search is better, so each generation's labels are better.</li>
+  <li><strong>Exploration noise.</strong> If the search always follows its own preference, the data only ever covers states the current networks already like, and the loop stalls. Add noise at the root of each self-play search (AlphaZero uses Dirichlet noise on the root's action priors) and sample among the top options early in a run rather than always taking the best.</li>
+  <li><strong>A policy prior.</strong> The largest speed-up in AlphaZero-style systems is not the value network but a second head that predicts <em>which action the search will end up preferring</em>, trained on the search's own choice distribution. It orders children so the good ones are expanded first. Recommended as soon as the value loop works — it is what makes the branching cap in §3 cheap instead of arbitrary.</li>
+</ol>
+
+<h3>Practicalities</h3>
+
+<ul>
+  <li>Labels are utilities in 0–1, so the same loss (binary cross-entropy on the logit) keeps every network's output in range by construction.</li>
+  <li>Keep a replay buffer of the last few generations rather than only the newest, and hold out whole scenarios — never individual states from a scenario also present in training — or the metrics will flatter themselves.</li>
+  <li>Data grows fast: one scenario yields one label per node on the executed path, and the path is dozens of nodes long.</li>
+  <li>Accept a new generation only if it beats the previous one on held-out scenarios by <em>measured</em> outcome, not by prediction error.</li>
+</ul>
+
+<h2>7&nbsp;&nbsp;Running alongside the live simulation</h2>
+
+<p>The search is not a phase that ends. It runs in parallel with the running simulation and is queried at any moment for the best complete solution found so far.</p>
+
+<figure>
+<svg viewBox="0 0 720 220" role="img" aria-label="The tree is re-rooted as decisions are executed; the subtree below the taken branch is kept, the rest is discarded.">
+  <text class="tb" x="14" y="18">t = 0</text>
+  <circle cx="70" cy="48" r="9" fill="var(--accent)" stroke="var(--accent)"/>
+  <circle cx="34" cy="94" r="7" class="bx"/><circle cx="70" cy="94" r="7" class="bx"/><circle cx="106" cy="94" r="7" class="bx"/>
+  <circle cx="22" cy="140" r="6" class="bx"/><circle cx="52" cy="140" r="6" class="bx"/>
+  <circle cx="88" cy="140" r="6" class="bx"/><circle cx="118" cy="140" r="6" class="bx"/>
+  <path class="ln" d="M70 57 L34 85 M70 57 L70 85 M70 57 L106 85 M34 103 L22 132 M34 103 L52 132 M106 103 L88 132 M106 103 L118 132"/>
+
+  <path class="ln-a" marker-end="url(#a2)" d="M150 94 H196"/>
+  <text class="ts" x="173" y="86" text-anchor="middle">a decision</text>
+  <text class="ts" x="173" y="112" text-anchor="middle">is executed</text>
+
+  <text class="tb" x="214" y="18">t = 1 — re-rooted</text>
+  <g class="dim">
+    <circle cx="270" cy="48" r="9" class="bx"/>
+    <circle cx="234" cy="94" r="7" class="bx"/><circle cx="306" cy="94" r="7" class="bx"/>
+    <circle cx="222" cy="140" r="6" class="bx"/><circle cx="252" cy="140" r="6" class="bx"/>
+    <path class="ln" d="M270 57 L234 85 M270 57 L306 85 M234 103 L222 132 M234 103 L252 132"/>
+  </g>
+  <circle cx="306" cy="94" r="9" fill="var(--accent)" stroke="var(--accent)"/>
+  <circle cx="288" cy="140" r="6" class="bx-a"/><circle cx="324" cy="140" r="6" class="bx-a"/>
+  <path class="ln-a" d="M306 103 L288 132 M306 103 L324 132"/>
+  <text class="ts" x="300" y="172">kept, with everything already learned about it</text>
+
+  <rect class="bx" x="400" y="30" width="308" height="160" rx="8"/>
+  <text class="tb" x="414" y="52">What this demands</text>
+  <text class="ts" x="414" y="74">• a node stores its parent, its joint action and the</text>
+  <text class="ts" x="414" y="88">&#160;&#160;projected state — never a copy of the environment</text>
+  <text class="ts" x="414" y="108">• identical states reached by different orders of the</text>
+  <text class="ts" x="414" y="122">&#160;&#160;same decisions are merged (the tree is really a graph)</text>
+  <text class="ts" x="414" y="142">• dead branches are cut on sight: deadlock, a train that</text>
+  <text class="ts" x="414" y="156">&#160;&#160;can no longer arrive at all, or a value hopelessly below</text>
+  <text class="ts" x="414" y="170">&#160;&#160;the best complete solution already in hand</text>
+</svg>
+<figcaption>Re-rooting is what makes continuous search affordable: the work spent below the branch reality took is reused rather than thrown away. Everything else is released.</figcaption>
+</figure>
+
+<p><strong>When reality diverges</strong> — a breakdown, or a train not where the model said it would be — the affected subtree is invalid. The nodes whose states no longer match are dropped and the search continues from a freshly built root; whatever is still consistent is kept. The design must never assume the model and the world stayed in step.</p>
+
+<h2>8&nbsp;&nbsp;What this replaced</h2>
+
+<p>The previous planner searched over half-written timetables and scored them by finishing each one with shortest paths first. It has been removed; this is what changed.</p>
+
+<table>
+  <tr><th></th><th>The previous planner</th><th>This one</th></tr>
+  <tr><td>A node is</td><td>a set of partially written timetables</td><td>a state of the railway at one instant</td></tr>
+  <tr><td>Scoring a node</td><td>finish it into a full timetable by shortest paths, then score that</td><td>score the raw state directly</td></tr>
+  <tr><td>What the networks learned</td><td>the outcome of the finished plan they were shown</td><td>the outcome reachable if the search continues</td></tr>
+  <tr><td>Time in the loop</td><td>none — plans were timed open-loop, trains never moved</td><td>a fast simulator advances the world between nodes</td></tr>
+  <tr><td>Lifetime</td><td>plan once, then execute; re-plan on events</td><td>one growing, re-rooted, trimmed tree</td></tr>
+  <tr><td>Where a direction is chosen</td><td>implicitly, on leaving a stop or a merge cell — the graph had no node in front of a split, so the branch was fixed several cells early</td><td>at its own node right in front of the split, as late as the geometry allows</td></tr>
+  <tr><td>Without a trained model</td><td>fell back to a separate conflict-avoidance planner</td><td>the same search, valuing every state alike — no second planner to maintain</td></tr>
+</table>
+
+<p>Removed: the completion-based search, the three plan-level networks and their trainers, the candidate-scoring ensemble, the dataset encoders, the curriculum and evaluation-set tooling, and the branch prior — fifteen modules. Kept and reused: the decision-point graph (now with split approaches as a third node kind), schedules and their player, stations, planned connections, the measured rollout, the static safety measure behind the verify endpoint, and the whole mid-episode capture / splice / rollout-gate machinery.</p>
+
+<h2 id="state">9&nbsp;&nbsp;Where it stands</h2>
+
+<p>Built and wired into the app, in <code>backend/app/policies/tree_search/</code> — about 3,000 lines across thirteen modules, with 31 tests of its own. The Director policy plans with it; the mid-episode re-plan roots a search on the live situation and splices the result into the running player.</p>
+
+<table>
+  <tr><th>Section</th><th>State</th><th>Where</th></tr>
+  <tr><td>§2 Node &amp; projection</td><td>Done — all three node kinds in the graph; state snapped to nodes with true remaining travel times</td><td><code>scenario.py</code>, <code>observation.py</code></td></tr>
+  <tr><td>§3 Actions</td><td>Done — options per (node, direction), joint product, cap that drops the longest holds first</td><td><code>actions.py</code></td></tr>
+  <tr><td>§3 Fast simulator</td><td>Done — cell-by-cell movement, blocking, following, head-on deadlock; no Flatland stepped</td><td><code>simulator.py</code></td></tr>
+  <tr><td>§4 Search</td><td>Done — one frontier, value + exploration bonus, lazy re-ranking, periodic dive, transposition merging, node cap, re-rooting</td><td><code>search.py</code></td></tr>
+  <tr><td>§5 Value network</td><td>Built, <strong>not yet useful</strong> — see below</td><td><code>net.py</code></td></tr>
+  <tr><td>§6 Training</td><td>Done — self-play, trajectory labelling, replay buffer, acceptance gate on measured outcome</td><td><code>selfplay.py</code>, <code>train.py</code></td></tr>
+  <tr><td>§7 Live operation</td><td>Partial — re-rooting, live-state reading and splicing work; continuous background growth does not exist yet</td><td><code>live.py</code>, <code>director.py</code></td></tr>
+  <tr><td>Metrics</td><td>Punctuality only; connections and stability are accepted as dials and reported as having no effect</td><td><code>metrics.py</code></td></tr>
+</table>
+
+<h3>What it measures</h3>
+
+<ul>
+  <li><strong>Speed.</strong> ~2,500 expansions per second on the 7-train stress preset (30×30); the default planning budget of 600 expansions takes about a quarter of a second and builds a tree of ~1,900 nodes, 33 levels deep.</li>
+  <li><strong>Correctness against Flatland.</strong> Plans the model approves are replayed in the real environment and match: same arrivals, same total delay, within one step on episode length. On the stress preset the search gets <span class="num">7/7</span> trains home with zero delay, verified by replay — where the reactive policies strand three to seven of them.</li>
+  <li><strong>Value of searching.</strong> On networks tight enough that driving straight at the problem deadlocks, the search finds the holds that get the trains through — that is a test, not an anecdote. On roomy networks it matches the obvious policy, which is the floor it must not fall below.</li>
+</ul>
+
+<h3>What is not finished</h3>
+
+<ul>
+  <li><strong>The value network does not yet earn its place.</strong> It learns to predict outcomes (R² ≈ 0.5 held out, at the small scale trained so far), but a search guided by it scores <em>worse</em> than the unguided one — around 0.20 against 0.42 on held-out scenarios — so the acceptance gate has rejected every generation. This is the expected shape of an early AlphaZero loop: one label per state, shared across a whole run, needs far more games than have been played. The gate is doing its job — a network that does not help cannot reach the app.</li>
+  <li><strong>The search does not run continuously.</strong> It plans on demand and on events, keeping and re-rooting its tree, but nothing grows it between environment steps while an episode runs.</li>
+  <li><strong>No value-based pruning.</strong> Branches end naturally at terminal states, and the node cap releases the worst unexpanded leaves, but the "hopelessly below the best solution" cut described in §7 is not implemented — deliberately, since its failure mode is silent.</li>
+  <li><strong>Breakdowns are not modelled during search.</strong> A malfunction in progress is read as a hold of that length; the search then plans a disturbance-free world and relies on re-rooting when the next one happens.</li>
+</ul>
+
+<h2>10&nbsp;&nbsp;Next steps</h2>
+
+<p>In the order that makes each one worth doing:</p>
+
+<ol>
+  <li><strong>Train at scale, and find out whether the value network can beat the unguided search.</strong> Thousands of scenarios rather than dozens, more generations, and a wider mix of network sizes. The whole loop and its gate already run unattended — this is compute, not code. If several serious attempts still lose to the unguided search, that is a real finding about the labelling scheme, and step 2 is the answer to it.</li>
+  <li><strong>Add the policy prior head</strong> (§6). Predicting which option the search will end up preferring is the biggest known speed-up in AlphaZero-style systems, and it addresses this loop's specific weakness: every state of a run currently carries the same label, so the value head learns slowly, while the prior learns from every decision. It also turns the child cap from a blunt rule into a ranked one.</li>
+  <li><strong>Run the search continuously</strong> (§7). Grow the tree on a background thread between environment steps, re-rooting as decisions execute, so the plan improves while the episode runs instead of only at planning moments. The pieces — re-rooting, the node cap, the live-state read — are in place; what is missing is the thread and the locking around the tree.</li>
+  <li><strong>Add the second and third metrics.</strong> Connections and stability need a definition measured from the simulator (§5), one network each, and nothing else: the search already combines a weighted sum, and the dials already report themselves as inactive until then.</li>
+  <li><strong>Tune what is currently guessed:</strong> the exploration constant, the child cap, the dive interval, and the planning budget — against measured outcomes on a fixed scenario set, not by eye.</li>
+</ol>
+
+<p>Two things to watch while doing any of it. The fast simulator is a model of Flatland, and every widening of the scenario mix is a fresh chance for the two to disagree — the replay comparison is the test that catches it. And the search currently has no way to know it is about to strand a train that the naive ordering would have saved: the floor test in the suite is what keeps that honest.</p>
+
+</main>

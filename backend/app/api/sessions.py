@@ -612,7 +612,7 @@ def verify_director_plan(session_id: str):
     from app.policies.goal_based_policies.infrastructure_graph import (
         build_decision_point_graph,
     )
-    from app.policies.goal_based_policies.search import verify_plan
+    from app.policies.tree_search.verify import verify_plan
     from app.policies.goal_based_policies.stations import resolve_stations
     from app.policies.goal_directed_policy import plan_info, plan_schedules
 
@@ -698,7 +698,7 @@ def director_what_if(session_id: str, req: DirectorWeightsBody):
         planned_connections,
         station_watch_cells,
     )
-    from app.policies.goal_based_policies.ensemble import DirectorWeights
+    from app.policies.tree_search.metrics import DirectorWeights
     from app.policies.goal_based_policies.replan import (
         apply_residual_plan,
         residual_plan,
@@ -707,7 +707,6 @@ def director_what_if(session_id: str, req: DirectorWeightsBody):
     from app.policies.goal_based_policies.schedule import SchedulePlayer
     from app.policies.goal_based_policies.stations import resolve_stations
     from app.policies.goal_directed_policy import (
-        loaded_models,
         plan_player,
         plan_schedules,
     )
@@ -717,12 +716,9 @@ def director_what_if(session_id: str, req: DirectorWeightsBody):
         raise HTTPException(404, f"Session {session_id} not found")
     player = plan_player(session.env)
     schedules = plan_schedules(session.env)
-    models = loaded_models()
     if player is None or schedules is None:
         raise HTTPException(
             400, "No committed plan — step under 'goal_directed' first")
-    if models is None:
-        raise HTTPException(400, "No models installed — what-if needs them")
     try:
         weights = DirectorWeights(
             req.punctuality, req.connections, req.stability)
@@ -761,7 +757,7 @@ def director_what_if(session_id: str, req: DirectorWeightsBody):
     player_b = SchedulePlayer(graph, fork_b)
     player_b.restore(snapshot)
     plan = residual_plan(
-        fork_b, graph, weights, *models,
+        fork_b, graph, weights,
         player=player_b, schedules=schedules, reason="what-if",
     )
     apply_residual_plan(player_b, plan)
@@ -770,8 +766,8 @@ def director_what_if(session_id: str, req: DirectorWeightsBody):
     replanned["source"] = plan.source
     replanned["changed"] = sorted(plan.tails)
     replanned["predicted"] = {
-        "weighted": plan.score.weighted,
-        "utilities": dict(plan.score.breakdown["utilities"]),
+        "weighted": plan.weighted,
+        "utilities": dict(plan.utilities),
         "considered": dict(plan.considered),
     }
 

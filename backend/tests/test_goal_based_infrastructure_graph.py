@@ -41,46 +41,104 @@ def test_stations_are_agent_origins_and_targets(env, graph):
 
 
 def test_switch_decision_cells_sit_in_front_of_their_switch(env):
+    """A wait cell is plain rail whose next move enters the switch cluster,
+    from where the guarded switch is reached through switch cells only —
+    entering it on a funneled (merging) in-heading."""
     switches = find_switch_cells(env)
     assert switches, "expected switches in a sparse env"
     decision_cells = find_switch_decision_cells(env, switches)
     assert decision_cells, "expected decision cells in front of switches"
 
+    def reaches_switch_funneled(cell, heading, target):
+        """Follow the rails from `cell` moving `heading`, through switch
+        cells only; True when `target` is entered on a merging in-heading."""
+        dr, dc = DIR_TO_DELTA[heading]
+        stack = [((cell[0] + dr, cell[1] + dc), heading)]
+        seen = set(stack)
+        while stack:
+            cur, move = stack.pop()
+            if cur == target:
+                exits = _get_transitions(env, target, move)
+                if sum(exits) != 1:
+                    continue
+                exit_dir = exits.index(1)
+                if any(
+                    h != move and _get_transitions(env, target, h)[exit_dir]
+                    for h in range(4)
+                ):
+                    return True
+                continue
+            if cur not in switches:
+                continue  # left the cluster without reaching the target
+            exits = _get_transitions(env, cur, move)
+            for d in range(4):
+                if not exits[d]:
+                    continue
+                ndr, ndc = DIR_TO_DELTA[d]
+                nxt = ((cur[0] + ndr, cur[1] + ndc), d)
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append(nxt)
+        return False
+
     for cell, approaches in decision_cells.items():
         assert approaches
+        assert cell not in switches, f"wait cell {cell} sits ON a switch"
         for approach in approaches:
             assert approach.switch_cell in switches
-            # Moving one cell along the waiting heading reaches the switch.
+            # The next move from the wait cell enters the cluster and the
+            # guarded switch is reached on a funneled in-heading.
             dr, dc = DIR_TO_DELTA[approach.heading]
-            assert (cell[0] + dr, cell[1] + dc) == approach.switch_cell
-            # The approach is a funneled one: exactly one exit, shared with
-            # another in-heading (a merge, not a diamond crossing).
-            exits = _get_transitions(env, approach.switch_cell, approach.heading)
-            assert sum(exits) == 1
-            exit_dir = exits.index(1)
-            assert any(
-                h != approach.heading
-                and _get_transitions(env, approach.switch_cell, h)[exit_dir]
-                for h in range(4)
+            first = (cell[0] + dr, cell[1] + dc)
+            assert first in switches, (
+                f"wait cell {cell} does not border the switch cluster"
             )
+            assert reaches_switch_funneled(
+                cell, approach.heading, approach.switch_cell
+            ), f"{cell} cannot reach its switch {approach.switch_cell}"
 
 
 def test_simple_switches_have_two_decision_cells(env):
-    """Every plain 3-way switch contributes exactly two funneled approaches."""
+    """A plain 3-way switch whose two funneled approach tiles are plain
+    rail keeps exactly two wait cells; clustered switches fan back to one
+    wait cell per feeding branch instead."""
     switches = find_switch_cells(env)
     decision_cells = find_switch_decision_cells(env, switches)
     approaches_per_switch = {}
-    for approaches in decision_cells.values():
+    for cell, approaches in decision_cells.items():
         for a in approaches:
             approaches_per_switch.setdefault(a.switch_cell, 0)
             approaches_per_switch[a.switch_cell] += 1
 
-    simple = [
-        s for s, facing in switches.items()
-        if len(facing) == 1
-        and sum(sum(_get_transitions(env, s, h)) for h in range(4)) == 4
-    ]
-    assert simple, "expected at least one simple 3-way switch"
+    def funneled_headings(s):
+        result = []
+        for h in range(4):
+            exits = _get_transitions(env, s, h)
+            if sum(exits) != 1:
+                continue
+            exit_dir = exits.index(1)
+            if any(
+                h2 != h and _get_transitions(env, s, h2)[exit_dir]
+                for h2 in range(4)
+            ):
+                result.append(h)
+        return result
+
+    simple = []
+    for s, facing in switches.items():
+        if len(facing) != 1:
+            continue
+        if sum(sum(_get_transitions(env, s, h)) for h in range(4)) != 4:
+            continue
+        # Both approach tiles are plain rail — no fan-back involved.
+        plain = all(
+            (s[0] - DIR_TO_DELTA[h][0], s[1] - DIR_TO_DELTA[h][1])
+            not in switches
+            for h in funneled_headings(s)
+        )
+        if plain:
+            simple.append(s)
+    assert simple, "expected a simple 3-way switch with plain approaches"
     for s in simple:
         assert approaches_per_switch.get(s) == 2
 
@@ -115,23 +173,32 @@ def test_edges_connect_nodes_without_relevant_interior_nodes(env, graph):
             )
             orientation = _move_heading(a, b)
             exits = _get_transitions(env, b, orientation)
-            assert not any(exits[ap.heading] for ap in node.approaches), (
+            assert not any(
+                exits[ap.heading]
+                for ap in list(node.approaches) + list(node.splits)
+            ), (
                 f"edge {edge.from_cell}->{edge.to_cell} passes decision "
                 f"point {b} in its relevant direction"
             )
 
 
 def test_decision_point_edges_are_directional(env, graph):
-    """Edges at a pure switch wait cell respect its direction: a train
-    arriving there must be about to enter the switch on its next move, and
-    departures start from such an orientation."""
+    """Edges at a pure switch cell respect its direction: a train arriving
+    there must be about to enter the switch on its next move, and
+    departures start from such an orientation.
+
+    Both switch kinds count — the cell in front of a merge, where a train
+    can be held, and the cell in front of a split, where it can be steered.
+    One plain-rail tile is regularly both, for opposite directions of
+    travel."""
 
     def relevant_orientations(cell, node):
+        approaches = list(node.approaches) + list(node.splits)
         return [
             o for o in range(4)
             if any(
                 _get_transitions(env, cell, o)[ap.heading]
-                for ap in node.approaches
+                for ap in approaches
             )
         ]
 

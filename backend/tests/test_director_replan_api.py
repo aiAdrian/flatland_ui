@@ -119,8 +119,10 @@ def test_whatif_compares_both_branches_without_touching_the_session():
         }
         assert outcome["steps"] >= before["elapsed_steps"]
     assert body["replan"]["source"] in ("research", "continue")
-    assert set(body["replan"]["predicted"]["considered"]) == {
-        "research", "continue"}
+    # The re-plan reports what it proposes; what it is *worth* against
+    # continuing is the simulated comparison this endpoint returns in the
+    # two branches, not a number the planner gives itself.
+    assert set(body["replan"]["predicted"]["considered"]) == {"research"}
 
     # Both forks ran to the episode's end; the live session must not move.
     after = client.get(f"/session/{sid}/state").json()

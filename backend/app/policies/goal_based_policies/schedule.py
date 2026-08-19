@@ -540,3 +540,68 @@ class SchedulePlayer:
         if handles is None:
             handles = list(self._remaining)
         return {int(h): self.act(int(h)) for h in handles}
+
+
+def schedule_edges(
+    env: RailEnv,
+    graph: DecisionPointGraph,
+    schedule: TrainSchedule,
+    start_heading: Optional[int] = None,
+) -> List[GraphEdge]:
+    """The graph edges the plan traverses, in order.
+
+    Resolves each consecutive node pair to the edge the player would take
+    (feasible from the arrival heading, cheapest first, ties by exit
+    direction — the same rule `SchedulePlayer` applies, so what is read
+    here is what would actually be driven). Stops early where a pair
+    cannot be resolved, mirroring how playback would fail there.
+
+    `start_heading` is which way the train points at the schedule's first
+    node. It is a parameter rather than something derived because a cell
+    offers completely different onward edges — often none — depending on
+    the orientation the train stands in. It defaults to the agent's
+    initial direction, which is right only when the schedule starts at the
+    train's origin.
+    """
+    heading = (
+        int(env.agents[schedule.handle].initial_direction)
+        if start_heading is None else int(start_heading)
+    )
+    cells = [graph.cell_of(e.node_id) for e in schedule.entries]
+    edges: List[GraphEdge] = []
+    for cell, nxt in zip(cells, cells[1:]):
+        usable = [
+            e for e in graph.edges_from(cell)
+            if e.to_cell == nxt and _feasible(env, cell, heading, e)
+        ]
+        if not usable:
+            break
+        edge = min(usable, key=lambda e: (e.travel_time, e.out_direction))
+        edges.append(edge)
+        heading = edge.in_direction
+    return edges
+
+
+def edge_time_windows(
+    env: RailEnv,
+    graph: DecisionPointGraph,
+    schedule: TrainSchedule,
+    start_heading: Optional[int] = None,
+) -> List[Tuple[GraphEdge, float, float]]:
+    """Per traversed edge, the planned `(edge, enter, exit)` window.
+
+    Open-loop timing: the train departs at its earliest departure, sits out
+    each scheduled wait at the node before moving on, and crosses an edge
+    in its travel time. No interaction with any other train — this is what
+    the *plan* claims will happen, which is what a plan is.
+    """
+    agent = env.agents[schedule.handle]
+    clock = float(getattr(agent, "earliest_departure", 0) or 0)
+    windows: List[Tuple[GraphEdge, float, float]] = []
+    for index, edge in enumerate(
+        schedule_edges(env, graph, schedule, start_heading)
+    ):
+        clock += schedule.entries[index].wait
+        windows.append((edge, clock, clock + edge.travel_time))
+        clock += edge.travel_time
+    return windows

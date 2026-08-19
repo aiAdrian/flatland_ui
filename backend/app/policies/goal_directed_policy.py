@@ -1,10 +1,11 @@
 """The Director planner as a session policy.
 
-Plans every train once per env with the weighted model-guided search
-(`director_plan`), then drives the plan with `SchedulePlayer`. The three
-weights — punctuality, connections, stability — are the Director-mode
-dials; scoring happens at plan time, so changing them takes effect on the
-next planned env, no retraining involved.
+Plans every train once per env with the tree search over railway states
+(`tree_search.director`), then drives the result with `SchedulePlayer`.
+The three weights — punctuality, connections, stability — are the
+Director-mode dials; only the metrics with a network behind them steer
+anything today (see `tree_search.metrics.METRICS`), and the plan info says
+which of the dials those are.
 
 Mid-episode the plan is not fixed: a malfunction of consequence — or a
 weight change while trains are already on the map — triggers a *residual*
@@ -17,18 +18,18 @@ useful can live on the instance: the plan, the player's progress and the
 plan's provenance are cached per *env* (weak-keyed — a dropped env takes
 its plan with it). `reset(env)` plans only when the env has no plan yet.
 
-torch is imported lazily and only when checkpoints are actually found
-(`GOAL_DIRECTED_EVALUATOR` / `GOAL_DIRECTED_CONNECTION_MODEL`, defaulting
-to `backend/models/goal_directed/`). Without models the policy still
-works: it falls back to `plan_avoiding_overlaps`, recorded as such in the
-plan info — degraded, never broken. A train the planner could not route
-holds (DO_NOTHING) rather than guessing.
+torch is imported lazily and only when a value-network checkpoint is
+actually found (`TREE_SEARCH_MODELS`, defaulting to
+`backend/models/tree_search/`). Without one the search still plans — it
+values every state alike and falls back on its own ordering, which is
+exactly what generation zero of training does — so a missing model costs
+plan quality, not planning. A train the search could not route holds
+(DO_NOTHING) rather than guessing.
 """
 from __future__ import annotations
 
 import os
 import weakref
-from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 from flatland.core.env_observation_builder import (
@@ -44,11 +45,10 @@ from app.policies.goal_based_policies.infrastructure_graph import (
 )
 from app.policies.goal_based_policies.schedule import SchedulePlayer
 
-_MODELS_DIR = Path(__file__).resolve().parents[2] / "models" / "goal_directed"
-DEFAULT_EVALUATOR = os.environ.get(
-    "GOAL_DIRECTED_EVALUATOR", str(_MODELS_DIR / "evaluator.ckpt"))
-DEFAULT_CONNECTION_MODEL = os.environ.get(
-    "GOAL_DIRECTED_CONNECTION_MODEL", str(_MODELS_DIR / "connection.ckpt"))
+# How long the search thinks before the first plan is handed over, and how
+# long a mid-episode re-plan gets. The search is anytime, so these are
+# "how long to think", not a bound on what it may ever explore.
+PLANNING_BUDGET = int(os.environ.get("GOAL_DIRECTED_BUDGET", "600"))
 
 # Process-wide default dials; a session's own dials (set via the
 # `/session/{id}/director/weights` endpoint) override them per env.
@@ -69,8 +69,10 @@ _SCHEDULES: "weakref.WeakKeyDictionary[RailEnv, list]" = (
 # mid-episode weight change is waiting to be applied.
 _REPLAN_STATE: "weakref.WeakKeyDictionary[RailEnv, Dict[str, object]]" = (
     weakref.WeakKeyDictionary())
-_MODELS: Optional[Tuple[object, object]] = None
-_MODELS_FAILED = False
+# The scenario (graph, timetable, distances) each env was planned against,
+# so a re-plan reuses it instead of rebuilding the tables every time.
+_SCENARIOS: "weakref.WeakKeyDictionary[RailEnv, object]" = (
+    weakref.WeakKeyDictionary())
 
 # Steps to sit out after a re-plan before reacting to the next
 # malfunction — the fresh plan captured the world as-is, and planning
@@ -200,16 +202,16 @@ def replan_now(
     """
     player = _PLAYERS.get(env)
     schedules = _SCHEDULES.get(env)
-    models = _load_models()
-    if player is None or schedules is None or models is None:
+    if player is None or schedules is None:
         return None
     try:
-        from app.policies.goal_based_policies.ensemble import DirectorWeights
         from app.policies.goal_based_policies.replan import residual_plan
+        from app.policies.tree_search.director import DirectorWeights
 
         plan = residual_plan(
-            env, player.graph, DirectorWeights(*env_weights(env)), *models,
+            env, player.graph, DirectorWeights(*env_weights(env)),
             player=player, schedules=schedules, reason=reason,
+            scenario=_SCENARIOS.get(env),
         )
     except Exception:
         return None
@@ -295,8 +297,8 @@ def _finish_replan(
         # plan driving and only records the event.
         _SCHEDULES[env] = chosen
         info["source"] = "replan-research"
-        info["weighted"] = plan.score.weighted
-        info["utilities"] = dict(plan.score.breakdown["utilities"])
+        info["weighted"] = plan.weighted
+        info["utilities"] = dict(plan.utilities)
         info["decisions"] = plan.decisions
         if plan.trace:
             info["trace"] = plan.trace
@@ -317,16 +319,16 @@ def _start_replan_job(env: RailEnv, reason: str, gate: bool) -> None:
 
     player = _PLAYERS.get(env)
     schedules = _SCHEDULES.get(env)
-    models = _load_models()
-    if player is None or schedules is None or models is None:
+    if player is None or schedules is None:
         return
     try:
-        from app.policies.goal_based_policies.ensemble import DirectorWeights
         from app.policies.goal_based_policies.replan import capture_progress
+        from app.policies.tree_search.director import DirectorWeights
 
         graph = player.graph
         progress = capture_progress(env, graph, player, schedules)
         weights = DirectorWeights(*env_weights(env))
+        scenario = _SCENARIOS.get(env)
     except Exception:
         return
 
@@ -337,9 +339,9 @@ def _start_replan_job(env: RailEnv, reason: str, gate: bool) -> None:
             from app.policies.goal_based_policies.replan import residual_plan
 
             job["plan"] = residual_plan(
-                env, graph, weights, *models,
+                env, graph, weights,
                 player=player, schedules=schedules, reason=reason,
-                progress=progress,
+                progress=progress, scenario=scenario,
             )
         except Exception:
             job["plan"] = None
@@ -355,7 +357,7 @@ def _maybe_replan(env: RailEnv) -> None:
     weight change by *starting* a background re-plan — the current plan
     keeps driving while the search runs — and apply a finished job's
     result, re-anchored to the current state."""
-    if _PLAYERS.get(env) is None or _load_models() is None:
+    if _PLAYERS.get(env) is None:
         return
     state = _replan_state(env)
     now = int(getattr(env, "_elapsed_steps", 0) or 0)
@@ -391,35 +393,14 @@ def _maybe_replan(env: RailEnv) -> None:
     _start_replan_job(env, reason, gate)
 
 
-def loaded_models() -> Optional[Tuple[object, object]]:
-    """The (evaluator, connection transformer) pair driving the planner,
-    loaded on first use — what the what-if endpoint plans forks with.
-    None when no checkpoints are installed."""
-    return _load_models()
+def loaded_models() -> Optional[Dict[str, object]]:
+    """The value networks driving the search, loaded on first use — what
+    the what-if endpoint plans forks with. An empty dict is a working
+    configuration (an unguided search), None never happens; the Optional
+    is kept for callers that still test for it."""
+    from app.policies.tree_search import director
 
-
-def _load_models() -> Optional[Tuple[object, object]]:
-    global _MODELS, _MODELS_FAILED
-    if _MODELS is not None or _MODELS_FAILED:
-        return _MODELS
-    if not (os.path.exists(DEFAULT_EVALUATOR)
-            and os.path.exists(DEFAULT_CONNECTION_MODEL)):
-        _MODELS_FAILED = True
-        return None
-    try:
-        from app.policies.goal_based_policies.connection_model import (
-            ConnectionTransformer,
-        )
-        from app.policies.goal_based_policies.evaluator import ScheduleEvaluator
-
-        _MODELS = (
-            ScheduleEvaluator.load(DEFAULT_EVALUATOR),
-            ConnectionTransformer.load(DEFAULT_CONNECTION_MODEL),
-        )
-    except Exception:
-        _MODELS_FAILED = True
-        return None
-    return _MODELS
+    return director.load_models()
 
 
 class DirectorPlanReplayPolicy(Policy):
@@ -497,48 +478,34 @@ class GoalDirectedPolicy(Policy):
         _SCHEDULES[env] = list(schedules)
 
     def _plan(self, env: RailEnv, graph):
-        from app.policies.goal_based_policies.dataset import plan_all_lines
-        from app.policies.goal_based_policies.schedule import (
-            plan_avoiding_overlaps,
-        )
+        """Search this environment and hand back executable schedules.
+
+        The search needs no checkpoint to run, so there is no model-free
+        branch here any more: a missing network makes the search weaker,
+        not absent. Only a genuine failure — an unroutable network, a
+        scenario the simulator cannot resolve — leaves the env without a
+        plan, and that is reported rather than papered over.
+        """
+        from app.policies.tree_search import director
+        from app.policies.tree_search.scenario import Scenario
 
         weights = env_weights(env)
-        models = _load_models()
-        if models is not None:
-            try:
-                from app.policies.goal_based_policies.ensemble import (
-                    DirectorWeights,
-                )
-                from app.policies.goal_based_policies.search import (
-                    director_plan,
-                )
-
-                plan = director_plan(
-                    env, graph, DirectorWeights(*weights), *models)
-                return plan.schedules, {
-                    "source": plan.source,
-                    "weighted": plan.score.weighted,
-                    "utilities": {
-                        "punctuality": plan.score.punctuality,
-                        "connections": plan.score.connections,
-                        "stability": plan.score.stability,
-                    },
-                    "weights": list(weights),
-                    "decisions": plan.decisions,
-                    # Per decision: every option's scores and the chosen
-                    # one — the HMI's "why this route" material.
-                    "trace": plan.trace,
-                }
-            except Exception:
-                pass  # fall through to the model-free planner
-
-        base = plan_all_lines(env, graph)
-        if base is None:
+        try:
+            scenario = Scenario.build(env, graph)
+            plan = director.plan(
+                env, graph,
+                weights=director.DirectorWeights(*weights),
+                budget=PLANNING_BUDGET,
+                scenario=scenario,
+            )
+        except Exception:
             return None, {"source": "unroutable", "weights": list(weights)}
-        return (
-            plan_avoiding_overlaps(env, graph, base),
-            {"source": "avoidance (no models)", "weights": list(weights)},
-        )
+
+        _SCENARIOS[env] = scenario
+        info = plan.to_dict()
+        info.pop("schedules", None)
+        info["weights"] = list(weights)
+        return plan.schedules, info
 
     def act_for_handle(self, handle, observation=None, eps=0.0):
         env = self._env

@@ -25,25 +25,25 @@ the file assumes; §3 is the bulk of the API surface.
 | 181–204 | · Scoring | `DirectorWeights`, `CandidateScore`, `ScenarioContext`, the `breakdown` keys |
 | 205–215 | · Safety | `SafetyParams`, `SafetyReport`, `OpposingMeet`, `ResourceLoad`, `CascadeEdge` |
 | 216–232 | · Connections / rollout / re-planning | `PlannedConnection`, `RolloutResult`, `TrainProgress`, `ResidualPlan` |
-| 233–505 | **3. Layer reference** | signatures + contracts, module by module |
+| 233–540 | **3. Layer reference** | signatures + contracts, module by module |
 | 235–260 | 3.1 `infrastructure_graph.py` | how the graph is built; node / wait-cell invariants |
 | 261–267 | 3.2 `stations.py` | where stations come from (fixture / scene / hints / missions) |
 | 268–291 | 3.3 `schedule.py` | planners + `SchedulePlayer` execution semantics |
-| 292–321 | 3.4 `branching.py` | the action space: hold menu × route options |
-| 322–339 | 3.5 `ensemble.py` | the three utilities and the weighted sum |
-| 340–358 | 3.6 `safety.py` | the four sub-scores and their formulas |
-| 359–395 | 3.7 `search.py` | greedy / beam / mcts + the portfolio guarantee |
-| 396–436 | 3.8 `replan.py` | capture → residual plan → splice → rollout gate |
-| 437–473 | 3.9 `goal_directed_policy.py` | caches, re-plan lifecycle, threading, re-anchoring |
-| 474–491 | 3.10 `dataset.py` | encoding, timing helpers, the hard caps |
-| 492–505 | 3.11 Models | the two checkpoints, the optional prior, env vars |
-| 506–517 | 4. HTTP API | the five `/director*` endpoints and their payloads |
-| 518–532 | 5. Frontend surface | store signals, widgets, mode gating |
-| 533–553 | 6. Offline tooling | training / eval / dataset / calibration CLIs |
-| 554–578 | **7. Invariants** | what must not break (read before editing the planner) |
-| 579–599 | 8. Known limits | failure modes, incl. the re-plan latency window |
-| 600–651 | 9. Recipes | runnable snippets for the common tasks |
-| 652–668 | 10. Tests | which test file covers what |
+| 292–334 | 3.4 `branching.py` | the action space: joint (hold × route) and atomic (wait-or-route) modes |
+| 335–352 | 3.5 `ensemble.py` | the three utilities and the weighted sum |
+| 353–371 | 3.6 `safety.py` | the four sub-scores and their formulas |
+| 372–408 | 3.7 `search.py` | greedy / beam / mcts + the portfolio guarantee |
+| 409–449 | 3.8 `replan.py` | capture → residual plan → splice → rollout gate |
+| 450–486 | 3.9 `goal_directed_policy.py` | caches, re-plan lifecycle, threading, re-anchoring |
+| 487–519 | 3.10 `dataset.py` | encoding, trajectory fields, the hard caps, the off-distribution guard |
+| 520–540 | 3.11 Models | the three checkpoints, committed-awareness, the optional prior, env vars |
+| 541–552 | 4. HTTP API | the five `/director*` endpoints and their payloads |
+| 553–567 | 5. Frontend surface | store signals, widgets, mode gating |
+| 568–609 | 6. Offline tooling | training / eval / trajectory / calibration CLIs, 3-net expert-iteration curriculum |
+| 610–634 | **7. Invariants** | what must not break (read before editing the planner) |
+| 635–658 | 8. Known limits | failure modes, incl. the re-plan latency window |
+| 659–710 | 9. Recipes | runnable snippets for the common tasks |
+| 711–729 | 10. Tests | which test file covers what |
 
 ---
 
@@ -292,9 +292,22 @@ is sorted by `(row, col)` to line up with the frontend station layer.
 ### 3.4 `branching.py` — the action space
 
 ```python
-WAIT_MENU = (0, 1, 3, 5, 10)   # extra hold ON TOP of the entry's existing dwell
+WAIT_MENU = (0, 1, 3, 5, 10)        # joint mode: extra hold ON TOP of the entry's dwell
+ATOMIC_WAIT_MENU = (1, 2, 4, 8)     # atomic mode: pure-wait durations
 DWELL = 1
 ```
+
+Two action vocabularies, selected by `SearchLimits.action_mode` (`"joint"` default):
+**joint** — each option commits hold × route at once (`WAIT_MENU` × routes).
+**atomic** — an option is *either* a route (leave now, `wait=0`) *or* a pure wait
+(`BranchOption.edge is None`; the same node re-decides after the wait, at a planned
+time advanced by the hold). Waits compose across re-decisions, so holds are unbounded
+below the train's deadline (`latest_arrival` bounds the chain and terminates it), and
+the route is chosen *after* the wait, against the other trains' decisions made in the
+meantime. Fewer options per decision (routes + waits, not their product) — measured
+~1.5–2× faster per decision budget. Traces carry `"action": "route"|"wait"`; traces
+and `BranchPrior` checkpoints are action-space-dependent, so datasets from one mode
+are stale for the other.
 
 - `initial_prefixes(env, graph)` → `{handle: (ScheduleEntry(origin, 0),)}`. The origin is
   itself a decision (a departure hold is legitimate). Raises if an origin is not a node.
@@ -483,11 +496,26 @@ node cells only — use `edge_time_windows` when you need to draw).
 `EVAL_MIXES`, `encode_graph`, `encode_sample`, `encode_connections`, `stack_samples`,
 `Sample`, `generate_samples[_parallel][_report]`, `save_samples`/`load_samples`.
 
-**Hard caps** (raise `ValueError`, never truncate):
-`MAX_TRAINS = 8`, `MAX_SCHEDULE_NODES = 64`, `MAX_NODES = 96`, `MAX_EDGES = 256`,
-`MAX_CONNECTIONS = 96`. Consequence at runtime: a session with 9+ trains or a network
-with 97+ decision points cannot be scored — `GoalDirectedPolicy._plan` swallows the error
-and degrades to `"avoidance (no models)"`.
+**Trajectory fields** (`Sample.committed`, `Sample.final_safety`): per-train committed
+fraction (1.0 = plan executed as written; <1 = tail is naive completion under continued
+planning) and the stability label (`assess_safety(final plan).safety`, −1 = unlabelled).
+`stack_samples` appends committed as index **18**; absent reads as fully committed.
+Committed-aware models (`evaluator.expects_committed`, config `train_scalars` >
+`TRAIN_SCALARS`) get the column appended to their train-scalar row; legacy checkpoints
+see exactly the row they were trained on.
+
+**Hard caps** (raise `ValueError`, never truncate), sized for the largest curriculum
+bucket (200×200, 8 cities, 50 trains — see `curriculum.py`):
+`MAX_TRAINS = 56`, `MAX_SCHEDULE_NODES = 64`, `MAX_NODES = 160`, `MAX_EDGES = 384`,
+`MAX_CONNECTIONS = 2048`. Samples are trimmed in RAM (`trim_sample`) and re-padded per
+batch (`stack_samples`), so small scenarios do not pay for the headroom. `CROWD_SCALE`
+stays a literal `8.0` — it is a normalisation constant the shipped checkpoints were
+trained with, **not** the train cap; re-deriving it from `MAX_TRAINS` would rescale
+their input distribution. Since the caps no longer stop off-distribution scoring,
+`GoalDirectedPolicy` guards explicitly: sessions with more trains than
+`MODEL_TRAINED_MAX_TRAINS` (env `GOAL_DIRECTED_MODEL_MAX_TRAINS`, default 8 =
+`TRAINING_MIX.max_trains`) use `"avoidance (no models)"`; bump it when curriculum
+checkpoints ship.
 
 ### 3.11 Models
 
@@ -495,6 +523,13 @@ and degrades to `"avoidance (no models)"`.
   `predict(*inputs)` = `{all_arrived_probability, delay_bucket_probabilities, …}`.
 - `ConnectionTransformer` (`connection_model.py`) — per-transfer survival →
   `{kept_ratio, connection_probability}`.
+- `StabilityEvaluator` (`evaluator.py`) — the third net: predicts the *final* plan's
+  safety from a partially committed state; trained with the computed measure
+  (`assess_safety` of the trajectory's final plan) as the label. When installed
+  (`GOAL_DIRECTED_STABILITY_MODEL`, default `models/goal_directed/stability.ckpt`),
+  `score_candidates` uses its prediction as the stability utility; the computed
+  measure stays in the breakdown as evidence and remains the labeller. Missing →
+  computed measure everywhere (purely additive).
 - `BranchPrior` (`priors.py`, 5 features, tiny MLP) — optional MCTS expansion prior;
   trained from search traces.
 - Loaded from `GOAL_DIRECTED_EVALUATOR` / `GOAL_DIRECTED_CONNECTION_MODEL`, defaulting to
@@ -542,10 +577,31 @@ python -m app.policies.goal_based_policies.priors                 traces.jsonl -
 python -m app.policies.goal_based_policies.search                 --scenarios … --evaluator … --connection-model …   # weight sweep
 python -m app.policies.goal_based_policies.replan                 --scenarios … --evaluator … --connection-model …   # react-vs-continue
 python -m app.policies.goal_based_policies.safety_calibration     --scenarios … --out …
+python -m app.policies.goal_based_policies.train_stability_model  --dataset-cache traj.npz --out stability.ckpt
+python -m app.policies.goal_based_policies.curriculum             run|compare   # 3-net expert-iteration curriculum
 ```
 
 `block_training.py` provides checkpoint/resume block training used by both trainers
 (`--max-blocks`, `--checkpoint`, `--fresh`).
+
+**Curriculum** (`curriculum.py`) — three-net expert iteration on **trajectory
+labels** (AlphaZero-style): 5 size buckets (`b0-small` 30–35/2–5 trains … `b4-huge`
+150–200/28–50 trains), each carving train/test/eval layout-seed ranges above
+`EVAL_SEED_RANGE`, provably disjoint from each other, the shipped training range and
+the hard-eval set. Per stage: greedy **trajectory self-play**
+(`search_dataset.generate_trajectory_samples_report`, `--action-mode` default atomic)
+plans `--train-count` scenarios with the previous stage's nets; *every committed
+decision* becomes a sample labelled with the final plan's executed outcome
+(punctuality/delay, per-transfer survival) and with `assess_safety(final plan)` as the
+stability target — ~20–40 samples per scenario instead of 1. All **three** nets
+(evaluator, connection transformer, stability — separate targets, shared states,
+committed-aware) retrain on the cumulative data, warm-started per stage; stage 0
+*plans* with the shipped pair but *trains fresh* (the shipped input row has no
+committed column). Promotion is the closed-loop gate (measured outcomes vs the
+model-free fallback + `--margin`); near-constant self-play outcomes are refused at
+admission. The **eval ranges are read by no training decision**; `compare` re-plans
+them closed-loop with model sets (pairs or triples with `--stability-model`) plus the
+fallback. Self-play caches + checkpoints live in the run's `--out-dir`.
 
 **Training data is action-space dependent.** Search datasets and priors generated before
 a change to `WAIT_MENU`/`branching` semantics are stale; evaluator/connection checkpoints
@@ -590,7 +646,10 @@ are not (they score schedules, not decisions).
   cached — it is not rebuilt).
 - **Cost model.** Planning cost ≈ decisions × routes × |WAIT_MENU| model calls; each leaf
   completes all trains to the horizon. `SearchLimits.max_decisions` is the blunt knob.
-- **Encoding caps** (§3.10) silently push large sessions onto the model-free fallback.
+- **Off-distribution guard** (§3.10): sessions with more trains than
+  `MODEL_TRAINED_MAX_TRAINS` (default 8) use the model-free fallback — the caps are
+  curriculum-sized now and no longer enforce this by accident. The models are confidently
+  wrong far outside training (measured: P(all arrive)=1.0 while ~0/50 trains arrive).
 - **Station resolution in the policy path** uses `build_decision_point_graph(env)` /
   `resolve_stations(env)` *without* the session's `scenario_preset_id` /
   `infrastructure_scene` — presets with a station fixture are not honoured there.
@@ -662,6 +721,8 @@ connection_model = ConnectionTransformer(hidden=16, rounds=1, layers=1, heads=2,
 | `test_goal_based_search.py` | determinism, trace, decision budget, portfolio guarantee, beam/mcts, prior, `verify_plan` |
 | `test_goal_based_replan.py` | capture/splice/re-anchor, stale-plan safety, rollout gate, `simulate_forward`, future paths |
 | `test_goal_based_search_dataset.py`, `…_priors.py`, `…_eval_set.py` | offline pipelines |
+| `test_goal_based_padding.py` | trim/re-pad losslessness, batch-composition independence |
+| `test_goal_based_curriculum.py` | bucket seed disjointness, admission, gates, stage loop, eval compare |
 | `test_goal_directed_policy.py` | registration, weights, degradation without checkpoints, cache survival across policy rebuilds, malfunction-triggered re-plan |
 | `test_director_weights_api.py`, `test_director_replan_api.py` | HTTP contracts, forecast invalidation, what-if isolation, director-mode play |
 

@@ -245,7 +245,14 @@ def test_plan_line_calls_at_every_stop_where_shortest_path_skips_them():
     """The point of plan_line: a direct route to the final target misses
     intermediate cities entirely."""
     from app.policies.goal_based_policies import line_stops, plan_line
-    from app.policies.goal_based_policies.dataset import _schedule_cells
+    from app.policies.goal_based_policies.schedule import schedule_edges
+
+    def _schedule_cells(env, graph, schedule):
+        """Every cell the plan drives over, nodes and track between them."""
+        cells = {graph.cell_of(entry.node_id) for entry in schedule.entries}
+        for edge in schedule_edges(env, graph, schedule):
+            cells.update(edge.path)
+        return cells
 
     env, graph = _line_env()
     for handle in range(len(env.agents)):
@@ -271,12 +278,12 @@ def test_plan_line_resolves_end_to_end_from_the_default_heading():
     train's origin, so the ordinary initial-direction default walks all of
     it — no truncation at the leg joins."""
     from app.policies.goal_based_policies import plan_line
-    from app.policies.goal_based_policies.dataset import _schedule_edges
+    from app.policies.goal_based_policies.schedule import schedule_edges
 
     env, graph = _line_env()
     for handle in range(len(env.agents)):
         line = plan_line(graph, env, handle)
-        edges = _schedule_edges(env, graph, line)
+        edges = schedule_edges(env, graph, line)
         assert len(edges) == len(line.entries) - 1, (
             f"train {handle}: resolved {len(edges)} of "
             f"{len(line.entries) - 1} hops"
@@ -320,11 +327,11 @@ def test_plan_line_output_is_runnable():
     assert set(result.delays) == {line.handle for line in lines}
 
 
-def test_plan_line_fits_the_encoder_cap():
-    """Multi-leg schedules are several times longer than single-leg ones,
-    so the cap has to cover them or encode_sample rejects the sample."""
+def test_a_multi_stop_line_stays_a_playable_schedule():
+    """Multi-leg schedules are several times longer than single-leg ones;
+    every hop still has to resolve to a real edge, or playback stalls."""
     from app.policies.goal_based_policies import plan_line
-    from app.policies.goal_based_policies.dataset import MAX_SCHEDULE_NODES
+    from app.policies.goal_based_policies.schedule import schedule_edges
 
     longest = 0
     for seed in range(6):
@@ -334,10 +341,8 @@ def test_plan_line_fits_the_encoder_cap():
             continue  # flatland cannot build every line_length=4 scenario
         for handle in range(len(env.agents)):
             line = plan_line(graph, env, handle)
-            if line is not None:
-                longest = max(longest, len(line.entries))
+            if line is None:
+                continue
+            longest = max(longest, len(line.entries))
+            assert len(schedule_edges(env, graph, line)) == len(line.entries) - 1
     assert longest > 0
-    assert longest <= MAX_SCHEDULE_NODES, (
-        f"longest multi-stop schedule {longest} exceeds "
-        f"MAX_SCHEDULE_NODES={MAX_SCHEDULE_NODES}"
-    )

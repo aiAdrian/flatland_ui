@@ -7,11 +7,26 @@ grid into a graph with two node kinds:
 - **station**: a cell where a train can stop for traffic reasons. Derived
   from the trains' origins and targets, mirroring the frontend station
   registry (SessionStore.stations()).
-- **switch_decision**: the wait cells in front of a switch. A simple switch
-  funnels two tracks into a third; a train coming along one of the two
-  funneled tracks can stop on the tile *before* the switch and let a train
-  using the other branch pass. Each switch therefore contributes one
-  decision cell per funneled (trailing) approach — two for a simple switch.
+- **switch_decision**: the wait cells in front of a switch, approached from
+  a *leg*. A simple switch funnels two tracks into a third; a train coming
+  along one of the two funneled tracks can stop on the tile *before* the
+  switch and let a train using the other branch pass. Each switch therefore
+  contributes one decision cell per funneled (trailing) approach — two for
+  a simple switch. A wait cell is never a switch cell: standing on a
+  junction is exactly what holding is meant to avoid, so where the tile in
+  front of a switch is itself a switch (dense station throats), the wait
+  cell walks back through the switch cluster to the first plain-rail tile
+  of every feeding branch.
+- **split_decision**: the cells in front of a switch approached from the
+  *head*, where the track divides and the train therefore has a choice of
+  direction. Found by the same walk-back as the wait cells, so a split
+  decision is likewise never taken standing on a junction.
+
+The two switch kinds are exactly the two things a train can be asked: a
+leg approach can be *held* (the route is forced), a head approach can be
+*steered* (holding it achieves nothing — there is no other branch to let
+through). Where the walk-back puts both on one cell — two switches back to
+back — that node carries both, and its option list is their product.
 
 Edges connect nodes a train can reach by driving normally along the track
 without passing any other node *relevant for its direction of travel*.
@@ -106,11 +121,26 @@ class SwitchApproach:
 class GraphNode:
     cell: Cell
     node_id: int = -1  # stable index, assigned by sorted cell order
-    kinds: Set[str] = field(default_factory=set)  # subset of {"station", "switch_decision"}
+    # subset of {"station", "switch_decision", "split_decision"}
+    kinds: Set[str] = field(default_factory=set)
     station_index: Optional[int] = None  # index into DecisionPointGraph.stations
     station_id: Optional[str] = None
     station_name: Optional[str] = None
+    # Leg approaches: the train may be held here, its route is forced.
     approaches: List[SwitchApproach] = field(default_factory=list)
+    # Head approaches: the track divides beyond, so the train may be steered.
+    splits: List[SwitchApproach] = field(default_factory=list)
+
+    @property
+    def can_hold(self) -> bool:
+        """Is holding a train here a decision? True at platforms and at leg
+        approaches — the two places where standing still achieves something."""
+        return bool({"station", "switch_decision"} & self.kinds)
+
+    @property
+    def can_steer(self) -> bool:
+        """Does the track divide beyond this cell?"""
+        return "split_decision" in self.kinds
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -123,6 +153,10 @@ class GraphNode:
             "approaches": [
                 {"switch_cell": list(a.switch_cell), "heading": a.heading}
                 for a in self.approaches
+            ],
+            "splits": [
+                {"switch_cell": list(a.switch_cell), "heading": a.heading}
+                for a in self.splits
             ],
         }
 
@@ -214,6 +248,82 @@ def find_switch_cells(env: RailEnv) -> Dict[Cell, List[int]]:
     return switches
 
 
+def _walk_back_to_plain_rail(
+    env: RailEnv,
+    switches: Dict[Cell, List[int]],
+    switch_cell: Cell,
+    heading: int,
+) -> List[Tuple[Cell, int]]:
+    """The first plain-rail cells feeding `switch_cell` on in-heading `h`.
+
+    A decision is never taken standing on a junction, so the search walks
+    back from the switch until it leaves the switch cluster, and every
+    feeding branch contributes its first plain-rail cell. Returns
+    `(cell, move)` pairs, where `move` is that cell's next step towards the
+    cluster — the direction edge directionality and the HMI arrows are
+    built from. Shared by the leg (hold) and head (steer) approaches, which
+    differ only in which in-headings qualify.
+    """
+    found: List[Tuple[Cell, int]] = []
+    start = (_neighbor(switch_cell, OPPOSITE[heading]), heading)
+    stack = [start]
+    seen: Set[Tuple[Cell, int]] = {start}
+    while stack:
+        cand, move = stack.pop()
+        if not _has_rail(env, cand):
+            continue
+        # In-headings at `cand` that allow the move into the cluster — none
+        # means nothing can approach the switch this way through here.
+        feeds = [hp for hp in DIRECTIONS if _get_transitions(env, cand, hp)[move]]
+        if not feeds:
+            continue
+        if cand not in switches:
+            found.append((cand, move))
+            continue
+        for hp in feeds:
+            prev = (_neighbor(cand, OPPOSITE[hp]), hp)
+            if prev not in seen:
+                seen.add(prev)
+                stack.append(prev)
+    return found
+
+
+def find_split_decision_cells(
+    env: RailEnv,
+    switches: Optional[Dict[Cell, List[int]]] = None,
+) -> Dict[Cell, List[SwitchApproach]]:
+    """The cells in front of each switch approached from its head.
+
+    An in-heading with more than one exit is a facing (head) approach: the
+    track divides, so a train arriving that way has a genuine choice of
+    direction. That choice is the *only* thing this node offers — holding a
+    train in front of a split lets nothing past, so it is not an action.
+
+    Same walk-back as the wait cells, so the choice is never made standing
+    on the junction itself.
+    """
+    if switches is None:
+        switches = find_switch_cells(env)
+
+    decision_cells: Dict[Cell, List[SwitchApproach]] = {}
+    recorded: Set[Tuple[Cell, Cell, int]] = set()
+    for switch_cell in switches:
+        for h in DIRECTIONS:
+            if sum(_get_transitions(env, switch_cell, h)) <= 1:
+                continue
+            for cand, move in _walk_back_to_plain_rail(
+                env, switches, switch_cell, h
+            ):
+                key = (cand, switch_cell, move)
+                if key in recorded:
+                    continue
+                recorded.add(key)
+                decision_cells.setdefault(cand, []).append(
+                    SwitchApproach(switch_cell=switch_cell, heading=move)
+                )
+    return decision_cells
+
+
 def find_switch_decision_cells(
     env: RailEnv,
     switches: Optional[Dict[Cell, List[int]]] = None,
@@ -222,14 +332,22 @@ def find_switch_decision_cells(
 
     For a switch S, an in-heading h is a funneled (trailing) approach when it
     has exactly one exit and shares that exit with another in-heading — the
-    two tracks merged into one. The decision cell is the tile the train came
-    from: the neighbour of S opposite to h. Diamond crossings (one exit per
-    heading, nothing shared) contribute no decision cells.
+    two tracks merged into one. The decision cell is where a train bound for
+    S can actually *stand* — and that is never a switch cell: standing on a
+    junction is exactly what holding is meant to avoid. Where the tile in
+    front of S is plain rail, that tile is the wait cell; where it is itself
+    a switch, the walk continues back through the switch cluster and every
+    feeding branch gets its wait cell on its first plain-rail tile. The
+    recorded approach heading is the wait cell's own next move toward the
+    cluster (for the adjacent case: h) — what edge directionality and the
+    HMI arrows are built from. Diamond crossings (one exit per heading,
+    nothing shared) contribute no decision cells.
     """
     if switches is None:
         switches = find_switch_cells(env)
 
     decision_cells: Dict[Cell, List[SwitchApproach]] = {}
+    recorded: Set[Tuple[Cell, Cell, int]] = set()
     for switch_cell in switches:
         exits_by_heading = {
             h: _get_transitions(env, switch_cell, h) for h in DIRECTIONS
@@ -245,18 +363,18 @@ def find_switch_decision_cells(
             )
             if not merges:
                 continue
-            wait_cell = _neighbor(switch_cell, OPPOSITE[h])
-            if not _has_rail(env, wait_cell):
-                continue
-            # The wait cell must actually feed into the switch with heading h.
-            feeds_switch = any(
-                _get_transitions(env, wait_cell, hp)[h] for hp in DIRECTIONS
-            )
-            if not feeds_switch:
-                continue
-            decision_cells.setdefault(wait_cell, []).append(
-                SwitchApproach(switch_cell=switch_cell, heading=h)
-            )
+            # Walk back against the approach to the first plain-rail tile
+            # of every branch feeding it.
+            for cand, move in _walk_back_to_plain_rail(
+                env, switches, switch_cell, h
+            ):
+                key = (cand, switch_cell, move)
+                if key in recorded:
+                    continue
+                recorded.add(key)
+                decision_cells.setdefault(cand, []).append(
+                    SwitchApproach(switch_cell=switch_cell, heading=move)
+                )
     return decision_cells
 
 
@@ -440,6 +558,7 @@ class DecisionPointGraph:
 
         switches = find_switch_cells(env)
         decision_cells = find_switch_decision_cells(env, switches)
+        split_cells = find_split_decision_cells(env, switches)
 
         nodes: Dict[Cell, GraphNode] = {}
         for index, station in enumerate(stations):
@@ -458,17 +577,22 @@ class DecisionPointGraph:
             node = nodes.setdefault(cell, GraphNode(cell=cell))
             node.kinds.add("switch_decision")
             node.approaches = approaches
+        for cell, splits in split_cells.items():
+            node = nodes.setdefault(cell, GraphNode(cell=cell))
+            node.kinds.add("split_decision")
+            node.splits = splits
 
         # Directional node map: stations stop trains in every direction
-        # (None); a pure switch wait cell only in the orientations whose next
+        # (None); a pure switch cell only in the orientations whose next
         # move leads into one of its switches. The orientation on the cell can
-        # differ from the approach heading when the wait cell is a curve.
+        # differ from the approach heading when the cell is a curve.
         node_headings: Dict[Cell, Optional[frozenset]] = {}
         for cell, node in nodes.items():
             if "station" in node.kinds:
                 node_headings[cell] = None
                 continue
             approach_dirs = {a.heading for a in node.approaches}
+            approach_dirs |= {a.heading for a in node.splits}
             node_headings[cell] = frozenset(
                 orientation
                 for orientation in DIRECTIONS

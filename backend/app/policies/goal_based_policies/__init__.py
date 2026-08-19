@@ -1,14 +1,16 @@
-"""Goal-based policies: reduced decision-point graph over Flatland infrastructure.
+"""The railway, reduced to the places where a decision exists.
 
-Preprocessing for goal-oriented agents: compress the rail grid of a running
-session env into a graph whose nodes are only the cells where a decision can
-be made (station stops + the wait cells in front of each switch), connected
-by the plain track runs between them. On top of that graph, a train's run is
-a schedule of `[node_id, wait, ...]` pairs that `SchedulePlayer` can execute.
+Compresses the rail grid of a running session env into a graph whose nodes
+are only the cells where something can be decided — platforms, the wait
+cells in front of a merging switch, and the cells in front of a dividing
+one — connected by the plain track runs between them. On top of that
+graph, a train's run is a schedule of `[node_id, wait, ...]` pairs that
+`SchedulePlayer` can execute.
 
-The learned schedule judges live in `evaluator`, `connection_model`,
-`ensemble` and `priors` (plus the `train_*` scripts) — they need torch and
-are therefore imported on demand, not from this package's top level.
+This package is the *representation* and the plumbing around it: the
+graph, schedules and their playback, stations, planned connections, the
+measured outcome of a run, and the static robustness measure. The planner
+that decides what the trains should do is `app.policies.tree_search`.
 """
 from app.policies.goal_based_policies.infrastructure_graph import (
     DecisionPointGraph,
@@ -16,6 +18,7 @@ from app.policies.goal_based_policies.infrastructure_graph import (
     GraphNode,
     SwitchApproach,
     build_decision_point_graph,
+    find_split_decision_cells,
     find_switch_cells,
     find_switch_decision_cells,
     station_cells_from_env,
@@ -70,6 +73,7 @@ __all__ = [
     "TrainSchedule",
     "build_decision_point_graph",
     "delay_bucket",
+    "find_split_decision_cells",
     "find_switch_cells",
     "find_switch_decision_cells",
     "plan_avoiding_overlaps",

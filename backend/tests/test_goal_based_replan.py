@@ -6,14 +6,6 @@ warnings.filterwarnings("ignore")
 
 import pytest  # noqa: E402
 
-from app.policies.goal_based_policies.dataset import (  # noqa: E402
-    Layout,
-    build_layout_env,
-    plan_all_lines,
-)
-from app.policies.goal_based_policies.ensemble import (  # noqa: E402
-    DirectorWeights,
-)
 from app.policies.goal_based_policies.infrastructure_graph import (  # noqa: E402
     build_decision_point_graph,
 )
@@ -31,40 +23,43 @@ from app.policies.goal_based_policies.schedule import (  # noqa: E402
     SchedulePlayer,
     TrainSchedule,
     plan_avoiding_overlaps,
+    plan_line,
 )
+from app.policies.goal_based_policies.visualization import (  # noqa: E402
+    build_demo_env,
+)
+from app.policies.tree_search.metrics import DirectorWeights  # noqa: E402
 
-LAYOUT = Layout(index=0, seed=2001, size=30, cities=2)
 TRAINS = 4
 STEPS_BEFORE_CAPTURE = 12
+# Small enough to keep the suite quick; these tests are about capture and
+# splicing, not about how deeply the search thinks.
+BUDGET = 60
+
+
+def _build_env():
+    return build_demo_env(
+        seed=2001, width=30, height=30, number_of_agents=TRAINS,
+        max_num_cities=2, line_length=2,
+    )
 
 
 def _running_setup():
-    """A fresh env driven a few steps into its committed avoidance plan."""
-    env = build_layout_env(LAYOUT, TRAINS)
+    """A fresh env driven a few steps into a committed avoidance plan.
+
+    Deliberately not a searched plan: what these tests exercise is
+    capturing a *running* episode and splicing into it, which has to work
+    whatever put the trains where they are.
+    """
+    env = _build_env()
     graph = build_decision_point_graph(env)
-    plans = plan_avoiding_overlaps(env, graph, plan_all_lines(env, graph))
+    lines = [plan_line(graph, env, handle) for handle in range(len(env.agents))]
+    plans = plan_avoiding_overlaps(env, graph, lines)
     player = SchedulePlayer(graph, env, plans)
     handles = [s.handle for s in plans]
     for _ in range(STEPS_BEFORE_CAPTURE):
         env.step(player.act_many(handles))
     return env, graph, plans, player, handles
-
-
-@pytest.fixture(scope="module")
-def models():
-    import torch
-
-    from app.policies.goal_based_policies.connection_model import (
-        ConnectionTransformer,
-    )
-    from app.policies.goal_based_policies.evaluator import ScheduleEvaluator
-
-    torch.manual_seed(0)
-    evaluator = ScheduleEvaluator(
-        hidden=16, rounds=1, trunk_layers=1, sequence_layers=1)
-    connection_model = ConnectionTransformer(
-        hidden=16, rounds=1, layers=1, heads=2, dropout=0.0)
-    return evaluator, connection_model
 
 
 def test_capture_pins_reality_into_the_schedule_language():
@@ -91,9 +86,10 @@ def test_capture_pins_reality_into_the_schedule_language():
 def test_capture_at_step_zero_reproduces_the_plan():
     """Before anything has happened there is nothing to pin: the continue
     candidate is the committed plan, entry for entry."""
-    env = build_layout_env(LAYOUT, TRAINS)
+    env = _build_env()
     graph = build_decision_point_graph(env)
-    plans = plan_avoiding_overlaps(env, graph, plan_all_lines(env, graph))
+    lines = [plan_line(graph, env, handle) for handle in range(len(env.agents))]
+    plans = plan_avoiding_overlaps(env, graph, lines)
     player = SchedulePlayer(graph, env, plans)
     progress = capture_progress(env, graph, player, plans, now=0)
     for schedule in plans:
@@ -139,17 +135,21 @@ def test_splice_refuses_a_schedule_that_abandons_the_seed():
     assert splice_entries(running, foreign) is None
 
 
-def test_residual_plan_extends_seeds_and_the_episode_still_ends(models):
+def test_residual_plan_extends_seeds_and_the_episode_still_ends():
     """The residual search decides only what is open: every chosen
     schedule extends its captured seed cell-for-cell, the splice keeps
-    the player playable, and the verdict is explained."""
+    the player playable, and the verdict is explained.
+
+    Whether the re-plan is *worth* committing is not decided here — the
+    search would be marking its own homework — so `considered` carries the
+    proposal alone, and `rollout_gate` settles it at application time."""
     env, graph, plans, player, _ = _running_setup()
     plan = residual_plan(
-        env, graph, DirectorWeights(), *models,
+        env, graph, DirectorWeights(), budget=BUDGET,
         player=player, schedules=plans, reason="test",
     )
     assert plan.source in ("research", "continue")
-    assert set(plan.considered) == {"research", "continue"}
+    assert set(plan.considered) == {"research"}
     progress = capture_progress(env, graph, player, plans,
                                 now=plan.step)
     by_handle = {s.handle: s for s in plan.schedules}
@@ -164,19 +164,19 @@ def test_residual_plan_extends_seeds_and_the_episode_still_ends(models):
     apply_residual_plan(player, plan)
     result = simulate_forward(env, player)
     assert result["steps"] > plan.step
-    # Whatever the untrained models chose, the plan must stay playable:
+    # Whatever the search chose, the plan must stay playable:
     # trains keep arriving rather than freezing off-plan.
     assert result["arrived"] > 0
 
 
-def test_repeated_replans_stay_aligned(models):
+def test_repeated_replans_stay_aligned():
     """A second re-plan captures against the schedules the first one
     committed — those must describe what the player actually drives
     (static trains and dead-end fallbacks keep their entries), or the
     executed/remaining split reads a plan that never ran."""
     env, graph, plans, player, handles = _running_setup()
     first = residual_plan(
-        env, graph, DirectorWeights(), *models,
+        env, graph, DirectorWeights(), budget=BUDGET,
         player=player, schedules=plans, reason="first",
     )
     apply_residual_plan(player, first)
@@ -184,7 +184,7 @@ def test_repeated_replans_stay_aligned(models):
         env.step(player.act_many(handles))
 
     second = residual_plan(
-        env, graph, DirectorWeights(), *models,
+        env, graph, DirectorWeights(), budget=BUDGET,
         player=player, schedules=first.schedules, reason="second",
     )
     progress = capture_progress(
@@ -196,7 +196,7 @@ def test_repeated_replans_stay_aligned(models):
     assert result["arrived"] > 0
 
 
-def test_stale_background_plan_applies_safely_after_the_world_moved(models):
+def test_stale_background_plan_applies_safely_after_the_world_moved():
     """The frozen-trains regression: a plan computed from an old capture
     must never be spliced onto trains that have moved on. Re-anchoring
     against a *fresh* capture lets trains still on the shared route join
@@ -206,7 +206,7 @@ def test_stale_background_plan_applies_safely_after_the_world_moved(models):
     env, graph, plans, player, handles = _running_setup()
     progress = capture_progress(env, graph, player, plans)
     plan = residual_plan(
-        env, graph, DirectorWeights(), *models,
+        env, graph, DirectorWeights(), budget=BUDGET,
         player=player, schedules=plans, progress=progress,
     )
     # The world keeps moving while the "background" result is pending.
@@ -232,11 +232,11 @@ def test_stale_background_plan_applies_safely_after_the_world_moved(models):
     assert result["arrived"] > 0
 
 
-def test_residual_plan_is_deterministic(models):
+def test_residual_plan_is_deterministic():
     def once():
         env, graph, plans, player, _ = _running_setup()
         plan = residual_plan(
-            env, graph, DirectorWeights(), *models,
+            env, graph, DirectorWeights(), budget=BUDGET,
             player=player, schedules=plans,
         )
         return (
@@ -289,8 +289,9 @@ def test_rollout_gate_vetoes_a_switch_without_real_improvement():
             TrainSchedule(handle=h, entries=list(progress[h].continue_entries))
             for h in sorted(progress)
         ],
-        tails=tails, source="research", score=None, considered={},
-        trace=[], decisions=0, step=env._elapsed_steps, reason="gate-test",
+        tails=tails, source="research", weighted=0.5, utilities={},
+        considered={}, decisions=0, step=env._elapsed_steps,
+        reason="gate-test",
     )
 
     before_steps = env._elapsed_steps
@@ -318,8 +319,9 @@ def test_rollout_gate_commits_only_on_strict_simulated_improvement(monkeypatch):
             TrainSchedule(handle=h, entries=list(progress[h].continue_entries))
             for h in sorted(progress)
         ],
-        tails={}, source="research", score=None, considered={},
-        trace=[], decisions=0, step=env._elapsed_steps, reason="gate-test",
+        tails={}, source="research", weighted=0.5, utilities={},
+        considered={}, decisions=0, step=env._elapsed_steps,
+        reason="gate-test",
     )
 
     def gate_with(keep, switch):
