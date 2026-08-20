@@ -73,21 +73,14 @@ them can change freely. Distinguish **policy change (system-wide)** from
 
 ## Document map
 
-- [interaction-modes-brief.md](interaction-modes-brief.md) — the mode spec (§3.1–3.4)
-- [mode-guide.md](mode-guide.md) — same task walked through all three modes
-- [experiment-storyboard.md](../scenarios/experiment-storyboard.md) — study storyboard, 3 conditions, scenario-difficulty matching
-- [railway-scenarios.md](../scenarios/railway-scenarios.md) — AI4REALNET D1.1/D4.1 scenarios + malfunction taxonomies
-- [recommender-roadmap.md](../plans/recommender-roadmap.md) — policy vs intervention seams, phases
-- [variant-visualisation.md](../archive/variant-visualisation.md) — ways to show alternatives (beyond the Marey)
-- [co-learning-direction.md](../plans/co-learning-direction.md) — Level A (task) vs Level B (AI learns to work with the human)
-- [event-based-architecture-analysis.md](../archive/event-based-architecture-analysis.md) — relationship to InteractiveAI
-- [visual-concept.md](visual-concept.md) — canonical names for our surfaces, the 3 zones, and the InteractiveAI lineage
-- [scripted-events-plan.md](../plans/scripted-events-plan.md) — deterministic scenario events for User Study 2
-- [recommendation-reliability.md](../plans/recommendation-reliability.md) — guaranteeing a decision moment (variants A–D)
-- [heterogeneous-tracks.md](../plans/heterogeneous-tracks.md) — track classes/costs so reroute becomes a real trade-off
-- [localized-blocking-decisions.md](../plans/localized-blocking-decisions.md) — hold the affected trains/area (not the whole sim) until the human decides; + autonomy agreement idea
-- [scenario-variants.md](../plans/scenario-variants.md) — controlled study vs. dynamic "simulated wild" (real algorithms, emergent events); variant axes
-- [onboarding-tickets-2026-06.md](../plans/onboarding-tickets-2026-06.md) — curated discussion tickets for the June/July onboarding kickoff (RL/vibecoding, interaction design, experiment setup, Co-Learning)
+> **The full index of every doc is [`docs/README.md`](../README.md).** This is
+> just the short path in — the five documents that answer most questions.
+
+- [interaction-modes-brief.md](interaction-modes-brief.md) — the authoritative mode spec (§3.1–3.4), adjustable autonomy, the three control altitudes
+- [architecture.md](architecture.md) — how frontend, backend and Flatland fit together, and the two pluggable seams
+- [director-mode.md](director-mode.md) — the Director planner in depth
+- [mode-guide.md](mode-guide.md) — the same task walked through all three modes
+- [interaction-logging-plan.md](../plans/interaction-logging-plan.md) — what a session must record for a study to compare modes or designs
 
 ## Roadmap / further ideas
 

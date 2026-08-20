@@ -1,6 +1,12 @@
 # Mode-scoped Layouts — Managing per-mode layouts with the Layout Designer
 
-> **Status:** Draft for feedback (no implementation yet)
+> **Status (re-checked 2026-08-19): half landed.** Panel *availability* per mode
+> is now data, not template conditions: `core/layout/panel-mode-availability.ts`
+> is the source of truth (documented in
+> [`panel-mode-matrix.md`](../reference/panel-mode-matrix.md)) and `AppComponent`
+> consults it. What this plan proposes — a **mode-scoped layout resolver** and
+> per-mode saved layouts in the designer — does not exist yet; the file's own
+> comment still calls it "the future mode-scoped-layout resolver".
 > **Context:** The three interaction modes (`recommendation` / `co-learning` /
 > `director`) need different HMI layouts — e.g. Co-Learning surfaces a
 > reflection panel in the centre, Director a goal-achievement dashboard. Today

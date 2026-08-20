@@ -1,6 +1,10 @@
 # Layout Grid Model — giving the designer a spatial vocabulary
 
-> **Status:** Draft for feedback (no implementation yet)
+> **Status (re-checked 2026-08-19): not implemented, premise partly outdated.**
+> `minWidth` is already in `LayoutColumn` (`core/layout/models/layout.models.ts`),
+> so the vocabulary is not purely "fixed pixel columns" any more. The five things
+> the Director work needed are still unexpressible, and the workarounds in
+> `AppComponent` are still there — that part of the motivation stands.
 > **Date:** 2026-08-11
 > **Context:** Sibling to [`mode-scoped-layouts-plan.md`](./mode-scoped-layouts-plan.md).
 > That plan answers *which* layout renders for a given interaction mode. This one

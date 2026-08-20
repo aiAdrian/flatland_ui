@@ -9,7 +9,7 @@
 > teaching point stays visible).
 >
 > This is the verbatim brief handed to the building agent. The live spec is
-> [`widget-b1-whatif-compare.md`](widget-b1-whatif-compare.md); update that (not
+> [`widget-b1-whatif-compare.md`](../plans/widget-b1-whatif-compare.md); update that (not
 > this file) as the feature lands.
 
 ---
