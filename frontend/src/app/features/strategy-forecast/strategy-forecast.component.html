@@ -45,4 +45,10 @@
 
     <p class="sf-note">{{ noteText() }}</p>
   </div>
+} @else if (awaitingStrategy()) {
+  <p class="sf-empty">
+    <strong>Wirkung über 30 Minuten</strong><br />
+    Wähle im Strategie-Widget eine Option („Auf Karte“ oder „Übernehmen“), um
+    ihre Prognose zu sehen.
+  </p>
 }

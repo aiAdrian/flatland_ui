@@ -10,8 +10,12 @@ import { Recommendation, ScenarioOption } from '../../core/events/event-types';
  * plus *what* is uncertain — so "when do I intervene?" becomes an informed
  * choice. `kind` = Trust; granularity overview → detail.
  *
- * Honest-first-cut scoping (no backend UQ yet):
- *  - Confidence comes from `store.recommendations()[*].confidence` — labelled
+ * Honest-first-cut scoping (backend UQ is ensemble-based, not yet calibrated):
+ *  - Confidence comes from `store.recommendations()[*].confidence`. Since the
+ *    HMI review that field really is a confidence — P(option beats the current
+ *    course), estimated from the branch ensemble in
+ *    `recommendation_generator.estimate_confidence` — and no longer the option's
+ *    utility score wearing a % sign. Still labelled
  *    **"model-reported confidence"**, NOT "reliability", because it is not yet
  *    calibrated against outcomes (spec §4 backend table; flip the label once
  *    calibration data lands).
@@ -136,7 +140,20 @@ export class RiskUncertaintyPanelComponent {
     if (pct !== null && band) {
       out.push(`Alternatives disagree on outcome (±${pct}%) — ${band} spread across ${this.alternatives().length} option(s).`);
     }
-    const conf = this.primaryRecommendation()?.confidence ?? this.aggregateConfidence();
+    // Since the HMI review the backend ships the evidence behind the
+    // number (recommendation_generator.estimate_confidence), so the drill-down
+    // can name it instead of restating the number.
+    const rec = this.primaryRecommendation();
+    if (rec?.margin != null) {
+      const lead = rec.margin >= 0 ? 'ahead of' : 'behind';
+      out.push(
+        `Option is ${Math.abs(rec.margin).toFixed(2)} ${lead} the current course`
+        + (rec.confidenceBasis === 'prior-only'
+          ? ' — no comparison branches, so this rests on the margin alone.'
+          : '.'),
+      );
+    }
+    const conf = rec?.confidence ?? this.aggregateConfidence();
     if (conf !== null && conf < 0.5) {
       out.push('Model-reported confidence is below 0.5 — scrutinise before accepting.');
     }

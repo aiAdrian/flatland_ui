@@ -60,6 +60,34 @@ export interface WidgetModeBehaviour {
   director: string | null;
 }
 
+/**
+ * What a widget may change — an orthogonal axis, deliberately **not** derived
+ * from `kind` (interaction-framework.md §3).
+ *
+ * The HMI review asked how we stop actions from being available in several
+ * places at once. Deriving the answer from `kind` would be wrong: the Flatland
+ * map is an Event widget ("what is happening?") whose Decisions layer is a
+ * genuine Control affordance, and direct manipulation at the point of interest
+ * is a control-room virtue, not an accident. So capability is declared per
+ * widget and the action layer is named as what it is.
+ *
+ * - `none`       — reads only.
+ * - `view`       — changes presentation state only (layers, tabs, selection,
+ *                  dismissals). Nothing the simulation or the AI sees.
+ * - `record`     — writes the session record (decision log, reflection,
+ *                  rationale). Capitalization widgets do this by design; it is
+ *                  separated from `view` because the audit trail is not decor.
+ * - `simulation` — can change what the simulation or the AI does (train
+ *                  overrides, policy, run control, KPI weights, mode).
+ *
+ * Enforcement today covers **train actions**: they all run through
+ * `core/dispatch/train-action.service.ts`, so acting on a train is a visible
+ * injected dependency rather than a side effect of holding the store. Policy
+ * switching, run control and Director weights still call the store/API
+ * directly — named here as the next seams, not silently claimed as done.
+ */
+export type WidgetWrites = 'none' | 'view' | 'record' | 'simulation';
+
 export interface WidgetMeta {
   /** Panel `type` — the key used by panel-plugin-host `@switch`, the palette,
    *  and PanelInstance.type. Empty/absent for not-yet-built (planned) widgets. */
@@ -82,6 +110,8 @@ export interface WidgetMeta {
   availableModes: InteractionMode[] | 'all';
   /** How behaviour branches per mode. `null` where not offered in that mode. */
   perMode: WidgetModeBehaviour;
+  /** What this widget may change (see WidgetWrites). Declared, not inferred. */
+  writes: WidgetWrites;
   /** Default layout zone, for the gallery preview + palette. */
   defaultZone: 'left' | 'center' | 'right' | 'bottom' | 'floating';
   /** Minimum preview height (px), mirrors the palette. */
@@ -229,6 +259,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview',
+    writes: 'none',
     status: 'shipped',
     description: 'Headline counts: arrived / active / delayed / malfunctioning trains + progress.',
     promise: 'See the state of the whole network at a glance before drilling in.',
@@ -244,6 +275,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mock',
     kind: 'event',
     granularity: 'overview',
+    writes: 'view',
     status: 'shipped',
     description: 'Event feed: notifications with kind, title, message, related train.',
     promise: 'Notice new events (malfunctions, conflicts, arrivals) as they occur.',
@@ -259,6 +291,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview-detail',
+    writes: 'none',
     status: 'shipped',
     description: 'Supervisory feed: what the planner just decided, re-planned, and will do next.',
     promise: 'Follow what the autonomous AI is doing without having to ask it.',
@@ -280,6 +313,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview-detail',
+    writes: 'view',
     status: 'shipped',
     description: 'Composite: track map + graphic timetable with view & layer controls.',
     promise: 'Switch between spatial (map) and temporal (Marey) views of the same run.',
@@ -295,6 +329,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview-detail',
+    writes: 'simulation',
     status: 'first-cut',
     description: 'One center container, tabbed: Map · Marey · Timetable · Goal Achievement.',
     promise: 'Switch the big center view by tab instead of stacking panels vertically.',
@@ -311,10 +346,12 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'event',
     granularity: 'overview-detail',
+    writes: 'simulation',
     status: 'shipped',
     description: 'SVG network map: rails, trains, trajectories, switches, signals, decisions.',
-    promise: 'Read the network spatially and select trains / decision points.',
-    grounding: 'Flatland-RL network topology; control-room track diagram.',
+    promise: 'Read the network spatially, and act on a train where you see it.',
+    grounding:
+      'Flatland-RL network topology; control-room track diagram. The Decisions layer is a **control layer on an Event widget** — direct manipulation at the point of interest, declared via `writes` rather than left incidental (interaction-framework.md §3). It has its own visibility toggle, and acts through the shared dispatch seam with origin `map`.',
     availableModes: 'all',
     perMode: ALL_MODES,
     defaultZone: 'center',
@@ -328,6 +365,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'context',
     granularity: 'overview',
+    writes: 'view',
     status: 'shipped',
     description: 'Schedule board: train, from→to (shared labels), dep/arr, live position + status.',
     promise: 'Read every train’s route + schedule keyed to the map labels, plus where it is and how it’s doing now.',
@@ -347,6 +385,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'context',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Train roster grouped by state: position, arrival, deadline, actions.',
     promise: 'Scan every train by state and jump to the one that needs attention.',
@@ -367,6 +406,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'context',
     granularity: 'detail',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Train detail: position, destination, delay, malfunction, override actions.',
     promise: 'Understand one train in depth and act on it (details-on-demand).',
@@ -383,6 +423,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'context',
     granularity: 'detail',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Trains blocked by a malfunction: ETA, severity, options, what-if hover.',
     promise: 'See who a disruption blocks and weigh the response before deciding.',
@@ -404,6 +445,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'context',
     granularity: 'overview',
+    writes: 'none',
     status: 'shipped',
     description: 'Progress toward the operational goal with status badge & progress bar.',
     promise: 'Track how close the run is to the directive / operational goal.',
@@ -426,10 +468,12 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'prediction',
     granularity: 'overview-detail',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Time-distance train-movement diagram (graphic timetable / Marey).',
-    promise: 'Read train movements over time and spot crossing / conflict structure.',
-    grounding: 'Marey time-distance diagram; central to §3.3 dual-path (marey-rethink).',
+    promise: 'Read train movements over time, and act on the train whose line you are following.',
+    grounding:
+      'Marey time-distance diagram; central to §3.3 dual-path (marey-rethink). Its decision pills are a **control layer on a Prediction widget**, declared via `writes` and acting through the shared dispatch seam with origin `marey`.',
     availableModes: 'all',
     perMode: ALL_MODES,
     defaultZone: 'center',
@@ -441,6 +485,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'derived',
     kind: 'prediction',
     granularity: 'overview',
+    writes: 'none',
     status: 'shipped',
     description: 'Now / +10 / +20 / +30 min projection for conflict, connections and delay side effect.',
     promise: 'See what the next half hour looks like before committing to an option.',
@@ -464,6 +509,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'prediction',
     granularity: 'detail',
+    writes: 'simulation',
     status: 'first-cut',
     description: 'Branch a decision point: AI plan vs your action — the selected train\'s own fate (arrives/delay/deadlock) primary, system effect secondary, both paths drawn on the map (blue=you, yellow=AI).',
     promise: 'Try a decision both ways — see your train\'s outcome and the two map paths — before committing.',
@@ -486,6 +532,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'prediction',
     granularity: 'overview-detail',
+    writes: 'none',
     status: 'planned',
     description: 'Marey with conflict ribbons, predicted trajectories, plan-vs-actual.',
     promise: 'See predicted conflicts on the timetable, not just current positions.',
@@ -503,6 +550,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'derived',
     kind: 'context',
     granularity: 'overview-detail',
+    writes: 'none',
     status: 'planned',
     description: 'Force-directed graph: severity-coloured node circles, correlation-weighted edges.',
     promise: 'See what else a problem touches by proximity/edge-weight, not by scanning the map.',
@@ -526,6 +574,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mixed',
     kind: 'decision-support',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Scenario cards compared by KPIs (done / deadlock / delay) with policy switch.',
     promise: 'Compare candidate scenarios/policies by KPI and pick one.',
@@ -546,6 +595,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'decision-support',
     granularity: 'overview-detail',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Three planned strategy focuses — minimise delay / hold connections / maximise stability — each with its price.',
     promise: 'Choose which objective the autonomous plan should pursue, seeing what each one costs.',
@@ -570,6 +620,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mixed',
     kind: 'decision-support',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Scored strategy cards (A/B/C) with a WHY column; accept/reject, route preview.',
     promise: 'Compare ranked AI strategies by score + trade-offs, then accept or reject.',
@@ -592,6 +643,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'decision-support',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'AI recommendations: confidence, countdown, accept/reject, route preview.',
     promise: 'Act on a ranked AI suggestion — accept or reject with a reason.',
@@ -614,6 +666,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'decision-support',
     granularity: 'overview',
+    writes: 'none',
     status: 'planned',
     description: 'Scenario alternatives over 2 KPI axes (Pareto), small-multiple previews.',
     promise: 'Pick by situational priority instead of trusting one ranked list.',
@@ -636,6 +689,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mixed',
     kind: 'event',
     granularity: 'overview',
+    writes: 'view',
     status: 'planned',
     description: 'Notifications sorted by required action time (not chronology); lead-time bars.',
     promise: 'Work the events that need action soonest first, not the newest first.',
@@ -654,6 +708,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Play / pause, speed, step, policy selector, demo finish controls.',
     promise: 'Drive the simulation clock and pick the active policy.',
@@ -669,6 +724,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'KPI weight sliders (time / energy / platform / routing) as dot meters.',
     promise: 'Express which KPIs matter, shaping how options are ranked.',
@@ -688,6 +744,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'control',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Planner point meters (punctuality / connections / stability, 0-5 dots each) + committed-plan scorecard, what-if compare and gated mid-episode re-planning.',
     promise: 'Steer what the autonomous plan optimises, see what the committed plan promises and where it came from, and test or trigger a re-plan from the current state.',
@@ -708,6 +765,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
+    writes: 'view',
     status: 'shipped',
     description: 'Toggle map layers: grid, decisions, trajectory, switches, signals.',
     promise: 'Declutter the map by showing only the layers you need.',
@@ -723,6 +781,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: 'Set the high-level directive the AI runs on autonomously (WP 3.4).',
     promise: 'Delegate to the AI by stating a goal instead of per-step moves.',
@@ -744,6 +803,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'none',
     kind: 'control',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'planned',
     description: 'Shows current allocation {loop-stage → human/ai/shared}; Director autonomy dial.',
     promise: 'See — and later adjust — who owns which stage of the loop right now.',
@@ -768,6 +828,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'capitalization',
     granularity: 'detail',
+    writes: 'record',
     status: 'first-cut',
     description: 'Session decision strip: who decided, when, dwell, accept vs. override.',
     promise: 'Review the session as owned decisions and export them (accountability).',
@@ -789,6 +850,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'derived',
     kind: 'capitalization',
     granularity: 'overview',
+    writes: 'record',
     status: 'shipped',
     description: 'Plays a committed strategy back with its price, then asks: as a rule / just this once / no.',
     promise: 'Have your objective choice answered, and decide whether it becomes a standing preference.',
@@ -810,6 +872,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'derived',
     kind: 'capitalization',
     granularity: 'overview',
+    writes: 'simulation',
     status: 'shipped',
     description: '"Because you taught me this…" — names the confirmed learning behind a re-ranking, and offers the weights it implies.',
     promise: 'See what your confirmed preferences actually changed, and apply them if you want to.',
@@ -833,6 +896,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mixed',
     kind: 'capitalization',
     granularity: 'detail',
+    writes: 'record',
     status: 'shipped',
     description: 'End-of-shift debrief: how it ended, at most three moments worth discussing, what the AI learned.',
     promise: 'Close a shift by reviewing what happened and what the AI took from it — not just a survey link.',
@@ -856,6 +920,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mixed',
     kind: 'capitalization',
     granularity: 'detail',
+    writes: 'record',
     status: 'shipped',
     description: 'Post-run statistical + open-question reflection on the operator’s choices.',
     promise: 'Reflect on what you decided and why, to learn across runs.',
@@ -879,11 +944,12 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'derived',
     kind: 'trust',
     granularity: 'overview-detail',
+    writes: 'none',
     status: 'first-cut',
     description: 'Reliability, confidence & uncertainty band; Accept/Override with reasons.',
     promise: 'Judge whether to rely on the AI here, with honest uncertainty shown.',
     grounding:
-      'AI4REALNET/RL_agent_failure_forecast (INESC, evidential NN) — epistemic/aleatoric. First cut frontend-only, not calibrated (label: "model-reported confidence").',
+      'AI4REALNET/RL_agent_failure_forecast (INESC, evidential NN) — epistemic/aleatoric. Confidence now comes from the backend branch ensemble (margin vs. dispersion, recommendation_generator.estimate_confidence); still uncalibrated, so the label stays "model-reported confidence".',
     availableModes: 'all',
     perMode: {
       recommendation:
@@ -904,6 +970,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'mixed',
     kind: 'trust',
     granularity: 'overview',
+    writes: 'none',
     status: 'planned',
     description: 'Rolling record: how often AI suggestions were taken/overridden and how each turned out.',
     promise: 'Calibrate reliance against how the AI has actually performed for you.',
@@ -922,6 +989,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     dataSource: 'simulation',
     kind: 'trust',
     granularity: 'detail',
+    writes: 'none',
     status: 'planned',
     description: 'Explicitly mark what the operator *cannot* influence right now.',
     promise: 'Know the honest boundary of your control — a precondition for fair accountability.',

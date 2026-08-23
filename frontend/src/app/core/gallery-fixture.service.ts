@@ -266,6 +266,12 @@ export class GalleryFixtureService {
         confidence: 0.78,
         countdownSeconds: 10,
         scenarioId: 'gallery-scenario-reroute',
+        // Evidence behind the confidence, so the gallery preview shows the
+        // explained form rather than the bare fallback line.
+        utilityScore: 0.8,
+        margin: 0.26,
+        dispersion: 0.18,
+        confidenceBasis: 'ensemble-margin',
       },
       {
         id: 'gallery-rec-hold',
@@ -274,6 +280,10 @@ export class GalleryFixtureService {
         confidence: 0.41,
         countdownSeconds: 10,
         scenarioId: 'gallery-scenario-hold',
+        utilityScore: 0.35,
+        margin: -0.09,
+        dispersion: 0.55,
+        confidenceBasis: 'ensemble-margin',
       },
     ];
   }

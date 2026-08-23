@@ -76,12 +76,30 @@ class ScenarioOption(BaseModel):
 
 
 class Recommendation(BaseModel):
+    """One AI-proposed policy switch.
+
+    ``confidence`` and ``utilityScore`` answer two *different* questions and
+    must not be conflated (they were, until the HMI review caught it):
+
+    - ``utilityScore`` — how good the option's simulated outcome is, on the
+      weighted KPI scale the operator's own sliders define. High = good plan.
+    - ``confidence`` — how sure the system is that this option really beats the
+      course currently being flown. High = the evidence is clear, regardless of
+      whether the outcome itself is brilliant or merely adequate.
+
+    ``margin``, ``dispersion`` and ``confidenceBasis`` are the provenance behind
+    ``confidence`` so the UI can explain the number instead of asserting it.
+    """
     id: str
     title: str
     description: str
-    confidence: float          # 0..1
+    confidence: float          # 0..1 — P(option beats the current course)
     countdownSeconds: int
     scenarioId: Optional[str] = None
+    utilityScore: float = 0.0  # 0..1 — weighted-KPI quality of the outcome
+    margin: float = 0.0        # option score minus current-course score
+    dispersion: float = 0.0    # spread of scores across the evaluated policies
+    confidenceBasis: str = "ensemble-margin"
 
 
 class HmiBundle(BaseModel):

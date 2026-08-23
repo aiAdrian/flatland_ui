@@ -100,9 +100,36 @@
   margin-top: 4px;
   background: #d2d2d2;
 }
-.kind-error .kind-marker   { background: #eb0000; }
-.kind-warning .kind-marker { background: #ffaa00; }
-.kind-info .kind-marker    { background: #0079c7; }
+.kind-error .kind-marker   { background: var(--app-severity-error); }
+.kind-warning .kind-marker { background: var(--app-severity-warn); }
+.kind-info .kind-marker    { background: var(--app-severity-info); }
+
+/* Colour key for the three levels above. */
+.severity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.dot-error   { background: var(--app-severity-error); }
+  &.dot-warning { background: var(--app-severity-warn); }
+  &.dot-info    { background: var(--app-severity-info); }
+}
 
 .content {
   flex: 1;

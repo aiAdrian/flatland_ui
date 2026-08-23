@@ -94,10 +94,20 @@
       <app-demo-complete (restart)="startDemoSession()" (exit)="exitDemo()"></app-demo-complete>
     } @else {
     @if (useSavedRuntimeLayout()) {
-      <div class="runtime-design runtime-design--rows">
+      <!-- The Director bar is chrome, not a panel: it carries the run state,
+           play/pause and "Schicht beenden" — the only route to the closing
+           review. A designed layout replaces the panel body, not the controls
+           that operate the shift, so it renders in both branches. -->
+      @if (panelAvailable('director-directive') && !store.shiftReviewOpen()) {
+        <app-director-directive></app-director-directive>
+      }
+
+      <div class="runtime-design runtime-design--rows"
+           [class.is-behind]="shiftScreenOpen()">
         @for (row of runtimeRows(runtimeColumns()); track row.id) {
           <div
             class="runtime-design__row"
+            [class.runtime-design__row--fixed]="runtimeRowHeightPx(row) !== null"
             [style.height.px]="runtimeRowHeightPx(row)"
             [style.grid-template-columns]="runtimeRowGridTemplate(row)"
             [attr.data-runtime-row]="row.id"
@@ -298,19 +308,7 @@
                  baseline scenario is not even the plan that drives. -->
             @if (panelAvailable('strategy-forecast')) {
               <section class="right-outlook">
-                @if (store.directorFocusOutlook(); as outlook) {
-                  <app-strategy-forecast
-                    [signals]="outlook.signals"
-                    [subject]="outlook.subject"
-                    derivedFrom="Regelbasierte Projektion, keine Neusimulation."
-                  ></app-strategy-forecast>
-                } @else {
-                  <p class="right-outlook__empty">
-                    <strong>Wirkung über 30 Minuten</strong><br />
-                    Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um
-                    ihre Prognose zu sehen.
-                  </p>
-                }
+                <app-strategy-forecast></app-strategy-forecast>
               </section>
             }
 
@@ -360,14 +358,16 @@
       </ng-template>
     </div>
 
+    }
+
     <!-- Schichtabschluss: a screen of its own. Squeezed into the column above
          the map it competed with a live simulation for attention and had ~330px
-         to say what the shift amounted to. A debrief is not a panel. -->
+         to say what the shift amounted to. A debrief is not a panel. Outside the
+         layout branch, so a designed layout can reach it as well. -->
     @if (shiftScreenOpen()) {
       <section class="shift-screen" role="region" aria-label="Schichtabschluss">
         <app-shift-review></app-shift-review>
       </section>
-    }
     }
     }
   } @else {

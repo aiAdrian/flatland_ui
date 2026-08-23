@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { ImpactItem, ImpactOption } from '../../core/events/event-types';
@@ -31,6 +32,9 @@ export class ImpactPanelComponent implements OnDestroy {
   }
 
   store = inject(SessionStore);
+  /** Acting goes through the dispatch seam; `owner` still distinguishes a human
+   *  click from the countdown's auto-decide. */
+  private trainActions = inject(TrainActionService);
   private api = inject(ApiService);
   private colors = inject(AgentColorService);
 
@@ -254,7 +258,7 @@ export class ImpactPanelComponent implements OnDestroy {
       // override when available, otherwise hold is the safe fallback.
       const rec = item.recommended_action;
       if (!(rec === 'reroute' && this._apply(item, 'reroute', 'ai'))) {
-        this.store.setOverride(item.handle, ImpactPanelComponent.STOP, 'ai');
+        this.trainActions.set(item.handle, ImpactPanelComponent.STOP, 'impact', 'ai');
       }
       this.dismiss(item.handle);
     }
@@ -384,16 +388,16 @@ export class ImpactPanelComponent implements OnDestroy {
     owner: 'human' | 'ai' = 'human',
   ): boolean {
     if (action === 'hold') {
-      this.store.setOverride(item.handle, ImpactPanelComponent.STOP, owner);
+      this.trainActions.set(item.handle, ImpactPanelComponent.STOP, 'impact', owner);
       return true;
     }
     if (action === 'proceed') {
-      this.store.clearOverride(item.handle, owner);
+      this.trainActions.clear(item.handle, 'impact', owner);
       return true;
     }
     // reroute: apply the alternative-branch override (fires at the next switch).
     if (item.reroute_action != null) {
-      this.store.setOverride(item.handle, item.reroute_action, owner);
+      this.trainActions.set(item.handle, item.reroute_action, 'impact', owner);
       return true;
     }
     return false;

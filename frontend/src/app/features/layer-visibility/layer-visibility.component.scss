@@ -3,6 +3,8 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  /* Anchor for the legend popover — it must not widen the toolbar row. */
+  position: relative;
 }
 
 .layer-visibility {
@@ -48,4 +50,70 @@
   background: var(--sbb-color-charcoal, #212121);
   border-color: var(--sbb-color-charcoal, #212121);
   color: #fff;
+}
+
+/* ── Map legend ────────────────────────────────────────────────────────────
+   HMI review: "Was bedeuten die Icons?". A popover, so the key is one
+   click away without permanently spending toolbar or map space. */
+.legend-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: 320px;
+  max-width: 90vw;
+  padding: 10px 12px;
+  background: var(--sbb-color-white);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.5));
+}
+
+.legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--sbb-color-granite);
+  }
+
+  strong {
+    color: var(--sbb-color-charcoal);
+    font-weight: 600;
+  }
+}
+
+.swatch {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  border-radius: 50%;
+
+  &--train      { background: var(--sbb-color-blue); }
+  &--disruption {
+    background: transparent;
+    border: 2px solid var(--app-severity-error);
+  }
+  &--decision   { background: var(--layer-color-next-decisions); }
+  &--switch     { background: var(--layer-color-switches); }
+  &--signal     { background: var(--layer-color-signals); }
+  &--station    {
+    border-radius: 2px;
+    background: var(--sbb-color-charcoal);
+  }
+  &--grid       {
+    border-radius: 2px;
+    background: transparent;
+    border: 1px solid var(--layer-color-grid);
+  }
 }

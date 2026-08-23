@@ -92,6 +92,18 @@
   letter-spacing: 0.5px;
 }
 
+.metric-legend {
+  margin: 0 0 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+
+  strong {
+    color: var(--sbb-color-charcoal);
+    font-weight: 700;
+  }
+}
+
 .confidence {
   font-size: 10px;
   font-weight: 600;
@@ -100,6 +112,19 @@
   padding: 1px 5px;
   border-radius: 2px;
   font-variant-numeric: tabular-nums;
+  border-left: 3px solid var(--sbb-color-granite);
+
+  // A number near a coin flip must not read as a green light.
+  &.conf-high   { border-left-color: var(--app-positive); }
+  &.conf-medium { border-left-color: var(--app-severity-warn); }
+  &.conf-low    { border-left-color: var(--app-severity-error); }
+}
+
+.confidence-note {
+  margin: 4px 0 0;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
 }
 
 .countdown {

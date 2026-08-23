@@ -11,13 +11,33 @@ Logic
 4. Otherwise return [] — the operator gets an empty panel, which is
    the right signal: "current policy is fine, nothing to act on".
 
-Confidence
-----------
-The score is mapped to [0, 1]. Scores typically fall in [-0.5, 1.0],
-so we just clamp.
+Utility score vs. confidence
+----------------------------
+These are two different numbers and the panel used to show only one of them,
+mislabelled (see docs/reading/2026-08-22-hmi-review-workshop.md, "27%"):
+
+* **utility score** — how good the option's simulated outcome is on the weighted
+  KPI scale (``Scenario.score``, driven by the operator's own KPI sliders),
+  clamped to [0, 1].
+* **confidence** — how sure we are that the option really beats the course
+  currently being flown. Estimated from the *ensemble of policy branches* the
+  ScenarioBuilder already runs: the candidate's margin over the baseline,
+  measured against how far apart the branches lie overall. A margin that is
+  large relative to the spread is strong evidence; the same margin among widely
+  scattered branches is weak evidence.
+
+Honest limits of that estimate — the UI must not claim more than this:
+each branch is a *single deterministic rollout* from the current state, so the
+spread expresses disagreement between policies, not the stochastic variance of
+any one policy. The number is therefore *model-reported*, not calibrated
+against observed outcomes. Calibration needs logged decision outcomes and the
+evidential-NN work tracked in docs/plans/widget-a1-risk-uncertainty.md §4.
 """
 from __future__ import annotations
 
+import math
+from dataclasses import dataclass
+from statistics import pstdev
 from typing import List, Optional
 
 from app.core.scenario_builder import Scenario
@@ -35,8 +55,66 @@ POLICY_LABELS = {
 }
 
 
-def _confidence(score: float) -> float:
+def _utility_score(score: float) -> float:
+    """Outcome quality on the weighted KPI scale, clamped to [0, 1].
+
+    Scores typically fall in [-0.5, 1.0], so clamping is enough. This is NOT a
+    confidence — see the module docstring.
+    """
     return max(0.0, min(1.0, float(score)))
+
+
+# Floor for the ensemble spread. Without it a run where every branch scores
+# almost the same would divide a tiny margin by a tinier spread and report
+# near-certainty off rounding noise. Same order of magnitude as SCORE_MARGIN.
+_MIN_DISPERSION = 0.05
+
+# A single deterministic rollout per policy cannot justify claiming certainty,
+# so the estimate is kept off the 0/1 rails on principle.
+_CONFIDENCE_FLOOR = 0.02
+_CONFIDENCE_CEILING = 0.98
+
+
+@dataclass(frozen=True)
+class ConfidenceEstimate:
+    """The confidence number plus the evidence it rests on."""
+    confidence: float
+    margin: float
+    dispersion: float
+    basis: str
+
+
+def estimate_confidence(
+    candidate: Scenario,
+    baseline: Scenario,
+    scenarios: List[Scenario],
+) -> ConfidenceEstimate:
+    """P(candidate beats the current course), from the branch ensemble.
+
+    ``margin / spread`` is squashed through a logistic, so a candidate that
+    merely ties the baseline lands at 0.5 — an honest coin flip — and confidence
+    grows only as the margin outgrows the disagreement between branches.
+    """
+    margin = float(candidate.score) - float(baseline.score)
+    scores = [float(s.score) for s in scenarios]
+
+    if len(scores) >= 2:
+        dispersion = pstdev(scores)
+        basis = "ensemble-margin"
+    else:
+        dispersion = 0.0
+        basis = "prior-only"
+
+    scale = max(dispersion, _MIN_DISPERSION)
+    confidence = 1.0 / (1.0 + math.exp(-margin / scale))
+    confidence = max(_CONFIDENCE_FLOOR, min(_CONFIDENCE_CEILING, confidence))
+
+    return ConfidenceEstimate(
+        confidence=round(confidence, 2),
+        margin=round(margin, 3),
+        dispersion=round(dispersion, 3),
+        basis=basis,
+    )
 
 
 def _describe(top: Scenario, baseline: Scenario) -> str:
@@ -105,7 +183,7 @@ def generate_recommendations(
             continue
         if (cand.score - baseline.score) < SCORE_MARGIN:
             continue
-        recs.append(_to_recommendation(cand))
+        recs.append(_to_recommendation(cand, baseline, scenarios))
 
     # Demo guarantee: nothing cleared the margin → surface the best
     # deadlock-free alternative so the panel is never silently empty.
@@ -116,18 +194,27 @@ def generate_recommendations(
             None,
         )
         if best is not None:
-            recs.append(_to_recommendation(best))
+            recs.append(_to_recommendation(best, baseline, scenarios))
 
     return recs
 
 
-def _to_recommendation(cand: Scenario) -> Recommendation:
+def _to_recommendation(
+    cand: Scenario,
+    baseline: Scenario,
+    scenarios: List[Scenario],
+) -> Recommendation:
     label = POLICY_LABELS.get(cand.policy_id, cand.policy_id)
+    estimate = estimate_confidence(cand, baseline, scenarios)
     return Recommendation(
         id=f"rec_policy_{cand.policy_id}",
         title=f"Switch to {label}",
         description="",                 # no explanation (by design)
-        confidence=round(_confidence(cand.score), 2),
+        confidence=estimate.confidence,
         countdownSeconds=30,            # generic; policy switch isn't time-critical
         scenarioId=f"scn_{cand.policy_id}",
+        utilityScore=round(_utility_score(cand.score), 2),
+        margin=estimate.margin,
+        dispersion=estimate.dispersion,
+        confidenceBasis=estimate.basis,
     )

@@ -9,4 +9,48 @@
     <button type="button" class="layer-chip" [class.on]="store.layerVisibility().signals" [attr.aria-pressed]="store.layerVisibility().signals" (click)="toggle('signals')">Signals</button>
     <button type="button" class="layer-chip" [class.on]="store.layerVisibility().stations" [attr.aria-pressed]="store.layerVisibility().stations" (click)="toggle('stations')">Stations</button>
   </div>
+
+  <button
+    type="button"
+    class="layer-chip legend-toggle"
+    [class.on]="legendOpen()"
+    [attr.aria-expanded]="legendOpen()"
+    (click)="toggleLegend()">
+    Legende
+  </button>
+
+  @if (legendOpen()) {
+    <div class="legend-popover" role="group" aria-label="Kartenlegende">
+      <ul class="legend-list">
+        <li>
+          <span class="swatch swatch--train"></span>
+          <span><strong>Zug</strong> — die Farbe identifiziert den Zug, gleich in Liste, Karte und Marey</span>
+        </li>
+        <li>
+          <span class="swatch swatch--disruption"></span>
+          <span><strong>Roter Ring mit „!"</strong> — dieser Zug hat eine Störung</span>
+        </li>
+        <li>
+          <span class="swatch swatch--decision"></span>
+          <span><strong>Decisions</strong> — nächster Entscheidungspunkt; die Pills daneben sind die wählbaren Aktionen (dieselben wie in der Agents-Liste)</span>
+        </li>
+        <li>
+          <span class="swatch swatch--switch"></span>
+          <span><strong>Switches</strong> — Weiche</span>
+        </li>
+        <li>
+          <span class="swatch swatch--signal"></span>
+          <span><strong>Signals</strong> — Signal an einer Verzweigung</span>
+        </li>
+        <li>
+          <span class="swatch swatch--station"></span>
+          <span><strong>Stations</strong> — Station (S1, S2, …)</span>
+        </li>
+        <li>
+          <span class="swatch swatch--grid"></span>
+          <span><strong>Grid</strong> — Zellraster zur Orientierung</span>
+        </li>
+      </ul>
+    </div>
+  }
 </div>
