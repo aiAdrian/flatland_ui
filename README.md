@@ -1,3 +1,14 @@
+---
+title: Flatland Dispatcher (main)
+emoji: 🚆
+colorFrom: red
+colorTo: gray
+sdk: docker
+app_port: 8000
+short_description: Human-in-the-loop railway dispatching HMI (main)
+pinned: false
+---
+
 # Flatland Dispatcher — A Human-AI Teaming Playground (UI)
 
 Human-in-the-loop train dispatching based on the [Flatland Reinforcement Learning environment](https://www.flatland-association.org/projects), integrated into the [AI4REALNET](https://ai4realnet.eu/) research project.
