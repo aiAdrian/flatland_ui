@@ -1,0 +1,68 @@
+# Mirrors main to the Hugging Face Space that serves the stable demo, so the
+# demo can be refreshed from a browser alone (Claude Code on the web, the
+# GitHub web editor, a phone) without a terminal and a local HF token.
+#
+# One-time setup:
+#   1. Create the Space on huggingface.co (SDK: Docker, template: Blank).
+#   2. Repo → Settings → Secrets and variables → Actions:
+#        secret   HF_TOKEN  = a Hugging Face *write* token
+#        variable HF_SPACE  = <user>/<space-name>   (optional, see below)
+#
+# The Space gets a single flattened commit — Spaces need no history, and this
+# keeps the binaries the image never copies (docs/media, backend/models) out
+# of it. Details: docs/deploy-hugging-face-space.md
+name: Deploy demo to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hf-space-deploy
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check the token is configured
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret is not set — see the header of this workflow."
+            exit 1
+          fi
+
+      - name: Assemble the Space tree
+        run: |
+          set -eu
+          # The image copies backend/app and the Angular build only, so none of
+          # this ever reaches the container — it would just bloat the Space repo.
+          rm -rf docs/media backend/models .pytest_cache.zip .github
+          cp deploy/hf/Dockerfile Dockerfile
+          cat deploy/hf/README-header.md README.md > README.hf
+          # Drop the demo links whose media files we just removed.
+          grep -v 'docs/media/' README.hf > README.md
+          rm -f README.hf
+          rm -rf deploy
+
+      - name: Push to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE || 'danib8005/flatland-dispatcher' }}
+        run: |
+          set -eu
+          rm -rf .git
+          git init -q -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Flatland Dispatcher — main @ ${GITHUB_SHA:0:7}"
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main
+          echo "Deployed to https://huggingface.co/spaces/${HF_SPACE}"
