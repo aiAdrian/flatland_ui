@@ -7,6 +7,10 @@ back here for the full list.
 
 Docs are grouped by purpose. Start with **reference/** for the living truth.
 
+## Product
+
+- [product-vision.md](product-vision.md) — mirror of the [wiki Product Vision](https://github.com/aiAdrian/flatland_ui/wiki/Product-Vision) (authoritative there), plus a detailed MVP proposal and an inventory of what exists today
+
 ## reference/ — living reference
 The authoritative specs and guides for how the app works today.
 
@@ -15,12 +19,14 @@ The authoritative specs and guides for how the app works today.
 - [architecture.md](reference/architecture.md) — system architecture: frontend/backend layers, the two pluggable seams, what is deliberately absent
 - [director-mode.md](reference/director-mode.md) — the Director planner in depth: data structures, search strategies, re-planning, invariants
 - [interaction-framework.md](reference/interaction-framework.md) — widget taxonomy (kind × granularity), function allocation, Human-in-Control, accountability seam
+- [interaction-mode-axes.md](reference/interaction-mode-axes.md) — **discussion paper:** `InteractionMode` conflates autonomy level with collaboration goal; two axes, the cells the current model cannot express, and what would change the argument
 - [widget-authoring-process.md](reference/widget-authoring-process.md) — how we develop a widget (spec template + build workflow)
 - [mode-guide.md](reference/mode-guide.md) — the same task walked through all three modes
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode (documents `panel-mode-availability.ts`)
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
 - [frontend-lyne-conventions.md](reference/frontend-lyne-conventions.md) — Angular/Lyne rules, incl. the no-hardcoded-colours gate
 - [colour-usage-audit.md](reference/colour-usage-audit.md) — colour concepts grouped into semantic families; consistency, collisions, global-config readiness
+- [design-system-independence.md](reference/design-system-independence.md) — how deeply Lyne is coupled (measured), what blocks an open-source release, and the 2026-08-23 decision (font decoupled, adapter layer next)
 - [data-provenance.md](reference/data-provenance.md) — real simulation vs mock vs derived per widget/endpoint; why **Demo ≠ Mock**
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub (FAB) + Railway KPI catalog — re-check at real WP 4.3 requirements
@@ -32,6 +38,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 
 **Study, data & process**
 - [interaction-logging-plan.md](plans/interaction-logging-plan.md) — study data capture: one self-describing record per session (header + decisions + context + survey), so modes/designs can be compared
+- [flatland-43-upgrade.md](plans/flatland-43-upgrade.md) — measured 4.2.6 → 4.3.0 trial: 5 real failures, a 5-line shim, and the seed-stability blocker
 - [docs-maintenance-2026-08.md](plans/docs-maintenance-2026-08.md) — audit 2026-08-19: plan currency, doc overlaps, and where AI4REALNET stands on logging
 - [scenario-variants.md](plans/scenario-variants.md) — controlled study vs. dynamic "simulated wild"; variant axes
 - [scripted-events-plan.md](plans/scripted-events-plan.md) — deterministic scenario events for User Study 2
@@ -70,6 +77,8 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 ## reading/ — dated research notes
 External research, read once and recorded so it need not be repeated.
 
+- [2026-08-23-co-study4grid-uebernahme.md](reading/2026-08-23-co-study4grid-uebernahme.md) — full read of RTE's Co-Study4Grid: which interaction patterns and CI gates we could adopt for Co-Learning and this HMI, ranked (DE)
+- [2026-08-22-hmi-review-workshop.md](reading/2026-08-22-hmi-review-workshop.md) — HMI review of the Recommendation & Co-Learning screens: feedback, what was fixed, what stays open (DE)
 - [2026-08-16-flatland-oekosystem-recherche.md](reading/2026-08-16-flatland-oekosystem-recherche.md) — full read of the AI4REALNET + flatland-association ecosystem (DE)
 - [2026-07-16-co-learning-reflection-reading.md](reading/2026-07-16-co-learning-reflection-reading.md) — literature behind the reflection module
 
