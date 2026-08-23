@@ -17,15 +17,15 @@
   display: flex;
   gap: 4px;
   padding: 4px 4px 6px;
-  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-bottom: 1px solid var(--sbb-color-cloud);
   flex: 0 0 auto;
   overflow-x: auto;
 }
 
 .view-tabs__tab {
-  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
-  background: var(--sbb-color-white, #ffffff);
-  color: var(--sbb-color-granite, #686868);
+  border: 1px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-granite);
   border-radius: 6px;
   padding: 4px 12px;
   font-size: 13px;
@@ -35,13 +35,13 @@
 }
 
 .view-tabs__tab:hover {
-  border-color: var(--sbb-color-charcoal, #212121);
+  border-color: var(--sbb-color-charcoal);
 }
 
 .view-tabs__tab.on {
-  background: var(--sbb-color-charcoal, #212121);
-  color: var(--sbb-color-white, #ffffff);
-  border-color: var(--sbb-color-charcoal, #212121);
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+  border-color: var(--sbb-color-charcoal);
 }
 
 .view-tabs__body {
