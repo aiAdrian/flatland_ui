@@ -39,16 +39,67 @@ same-origin with a fallback route, and the `CMD` honours `${PORT:-8000}`, which
 
 Then every push to `explore_db` redeploys. `workflow_dispatch` re-runs it by hand.
 
-### Doing it manually instead
+### Re-running it by hand
+
+`workflow_dispatch` is the manual route that needs no local token and does the
+same assembly:
 
 ```bash
-git remote add space https://huggingface.co/spaces/<user>/<space-name>
-git push --force space <branch>:main
+gh workflow run deploy-hf-space.yml --ref explore_db
 ```
 
-Git asks for credentials: username = your HF user, password = the write token.
-`--force` is needed the first time because HF creates the Space with its own
-placeholder commit.
+Or on github.com: *Actions → Deploy explore_db to Hugging Face Space → Run
+workflow* — which also works from a phone.
+
+Note the workflow only fires on a push when `.github/workflows/` exists **in the
+pushed commit**. Adding the workflow and pushing older commits on top of it in
+one go therefore deploys nothing; the run appears from the next push onward.
+
+### Deploying without GitHub Actions
+
+Only needed when Actions is unavailable. **Do not just push the branch** —
+
+```bash
+# WRONG: produces a Space that does not start
+git push --force space explore_db:main
+```
+
+— because the branch deliberately does not carry the two things the Space needs
+(see *How the mirror works* above): the YAML front matter, without which the HF
+proxy looks for the app on port 7860 while it listens on 8000, and the UID-1000
+`Dockerfile`. Replicate the assembly instead:
+
+```bash
+# 1. export the branch to a scratch dir
+rm -rf /tmp/hf-space && mkdir -p /tmp/hf-space
+git archive explore_db | tar -x -C /tmp/hf-space
+
+# 2. assemble the Space tree (same steps as the workflow)
+cd /tmp/hf-space
+rm -rf docs/media backend/models .pytest_cache.zip .github
+cp deploy/hf/Dockerfile Dockerfile
+cat deploy/hf/README-header.md README.md > README.hf
+grep -v 'docs/media/' README.hf > README.md && rm README.hf
+rm -rf deploy
+
+# 3. one flattened commit, force-pushed
+git init -q -b main && git add -A
+git commit -q -m "Flatland Dispatcher — explore_db manual"
+git push --force \
+  "https://<hf-user>:$HF_TOKEN@huggingface.co/spaces/<hf-user>/<space-name>" main
+```
+
+`HF_TOKEN` must be a **write** token, exported in the shell. `--force` is needed
+because the Space history is flattened on every deploy (and because HF creates a
+new Space with its own placeholder commit).
+
+If you prefer to be prompted rather than putting the token in the URL, add the
+remote once and let git ask — username = your HF user, password = the token:
+
+```bash
+git remote add space https://huggingface.co/spaces/<hf-user>/<space-name>
+git -C /tmp/hf-space push --force space main
+```
 
 ## Why the free hardware is enough
 
