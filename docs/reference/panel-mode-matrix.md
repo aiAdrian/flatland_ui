@@ -37,6 +37,7 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `decision-log` | ● | ● | ● |
 | `scenario` | ○ | ● neutral compare surface | ○ |
 | `agents` (`agents-list`) | ● | ● | ○ |
+| `agents-table` | ● | ● | ○ |
 | `recommendations` | ● | ○ | ○ |
 | `recommendations-classic` (v1) | ● | ○ | ○ |
 | `co-learning-reflection` | ○ | ● | ○ |
@@ -55,6 +56,14 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 > offered in *no* mode: they stay registered and wired, so re-enabling one is a
 > config flip, but no default layout surfaces them. A panel type absent from the
 > map entirely is available *everywhere*.
+>
+> `agents-table` is **v2 of the `agents` role** (docs/plans/widget-agents-table.md),
+> so it inherits the role's availability exactly — a variant that quietly changed
+> which modes offer it would make the role meaningless. Its per-mode *behaviour*
+> does differ, through `optionPresentation()`: in Recommendation the AI's
+> recommendation for a train is starred in its row (sourced from the impact
+> analysis, the only real per-train recommendation there is); in Co-Learning the
+> options are rendered as equal choices with no preferred marking.
 >
 > The `agents` row lost Director: the Director supervises objectives while the AI
 > owns individual trains, so a per-train table is noise there.

@@ -161,6 +161,9 @@ export class GalleryFixtureService {
     });
 
     return [
+      // Schedule + next decision are fixture-fed too: the disposition table
+      // (agents-table) shows a schedule, a slack and an action per row, and a
+      // gallery preview of half-empty rows would misrepresent the widget.
       base(0, {
         position: [1, 2],
         direction: 1,
@@ -171,6 +174,22 @@ export class GalleryFixtureService {
         speed: 1,
         delay: 0,
         cell_type: 'SWITCH',
+        latest_arrival: 156,
+        time_to_deadline: 43,
+        // MERGING, because the impact fixture recommends `hold` for this train
+        // and STOP is only ever an option at a merge (cell_classifier.py
+        // _build_merging_options). Keeping the two consistent is what lets the
+        // gallery show the Recommendation-mode star honestly.
+        next_decision: {
+          path: [[1, 2]],
+          decision_position: [1, 3],
+          decision_direction: 1,
+          cell_type: 'MERGING',
+          options: [
+            { action: 2, action_name: 'MOVE_FORWARD', label: '↑ Forward', target_position: [1, 4] },
+            { action: 4, action_name: 'STOP_MOVING', label: '■ Stop', target_position: [1, 3] },
+          ],
+        },
       }),
       base(1, {
         position: [2, 5],
@@ -185,6 +204,19 @@ export class GalleryFixtureService {
         malfunction_remaining: 12,
         is_malfunctioning: true,
         cell_type: 'FORWARD_ONLY',
+        latest_arrival: 124,
+        time_to_deadline: -19,
+        // A switch offers only the branches that physically exist — never STOP.
+        next_decision: {
+          path: [[2, 5]],
+          decision_position: [2, 6],
+          decision_direction: 1,
+          cell_type: 'SWITCH',
+          options: [
+            { action: 2, action_name: 'MOVE_FORWARD', label: '↑ Forward', target_position: [2, 7] },
+            { action: 3, action_name: 'MOVE_RIGHT', label: '→ Right', target_position: [3, 6] },
+          ],
+        },
       }),
       base(2, {
         position: null,
@@ -195,7 +227,7 @@ export class GalleryFixtureService {
         state: 'READY_TO_DEPART',
         speed: 1,
         earliest_departure: 18,
-        eta_to_depart: 0,
+        eta_to_depart: 6,
         cell_type: 'FORWARD_ONLY',
       }),
       base(3, {

@@ -50,10 +50,21 @@ Availability is inherited from the role — a variant must not silently change i
 detail while Director supervises objectives).
 
 - **Recommendation (WP 3.1) — offered.** Framing follows
-  `store.optionPresentation() === 'recommended'`: the row marks which action the
-  AI's current plan implies, and an action the operator has already set shows as
-  their standing override (toggle, click again to clear). Same semantics as v1,
-  now visible in the row instead of two columns apart.
+  `store.optionPresentation() === 'recommended'`: where the AI has a real
+  recommendation for a train, the matching action is starred; an action the
+  operator has already set shows as their standing override (toggle, click again
+  to clear). Same semantics as v1, now visible in the row instead of two columns
+  apart.
+
+  **Corrected during the build.** This section first said the row would mark
+  "the action the AI's current plan implies". There is no such signal:
+  `next_decision` comes from `cell_classifier.lookahead_to_decision`, which walks
+  the track to the next switch and lists the branches that *physically exist* —
+  its `path` ends **at** the decision point and says nothing about which branch a
+  plan takes. The only genuine per-train AI recommendation is
+  `ImpactItem.recommended_action` (+ `reroute_action`), so that, and only that,
+  gets the star. A train the AI has said nothing about shows no marking, which is
+  the honest state.
 - **Co-Learning (WP 3.3) — offered.** `optionPresentation() === 'neutral'`: the
   actions are rendered as **equal choices**, with no AI-preferred marking — the
   operator formulates their own action first. The override the operator sets is
@@ -146,9 +157,20 @@ observable in the next walkthrough with Gaby.
   reuse rule binds algorithms (UQ, calibration, policy negotiation); presentation
   framing stays ours. Recorded here explicitly rather than by omission.
 - **"Remaining Steps" is ambiguous** in the sketch (it matches the malfunction
-  countdown in her example). Shipping it as malfunction-remaining / deadline
-  slack and flagging the true steps-to-decision-point as a backend extension —
-  worth one question to Gaby at the next walkthrough.
+  countdown in her example). Shipped as malfunction-remaining in the Meldung
+  column and deadline slack in its own column; the true steps-to-decision-point
+  stays a flagged backend extension — worth one question to Gaby at the next
+  walkthrough.
+
+- **The star cannot always appear, and that is the data's doing, not a bug.**
+  A switch offers only left / forward / right (`_build_switch_options`); only a
+  *merging* cell offers STOP (`_build_merging_options`). So a `hold`
+  recommendation can be starred only when the train is approaching a merge, and
+  a `reroute` only at a switch. Coherent — reroute happens at switches, holding
+  at merges — but it means star coverage depends on the cell ahead. If the
+  walkthrough shows operators expect a visible "the AI would hold this train"
+  regardless of cell type, the fix is a per-train AI-intent field in the DTO,
+  not a fabricated option in the UI.
 - **Two variants, one role, no switcher yet.** Step 2 of
   `widget-variants-versioning.md` (a variant switcher in the palette) does not
   exist; today choosing v2 means placing it in a layout. Acceptable — that is
