@@ -52,6 +52,7 @@ import { InfrastructureBuilderComponent } from './features/infrastructure-builde
 import { InfrastructureScene, InfrastructureSceneSummary } from './features/infrastructure-builder/models/scene.model';
 import { InfrastructureSceneStorageService } from './features/infrastructure-builder/services/infrastructure-scene-storage.service';
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
+import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 type RuntimeLayoutOption = {
@@ -70,6 +71,7 @@ type RuntimeLayoutOption = {
     LayoutDesignerComponent,
     InfrastructureBuilderComponent,
     WidgetsGalleryComponent,
+    AlgorithmsGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
     GraphicTimetableComponent,
@@ -128,6 +130,14 @@ export class AppComponent implements OnInit {
       window.location.pathname === '/widgets' ||
       window.location.hash === '#/widgets' ||
       window.location.hash.endsWith('/widgets')
+    );
+  }
+
+  get showAlgorithmsGallery(): boolean {
+    return (
+      window.location.pathname === '/algorithms' ||
+      window.location.hash === '#/algorithms' ||
+      window.location.hash.endsWith('/algorithms')
     );
   }
 
