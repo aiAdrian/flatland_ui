@@ -392,7 +392,7 @@
                 (change)="setRuntimeLayout($any($event.target).value)">
                 @for (layout of runtimeLayoutOptions(); track layout.id) {
                   <option [value]="layout.id">
-                    {{ layout.name }}{{ layout.kind === 'system' ? '' : ' · user' }}
+                    {{ layout.name }}{{ layoutKindSuffix(layout.kind) }}
                   </option>
                 }
               </select>

@@ -55,10 +55,13 @@ import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gall
 import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
+import { LAYOUT_PRESETS } from './core/layout/layout-presets';
 type RuntimeLayoutOption = {
   id: string;
   name: string;
-  kind: 'system' | 'user';
+  /** `preset` = shipped with the repo (core/layout/layout-presets.ts) and
+   *  therefore reviewable; `user` = saved in this browser only. */
+  kind: 'system' | 'preset' | 'user';
   design?: any;
 };
 
@@ -998,6 +1001,16 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /** Where a layout comes from — a preset ships with the repo, a user layout
+   *  only exists in this browser. Worth telling apart in the picker. */
+  layoutKindSuffix(kind: RuntimeLayoutOption['kind']): string {
+    switch (kind) {
+      case 'system': return '';
+      case 'preset': return ' · Preset';
+      case 'user': return ' · user';
+    }
+  }
+
   loadRuntimeLayoutOptions(): RuntimeLayoutOption[] {
     const options: RuntimeLayoutOption[] = [
       {
@@ -1006,6 +1019,17 @@ export class AppComponent implements OnInit {
         kind: 'system',
       },
     ];
+
+    // Repo-shipped layouts come before browser-local ones: a preset is
+    // versioned and reviewable, a saved design is one person's localStorage.
+    for (const preset of LAYOUT_PRESETS) {
+      options.push({
+        id: preset.id,
+        name: preset.name,
+        kind: 'preset',
+        design: { id: preset.id, name: preset.name, layout: preset.layout },
+      });
+    }
 
     const candidateKeys = [
       'flatland.designer.designs.v1',

@@ -1,3 +1,6 @@
+@if (embedded) {
+  <ng-container [ngTemplateOutlet]="reflectionContent"></ng-container>
+} @else {
 <sbb-expansion-panel class="lyne-feature-panel co-learning-reflection-lyne-panel" color="white" size="s"
   [attr.expanded]="reflectionOpen() ? '' : null">
   <sbb-expansion-panel-header (click)="store.toggleReflectionRequested()">
@@ -11,6 +14,12 @@
   </sbb-expansion-panel-header>
 
   <sbb-expansion-panel-content class="lyne-panel-content">
+    <ng-container [ngTemplateOutlet]="reflectionContent"></ng-container>
+  </sbb-expansion-panel-content>
+</sbb-expansion-panel>
+}
+
+<ng-template #reflectionContent>
     <div class="reflection-panel">
       <div class="rp-head">
         <h3 class="panel-title">Co-Learning Reflection</h3>
@@ -118,5 +127,4 @@
         <sbb-button size="m" (click)="close()">Done — reflect again later</sbb-button>
       </div>
     </div>
-  </sbb-expansion-panel-content>
-</sbb-expansion-panel>
+</ng-template>

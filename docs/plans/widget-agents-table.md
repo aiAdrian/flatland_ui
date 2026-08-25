@@ -152,6 +152,14 @@ observable in the next walkthrough with Gaby.
 
 ## 8. Open questions / risks
 
+- **The action labels are geometric, not operational.** The dispatcher review of
+  2026-08-24 asked what `left` / `right` actually control. Flatland's action
+  space is `DO_NOTHING · LEFT · FORWARD · RIGHT · STOP`, so "Halten" and
+  "Umleiten" already exist under geometric names, while **VMax does not exist at
+  all**. Renaming is cheap and touches every affordance at once (they share the
+  dispatch seam); VMax is an open decision recorded in
+  [`2026-08-24-dispatcher-review-study2.md`](../reading/2026-08-24-dispatcher-review-study2.md) §3.
+
 - **Is this a reinvented wheel?** No algorithm is involved — it is a layout for
   data the app already has, calling the existing override seam. CLAUDE.md's
   reuse rule binds algorithms (UQ, calibration, policy negotiation); presentation
