@@ -50,6 +50,9 @@ export const PANEL_MODE_AVAILABILITY: Record<string, InteractionMode[]> = {
   // Per-train table: dispatcher-level detail. Director supervises objectives
   // while the AI owns individual trains, so it is noise there.
   agents: ['recommendation', 'co-learning'],
+  // v2 of the same role — a variant must not silently change the role's
+  // availability (docs/plans/widget-agents-table.md §3).
+  'agents-table': ['recommendation', 'co-learning'],
 
   // ── Director strategy surfaces ───────────────────────────────────────────
   // These render from fixed slots in AppComponent rather than through

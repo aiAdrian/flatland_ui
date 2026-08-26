@@ -58,6 +58,10 @@
       <app-agents-panel [embedded]="true"></app-agents-panel>
     }
 
+    @case ('agents-table') {
+      <app-agents-table [embedded]="true"></app-agents-table>
+    }
+
     @case ('agents-list') {
       <app-agents-panel [embedded]="true"></app-agents-panel>
     }

@@ -587,6 +587,33 @@ export class SessionStore {
     return `${types[idx]} (demo)`;
   }
 
+  /** True when this train is disrupted, by whichever field the backend used. */
+  isMalfunctioning(agent: AgentDTO): boolean {
+    return !!agent.is_malfunctioning
+      || (agent.malfunction_remaining ?? 0) > 0
+      || String(agent.state ?? '').toUpperCase().includes('MALFUNCTION');
+  }
+
+  /**
+   * Trains a conflict actually involves: everyone the impact analysis names
+   * (blocked or blocking) plus everyone currently disrupted.
+   *
+   * Lives here rather than in a panel because more than one surface needs the
+   * same answer — the roster's "nur Konflikte" filter and the disposition
+   * table's. Two copies of the definition would be two definitions.
+   */
+  readonly conflictHandles = computed<ReadonlySet<number>>(() => {
+    const handles = new Set<number>();
+    for (const item of this.impact()) {
+      handles.add(item.handle);
+      handles.add(item.blocked_by);
+    }
+    for (const a of this.agents()) {
+      if (this.isMalfunctioning(a)) handles.add(a.handle);
+    }
+    return handles;
+  });
+
   /** True while the AI drives the simulation autonomously (Director / WP 3.4). */
   readonly aiInControl = computed(() => this.interactionMode() === 'director');
   /** True in Co-Learning mode (WP 3.3), where human interventions are logged. */

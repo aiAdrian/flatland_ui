@@ -41,21 +41,9 @@ export class LeftSidebarComponent {
   // HMI review: "Alle Züge oder nur die mit Konflikt?" — the list showed
   // every train with no way to narrow it to the ones that need a decision.
 
-  /** Trains the impact analysis names (blocked or blocking) plus anyone
-   *  currently malfunctioning — i.e. the trains a conflict actually involves. */
-  readonly conflictHandles = computed<Set<number>>(() => {
-    const handles = new Set<number>();
-    for (const item of this.store.impact()) {
-      handles.add(item.handle);
-      handles.add(item.blocked_by);
-    }
-    for (const a of this.store.agents()) {
-      if (this.isMalfunctioning(a)) handles.add(a.handle);
-    }
-    return handles;
-  });
-
-  readonly conflictCount = computed(() => this.conflictHandles().size);
+  /** The conflict set is defined once in the store — the disposition table asks
+   *  the same question and must get the same answer. */
+  readonly conflictCount = computed(() => this.store.conflictHandles().size);
 
   readonly conflictsOnly = signal(false);
 
@@ -66,7 +54,7 @@ export class LeftSidebarComponent {
   /** Narrow a group to the conflict set while the filter is on. */
   private applyConflictFilter(list: AgentDTO[]): AgentDTO[] {
     if (!this.conflictsOnly()) return list;
-    const handles = this.conflictHandles();
+    const handles = this.store.conflictHandles();
     return list.filter((a) => handles.has(a.handle));
   }
 

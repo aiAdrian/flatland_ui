@@ -381,6 +381,9 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
   },
   {
     type: 'agents',
+    role: 'agents',
+    variantLabel: 'v1 · roster (schmale Spalte)',
+    variantDefault: true,
     title: 'Trains',
     dataSource: 'simulation',
     kind: 'context',
@@ -399,6 +402,33 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     },
     defaultZone: 'left',
     minHeight: 180,
+  },
+  {
+    type: 'agents-table',
+    role: 'agents',
+    variantLabel: 'v2 · Dispositionstabelle',
+    title: 'Trains (Dispositionstabelle)',
+    dataSource: 'simulation',
+    kind: 'context',
+    granularity: 'overview-detail',
+    writes: 'simulation',
+    status: 'first-cut',
+    description: 'One row per train: status, message, schedule, next switch and its action.',
+    promise: 'Read a train\'s situation and act on it without leaving the row.',
+    grounding:
+      'The redesigned SBB Tunnelautomatik as reported in the 2026-08 HMI review: infrastructure in the upper third, a per-train table carrying the Handlungsaufforderung below. Replaces a left/right split with the same "der Nutzer muss viel suchen" complaint we had.',
+    availableModes: ['recommendation', 'co-learning'],
+    perMode: {
+      recommendation:
+        'The AI recommendation for a train is starred in its row — sourced from the impact analysis, the only place a real per-train recommendation exists. Trains without one show no marking.',
+      'co-learning':
+        'Options rendered as **equal choices**, no AI-preferred marking: the operator forms their own view first. Their own standing override is still marked as theirs.',
+      director:
+        'Withdrawn, like the v1 roster: dispatcher-level detail, while Director supervises objectives.',
+    },
+    defaultZone: 'bottom',
+    minHeight: 220,
+    spec: 'docs/plans/widget-agents-table.md',
   },
   {
     type: 'agent-inspector',
