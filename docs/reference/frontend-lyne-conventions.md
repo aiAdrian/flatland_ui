@@ -98,5 +98,6 @@ Lyne components are web components, so:
 ## Related
 
 - Global tokens & theme setup: [`frontend/src/styles.scss`](../../frontend/src/styles.scss)
+- Lyne coupling, branding & the open-source question: [`design-system-independence.md`](design-system-independence.md)
 - Project guardrails: [`CLAUDE.md`](../../CLAUDE.md)
 - Lyne components: https://digital.sbb.ch/en/design-system/lyne/components/

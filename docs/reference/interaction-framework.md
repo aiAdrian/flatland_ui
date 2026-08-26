@@ -64,6 +64,11 @@ mode-behaviour:
 Support* that feeds Control, and it stays advisory under **Human-in-Control**
 (§4). Further sub-types (e.g. counterfactual, contrastive) can be added later.
 
+> ⚠️ **Contested.** These framings are arguably a *collaboration-goal* property
+> (neutral vs ranked) attached to a mode that claims to be an *autonomy level* —
+> see [interaction-mode-axes.md](interaction-mode-axes.md), a discussion paper
+> proposing that `InteractionMode` carries two independent axes. Unresolved.
+
 ## 3. Orthogonal axes (attributes, not kinds)
 
 - **`granularity` — overview ↔ detail.** Shneiderman's mantra ("overview first,
@@ -77,6 +82,36 @@ Support* that feeds Control, and it stays advisory under **Human-in-Control**
   condition — correct for a controlled experiment). It is modelled as its **own
   concept**, *not* baked into `InteractionMode`, so that dynamic reallocation
   becomes a runtime change of the same structure rather than a refactor (§5).
+
+- **`writes` — what a widget may change.** `none` (reads only) · `view`
+  (presentation state: layers, tabs, selection, dismissals) · `record` (the
+  session record: decision log, reflection, rationale) · `simulation` (train
+  overrides, policy, run control, KPI weights, mode). Declared per widget in
+  `core/widgets/widget-catalog.ts` and shown as a pill in the Widget Gallery.
+
+  **Why it is not derived from `kind`.** The obvious rule — "an Event widget
+  informs, it does not change anything" — breaks on the first real case: the
+  Flatland map is an Event widget (*what is happening?*) whose Decisions layer
+  is a genuine Control affordance, and clicking the train where you see it is
+  direct manipulation at the point of interest, a control-room virtue rather
+  than an accident. Same for the graphic timetable. So capability is its own
+  axis, and such an action layer is *declared* as one instead of being an
+  incidental side effect of a widget holding the store.
+
+  **What makes it more than a label.** Every action on a train goes through
+  `core/dispatch/train-action.service.ts`. Widgets read through `SessionStore`
+  but cannot act through it, so acting is a visible injected dependency —
+  answerable by eye and by grep. The service also carries the toggle rule that
+  used to be copy-pasted into five components, and stamps an **origin** on each
+  action (`map | roster | table | inspector | impact | marey | whatif`) that
+  travels into the decision log. That turns the HMI review's question — *"the
+  same action is offered in several places; how is the workflow meant to go?"*
+  (`docs/reading/2026-08-22-hmi-review-workshop.md` §3) — from an argument into
+  a measurement: which affordance dispatchers actually use is now in the data.
+
+  **Scope, honestly:** the seam covers train actions. Policy switching, run
+  control and Director weights still call the store/API directly — the next
+  seams, named rather than silently claimed.
 
 ## 4. Human-in-Control — the autonomy principle
 
