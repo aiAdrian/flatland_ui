@@ -51,6 +51,9 @@
   stroke: var(--sbb-color-white, #ffffff);
   stroke-width: 1.5;
   opacity: 0.9;
+  // Interactive: hovering a station highlights its trains.
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .station-label {

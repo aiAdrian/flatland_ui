@@ -54,7 +54,7 @@ introduce per-mode framing then — out of scope for this port.)
 | Field / capability | Available now | To build (flagged) |
 |--------------------|:-------------:|:------------------:|
 | Agent trajectory points `(i,t,r,c)` | ✓ (`session.store`, existing Marey history) | |
-| `flatland.envs.stations_links` types (`StationsLinks`, `Fibre`, `Link`, `Station`, `Gate`, `Pin`) | | ✓ — merged into `flatland-rl` main 2026-07-05 ([PR #441](https://github.com/flatland-association/flatland-rl/pull/441)), **not yet on PyPI** (latest release 4.2.6). Requires pinning `flatland-rl` to a git commit. |
+| `flatland.envs.stations_links` types (`StationsLinks`, `Fibre`, `Link`, `Station`, `Gate`, `Pin`) | | ✓ — merged into `flatland-rl` main 2026-07-05 ([PR #441](https://github.com/flatland-association/flatland-rl/pull/441)) and **released in 4.2.6's successor 4.3.0** (2026-08-10). We pin 4.2.6, so this widget needs the version bump — see [`flatland-ecosystem-reuse-plan.md`](flatland-ecosystem-reuse-plan.md) W8 for the two risks it carries (sdist-only build, changed reward semantics). No git-commit pin needed any more. |
 | Stations/links generation for our envs (SparseRailGenerator emitting `StationsLinks`) | | ✓ — verify our env/scenario setup actually populates this attribute after the dependency bump; may need scenario-builder wiring. |
 | Link-map linearization algorithm (`extract_link_map()` + ~15 helpers) | | ✓ — **port** from flatland-hmi's `backend/app/link_map.py` into `backend/app/core/link_map.py`, with attribution comment (MIT). Do not re-derive from `marey_topology.py`. |
 | New endpoint exposing `{grid, mapping, levels, incompleteCells}` | | ✓ — e.g. `GET /{id}/hmi/link-map`, following existing `models/hmi.py` conventions. |
@@ -98,9 +98,15 @@ justifying the "additional version," not a duplicate.
   - `backend/tests/` — new test for the link-map endpoint + ported algorithm.
 
 ## 8. Open questions / risks
-1. **Dependency risk:** pinning `flatland-rl` to a git commit (not a PyPI
-   release) is an unreleased-code dependency. Revisit the pin once a new
-   PyPI release ships with `stations_links`.
+1. ~~**Dependency risk:** pinning `flatland-rl` to a git commit.~~ **Resolved
+   2026-08-16:** `stations_links` shipped in `flatland-rl` 4.3.0 (2026-08-10),
+   so a normal PyPI pin suffices. The remaining risk moved to the upgrade
+   itself: 4.3.0 publishes **sdist only** (adds `cython>=3.2.9`, so installs
+   compile from source — affects Docker/CI) and **changes reward semantics**
+   (no collision penalty on a controller `STOP`; intermediate stop served at any
+   halting cell), which makes 4.2.6 and 4.3.0 KPI numbers non-comparable.
+   Re-baseline when bumping. See
+   [`flatland-ecosystem-reuse-plan.md`](flatland-ecosystem-reuse-plan.md) §4 W8.
 2. **Env coverage:** does every scenario-builder path in this repo populate
    `StationsLinks`, or only `SparseRailGenerator`-built envs? If some
    scenarios don't, the widget needs an explicit empty/unsupported state (no

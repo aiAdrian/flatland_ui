@@ -7,12 +7,14 @@ The authoritative specs and guides for how the app works today.
 
 - [interaction-modes-brief.md](reference/interaction-modes-brief.md) — **authoritative** mode spec (WP 3.1/3.3/3.4)
 - [interaction-framework.md](reference/interaction-framework.md) — widget taxonomy (kind × granularity), function allocation, Human-in-Control, accountability seam
+- [interaction-mode-axes.md](reference/interaction-mode-axes.md) — **discussion paper:** `InteractionMode` conflates autonomy level with collaboration goal
 - [widget-authoring-process.md](reference/widget-authoring-process.md) — how we develop a widget (spec template + build workflow)
 - [architecture.md](reference/architecture.md) — system architecture
 - [mode-guide.md](reference/mode-guide.md) — the same task walked through all three modes
 - [panel-mode-matrix.md](reference/panel-mode-matrix.md) — per-panel availability & behaviour per mode
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
 - [colour-usage-audit.md](reference/colour-usage-audit.md) — colour concepts grouped into semantic families; consistency, collisions, global-config readiness (input to a future visual-encoding registry)
+- [design-system-independence.md](reference/design-system-independence.md) — how deeply Lyne is coupled, what blocks an open-source release, and the 2026-08-23 decision
 - [data-provenance.md](reference/data-provenance.md) — real simulation vs mock vs derived per widget/endpoint; why **Demo ≠ Mock** (grounds `WidgetMeta.dataSource` + the gallery badge)
 - [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub + Railway KPI catalog (confirmed in AI4REALNET org) — re-check at real WP 4.3 requirements
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API

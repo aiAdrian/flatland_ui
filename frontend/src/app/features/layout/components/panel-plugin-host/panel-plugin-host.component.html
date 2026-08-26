@@ -66,6 +66,10 @@
       <app-timetable [embedded]="true"></app-timetable>
     }
 
+    @case ('view-tabs') {
+      <app-view-tabs [panel]="panel" [embedded]="true"></app-view-tabs>
+    }
+
     @case ('kpi-filter') {
       <app-kpi-filter [embedded]="true"></app-kpi-filter>
     }

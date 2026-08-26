@@ -13,6 +13,32 @@
 > session can re-verify rather than trust this document blindly — repos
 > change).
 
+> **Re-checked 2026-08-16 — the repo moved and grew. Three deltas:**
+>
+> 1. **New home.** The orchestrators now live at
+>    [`flatland-association/ai4realnet-orchestrators`](https://github.com/flatland-association/ai4realnet-orchestrators)
+>    (pushed 2026-08-13), not under the AI4REALNET org. §1's link is stale.
+> 2. **Five railway KPIs now have real code**, not three stubs: **AF-029**
+>    (AI response time), **AF-051** (AI-agent scalability testing), **NF-045**
+>    (network impact propagation), **PF-026** (punctuality) and — new and closest
+>    to our study — **RS-058 (robustness to operator input)**. NF-045's method is
+>    worth borrowing regardless of whether we ever integrate: run the same
+>    scenario twice, once clean and once with a *single controlled* malfunction
+>    (`ConditionalMalfunctionEffectsGenerator`), and compare. That is a cleaner
+>    A/B baseline than our current impact analysis uses.
+> 3. **An interactive-loop runner exists**, in
+>    `ai4realnet_orchestrators/railway/playground/` — it replays Olten
+>    `partially_closed` and posts live to InteractiveAI via
+>    `flatland.integrations.interactiveai` (already present in our pinned
+>    `flatland-rl`). Its source names a benchmark entry called *Playground* at
+>    `ai4realnet-int.flatland.cloud`. **Open: whether that entry is meant for
+>    this project — unanswerable from the code, ask Adrian.** This is the §1
+>    "interactive-loop matches our HMI" observation turning concrete.
+>
+> §3's KPI catalog below was not re-verified in this pass and may also have
+> moved. Full survey:
+> [`flatland-ecosystem-reuse-plan.md`](../plans/flatland-ecosystem-reuse-plan.md).
+
 ## 1. What exists: the Validation Campaign Hub ("FAB")
 
 [`AI4REALNET/ai4realnet-orchestrators`](https://github.com/AI4REALNET/ai4realnet-orchestrators)

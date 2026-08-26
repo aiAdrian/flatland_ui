@@ -144,6 +144,24 @@ def serialize_agent(env, agent, override_action=None) -> Dict[str, Any]:
     else:
         delay_color_intensity = round((50 - time_to_deadline) / 50.0, 3)
 
+    # Ordered stops (ECML intermediate stops with time windows). waypoints is a
+    # list of stops, each a list of acceptable platform cells; stop[0] is the
+    # origin, stop[-1] the target, the middle ones the intermediate stops. The
+    # per-stop time windows live on parallel agent arrays. Generated envs have
+    # just [origin, target] (no intermediate stops), which is fine.
+    stops = []
+    waypoints = getattr(agent, "waypoints", None)
+    if waypoints:
+        weds = getattr(agent, "waypoints_earliest_departure", None) or []
+        wlas = getattr(agent, "waypoints_latest_arrival", None) or []
+        for i, stop in enumerate(waypoints):
+            cell = _safe_pos(stop[0].position) if stop else None
+            stops.append({
+                "cell": cell,
+                "earliest_departure": _safe_int(weds[i]) if i < len(weds) else None,
+                "latest_arrival": _safe_int(wlas[i]) if i < len(wlas) else None,
+            })
+
     return {
         "handle": int(agent.handle),
         "position": _safe_pos(agent.position),
@@ -151,6 +169,7 @@ def serialize_agent(env, agent, override_action=None) -> Dict[str, Any]:
         "initial_position": _safe_pos(agent.initial_position),
         "initial_direction": _safe_int(agent.initial_direction),
         "target": _safe_pos(agent.target) or [0, 0],
+        "stops": stops,
         "state": state_str,
         "speed": speed,
         "earliest_departure": earliest,

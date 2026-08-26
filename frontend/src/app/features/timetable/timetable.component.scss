@@ -42,9 +42,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+.tt-row {
+  cursor: pointer;
+}
+
+.tt-row.is-hovered td {
+  background: var(--sbb-color-milk);
+}
+
+.tt-row.is-selected td {
+  background: var(--sbb-color-cloud);
+}
+
 .tt-stop {
   font-weight: 600;
   color: var(--sbb-color-charcoal);
+}
+
+.tt-via {
+  color: var(--sbb-color-granite);
+  font-size: 12px;
 }
 
 .tt-train {

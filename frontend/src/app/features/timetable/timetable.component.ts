@@ -11,6 +11,8 @@ interface TimetableRow {
   color: string;
   from: string;
   to: string;
+  /** Intermediate stop labels (ECML), origin/target excluded; '' if none. */
+  via: string;
   departure: number | null;
   arrival: number | null;
   /** Where it is now: a station label if at a stop, else en route / waiting / arrived. */
@@ -78,11 +80,20 @@ export class TimetableComponent {
         tone = 'ok';
       }
 
+      // Intermediate stops = the ordered stops minus origin (first) and target
+      // (last); label each via the shared station registry.
+      const via = (a.stops ?? [])
+        .slice(1, -1)
+        .map((s) => this.store.stationLabelForCell(s.cell))
+        .filter((label): label is string => !!label)
+        .join(' · ');
+
       return {
         handle: a.handle,
         color: this.colors.getColor(a.handle),
         from: this.store.stationLabelForCell(a.initial_position) ?? '—',
         to,
+        via,
         departure: a.earliest_departure,
         arrival: a.latest_arrival,
         now,
@@ -91,4 +102,27 @@ export class TimetableComponent {
       };
     }),
   );
+
+  // ── Cross-linking with the map (shared selection/hover in the store) ──────
+  isSelected(handle: number): boolean {
+    return this.store.selectedHandles().has(handle);
+  }
+
+  isHovered(handle: number): boolean {
+    return this.store.notificationHoverHandles().has(handle);
+  }
+
+  /** Click a row → select that train (the map focuses/highlights it). */
+  onRowClick(handle: number): void {
+    this.store.toggleAgentSelection(handle);
+  }
+
+  /** Hover a row → highlight that train on the map. */
+  onRowEnter(handle: number): void {
+    this.store.setAgentHoverAgent(handle);
+  }
+
+  onRowLeave(): void {
+    this.store.clearAgentHoverAgents();
+  }
 }
