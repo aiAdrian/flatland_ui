@@ -342,7 +342,7 @@ export class AppComponent implements OnInit {
    * it is what the operator looks at when the work is done.
    */
   readonly shiftScreenOpen = computed(
-    () => this.store.interactionMode() === 'director' && this.store.shiftReviewOpen(),
+    () => this.panelAvailable('shift-review') && this.store.shiftReviewOpen(),
   );
 
   /** Label of the currently active collaboration mode (for the header dropdown). */

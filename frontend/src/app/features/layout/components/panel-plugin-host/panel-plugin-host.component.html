@@ -74,6 +74,35 @@
       <app-director-weights [embedded]="true"></app-director-weights>
     }
 
+    <!-- Director strategy surfaces. In the Director layout these render from
+         fixed slots in AppComponent (they carry constraints a free column
+         cannot express — the forecast needs its four time columns, the tiles
+         need to sit above the map). Mapped here so the Widget Gallery can
+         preview them live instead of falling through to the placeholder. -->
+    @case ('strategy-options') {
+      <app-strategy-options></app-strategy-options>
+    }
+
+    @case ('strategy-forecast') {
+      <app-strategy-forecast></app-strategy-forecast>
+    }
+
+    @case ('strategy-reflection') {
+      <app-strategy-reflection></app-strategy-reflection>
+    }
+
+    @case ('ai-activity') {
+      <app-ai-activity></app-ai-activity>
+    }
+
+    @case ('co-learning-effect') {
+      <app-co-learning-effect></app-co-learning-effect>
+    }
+
+    @case ('shift-review') {
+      <app-shift-review></app-shift-review>
+    }
+
     @case ('scenario') {
       <app-scenario-panel [embedded]="true"></app-scenario-panel>
     }
