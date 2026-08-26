@@ -1,8 +1,13 @@
 @if (embedded) {
   <ng-container [ngTemplateOutlet]="scenarioContent"></ng-container>
 } @else {
-  <sbb-expansion-panel class="lyne-feature-panel scenario-panel-lyne-panel" color="white" size="s" expanded>
-    <sbb-expansion-panel-header>
+  <sbb-expansion-panel
+    class="lyne-feature-panel scenario-panel-lyne-panel"
+    color="white"
+    size="s"
+    [attr.expanded]="collapsed() ? null : ''"
+  >
+    <sbb-expansion-panel-header (click)="toggleCollapsed()">
       <span class="lyne-panel-title">Scenarios</span>
     </sbb-expansion-panel-header>
 

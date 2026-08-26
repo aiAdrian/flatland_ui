@@ -30,7 +30,14 @@ export type DecisionAction =
   | 'proceed'
   | 'accept'
   | 'override'
-  | 'dismiss';
+  | 'dismiss'
+  /** Director: the operator committed the autonomous plan to a strategy focus.
+   *  Not about one train — it is the objective the whole plan pursues. */
+  | 'strategy';
+
+/** Value axes, duplicated from `operator-model.service` to keep this leaf module
+ *  import-free. */
+export type DecisionValueAxis = 'punctuality' | 'throughput' | 'stability' | 'connection';
 
 export interface DecisionLogEntry {
   /** Monotonic sequence number within the session (1-based). */
@@ -62,6 +69,17 @@ export interface DecisionLogEntry {
   /** Operator's confirmation of that hypothesis. 'once' is the explicit
    *  overfitting guard — a one-off decision that must not become a rule. */
   hypothesisResponse?: 'yes' | 'once' | 'no';
+  /**
+   * The value axis this decision is evidence for, when the decision *states* it
+   * rather than implying it. A Director strategy choice does: picking
+   * "Anschlüsse halten" over two named alternatives with quantified costs is a
+   * direct statement of priority, so there is nothing to infer from KPI deltas
+   * or to guess from a reason chip.
+   */
+  valueAxis?: DecisionValueAxis;
+  /** Human-readable summary of what the choice gave up, for the reflection card
+   *  and the learning record ("−31 Pünktlichkeit"). */
+  tradedAway?: string;
 }
 
 /** Rolling cap on the in-memory log (newest kept). */

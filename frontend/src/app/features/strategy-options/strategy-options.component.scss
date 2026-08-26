@@ -1,0 +1,416 @@
+// Director strategy tiles. Sizing rule for this whole file: the tiles sit
+// ABOVE the Flatland map, so every pixel here is a pixel the map loses. Target
+// is ~170px per tile — enough for the three axis scores that carry the
+// trade-off, not enough for prose. Nothing below 11px: at 10px the numbers were
+// unreadable on a projector, which is where this gets shown.
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.so {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.so-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.so-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.so-sub {
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.so-deadline {
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+  white-space: nowrap;
+}
+.so-deadline strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-charcoal);
+}
+.so-deadline.is-soon {
+  color: var(--app-severity-warning);
+  font-weight: 600;
+}
+.so-deadline.is-soon strong {
+  color: var(--app-severity-warning);
+}
+
+.so-refresh {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+}
+.so-refresh:hover:not(:disabled) {
+  background: var(--sbb-color-cloud);
+}
+.so-refresh:disabled {
+  cursor: progress;
+  color: var(--sbb-color-granite);
+}
+
+.so-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+}
+.so-note--warn {
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--app-severity-warning);
+  padding: 3px 8px;
+}
+.so-note--agree {
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--sbb-color-cloud);
+  padding: 3px 8px;
+}
+.so-note--busy {
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--sbb-color-violet);
+  padding: 3px 8px;
+  color: var(--sbb-color-charcoal);
+}
+
+/* Placeholder bars while the forecast is computed: the tile keeps its shape
+   instead of collapsing, so a 20s wait does not read as "nothing here". */
+.so-axes--pending .so-axis__bar {
+  background: var(--sbb-color-cloud);
+}
+
+.so-axis__pending {
+  display: block;
+  height: 100%;
+  width: 35%;
+  border-radius: 3px;
+  background: var(--sbb-color-granite);
+  opacity: 0.35;
+  animation: so-pending 1.3s ease-in-out infinite;
+}
+
+@keyframes so-pending {
+  0% {
+    transform: translateX(-10%);
+  }
+
+  50% {
+    transform: translateX(190%);
+  }
+
+  100% {
+    transform: translateX(-10%);
+  }
+}
+
+.so-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.so-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 9px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  min-width: 0;
+}
+.so-tile.is-active {
+  border-color: var(--sbb-color-charcoal);
+  box-shadow: inset 3px 0 0 0 var(--sbb-color-charcoal);
+}
+.so-tile.is-previewed {
+  border-color: var(--sbb-color-violet);
+  box-shadow: inset 3px 0 0 0 var(--sbb-color-violet);
+}
+
+.so-tile__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.so-ident {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.so-tile__title {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--sbb-color-charcoal);
+}
+
+.so-badge {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+}
+
+// Gain and cost on their own line, tight leading. A single clipped line was
+// 15px cheaper but truncated the cost — and the cost is the whole point of
+// offering a choice rather than a recommendation.
+.so-tradeoff {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--sbb-color-granite);
+}
+.so-sep {
+  display: none;
+}
+.so-plus {
+  color: var(--app-severity-success, var(--sbb-color-charcoal));
+}
+.so-axes {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.so-axis {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sbb-color-granite);
+}
+.so-axis.is-focus {
+  color: var(--sbb-color-charcoal);
+  font-weight: 600;
+}
+
+.so-axis__label {
+  flex: 0 0 74px;
+}
+
+.so-axis__bar {
+  flex: 1 1 auto;
+  height: 6px;
+  min-width: 0;
+  border-radius: 3px;
+  background: var(--sbb-color-cloud);
+  overflow: hidden;
+}
+
+.so-axis__fill {
+  display: block;
+  height: 100%;
+  background: var(--sbb-color-granite);
+}
+.so-axis.is-focus .so-axis__fill {
+  background: var(--sbb-color-charcoal);
+}
+
+.so-axis__val {
+  flex: 0 0 38px;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.so-axis__scope {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.so-axis__delta {
+  flex: 0 0 30px;
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.so-axis__delta.is-up {
+  color: var(--app-severity-success, var(--sbb-color-charcoal));
+}
+.so-axis__delta.is-down {
+  color: var(--app-severity-error);
+}
+.so-axis__delta.is-flat {
+  color: var(--sbb-color-cloud);
+  font-weight: 400;
+}
+
+.so-changed {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
+.so-nolever {
+  display: block;
+  border-left: 2px solid var(--app-severity-warning);
+  padding-left: 5px;
+  margin-top: 2px;
+}
+
+.so-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.so-btn {
+  flex: 1;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 6px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+}
+.so-btn:hover:not(:disabled) {
+  background: var(--sbb-color-cloud);
+}
+.so-btn:disabled {
+  cursor: default;
+  color: var(--sbb-color-granite);
+  background: var(--sbb-color-milk);
+}
+.so-btn--preview.is-on {
+  background: var(--sbb-color-violet);
+  border-color: var(--sbb-color-violet);
+  color: var(--sbb-color-white);
+}
+.so-btn--preview.is-on:hover:not(:disabled) {
+  background: var(--sbb-color-violet);
+}
+.so-btn--apply:not(:disabled) {
+  background: var(--sbb-color-charcoal);
+  border-color: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+}
+.so-btn--apply:not(:disabled):hover {
+  background: var(--sbb-color-black);
+  border-color: var(--sbb-color-black);
+}
+
+// The learned preference: a marked tile, not a re-ranked one. Deliberately
+// weaker than `.is-active` (that one states a fact, this one a hypothesis) and a
+// different colour from the preview so the three states stay distinguishable.
+.so-tile.is-preferred {
+  border-color: var(--sbb-color-granite);
+}
+
+.so-preferred {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border-left: 2px solid var(--sbb-color-violet);
+  padding: 2px 6px;
+}
+
+.so-preferred__mark {
+  flex: 0 0 auto;
+  color: var(--sbb-color-violet);
+}
+
+// The simulated outcome, visually apart from the scored bars above: it comes
+// from a different source (two played-out episodes, not the value models) and it
+// outranks them when the two disagree.
+.so-sim {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 6px;
+  border-left: 2px solid var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+}
+.so-sim.is-null {
+  border-left-color: var(--sbb-color-granite);
+}
+
+.so-sim__title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--sbb-color-granite);
+}
+
+.so-sim__line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 11px;
+  color: var(--sbb-color-charcoal);
+}
+
+.so-sim__kv {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.so-sim__kv.is-good {
+  color: var(--app-severity-success, var(--sbb-color-charcoal));
+  font-weight: 700;
+}
+.so-sim__kv.is-bad {
+  color: var(--app-severity-error);
+  font-weight: 700;
+}
+
+.so-sim__warn {
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--app-severity-warning);
+}
+
+.so-btn--sim {
+  flex: 0 0 auto;
+}

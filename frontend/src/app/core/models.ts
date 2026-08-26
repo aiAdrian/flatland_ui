@@ -3,7 +3,8 @@ export type PolicyName =
   | 'shortest_path'
   | 'forward_only'
   | 'do_nothing'
-  | 'random';
+  | 'random'
+  | 'goal_directed';
 
 export interface PolicyInfo {
   id: PolicyName;

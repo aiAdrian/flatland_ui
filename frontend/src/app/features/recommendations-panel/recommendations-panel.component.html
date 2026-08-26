@@ -30,6 +30,7 @@
                [class.is-recommended]="card.isRecommended"
                [class.urgent]="isUrgent(card.rec)"
                [class.previewable]="previewable(card.rec)"
+               [class.is-pinned]="isPinned(card.rec)"
                (mouseenter)="previewOn(card.rec)"
                (mouseleave)="previewOff(card.rec)">
 
@@ -77,7 +78,28 @@
             }
 
             @if (previewable(card.rec)) {
-              <p class="preview-hint">Hover zeigt die geänderte Route auf Karte &amp; Marey</p>
+              <!-- Look-ahead on the map: hover is enough for a glance, but comparing
+                   options needs the overlay to survive the mouse leaving the card. -->
+              <div class="preview-row">
+                <button type="button"
+                        class="btn btn-pin"
+                        [class.is-pinned]="isPinned(card.rec)"
+                        [attr.aria-pressed]="isPinned(card.rec)"
+                        (click)="togglePin(card.rec)">
+                  @if (isPinned(card.rec)) {
+                    Vorausschau fixiert
+                  } @else {
+                    Vorausschau fixieren
+                  }
+                </button>
+                <p class="preview-hint">
+                  @if (isPinned(card.rec)) {
+                    Umleitung bleibt auf Karte &amp; Marey sichtbar
+                  } @else {
+                    Hover zeigt die geänderte Route auf Karte &amp; Marey
+                  }
+                </p>
+              </div>
             }
 
             <div class="actions">
@@ -100,9 +122,19 @@
       </div>
     }
 
-    <!-- Workstream B Tier 1: confirmed learning records (deck slide 5),
-         reusing the shared/ui primitives. Visible in Recommendation mode. -->
-    <app-learning-records />
+    <!-- Director hosts these in its right column instead (next to the dials they
+         explain), where this panel is not shown at all — the guard keeps them
+         from appearing twice should Recommendations ever be enabled there. -->
+    @if (store.interactionMode() !== 'director') {
+      <!-- Co-Learning Level B (docs/plans/co-learning-direction.md): what the
+           confirmed preferences actually *changed*, plus the reward weights
+           inferred from the operator's own deliberate decisions. -->
+      <app-co-learning-effect />
+
+      <!-- Workstream B Tier 1: confirmed learning records (deck slide 5),
+           reusing the shared/ui primitives. Visible in Recommendation mode. -->
+      <app-learning-records />
+    }
 
   </div>
 </ng-template>

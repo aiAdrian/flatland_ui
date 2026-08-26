@@ -185,7 +185,10 @@ async def play(session_id: str, req: PlayRequest):
     if not session:
         raise HTTPException(404, f"Session {session_id} not found")
 
-    enabled = set(getattr(session, "enabled_scenario_policies", set()))
+    # Gate on the control-policy set (like /step and /policy): play drives
+    # the live session, so any control-enabled policy is playable even if
+    # it cannot power scenario forecasts (e.g. goal_directed).
+    enabled = set(getattr(session, "enabled_policy_ids", set()))
     if req.policy not in enabled:
         raise HTTPException(400, f"Policy '{req.policy}' is not enabled for this session")
 

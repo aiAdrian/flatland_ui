@@ -16,6 +16,7 @@ POLICY_LABELS = {
     "forward_only": "Forward Only",
     "do_nothing": "Do Nothing",
     "random": "Random",
+    "goal_directed": "Director Plan",
 }
 
 

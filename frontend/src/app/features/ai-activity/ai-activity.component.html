@@ -1,0 +1,88 @@
+<div class="aa">
+  <button class="aa-head" type="button" (click)="toggleCollapsed()">
+    <span class="aa-title">Was die KI macht</span>
+    @if (activity(); as a) {
+      <span class="aa-count">{{ a.totalDecisions }} Entscheidungen</span>
+      @if (a.totalReplans > 0) {
+        <span class="aa-count aa-count--replan">{{ a.totalReplans }} Umplanung(en)</span>
+      }
+    }
+    <span class="aa-caret" [class.open]="!collapsed()">▾</span>
+  </button>
+
+  @if (!collapsed()) {
+    @if (sourceLabel(); as src) {
+      <p class="aa-source">Plan aus: {{ src }}</p>
+    }
+
+    <!-- The trigger. Without disruptions the AI has nothing to absorb, and this
+         whole feed stays quiet — which is itself worth seeing. -->
+    @if (disruptions().length > 0) {
+      <div class="aa-group">
+        <span class="aa-group__title">Störungen</span>
+        @for (n of disruptions(); track n.id) {
+          <div class="aa-item aa-item--alert">
+            <span class="aa-item__text">{{ n.message }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- The AI's reaction to a disruption: whether it replaced the plan, or
+         weighed it and was vetoed by the paired simulation. Own group because
+         these are the few events that actually explain the run. -->
+    @if (replans().length > 0) {
+      <div class="aa-group">
+        <span class="aa-group__title">Umplanungen</span>
+        @for (e of replans(); track trackEntry($index, e)) {
+          <div class="aa-item aa-item--replan">
+            <span class="aa-item__step">t={{ e.step }}</span>
+            <span class="aa-item__text">
+              {{ line(e) }}
+              @if (detail(e); as d) {
+                <span class="aa-item__detail">{{ d }}</span>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (recent().length > 0) {
+      <div class="aa-group">
+        <span class="aa-group__title">Zuletzt entschieden</span>
+        @for (e of recent(); track trackEntry($index, e)) {
+          <div class="aa-item" [class.aa-item--hold]="isHold(e)">
+            <span class="aa-item__step">t={{ e.step }}</span>
+            <span class="aa-item__text">
+              {{ line(e) }}
+              @if (detail(e); as d) {
+                <span class="aa-item__detail">{{ d }}</span>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (upcoming().length > 0) {
+      <div class="aa-group">
+        <!-- Separate on purpose: these are planned, not done. -->
+        <span class="aa-group__title">Als nächstes geplant</span>
+        @for (e of upcoming(); track trackEntry($index, e)) {
+          <div class="aa-item aa-item--planned" [class.aa-item--hold]="isHold(e)">
+            <span class="aa-item__step">t={{ e.step }}</span>
+            <span class="aa-item__text">{{ line(e) }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (!hasAnything()) {
+      <p class="aa-empty">
+        Noch keine Planerentscheidungen. Starte den autonomen Lauf — dann steht
+        hier, was die KI entscheidet und wann sie umplant.
+      </p>
+    }
+  }
+</div>

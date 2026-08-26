@@ -69,9 +69,41 @@
 .three-col {
   display: grid;
   grid-template-columns: 280px 1fr 320px;
+
+  /* Director: no left column. The right one gets the width the forecast's four
+     time columns need — at 333px the "+30 min" column was cut off. */
+  &.two-col {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
   flex: 1;
   overflow: hidden;
   min-height: 0;
+
+  /* Kept in the DOM while the shift review is up, so returning to the shift does
+     not re-plan the three strategies (~20 s). */
+  &.is-behind {
+    display: none;
+  }
+}
+
+/* Schichtabschluss as its own screen: the whole working area, scrollable, with a
+   reading width rather than the full 1500px. */
+.shift-screen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--sbb-color-milk, #f6f6f6);
+  padding: 20px 24px 32px;
+}
+
+.shift-screen > app-shift-review {
+  display: block;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--sbb-color-white, #fff);
+  border: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-radius: 4px;
+  padding: 20px 24px;
 }
 
 .left-pane,
@@ -175,12 +207,15 @@
   50% { opacity: 0.3; }
 }
 
+/* One row where it fits: wrapping this strip cost 44px of map height for no
+   added information. It still wraps when the column really is too narrow. */
 .map-controls {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   flex-wrap: wrap;
-  padding: 8px 12px;
+  row-gap: 4px;
+  padding: 5px 12px;
   border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
   background: var(--sbb-color-milk, #f6f6f6);
   flex-shrink: 0;
@@ -196,8 +231,11 @@
   flex: 1;
   display: grid;
   overflow: hidden;
-  /* Keep a usable map/marey footprint even when the centre pane scrolls. */
-  min-height: 220px;
+  /* Keep a usable map/marey footprint even when the centre pane scrolls, but do
+     not over-reserve: a floor larger than what is left just pushes the rows
+     below it off screen. 300px is the smallest height at which a reroute
+     look-ahead is still readable. */
+  min-height: 290px;
 
   &.only-map {
     grid-template-rows: 1fr;
@@ -224,6 +262,42 @@
   position: relative;
 }
 
+/* Legend for the strategy look-ahead, over the map's top-left corner. */
+.map-lookahead-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 16px);
+  padding: 4px 10px;
+  border: 1px solid var(--sbb-color-violet);
+  border-radius: 3px;
+  background: var(--sbb-color-white, #fff);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--sbb-color-charcoal, #212121);
+  pointer-events: none;
+}
+
+.map-lookahead-badge__dash {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 0;
+  border-top: 4px dashed var(--sbb-color-violet);
+}
+
+/* Committed plan, not a hypothetical: same drawing, so the frame has to carry
+   the difference. */
+.map-lookahead-badge.is-committed {
+  border-color: var(--sbb-color-charcoal, #212121);
+}
+.map-lookahead-badge.is-committed .map-lookahead-badge__dash {
+  border-top-color: var(--sbb-color-charcoal, #212121);
+}
+
 .views.only-map .map-section,
 .views.only-marey .marey-section {
   border-bottom: none;
@@ -240,6 +314,35 @@
   padding: 8px 12px;
   border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
   background: var(--sbb-color-milk, #f6f6f6);
+}
+
+/* Director's A/B/C strategy tiles. Sizes to content (the 58% cap clipped the
+   tile heads) but must stay small: everything here pushes the map down, and the
+   map is what the chosen strategy is judged on. The tiles are built for ~180px;
+   this cap is the guard rail, not the target. */
+.center-dashboard--options {
+  max-height: 265px;
+  overflow: auto;
+  padding: 6px 12px;
+}
+
+/* Director: impact forecast in the right column, in the room freed by dropping
+   the dials / scenario / agent-inspector panels. */
+.right-outlook {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  background: var(--sbb-color-milk, #f6f6f6);
+}
+
+.right-outlook__empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sbb-color-granite, #686868);
+}
+.right-outlook__empty strong {
+  color: var(--sbb-color-charcoal, #212121);
 }
 
 /* Co-Learning (WP 3.3): reflection tile below the map. Its own Lyne feature
@@ -916,6 +1019,13 @@
   min-height: 0;
 }
 
+/* Repeated after the runtime-layout rule above: that one re-declares
+   grid-template-columns at equal specificity and would otherwise put a phantom
+   left track back into Director's two-column layout. */
+.three-col.two-col {
+  grid-template-columns: minmax(0, 1fr) 400px;
+}
+
 .left-pane,
 .center-pane,
 .right-pane {
@@ -944,7 +1054,9 @@
 
 .views {
   min-width: 0;
-  min-height: 220px;
+  /* Keep in sync with the .views floor above — this later rule wins on equal
+     specificity, so leaving it at the old value silently undid the fix. */
+  min-height: 290px;
 }
 
 .views.split {

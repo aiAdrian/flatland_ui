@@ -78,6 +78,18 @@ interface WhatIfOverlaySegment {
   variant: 'ai' | 'human';
 }
 
+/** One train's route in the Director plan overlay: a single dashed path,
+ *  already offset sideways where several trains share a cell so the routes
+ *  render as close parallel lines instead of covering each other.
+ *  `dashOffset` staggers the dash phase per train so routes stay
+ *  distinguishable even where they touch. */
+interface DirectorPlanLine {
+  id: string;
+  d: string;
+  color: string;
+  dashOffset: number;
+}
+
 @Component({
   selector: 'app-flatland-map',
   standalone: true,
@@ -303,6 +315,19 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       add(h);
     }
 
+    // Option preview: while an alternative is previewed (hovered or pinned in
+    // the A/B/C options), show the planned reroute for *every* train that option
+    // moves — not just a selected one. Without this the operator has to pick a
+    // train first to see what the option would actually do, which is exactly the
+    // look-ahead the Director view is for.
+    const previewId = this.store.previewScenarioId();
+    if (previewId) {
+      const previewed = this.store.scenarios().find((s) => s.id === previewId);
+      for (const key of Object.keys(previewed?.trajectories ?? {})) {
+        add(Number(key));
+      }
+    }
+
     return handles;
   });
 
@@ -423,6 +448,175 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     return out;
   });
 
+  /** Director plan overlay: while the mouse is on the Director Weights
+   *  widget, draw the committed plan's route for every train as a dashed
+   *  line following the driven rail branch. Every train gets its OWN
+   *  colour (`AgentColorService.getPlanColor`, no round-robin repeats,
+   *  spawned or not); trains sharing a cell are offset sideways into
+   *  close parallel lines, and the dash phase is staggered per train, so
+   *  no route ever hides another. The panel refreshes
+   *  `store.directorPlanPaths` instantly after a slider settles or a
+   *  re-plan, so the routes always show the plan as it currently stands.
+   *
+   *  A strategy look-ahead (`directorPreviewPaths`, set by the A/B/C strategy
+   *  tiles) takes precedence and draws without the hover gate: it shows the
+   *  reroute of a focus the operator is still only considering, which they
+   *  need to *study* — it must not vanish when the pointer leaves the tile. */
+  readonly directorPlanLines = computed<DirectorPlanLine[]>(() => {
+    // With a divergence overlay the map shows branch marks, not routes — except
+    // for the one train the operator points at. Drawing all of them was
+    // unreadable: the deviating stretches run 19–96 cells, so every option
+    // looked like the same bundle of long dashed lines.
+    const divergence = this.store.directorPreviewDivergence();
+    if (divergence) {
+      const handle = this.store.directorHoverHandle();
+      if (handle == null) return [];
+      const entry = divergence.reroutes[String(handle)];
+      if (!entry) return [];
+      return this._planLinesFrom({ [String(handle)]: entry.points });
+    }
+
+    const preview = this.store.directorPreviewPaths();
+    const paths = preview ?? (this.store.directorPlanHover() ? this.store.directorPlanPaths() : null);
+    if (!paths) return [];
+    return this._planLinesFrom(paths);
+  });
+
+  /** Branch marks: one per rerouted train, at the cell where its route starts to
+   *  differ. The default overlay — small, countable, and pointing at the decision
+   *  rather than redrawing the whole plan. */
+  readonly directorBranchMarks = computed(() => {
+    const divergence = this.store.directorPreviewDivergence();
+    if (!divergence) return [];
+    return Object.entries(divergence.reroutes).map(([key, entry]) => {
+      const handle = Number(key);
+      return {
+        handle,
+        x: entry.branch.col * this.cellSize + this.cellSize / 2,
+        y: entry.branch.row * this.cellSize + this.cellSize / 2,
+        color: this._planColorForHandle(handle),
+        active: this.store.directorHoverHandle() === handle,
+      };
+    });
+  });
+
+  /** Wait marks: a hold cannot be drawn as a line, so the place and length of
+   *  the wait is marked instead. */
+  readonly directorHoldMarks = computed(() => {
+    const divergence = this.store.directorPreviewDivergence();
+    if (!divergence) return [];
+    return divergence.holds.map((h) => ({
+      handle: h.handle,
+      steps: h.steps,
+      x: h.col * this.cellSize + this.cellSize / 2,
+      y: h.row * this.cellSize + this.cellSize / 2,
+      color: this._planColorForHandle(h.handle),
+    }));
+  });
+
+  onBranchEnter(handle: number): void {
+    this.store.directorHoverHandle.set(handle);
+  }
+
+  onBranchLeave(): void {
+    this.store.directorHoverHandle.set(null);
+  }
+
+  private _planLinesFrom(
+    paths: Record<string, Array<{ step: number; row: number; col: number }>>,
+  ): DirectorPlanLine[] {
+
+    const now = this.store.elapsedSteps();
+    const railCells = new Set(this.tiles().map((t) => `${t.r}_${t.c}`));
+
+    const trains: Array<{ handle: number; cells: Array<{ row: number; col: number }> }> = [];
+    for (const [key, points] of Object.entries(paths)) {
+      const handle = Number(key);
+      if (!Number.isFinite(handle) || !points?.length) continue;
+      const cells = this._buildForecastPathCells(handle, points, now);
+      if (cells.length >= 2) trains.push({ handle, cells });
+    }
+    trains.sort((a, b) => a.handle - b.handle);
+
+    // Which trains cross each cell → a lateral slot per train per cell
+    // (handle-sorted, so the slot order stays consistent along a shared
+    // corridor).
+    const occupancy = new Map<string, number[]>();
+    for (const train of trains) {
+      const seen = new Set<string>();
+      for (const cell of train.cells) {
+        const key = `${cell.row}_${cell.col}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        let sharing = occupancy.get(key);
+        if (!sharing) {
+          sharing = [];
+          occupancy.set(key, sharing);
+        }
+        sharing.push(train.handle);
+      }
+    }
+
+    const SPREAD = 5; // px between neighbouring trains' lines on a shared cell
+    const SAMPLE_TS = [0, 0.25, 0.5, 0.75, 1]; // polyline samples per cell branch
+    // Keep in sync with stroke-dasharray in the SCSS (9 + 5). The lines use
+    // `vector-effect: non-scaling-stroke`, so dash lengths — and therefore this
+    // phase offset — are screen pixels, not user units.
+    const DASH_PERIOD = 14;
+
+    const lines: DirectorPlanLine[] = [];
+    for (let idx = 0; idx < trains.length; idx++) {
+      const train = trains[idx];
+      const color = this._planColorForHandle(train.handle);
+      let d = '';
+      let pen = false;
+      for (let i = 0; i < train.cells.length; i++) {
+        const curr = train.cells[i];
+        const cellKey = `${curr.row}_${curr.col}`;
+        if (!railCells.has(cellKey)) {
+          pen = false;
+          continue;
+        }
+
+        const sharing = occupancy.get(cellKey) ?? [train.handle];
+        const slot = sharing.indexOf(train.handle);
+        const lateral = (slot - (sharing.length - 1) / 2) * SPREAD;
+
+        const prev = i > 0 ? train.cells[i - 1] : null;
+        const next = i < train.cells.length - 1 ? train.cells[i + 1] : null;
+
+        for (const t of SAMPLE_TS) {
+          const p = this._branchPointAt(curr, prev, next, t);
+          if (!p) {
+            pen = false;
+            continue;
+          }
+          const x = (p.x + p.nx * lateral).toFixed(1);
+          const y = (p.y + p.ny * lateral).toFixed(1);
+          d += `${pen ? ' L' : ' M'} ${x} ${y}`;
+          pen = true;
+        }
+      }
+      if (!d) continue;
+      lines.push({
+        id: `director_line_${train.handle}`,
+        d: d.trim(),
+        color,
+        dashOffset: (idx % 3) * (DASH_PERIOD / 3),
+      });
+    }
+    return lines;
+  }
+
+  /** Plan-overlay colour: unique per train; the selected agent keeps the
+   *  global selected colour. */
+  private _planColorForHandle(handle: number): string {
+    if (this.store.selectedHandle() === handle) {
+      return this.agentColors.getSelectedColor();
+    }
+    return this.agentColors.getPlanColor(handle);
+  }
+
   readonly selectedTrajectoryCells = computed<TrajectoryOverlayCell[]>(() => {
     const handle = this.focusedTrajectoryHandle();
     if (handle == null) return [];
@@ -505,26 +699,15 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     out.push({ row, col });
   }
 
-  /**
-   * Build renderable forecast path segments for one handle's trajectory.
-   *
-   * Shared by the scenario preview (`selectedTrajectoryFutureSegments`,
-   * coloured per agent) and the what-if overlay (`whatIfPreviewSegments`,
-   * coloured by branch identity via SCSS). Starts at the agent's current
-   * physical position so the route is continuous from the train into the
-   * forecast, interpolates sparse forecast points, optionally appends an
-   * adjacent target cell, and turns the cell chain into per-cell SVG path
-   * data via `_trajectorySegmentPathD`.
-   */
-  private _buildForecastSegments(
+  /** Future path cells for a train: current position (when on the map) plus
+   *  the forecast points after `now`, gap-interpolated, plus the target cell
+   *  when directly adjacent. Shared by the forecast segment overlays and
+   *  the Director plan lines. */
+  private _buildForecastPathCells(
     handle: number,
     forecast: Array<{ step: number; row: number; col: number }>,
-    color: string,
-    idPrefix: string,
-    railCells: Set<string>,
     now: number,
-    opacity = 0.5,
-  ): TrajectoryOverlaySegment[] {
+  ): Array<{ row: number; col: number }> {
     if (forecast.length === 0) return [];
 
     const agent = this.store.agents().find((a) => a.handle === handle);
@@ -572,6 +755,26 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       }
     }
 
+    return pathCells;
+  }
+
+  /**
+   * Renderable forecast path segments for one handle's trajectory: the cell
+   * chain from `_buildForecastPathCells` turned into per-cell SVG path data
+   * via `_trajectorySegmentPathD`. Used by the scenario preview
+   * (`selectedTrajectoryFutureSegments`, coloured per agent) and the what-if
+   * overlay (`whatIfPreviewSegments`, coloured by branch identity via SCSS).
+   */
+  private _buildForecastSegments(
+    handle: number,
+    forecast: Array<{ step: number; row: number; col: number }>,
+    color: string,
+    idPrefix: string,
+    railCells: Set<string>,
+    now: number,
+    opacity = 0.5,
+  ): TrajectoryOverlaySegment[] {
+    const pathCells = this._buildForecastPathCells(handle, forecast, now);
     if (pathCells.length < 2) return [];
 
     const segments: TrajectoryOverlaySegment[] = [];
@@ -741,6 +944,55 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     // Turn branch. This is what solves the switch problem:
     // e.g. E -> S colours only the C-B curve, not the A-C branch.
     return `M ${inn.x} ${inn.y} Q ${center.x} ${center.y} ${out.x} ${out.y}`;
+  }
+
+  /**
+   * Point + unit normal at parameter t (0..1) along the driven branch of a
+   * cell (same entry/exit semantics as `_trajectorySegmentPathD`). The
+   * normal is canonical — independent of travel direction — so two trains
+   * traversing the same track in opposite directions offset to DIFFERENT
+   * sides instead of onto each other.
+   */
+  private _branchPointAt(
+    curr: { row: number; col: number },
+    prev: { row: number; col: number } | null,
+    next: { row: number; col: number } | null,
+    t: number,
+  ): { x: number; y: number; nx: number; ny: number } | null {
+    const entryDir = this._dirToNeighbor(curr, prev);
+    const exitDir = this._dirToNeighbor(curr, next);
+    if (entryDir == null && exitDir == null) return null;
+
+    const center = this._cellCenter(curr);
+    const p0 = entryDir == null ? center : this._cellEdgePoint(curr, entryDir);
+    const p2 = exitDir == null ? center : this._cellEdgePoint(curr, exitDir);
+    const isTurn =
+      entryDir != null && exitDir != null && !this._areOppositeDirs(entryDir, exitDir);
+
+    let x: number;
+    let y: number;
+    let tx: number;
+    let ty: number;
+    if (isTurn) {
+      // Quadratic curve via the cell centre, as the rail branch is drawn.
+      const u = 1 - t;
+      x = u * u * p0.x + 2 * u * t * center.x + t * t * p2.x;
+      y = u * u * p0.y + 2 * u * t * center.y + t * t * p2.y;
+      tx = 2 * u * (center.x - p0.x) + 2 * t * (p2.x - center.x);
+      ty = 2 * u * (center.y - p0.y) + 2 * t * (p2.y - center.y);
+    } else {
+      x = p0.x + (p2.x - p0.x) * t;
+      y = p0.y + (p2.y - p0.y) * t;
+      tx = p2.x - p0.x;
+      ty = p2.y - p0.y;
+    }
+
+    if (tx < 0 || (tx === 0 && ty < 0)) {
+      tx = -tx;
+      ty = -ty;
+    }
+    const len = Math.hypot(tx, ty) || 1;
+    return { x, y, nx: -ty / len, ny: tx / len };
   }
 
   private _markTrajectoryCell(
@@ -1487,6 +1739,53 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
 
 
 
+
+  /**
+   * What is wrong with *this* train — the answer to pointing at a red ring.
+   *
+   * The ring says "there is a problem here"; without this the operator had to
+   * guess which one. Everything comes from state the session already carries:
+   * the malfunction counter, the accumulated delay, and the impact analysis that
+   * names who is blocked by whom. Returns null for a train with nothing wrong,
+   * so healthy trains get no tooltip.
+   */
+  agentProblemLines(a: AgentDTO): string[] {
+    const lines: string[] = [];
+    const remaining = Number(a.malfunction_remaining ?? 0);
+    if (this.isMalfunctioning(a)) {
+      lines.push(
+        remaining > 0
+          ? `Störung — noch ${remaining} Schritt(e)`
+          : 'Störung',
+      );
+    }
+    const delay = Number(a.delay ?? 0);
+    if (delay > 0) lines.push(`Verspätung ${delay}`);
+
+    // The impact analysis is the only place that knows the blocking relation —
+    // both directions, because "who blocks me" and "whom do I block" are
+    // different questions for a supervisor.
+    for (const item of this.store.impact()) {
+      if (item.handle !== a.handle) continue;
+      lines.push(
+        `blockiert von Zug ${item.blocked_by} bei ` +
+          `(${item.blocked_cell[0]}, ${item.blocked_cell[1]}) — ` +
+          `erreicht in ${item.eta_steps}, frei in ${item.clears_in_steps}`,
+      );
+    }
+    const blocked = this.store
+      .impact()
+      .filter((i) => i.blocked_by === a.handle)
+      .map((i) => i.handle);
+    if (blocked.length > 0) {
+      lines.push(`blockiert Zug ${blocked.join(', ')}`);
+    }
+    return lines;
+  }
+
+  hasAgentProblem(a: AgentDTO): boolean {
+    return this.agentProblemLines(a).length > 0;
+  }
 
   onAgentMouseEnter(handle: number): void {
     this.hoveredTrajectoryHandle.set(handle);

@@ -14,6 +14,7 @@ from flatland.envs.rail_env import RailEnv
 
 from app.policies.base import Policy
 from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
+from app.policies.goal_directed_policy import GoalDirectedPolicy
 from app.policies.shortest_path_policy import ShortestPathPolicy
 from app.policies.forward_only_policy import ForwardOnlyPolicy
 from app.policies.do_nothing_policy import DoNothingPolicy
@@ -58,6 +59,10 @@ def _mk_forward(env: RailEnv) -> Policy:
 
 def _mk_do_nothing(env: RailEnv) -> Policy:
     return DoNothingPolicy()
+
+
+def _mk_goal_directed(env: RailEnv) -> Policy:
+    return GoalDirectedPolicy(env)
 
 
 _REGISTRY: dict[str, PolicySpec] = {
@@ -110,6 +115,23 @@ _REGISTRY: dict[str, PolicySpec] = {
         supports_scenarios=False,
         runtime_factory=_mk_do_nothing,
         branch_factory=DoNothingPolicy,
+    ),
+    # Plans once per env (seconds, not per-step), so what-if branching —
+    # which forks envs freely — stays off here. Director-mode rollouts
+    # still follow the committed plan on forks via the model-free
+    # `goal_directed_policy.director_replay_factory` (see overrides/hmi).
+    "goal_directed": PolicySpec(
+        id="goal_directed",
+        label="Director Planner",
+        description=(
+            "Plans all trains with the weighted model-guided search "
+            "(punctuality / connections / stability), then drives the plan."
+        ),
+        is_default=False,
+        show_in_ui=True,
+        supports_scenarios=False,
+        runtime_factory=_mk_goal_directed,
+        branch_factory=GoalDirectedPolicy,
     ),
 }
 

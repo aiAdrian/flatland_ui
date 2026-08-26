@@ -6,6 +6,13 @@ import { AgentsPanelComponent } from '../../../agents-panel/agents-panel.compone
 import { TimetableComponent } from '../../../timetable/timetable.component';
 import { ViewTabsComponent } from '../../../view-tabs/view-tabs.component';
 import { KpiFilterComponent } from '../../../kpi-filter/kpi-filter.component';
+import { DirectorWeightsComponent } from '../../../director-weights/director-weights.component';
+import { StrategyOptionsComponent } from '../../../strategy-options/strategy-options.component';
+import { StrategyForecastComponent } from '../../../strategy-forecast/strategy-forecast.component';
+import { StrategyReflectionComponent } from '../../../strategy-reflection/strategy-reflection.component';
+import { AiActivityComponent } from '../../../ai-activity/ai-activity.component';
+import { CoLearningEffectComponent } from '../../../co-learning-effect/co-learning-effect.component';
+import { ShiftReviewComponent } from '../../../shift-review/shift-review.component';
 import { ScenarioPanelComponent } from '../../../scenario-panel/scenario-panel.component';
 import { RecommendationsPanelComponent } from '../../../recommendations-panel/recommendations-panel.component';
 import { RecommendationsClassicComponent } from '../../../recommendations-classic/recommendations-classic.component';
@@ -42,6 +49,13 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     TimetableComponent,
     ViewTabsComponent,
     KpiFilterComponent,
+    DirectorWeightsComponent,
+    StrategyOptionsComponent,
+    StrategyForecastComponent,
+    StrategyReflectionComponent,
+    AiActivityComponent,
+    CoLearningEffectComponent,
+    ShiftReviewComponent,
     ScenarioPanelComponent,
     RecommendationsPanelComponent,
     RecommendationsClassicComponent,
