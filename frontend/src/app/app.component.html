@@ -1,5 +1,7 @@
 @if (showWidgetsGallery) {
   <app-widgets-gallery></app-widgets-gallery>
+} @else if (showAlgorithmsGallery) {
+  <app-algorithms-gallery></app-algorithms-gallery>
 } @else if (showInfrastructureBuilder) {
   <app-infrastructure-builder
     [sessionGridWidth]="newWidth()"
