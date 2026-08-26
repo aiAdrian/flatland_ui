@@ -28,6 +28,7 @@ from app.policies.registry import (
     policy_specs,
     scenario_policy_factories,
 )
+from app.utils.agent_compat import agent_direction, agent_position
 
 _perf_log = logging.getLogger("flatland.perf")
 _perf_log.setLevel(logging.INFO)
@@ -85,8 +86,8 @@ def _capture_marey_history_snapshot(session) -> None:
     agents: dict[str, dict] = {}
 
     for handle, agent in enumerate(getattr(env, "agents", []) or []):
-        pos = getattr(agent, "position", None)
-        direction = getattr(agent, "direction", None)
+        pos = agent_position(agent)
+        direction = agent_direction(agent)
 
         # Off-map agents cannot produce a Marey path cell.
         if pos is None or direction is None:

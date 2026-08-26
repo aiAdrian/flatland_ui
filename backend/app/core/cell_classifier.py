@@ -14,6 +14,8 @@ from flatland.core.grid.grid4_utils import get_new_position
 from flatland.envs.fast_methods import fast_argmax, fast_count_nonzero
 from flatland.envs.step_utils.states import TrainState
 
+from app.utils.agent_compat import agent_direction, agent_position
+
 
 # Flatland Action constants
 ACTION_DO_NOTHING = 0
@@ -49,10 +51,11 @@ def classify_cell_type(env, agent) -> str:
     if agent.state == TrainState.DONE:
         return "DONE"
 
-    if agent.position is None or not agent.state.is_on_map_state():
+    position, direction = agent_position(agent), agent_direction(agent)
+    if position is None or not agent.state.is_on_map_state():
         return "OUTSIDE"
 
-    transitions = _get_transitions(env, agent.position[0], agent.position[1], agent.direction)
+    transitions = _get_transitions(env, position[0], position[1], direction)
     num_transitions = fast_count_nonzero(transitions)
 
     if num_transitions > 1:
@@ -62,7 +65,7 @@ def classify_cell_type(env, agent) -> str:
         return "DONE"
 
     next_dir = fast_argmax(transitions)
-    next_pos = get_new_position(agent.position, next_dir)
+    next_pos = get_new_position(position, next_dir)
 
     if (next_pos[0] < 0 or next_pos[0] >= env.height or
             next_pos[1] < 0 or next_pos[1] >= env.width):
@@ -120,13 +123,14 @@ def lookahead_to_decision(env, agent, max_depth: int = 30) -> Optional[Dict]:
     Laeuft virtuell vorwaerts vom Agent bis zum naechsten Decision Point.
     Returns dict with path, decision_position, cell_type, options - or None.
     """
-    if agent.position is None or agent.direction is None:
+    position, direction = agent_position(agent), agent_direction(agent)
+    if position is None or direction is None:
         return None
     if agent.state == TrainState.DONE:
         return None
 
-    pos = (int(agent.position[0]), int(agent.position[1]))
-    direction = int(agent.direction)
+    pos = (int(position[0]), int(position[1]))
+    direction = int(direction)
 
     path = [list(pos)]
     visited = {(pos, direction)}

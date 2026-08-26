@@ -5,6 +5,12 @@ warnings.filterwarnings("ignore")
 from app.core.session_manager import session_manager
 from app.core.infrastructure_scene_adapter import build_scene_diagnostics, count_routable_agents, _tokens_for_cell, _transition_value
 from app.core.tile_resolver import resolve_tile
+from app.utils.agent_compat import (
+    agent_direction,
+    agent_initial_direction,
+    agent_initial_position,
+    agent_position,
+)
 
 
 def _straight_scene():
@@ -81,15 +87,15 @@ def test_infrastructure_scene_train_can_depart_from_builder_endpoint():
     )
 
     agent = session.env.agents[0]
-    assert agent.initial_direction == 3
-    assert session.env.rail.get_transitions((agent.initial_position, agent.initial_direction)) == (0, 1, 0, 0)
+    assert agent_initial_direction(agent) == 3
+    assert session.env.rail.get_transitions((agent_initial_position(agent), agent_initial_direction(agent))) == (0, 1, 0, 0)
 
     session.env.step({0: 2})
     session.env.step({0: 2})
     session.env.step({0: 2})
 
-    assert agent.position == (2, 2)
-    assert agent.direction == 1
+    assert agent_position(agent) == (2, 2)
+    assert agent_direction(agent) == 1
     assert getattr(agent.state, "name", str(agent.state)) == "MOVING"
 
 
@@ -122,7 +128,7 @@ def test_infrastructure_scene_skips_unrouted_agents_without_handle_gaps():
 
     assert session.infrastructure_scene_id == "probe_scene"
     assert len(session.env.agents) == 1
-    assert session.env.agents[0].initial_position == (2, 1)
+    assert agent_initial_position(session.env.agents[0]) == (2, 1)
 
 
 def test_infrastructure_scene_switch_exports_as_known_switch_tile():

@@ -21,6 +21,14 @@ from flatland.envs.rail_env import RailEnv
 from flatland.envs.rail_env_action import RailEnvActions
 from flatland.envs.step_utils.states import TrainState
 
+from app.utils.agent_compat import (
+    agent_direction,
+    agent_initial_direction,
+    agent_initial_position,
+    agent_position,
+    agent_target,
+)
+
 Position = Tuple[int, int]
 
 def _get_transitions(rail, row, col, direction):
@@ -129,7 +137,7 @@ class ShortestDistanceWalker:
         if max_steps is None:
             max_steps = self.env.height * self.env.width
         steps = 0
-        target = agent.target
+        target = agent_target(agent)
         while steps < max_steps:
             walked = self._walk(handle, position, direction)
             if walked is None:
@@ -153,12 +161,13 @@ class ShortestDistanceWalker:
         state = getattr(agent, "state", None)
         if state == TrainState.DONE:
             return None, None
-        if agent.position is not None:
-            return agent.position, agent.direction
+        position = agent_position(agent)
+        if position is not None:
+            return position, agent_direction(agent)
         if state in (
             TrainState.WAITING,
             TrainState.READY_TO_DEPART,
             TrainState.MALFUNCTION_OFF_MAP,
         ):
-            return agent.initial_position, agent.initial_direction
+            return agent_initial_position(agent), agent_initial_direction(agent)
         return None, None

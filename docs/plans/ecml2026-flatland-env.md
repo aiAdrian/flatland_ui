@@ -23,10 +23,14 @@ scored on the hidden eval set — **none of which we need**; we only want the en
 
 ## Why it fits — verified, not assumed
 
-- **Same Flatland version.** Challenge requires `flatland-rl` 4.2.5/4.2.6; our
-  backend already pins **4.2.6** (`backend/requirements.txt`). All ECML classes
+- **Flatland version — now diverged.** Challenge requires `flatland-rl`
+  4.2.5/4.2.6; our backend was bumped to **4.3.0** (`backend/requirements.txt`,
+  2026-08-26). 4.3.0 replaced `EnvAgent.position/.direction/.target` etc. with
+  configuration tuples (see `app/utils/agent_compat.py`) but release notes
+  report no other breaking changes — re-verify the ECML imports
   (`RailEnvPolicy`, `rewards.ECML2026Rewards`, `core.policy.Policy`,
-  `RailEnvPersister`) import cleanly in our `backend/.venv`.
+  `RailEnvPersister`) against 4.3.0 before reusing this env, rather than
+  assuming the "same version" premise below still holds.
 - **We already load `.pkl` envs.** ECML ships scenarios as pickled envs. We use
   the exact same primitive — `RailEnvPersister.load_new` — today for what-if
   forking in `backend/app/core/scenario_runner.py:319`. Loading an ECML scenario

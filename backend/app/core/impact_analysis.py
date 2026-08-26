@@ -20,6 +20,7 @@ from flatland.envs.fast_methods import fast_count_nonzero
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.step_utils.states import TrainState
 
+from app.utils.agent_compat import agent_direction, agent_position
 from app.utils.shortest_distance_walker import ShortestDistanceWalker
 
 Position = Tuple[int, int]
@@ -58,7 +59,7 @@ class _PathCollector(ShortestDistanceWalker):
         self._prev_dir: int | None = None
 
     def callback(self, handle, agent, position, direction, action, possible_transitions) -> bool:
-        in_dir = self._prev_dir if self._prev_dir is not None else int(agent.direction)
+        in_dir = self._prev_dir if self._prev_dir is not None else int(agent_direction(agent))
         n_tr = int(fast_count_nonzero(possible_transitions))
         self.cells.append((tuple(position), n_tr))
         self.steps.append(_CellStep(tuple(position), n_tr, in_dir, int(direction), tuple(possible_transitions)))
@@ -84,8 +85,9 @@ def compute_impact(env: RailEnv, horizon: int = 80) -> List[Dict[str, Any]]:
     # 1) Blocked resources: cell -> (blocking_handle, remaining_steps).
     blocked: Dict[Position, Tuple[int, int]] = {}
     for a in env.agents:
-        if _is_malfunctioning(a) and a.position is not None:
-            cell = tuple(a.position)
+        a_pos = agent_position(a)
+        if _is_malfunctioning(a) and a_pos is not None:
+            cell = tuple(a_pos)
             rem = _malfunction_remaining(a)
             # If several block the same cell, keep the longest remaining.
             if cell not in blocked or rem > blocked[cell][1]:
@@ -95,7 +97,7 @@ def compute_impact(env: RailEnv, horizon: int = 80) -> List[Dict[str, Any]]:
 
     results: List[Dict[str, Any]] = []
     for a in env.agents:
-        if a.position is None:
+        if agent_position(a) is None:
             continue  # off-map / not yet departed
         if getattr(a, "state", None) == TrainState.DONE:
             continue
