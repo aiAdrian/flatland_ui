@@ -13,6 +13,18 @@ export interface PolicyInfo {
   is_default: boolean;
   show_in_ui: boolean;
   supports_scenarios: boolean;
+  /** Catalog metadata for the Algorithm Gallery. Served straight from the
+   *  backend policy registry (app/policies/registry.py), which is already the
+   *  single source of truth for runtime behaviour — so unlike the widget
+   *  catalog there is no second copy that could drift out of sync. */
+  family: 'rule-based' | 'search-based' | 'learned' | 'hybrid';
+  deterministic: boolean;
+  role: 'operational' | 'baseline' | 'diagnostic';
+  observation: string;
+  at_conflict: string;
+  provenance: string;
+  licence: string;
+  grounding: string;
 }
 
 export interface ScenarioPoliciesConfig {
