@@ -426,12 +426,18 @@
             <sbb-secondary-button size="l" (click)="startDemoSession()">
               ▶ Guided Demo
             </sbb-secondary-button>
+            <sbb-secondary-button size="l" (click)="startDirectorSession()"
+                                   title="Jumps straight into Director — strategy tiles, forecast, AI-activity feed — skipping the Recommendation/Co-Learning walk.">
+              ▶ Director Demo
+            </sbb-secondary-button>
           </div>
           <p class="welcome-demo-hint">
             Guided Demo: solve one conflict in all three modes (Recommendation →
             Co-Learning → Director) with a short survey after each. The environment
             follows the <strong>Layout</strong> + <strong>Infrastructure</strong>
             above — “Guided Demo Environment” is the tuned, reproducible seed-42 env.
+            <strong>Director Demo</strong> starts the same environment straight in
+            Director mode — no walk, no survey — for showing that screen on its own.
           </p>
 
           <div class="welcome-inputs">
