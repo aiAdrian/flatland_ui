@@ -8,6 +8,38 @@
 @import "@sbb-esta/lyne-elements/typography.css";
 @import "@sbb-esta/lyne-elements/normalize.css";
 
+/* ====================================================================
+   Typografie - Open-Source-Schrift statt SBB-Hausschrift
+   --------------------------------------------------------------------
+   Lynes core.css und standard-theme.css deklarieren @font-face fuer die
+   Familie "SBB" mit Quellen auf https://cdn.app.sbb.ch/fonts/. Die Schrift
+   ist NICHT Teil des MIT-lizenzierten Pakets - sie wird zur Laufzeit von
+   SBB-Infrastruktur nachgeladen. Fuer eine Open-Source-Freigabe (OpenRail)
+   ist beides untragbar: fremde Schriftlizenz plus ein externer Request auf
+   Server, die uns nicht gehoeren.
+
+   Ersatz: IBM Plex Sans, SIL OFL 1.1, fuer technische/industrielle UIs
+   entworfen. Selbst gehostet ueber @fontsource-variable (aus node_modules
+   gebundelt, KEIN CDN - die App bleibt offline-faehig). Eine variable Achse
+   100-700 statt drei statischen Schnitten; ~46 KB (latin), latin-ext und
+   weitere Subsets nur bei Bedarf via unicode-range.
+
+   Warum ein Token-Override reicht: die App schreibt nirgends literal
+   `font-family: SBB`, sondern bezieht die Schrift ausschliesslich ueber
+   --sbb-typo-font-family. Custom Properties vererben ueber Shadow-Grenzen,
+   der Override greift also auch in Lynes Web Components. Damit matcht nichts
+   mehr die Familie "SBB" und der Browser fordert die SBB-woff2 nie an.
+
+   Schrift wechseln = diese zwei Imports + der Wert in --sbb-typo-font-family.
+   ==================================================================== */
+@import "@fontsource-variable/ibm-plex-sans/wght.css";
+@import "@fontsource-variable/ibm-plex-sans/wght-italic.css";
+
+:root {
+  --sbb-typo-font-family: "IBM Plex Sans Variable", "IBM Plex Sans",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
 /* Override falls Lyne automatisch dark-mode-Variablen setzt */
 :root, html, body {
   color-scheme: light only;
@@ -21,7 +53,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: var(--sbb-typo-font-family, "Helvetica Now Text", "Helvetica Neue", Arial, sans-serif);
+  font-family: var(--sbb-typo-font-family);
   background: var(--sbb-color-milk, #f6f6f6);
   color: var(--sbb-color-charcoal, #212121);
 }
@@ -139,6 +171,9 @@ body {
 :root {
   --app-severity-warn:  var(--sbb-color-orange, #ffaa00);
   --app-severity-error: var(--sbb-color-red,    #eb0000);
+  /* Added when the event-feed legend needed to name the third level
+     (HMI review: "rot = Alarm, gelb = Vorsicht?"). */
+  --app-severity-info:  var(--sbb-color-blue,   #0079c7);
 }
 
 /* "Positive / recommended" — the thing to favour (recommended option/scenario,

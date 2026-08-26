@@ -11,7 +11,7 @@
 .tt-empty {
   margin: 0;
   padding: 12px;
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
   font-size: 14px;
 }
 
@@ -25,15 +25,15 @@
 .tt-table td {
   padding: 6px 8px;
   text-align: left;
-  border-bottom: 1px solid var(--sbb-color-cloud, #d2d2d2);
+  border-bottom: 1px solid var(--sbb-color-cloud);
   white-space: nowrap;
 }
 
 .tt-table th {
   position: sticky;
   top: 0;
-  background: var(--sbb-color-white, #ffffff);
-  color: var(--sbb-color-granite, #686868);
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-granite);
   font-weight: 600;
 }
 
@@ -42,9 +42,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+.tt-row {
+  cursor: pointer;
+}
+
+.tt-row.is-hovered td {
+  background: var(--sbb-color-milk);
+}
+
+.tt-row.is-selected td {
+  background: var(--sbb-color-cloud);
+}
+
 .tt-stop {
   font-weight: 600;
-  color: var(--sbb-color-charcoal, #212121);
+  color: var(--sbb-color-charcoal);
+}
+
+.tt-via {
+  color: var(--sbb-color-granite);
+  font-size: 12px;
 }
 
 .tt-train {
@@ -62,11 +79,11 @@
 }
 
 .tt-train-id {
-  color: var(--sbb-color-charcoal, #212121);
+  color: var(--sbb-color-charcoal);
 }
 
 .tt-now {
-  color: var(--sbb-color-charcoal, #212121);
+  color: var(--sbb-color-charcoal);
 }
 
 .tt-status {
@@ -74,7 +91,7 @@
 }
 
 .tt-status[data-tone='ok'] {
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
 }
 
 .tt-status[data-tone='late'] {
@@ -86,6 +103,6 @@
 }
 
 .tt-status[data-tone='muted'] {
-  color: var(--sbb-color-granite, #686868);
+  color: var(--sbb-color-granite);
   font-weight: 400;
 }

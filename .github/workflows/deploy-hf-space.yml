@@ -1,0 +1,87 @@
+# Mirrors explore_db to its Hugging Face Space, so the playground can be
+# refreshed from a browser alone (Claude Code on the web, the GitHub web
+# editor, a phone) without a terminal and a local HF token.
+#
+# One-time setup:
+#   1. Create the Space on huggingface.co (SDK: Docker, template: Blank).
+#   2. Repo → Settings → Secrets and variables → Actions:
+#        secret   HF_TOKEN  = a Hugging Face *write* token
+#        variable HF_SPACE  = <user>/<space-name>   (optional, see below)
+#
+# The Space gets a single flattened commit — Spaces need no history, and this
+# keeps the binaries the image never copies (docs/media, backend/models) out
+# of it. Details: docs/deploy-hugging-face-space.md
+name: Deploy explore_db to Hugging Face Space
+
+on:
+  push:
+    branches: [explore_db]
+  workflow_dispatch:
+
+concurrency:
+  group: hf-space-deploy
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    # explore_db is a shared branch: only deploy the Space it belongs to, or a
+    # deliberate manual run. Everyone else's pushes skip the job.
+    if: github.event_name == 'workflow_dispatch' || github.actor == 'danib8005'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check the token
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -eu
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret is not set — see the header of this workflow."
+            exit 1
+          fi
+          # Fail here with a readable reason rather than on a rejected push.
+          if ! who=$(curl -sf -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/whoami-v2); then
+            echo "::error::Hugging Face rejected the token. Is it valid, and not expired or revoked?"
+            exit 1
+          fi
+          echo "$who" | jq -r '"identity: \(.name)   token type: \(.auth.type)   role: \(.auth.accessToken.role // "fine-grained")"'
+          if [ "$(echo "$who" | jq -r '.auth.accessToken.role // "fine-grained"')" = "read" ]; then
+            echo "::error::That is a read token. The Space needs a write token."
+            exit 1
+          fi
+
+      - name: Assemble the Space tree
+        run: |
+          set -eu
+          # The image copies backend/app and the Angular build only, so none of
+          # this ever reaches the container — it would just bloat the Space repo.
+          rm -rf docs/media backend/models .pytest_cache.zip .github
+          cp deploy/hf/Dockerfile Dockerfile
+          cat deploy/hf/README-header.md README.md > README.hf
+          # Drop the demo links whose media files we just removed.
+          grep -v 'docs/media/' README.hf > README.md
+          rm -f README.hf
+          rm -rf deploy
+
+      - name: Push to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE || 'danib8005/flatland-dispatcher-explore-db' }}
+        run: |
+          set -eu
+          rm -rf .git
+          git init -q -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Flatland Dispatcher — explore_db @ ${GITHUB_SHA:0:7}"
+          # HF authenticates by token; the user part of the URL just has to be
+          # the Space's owner for fine-grained tokens to match.
+          if ! git push --force "https://${HF_SPACE%%/*}:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main; then
+            echo "::error::Push rejected. The token needs *write* access to ${HF_SPACE}. A fine-grained token must list that Space explicitly under Repositories; a classic token must be of type Write."
+            exit 1
+          fi
+          echo "Deployed to https://huggingface.co/spaces/${HF_SPACE}"

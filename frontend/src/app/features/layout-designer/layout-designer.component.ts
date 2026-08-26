@@ -12,6 +12,7 @@ import { SessionStore } from '../../core/session.store';
 import { PanelShellComponent } from '../layout/components/panel-shell/panel-shell.component';
 import { ConfigShellComponent } from '../config-shell/config-shell.component';
 import { PanelInstance } from '../../core/layout';
+import { CENTER_VIEWS } from '../view-tabs/center-views';
 
 interface PaletteItem {
   type: string;
@@ -62,6 +63,9 @@ export class LayoutDesignerComponent {
       kind: 'event' },
     { type: 'notifications', title: 'Notifications', minHeight: 140,
       description: 'Event feed: notifications with kind, title, message, related train.',
+      kind: 'event' },
+    { type: 'view-tabs', title: 'View Tabs', minHeight: 320,
+      description: 'One center container, tabbed: Map · Marey · Timetable · Goal Achievement.',
       kind: 'event' },
     { type: 'timetable', title: 'Timetable', minHeight: 160,
       description: 'Schedule board: train, from→to (shared labels), dep/arr, live position + status.',
@@ -981,6 +985,33 @@ export class LayoutDesignerComponent {
       splitOrientation: value,
     };
 
+    this.onDesignerChanged();
+  }
+
+  /** Available center views selectable as tabs in a `view-tabs` panel. */
+  readonly availableViewTabs = CENTER_VIEWS;
+
+  /** Current tab selection for a view-tabs panel — configured subset, else all. */
+  viewTabsSelection(panel: DesignerPanel): string[] {
+    const sel = panel.settings?.tabs;
+    return sel && sel.length ? sel : CENTER_VIEWS.map((v) => v.type);
+  }
+
+  isViewTabEnabled(panel: DesignerPanel, type: string): boolean {
+    return this.viewTabsSelection(panel).includes(type);
+  }
+
+  /** Add/remove a view from the panel's tabs; keeps registry order, min one tab. */
+  toggleViewTab(panel: DesignerPanel, type: string): void {
+    const current = new Set(this.viewTabsSelection(panel));
+    if (current.has(type)) {
+      if (current.size <= 1) return;
+      current.delete(type);
+    } else {
+      current.add(type);
+    }
+    const tabs = CENTER_VIEWS.map((v) => v.type).filter((t) => current.has(t));
+    panel.settings = { ...(panel.settings ?? {}), tabs };
     this.onDesignerChanged();
   }
 

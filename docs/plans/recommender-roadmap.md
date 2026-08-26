@@ -40,11 +40,26 @@ for Recommendation / Co-Learning).
    cell for its duration, run Prioritized Planning on the affected trains only →
    coherent multi-train reroute/hold/reorder set. First real use of our own PP
    planner ([[cbs-pp-planner-integration]]), scoped locally. CBS variant later.
-   **AI4REALNET check:** [`Tokener`](https://github.com/AI4REALNET/Tokener)'s
-   Hybrid approach already combines CBS+PP with token-based interaction —
-   check it (and note any Flatland-version divergence, per
-   [[cbs-pp-planner-integration]]'s 4.0.3-vs-4.2.6 mismatch) before writing our
-   own PP/CBS logic from scratch, per CLAUDE.md's "reuse, don't reinvent" rule.
+   **AI4REALNET check — the version worry is largely moot (verified 2026-08-16).**
+   The canonical solver source is
+   [`AI4REALNET/flatland-blackbox`](https://github.com/AI4REALNET/flatland-blackbox)
+   (`solvers/cbs.py`, `solvers/pp.py`), which both `Tokener` and
+   [`T3.4-with-HMI`](https://github.com/AI4REALNET/T3.4-with-HMI) vendor —
+   T3.4's copies are **byte-identical** to it. Although it declares
+   `flatland-rl==4.0.3`, **the solvers import nothing from Flatland**: they run
+   on a `networkx` graph plus an agent list, and every helper they use from
+   `utils.py` is a pure graph/node function. Only `utils.py`'s env-setup and
+   rendering half touches Flatland, and the solvers never call it. So
+   [[cbs-pp-planner-integration]]'s 4.0.3-vs-4.2.6 concern is a declaration-level
+   mismatch, not a code-level one, for the solver core.
+   Prefer **upstream `flatland-blackbox`** for the solvers (it has a test suite
+   the vendored copies dropped), and take the **integration layer** from
+   `T3.4-with-HMI`: `src/planners/state_extraction.py` (RailEnv → `nx.DiGraph`
+   over `(row, col, dir)`) and `src/planners/plan_follower.py`
+   (plan → `RailEnvActions`) — the latter is the missing piece between a planner
+   and our `Policy` protocol. Reuse before writing our own PP/CBS logic, per
+   CLAUDE.md's "reuse, don't reinvent" rule. Details:
+   [`flatland-ecosystem-reuse-plan.md`](flatland-ecosystem-reuse-plan.md) W9.
 3. **Impact panel: up to 3 ranked intervention options** + mode-aware apply
    (recommendation = highlighted + apply; co-learning = neutral / inspect;
    director = overview).

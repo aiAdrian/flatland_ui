@@ -305,6 +305,39 @@ export class AppComponent implements OnInit {
   newHeight = signal(24);
   newAgents = signal(8);
   newMaxSteps = signal(400);
+
+  /** Welcome-screen ceiling for grid size / agent count — comfortably inside
+   *  what the hosted demo's free hardware (HF Spaces CPU basic: 2 vCPU, no
+   *  paid upgrade) keeps responsive. Measured in
+   *  docs/deploy-hugging-face-space.md: 80×40/15 agents runs ~20ms/step; the
+   *  150×120 ECML preset already stretches serialize to ~58ms/step and
+   *  /hmi/scenarios past a second, mostly from grid area, not agent count.
+   *  These caps stay inside the first envelope with margin. The backend's own
+   *  hard limits (25–200 / 20–150 / 1–50, see SessionCreateRequest) are
+   *  unchanged and stay reachable from Session Properties → Basic for anyone
+   *  who deliberately wants a bigger run. */
+  static readonly WELCOME_GRID_LIMITS = {
+    width: { min: 25, max: 100 },
+    height: { min: 20, max: 60 },
+    agents: { min: 1, max: 20 },
+  } as const;
+
+  private static clampTo(value: number, { min, max }: { min: number; max: number }): number {
+    if (!Number.isFinite(value)) return min;
+    return Math.min(max, Math.max(min, Math.round(value)));
+  }
+
+  setNewWidth(value: number): void {
+    this.newWidth.set(AppComponent.clampTo(value, AppComponent.WELCOME_GRID_LIMITS.width));
+  }
+
+  setNewHeight(value: number): void {
+    this.newHeight.set(AppComponent.clampTo(value, AppComponent.WELCOME_GRID_LIMITS.height));
+  }
+
+  setNewAgents(value: number): void {
+    this.newAgents.set(AppComponent.clampTo(value, AppComponent.WELCOME_GRID_LIMITS.agents));
+  }
   newSeed = signal(42);
   newLatestDepartureMax = signal(20);
   newSpeedProfile = signal('uniform_1_0');

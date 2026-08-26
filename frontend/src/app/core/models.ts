@@ -43,6 +43,14 @@ export interface NextDecision {
   options: DecisionOption[];
 }
 
+/** One ordered stop of a train (ECML intermediate stops with time windows).
+ *  stops[0] is the origin, stops[-1] the target, the middle ones intermediate. */
+export interface AgentStop {
+  cell: [number, number] | null;
+  earliest_departure: number | null;
+  latest_arrival: number | null;
+}
+
 export interface AgentDTO {
   handle: number;
   position: [number, number] | null;
@@ -50,6 +58,8 @@ export interface AgentDTO {
   initial_position: [number, number] | null;
   initial_direction: number | null;
   target: [number, number];
+  /** Ordered stops incl. intermediate stops; may be absent on older payloads. */
+  stops?: AgentStop[];
   state: string;
   speed: number;
   earliest_departure: number | null;

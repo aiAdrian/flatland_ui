@@ -317,23 +317,26 @@
 
           <div class="welcome-inputs">
             <span class="welcome-grid-label">Grid:</span>
-            <label class="welcome-input">
+            <label class="welcome-input"
+                   title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 200.">
               <span>Width</span>
-              <input type="number" min="25" max="200"
+              <input type="number" min="25" max="100"
                      [value]="newWidth()"
-                     (input)="newWidth.set(+$any($event.target).value)">
+                     (input)="setNewWidth(+$any($event.target).value)">
             </label>
-            <label class="welcome-input">
+            <label class="welcome-input"
+                   title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 150.">
               <span>Height</span>
-              <input type="number" min="20" max="150"
+              <input type="number" min="20" max="60"
                      [value]="newHeight()"
-                     (input)="newHeight.set(+$any($event.target).value)">
+                     (input)="setNewHeight(+$any($event.target).value)">
             </label>
-            <label class="welcome-input">
+            <label class="welcome-input"
+                   title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 50.">
               <span># Agents</span>
-              <input type="number" min="1" max="50"
+              <input type="number" min="1" max="20"
                      [value]="newAgents()"
-                     (input)="newAgents.set(+$any($event.target).value)">
+                     (input)="setNewAgents(+$any($event.target).value)">
             </label>
             <label class="welcome-input"
                    title="Max simulation length. Higher = more thorough what-if forecasts but slower.">
@@ -343,6 +346,11 @@
                      (input)="newMaxSteps.set(+$any($event.target).value)">
             </label>
           </div>
+          <p class="welcome-grid-hint">
+            Capped for a smooth run on the hosted demo's free hardware — for a
+            bigger grid or more trains, open <strong>Session Properties</strong>
+            after starting a session (gear icon, <em>Basic</em> tab).
+          </p>
 
         </div>
     </main>
