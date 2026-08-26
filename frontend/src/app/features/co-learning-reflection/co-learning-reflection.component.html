@@ -2,6 +2,12 @@
   [attr.expanded]="reflectionOpen() ? '' : null">
   <sbb-expansion-panel-header (click)="store.toggleReflectionRequested()">
     <span class="lyne-panel-title">Co-Learning reflection</span>
+    @if (showCalmNudge()) {
+      <span class="calm-nudge" title="Things have calmed down — a good moment to reflect">
+        <span class="calm-dot"></span>
+        reflect now?
+      </span>
+    }
   </sbb-expansion-panel-header>
 
   <sbb-expansion-panel-content class="lyne-panel-content">

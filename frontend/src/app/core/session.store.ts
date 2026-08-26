@@ -205,7 +205,12 @@ export class SessionStore {
   readonly stations = computed<StationRef[]>(() => {
     const cells = new Map<string, { row: number; col: number }>();
     for (const a of this.agents()) {
-      for (const pos of [a.initial_position, a.target]) {
+      // Prefer the full ordered stop list (incl. ECML intermediate stops); fall
+      // back to just origin + target when stops are not in the payload.
+      const positions = a.stops && a.stops.length
+        ? a.stops.map((s) => s.cell)
+        : [a.initial_position, a.target];
+      for (const pos of positions) {
         if (!pos) continue;
         const row = Number(pos[0]);
         const col = Number(pos[1]);

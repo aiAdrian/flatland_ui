@@ -76,5 +76,18 @@ goal.
 - (a) Keep this analysis as the decision basis (this document).
 - (b) Plan the first incremental step: event schema + lifecycle, mapping
   `conflict_detector` → events.
-- (c) Check whether real interop with InteractiveAI's Event Service is realistic
-  (schema / endpoints).
+- (c) ~~Check whether real interop with InteractiveAI's Event Service is
+  realistic (schema / endpoints).~~ **Answered 2026-08-16** — see
+  [`2026-08-16-flatland-oekosystem-recherche.md`](../reading/2026-08-16-flatland-oekosystem-recherche.md)
+  §11. Short version: **technically realistic, but not needed.** The generated
+  Context/Event/Historic clients already ship inside our pinned `flatland-rl`
+  (`flatland/integrations/interactiveai/`), and a working example exists
+  (`ai4realnet-orchestrators` → `railway/playground/`, Olten posted live).
+  But InteractiveAI is **not on the results path** of the WP4 campaign: all five
+  railway KPI runners derive from `abstract_test_runner_railway.py`, which
+  contains no InteractiveAI at all and uploads to S3 → FAB. InteractiveAI is the
+  demonstration surface, and the playground runner's own comment notes it
+  *slows the run down* ("blocking requests InteractiveAI platform").
+  Therefore: doing the validation tests well and integrating InteractiveAI are
+  **independent** goals. Recommendation (b) above — events with identity and
+  lifecycle — stands on its own merits and should not wait on this.

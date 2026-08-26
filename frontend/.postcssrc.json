@@ -1,0 +1,5 @@
+{
+  "plugins": {
+    "./postcss-drop-sbb-fonts.cjs": {}
+  }
+}

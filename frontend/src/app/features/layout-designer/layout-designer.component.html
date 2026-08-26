@@ -337,6 +337,22 @@
             </div>
           }
 
+          @if (panel.type === 'view-tabs') {
+            <div class="settings__group settings__group--view-tabs">
+              <h4>View Tabs</h4>
+              <p class="settings__hint">Choose which views appear as tabs (order follows the list).</p>
+              @for (v of availableViewTabs; track v.type) {
+                <label class="checkbox">
+                  <input
+                    type="checkbox"
+                    [checked]="isViewTabEnabled(panel, v.type)"
+                    (change)="toggleViewTab(panel, v.type)" />
+                  {{ v.label }}
+                </label>
+              }
+            </div>
+          }
+
           <label>
             Min height px
             <input type="number" min="80" [(ngModel)]="panel.minHeight" (ngModelChange)="onDesignerChanged()" />
