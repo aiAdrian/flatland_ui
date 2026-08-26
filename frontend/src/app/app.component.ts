@@ -483,6 +483,29 @@ export class AppComponent implements OnInit {
     this.store.startDemo();
   }
 
+  /** Direct entry into the Director screen — Roman's & Gereon's design
+   *  (strategy tiles, forecast, AI-activity feed, reflection, shift review),
+   *  the one that's been live since `director-strategies-shift-review` /
+   *  `goal_oriented_agents`. It is *not* a "Layout" option: those presets
+   *  render through the generic panel grid, and per
+   *  docs/plans/layout-grid-model-plan.md §2b, "activating a saved design
+   *  loses all Director behaviour" — the bar, the tiles-above-map placement,
+   *  the forecast's four columns, the shift-review takeover all live only in
+   *  the hardcoded default layout. So this button does the two things that
+   *  together guarantee that screen rather than a degraded stand-in:
+   *  force the Default Layout, then switch into Director before the session
+   *  is even created (`newSession` reads the mode to pick the goal_directed
+   *  policy from step one). Skips the Guided Demo's Recommendation →
+   *  Co-Learning walk and its survey — this is "show Director right now",
+   *  not the full three-mode tour. */
+  startDirectorSession() {
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+    this.setRuntimeLayout(this.systemRuntimeLayoutId);
+    this.store.setInteractionMode('director');
+    this.createSession(opts);
+  }
+
   /** Finish the current demo mode → open its survey (advance happens on close). */
   finishDemoMode() {
     this.openSurvey();
