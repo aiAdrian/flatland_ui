@@ -15,6 +15,7 @@ from flatland.envs.rail_env import RailEnv
 
 from app.core.scenario_runner import BranchResult, TrajectoryBranchRunner
 from app.policies.base import Policy
+from app.utils.agent_compat import agent_direction, agent_position
 
 _perf_log = logging.getLogger("flatland.perf")
 _perf_log.setLevel(logging.INFO)
@@ -208,11 +209,12 @@ class ScenarioBuilder:
         """Capture current env state as a snapshot for history."""
         agents_dict = {}
         for h, agent in enumerate(env.agents):
-            if agent.position is None:
+            pos, direction = agent_position(agent), agent_direction(agent)
+            if pos is None:
                 continue
             agents_dict[str(h)] = {
-                "pos": (int(agent.position[0]), int(agent.position[1])),
-                "dir": int(agent.direction) if agent.direction is not None else 0,
+                "pos": (int(pos[0]), int(pos[1])),
+                "dir": int(direction) if direction is not None else 0,
             }
         return {
             "step": int(step),

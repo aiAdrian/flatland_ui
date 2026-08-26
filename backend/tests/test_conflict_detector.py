@@ -16,6 +16,7 @@ from flatland.envs.rail_generators import sparse_rail_generator
 from flatland.envs.step_utils.states import TrainState
 
 from app.core.conflict_detector import Conflict, ConflictDetectionCallbacks
+from app.utils.agent_compat import agent_position
 
 
 def _make_env(num_agents: int = 2, seed: int = 42) -> RailEnv:
@@ -107,10 +108,10 @@ def test_blocked_threshold_emits_event():
     # First, drive forward a few steps so an agent is on the map.
     for _ in range(15):
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
-        if any(a.position is not None for a in env.agents):
+        if any(agent_position(a) is not None for a in env.agents):
             break
 
-    on_map = [h for h, a in enumerate(env.agents) if a.position is not None]
+    on_map = [h for h, a in enumerate(env.agents) if agent_position(a) is not None]
     if not on_map:
         pytest.skip("no agent reached the map within 15 steps")
 
@@ -143,10 +144,10 @@ def test_blocked_emitted_only_once_per_streak():
     env = _make_env(num_agents=2)
     for _ in range(15):
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
-        if any(a.position is not None for a in env.agents):
+        if any(agent_position(a) is not None for a in env.agents):
             break
 
-    on_map_handles = [h for h, a in enumerate(env.agents) if a.position is not None]
+    on_map_handles = [h for h, a in enumerate(env.agents) if agent_position(a) is not None]
     if not on_map_handles:
         pytest.skip("no agent on map")
 

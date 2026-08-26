@@ -35,6 +35,8 @@ from flatland.callbacks.callbacks import FlatlandCallbacks
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.step_utils.states import TrainState
 
+from app.utils.agent_compat import agent_direction, agent_position
+
 
 # ── Public types ────────────────────────────────────────────────────
 
@@ -152,9 +154,10 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
         step = int(getattr(env, "_elapsed_steps", 0))
         agents = {}
         for h, ag in enumerate(env.agents):
+            pos, direction = agent_position(ag), agent_direction(ag)
             agents[h] = {
-                "pos": tuple(ag.position) if ag.position is not None else None,
-                "dir": int(ag.direction) if ag.direction is not None else None,
+                "pos": tuple(pos) if pos is not None else None,
+                "dir": int(direction) if direction is not None else None,
                 "state": ag.state.name if hasattr(ag.state, "name") else str(ag.state),
                 "malfunction": int(self._malfunction_counter(ag)),
             }

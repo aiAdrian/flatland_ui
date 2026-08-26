@@ -14,6 +14,7 @@ from flatland.envs.rail_env import RailEnv
 from flatland.envs.rail_env_action import RailEnvActions
 
 from app.policies.base import Policy
+from app.utils.agent_compat import agent_direction, agent_position
 from app.utils.shortest_distance_walker import _get_transitions
 
 
@@ -39,12 +40,12 @@ class ShortestPathPolicy(Policy):
             return RailEnvActions.MOVE_FORWARD
 
         agent = env.agents[handle]
-        if agent.position is None:
+        position = agent_position(agent)
+        if position is None:
             # Not yet on map -> request to depart by moving forward.
             return RailEnvActions.MOVE_FORWARD
 
-        position = agent.position
-        direction = agent.direction
+        direction = agent_direction(agent)
         possible_transitions = _get_transitions(env.rail, position[0], position[1], direction)
 
         # If only one transition is possible, just go forward.
