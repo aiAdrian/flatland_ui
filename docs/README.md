@@ -49,6 +49,11 @@ Dated records of tasks handed to other agents/models, with the brief and the rev
 - [2026-07-11-mvp-rationale-capture-glm.md](delegation/2026-07-11-mvp-rationale-capture-glm.md) — Workstream B Tier 1 built by GLM 5.2; reviewed + live-verified
 - [2026-07-11-gallery-fixture-previews-glm.md](delegation/2026-07-11-gallery-fixture-previews-glm.md) — fixture-backed live previews in the Widget Gallery; delegated to GLM 5.2
 
+## reading/ — dated research notes
+External research, read once and recorded so it need not be repeated.
+
+- [2026-08-24-dispatcher-review-study2.md](reading/2026-08-24-dispatcher-review-study2.md) — Disponenten-Review des Co-Learning-Aufbaus für User Study 2; enthält die offene VMax-Frage (DE)
+
 ## scenarios/ — study & scenarios
 Experiment design and scenario material.
 
