@@ -17,10 +17,14 @@ import {
  *
  * - **Default (Recommendation / Co-Learning):** it projects the recommended
  *   (or baseline) scenario option from that option's KPI deltas.
- * - **Explicit (Director):** the caller passes `signals` and a `subject` label,
- *   because there the thing being decided is a strategy *focus*, not a policy.
- *   Reading the scenario options there was plainly wrong — the baseline option
- *   is a policy that is not even the one driving under the Director planner.
+ * - **Director:** the subject is the strategy *focus* published by the A/B/C
+ *   tiles, not a policy. Reading the scenario options there was plainly wrong —
+ *   the baseline option is not even the plan that drives under the Director
+ *   planner — so that fallback is off in Director, and the widget reads the
+ *   focus from the store itself. The `signals`/`subject` inputs stay as an
+ *   override, but nothing has to pass them: the widget behaves the same whether
+ *   it renders from the Director slot in AppComponent or from a panel the
+ *   operator dragged in the layout designer.
  *
  * It stays explicit about its own limits: a rule-based projection, whose
  * reliable horizon shrinks as more problems pile up.
@@ -34,7 +38,7 @@ import {
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class StrategyForecastComponent {
-  /** Explicit subject: projects these signals instead of a scenario option. */
+  /** Override: projects these signals instead of the resolved subject. */
   @Input() set signals(value: ForecastSignals | null) {
     this._signals.set(value);
   }
@@ -47,8 +51,22 @@ export class StrategyForecastComponent {
 
   store = inject(SessionStore);
 
-  /** The option the forecast describes: the recommended one, else the baseline. */
+  private readonly isDirector = computed(() => this.store.interactionMode() === 'director');
+
+  /** The strategy focus published by the A/B/C tiles, in Director only. */
+  private readonly focusOutlook = computed(() =>
+    this.isDirector() ? this.store.directorFocusOutlook() : null,
+  );
+
+  /** The signals actually projected: the input override, else the focus. */
+  private readonly activeSignals = computed<ForecastSignals | null>(
+    () => this._signals() ?? this.focusOutlook()?.signals ?? null,
+  );
+
+  /** The option the forecast describes: the recommended one, else the baseline.
+   *  Director has no such fallback — see the class comment. */
   readonly option = computed(() => {
+    if (this.isDirector()) return undefined;
     const scenarios = this.store.scenarios();
     return (
       scenarios.find((s) => s.isRecommended) ??
@@ -63,27 +81,35 @@ export class StrategyForecastComponent {
   );
 
   readonly openProblems = computed(() => {
-    // With an explicit subject there is no option to read leftover deadlocks
+    // With a signal subject there is no option to read leftover deadlocks
     // from, so system load is the trains actually running late.
-    if (this._signals() !== null) return this.delayedTrains();
+    if (this.activeSignals() !== null) return this.delayedTrains();
     return openProblemsFrom(this.option(), this.delayedTrains());
   });
 
   readonly forecast = computed(() => {
-    const explicit = this._signals();
-    if (explicit) return buildForecastFromSignals(explicit, this.openProblems());
+    const signals = this.activeSignals();
+    if (signals) return buildForecastFromSignals(signals, this.openProblems());
     return buildStrategyForecast(this.option(), this.openProblems());
   });
 
-  readonly subjectLabel = computed(() => this.subject ?? this.option()?.title ?? '');
-
-  readonly noteText = computed(
-    () =>
-      this.derivedFrom ??
-      'Regelbasierte Projektion aus den KPI-Deltas dieser Option — keine Neusimulation der nächsten 30 Minuten.',
+  readonly subjectLabel = computed(
+    () => this.subject ?? this.focusOutlook()?.subject ?? this.option()?.title ?? '',
   );
 
-  readonly hasData = computed(() => this._signals() !== null || this.option() != null);
+  readonly noteText = computed(() => {
+    if (this.derivedFrom) return this.derivedFrom;
+    return this.activeSignals() !== null
+      ? 'Regelbasierte Projektion, keine Neusimulation.'
+      : 'Regelbasierte Projektion aus den KPI-Deltas dieser Option — keine Neusimulation der nächsten 30 Minuten.';
+  });
+
+  readonly hasData = computed(() => this.activeSignals() !== null || this.option() != null);
+
+  /** Director, but no strategy committed yet. The widget says what it is waiting
+   *  for instead of collapsing to an empty box — this used to live in the
+   *  AppComponent template, where the panel path could not reach it. */
+  readonly awaitingStrategy = computed(() => !this.hasData() && this.isDirector());
 
   /** Headline for the horizon note — green while we can see 30 min ahead. */
   readonly horizonOk = computed(() => this.forecast().horizonMinutes >= 30);

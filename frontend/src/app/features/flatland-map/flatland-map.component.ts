@@ -3,6 +3,7 @@ import {
 } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { RailCellHoverService } from '../../services/rail-cell-hover.service';
 import { AgentDTO, DecisionCell, RailTile, DecisionOption, NextDecision } from '../../core/models';
 
@@ -100,6 +101,8 @@ interface DirectorPlanLine {
 export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   store = inject(SessionStore);
   private agentColors = inject(AgentColorService);
+  /** Acting goes through the dispatch seam, never straight to the store. */
+  private trainActions = inject(TrainActionService);
   readonly railHover = inject(RailCellHoverService);
 
   newWidth = signal(50);
@@ -1803,12 +1806,12 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     this.store.toggleAgentSelection(handle);
   }
 
-  onPillClick(handle: number, action: number, isOverride: boolean) {
-    if (isOverride) {
-      this.store.clearOverride(handle);
-    } else {
-      this.store.setOverride(handle, action);
-    }
+  // The decision pills are a *control layer* on an Event widget: the map answers
+  // "what is happening", the Decisions layer acts on it. It already has its own
+  // visibility toggle (layerVisibility().nextDecisions); widget-catalog.ts now
+  // declares it too, so the write is stated rather than incidental.
+  onPillClick(handle: number, action: number, _isOverride: boolean) {
+    this.trainActions.toggle(handle, action, 'map');
   }
 
   trackByTile = (_: number, t: RailTile) => `${t.r}_${t.c}`;

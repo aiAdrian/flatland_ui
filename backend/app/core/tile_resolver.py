@@ -54,18 +54,26 @@ def _build_lookup() -> Dict[int, Tuple[str, int]]:
 
     Each base transition is rotated 0/90/180/270 degrees, producing 4 entries
     per base type (some collapse if symmetric).
+
+    Two passes, and the order matters: several sprites rotate onto the same
+    transition value (e.g. `Weiche_horizontal_oben_rechts` at 180 degrees draws
+    the same picture as `Weiche_horizontal_unten_links` at 0). Registering every
+    unrotated sprite first means the dedicated sprite always wins over a rotated
+    stand-in — which is what the Infrastructure Builder canvas draws, so both
+    views name the same tile instead of two equivalent spellings of it.
     """
     transitions = RailEnvTransitions()
     lookup: Dict[int, Tuple[str, int]] = {}
 
+    # Pass 1: every sprite in its own orientation.
     for trans_str, svg_file in RAIL_FILES.items():
         base_uint16 = _transition_string_to_uint16(trans_str)
-
-        # rotation 0
         if base_uint16 not in lookup:
             lookup[base_uint16] = (svg_file, 0)
 
-        # rotations 90, 180, 270
+    # Pass 2: fill the remaining values with rotations.
+    for trans_str, svg_file in RAIL_FILES.items():
+        base_uint16 = _transition_string_to_uint16(trans_str)
         for rot in (90, 180, 270):
             rotated = transitions.rotate_transition(base_uint16, rot)
             if rotated not in lookup:

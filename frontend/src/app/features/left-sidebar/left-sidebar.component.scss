@@ -180,6 +180,14 @@
   background: #c00;
 }
 
+/* Names what the red fill means, next to where it appears. */
+.actions-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -327,6 +335,18 @@
 .group-header .group-label {
   flex: 0 0 auto;
 }
+/* Plain-language gloss next to the code-ish group label — "DONE" was read as
+   "solved conflicts" in the HMI review. */
+.group-header .group-sub {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--sbb-color-granite);
+}
+
 .group-header .group-count {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
@@ -533,4 +553,60 @@
   border-radius: 9px;
   padding: 0 7px;
   line-height: 18px;
+}
+
+/* ── "Nur Konflikte" filter ────────────────────────────────────────────────
+   HMI review: the list always showed every train, with no way to see
+   only the ones a conflict involves. */
+.agent-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 999px;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+
+  &:hover { border-color: var(--sbb-color-granite); }
+
+  &.active {
+    background: var(--sbb-color-charcoal);
+    border-color: var(--sbb-color-charcoal);
+    color: var(--sbb-color-white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &:disabled:hover { border-color: var(--sbb-color-cloud); }
+}
+
+.filter-hint {
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
+/* Unit key for the badges in the rows below. */
+.agent-key {
+  margin: 0 0 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+
+  strong {
+    color: var(--sbb-color-charcoal);
+    font-weight: 600;
+  }
 }

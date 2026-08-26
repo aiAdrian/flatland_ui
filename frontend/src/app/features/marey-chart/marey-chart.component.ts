@@ -6,6 +6,7 @@ import { SessionStore } from '../../core/session.store';
 import { ApiService } from '../../core/api.service';
 import { RailTile, NextDecision, DecisionOption, AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { RailCellHoverService } from '../../services/rail-cell-hover.service';
 import type { TrajectoryPoint } from '../../core/events/event-types';
 
@@ -104,18 +105,19 @@ export class MareyChartComponent implements AfterViewInit {
   private readonly store = inject(SessionStore);
   private readonly api = inject(ApiService);
   private readonly colors = inject(AgentColorService);
+  /** Acting goes through the dispatch seam, never straight to the store. */
+  private readonly trainActions = inject(TrainActionService);
   private readonly railHover = inject(RailCellHoverService);
-  // ── decision-pill click (mirrors left-sidebar.onActionClick) ────
-  // First click sets the override; second click on the same action
-  // clears it. The store handles the API round-trip + state refresh,
-  // and the sticky-override semantics in OverridePolicy mean the
-  // action keeps applying at every decision point until cleared.
-  onMareyPillClick(handle: number, action: number, isOverride: boolean): void {
-    if (isOverride) {
-      this.store.clearOverride(handle);
-    } else {
-      this.store.setOverride(handle, action);
-    }
+  // ── decision-pill click ─────────────────────────────────────────
+  // The toggle rule used to be copied here from left-sidebar; it now lives once
+  // in TrainActionService. The sticky-override semantics in OverridePolicy still
+  // mean the action keeps applying at every decision point until cleared.
+  //
+  // These pills are a *control layer* on a Prediction widget — the widget reads
+  // the future, the layer acts on it. Declared as such in widget-catalog.ts
+  // (`writes`), so the action affordance is visible rather than incidental.
+  onMareyPillClick(handle: number, action: number, _isOverride: boolean): void {
+    this.trainActions.toggle(handle, action, 'marey');
   }
 
   trajectoryCellInfoEnabled(): boolean {

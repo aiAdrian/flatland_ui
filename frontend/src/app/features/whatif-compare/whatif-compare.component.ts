@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { WhatIfResult, WhatIfTrainOutcome } from '../../core/events/event-types';
@@ -50,6 +51,9 @@ export class WhatifCompareComponent implements OnDestroy {
   }
 
   store = inject(SessionStore);
+  /** Committing "my plan" is a write — it goes through the dispatch seam so it
+   *  is logged with its origin like every other train action. */
+  private trainActions = inject(TrainActionService);
   private api = inject(ApiService);
   private colors = inject(AgentColorService);
 
@@ -139,7 +143,7 @@ export class WhatifCompareComponent implements OnDestroy {
     const h = this.targetHandle();
     const action = this.chosenAction();
     if (h == null || action == null || !this.modeBehavior().canCommit) return;
-    this.store.setOverride(h, action);
+    this.trainActions.set(h, action, 'whatif');
     this.committed.set(true);
     // The override is now real; drop the what-if map overlay so the live
     // trajectory takes over.

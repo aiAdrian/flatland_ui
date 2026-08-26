@@ -24,6 +24,15 @@
     @if (strategyCards().length === 0) {
       <p class="empty">No active recommendations</p>
     } @else {
+      <!-- HMI review: the bare "27%" was read as an "Erfüllungsquote".
+           Score and confidence are two different numbers; name both once here
+           rather than leaving the operator to guess per card. -->
+      <p class="metric-legend">
+        <strong>Score</strong> = Ergebnisgüte der Option (gewichtete KPIs) ·
+        <strong>Konfidenz</strong> = wie sicher die KI ist, dass die Option den
+        <em>aktuellen</em> Kurs schlägt
+      </p>
+
       <div class="strategy-grid">
         @for (card of strategyCards(); track card.rec.id) {
           <div class="option-card"
@@ -53,11 +62,17 @@
 
             <div class="option-card__meta">
               <span class="ai-badge">AI</span>
-              <span class="confidence">{{ confidencePct(card.rec) }}%</span>
+              <span class="confidence" [class]="'conf-' + confidenceLevel(card.rec)">
+                Konfidenz {{ confidencePct(card.rec) }}%
+              </span>
               @if (remaining(card.rec) !== null) {
                 <span class="countdown">{{ remaining(card.rec) }}s</span>
               }
             </div>
+
+            <!-- The evidence behind the number, in the open: a confidence the
+                 operator cannot interrogate is decoration, not transparency. -->
+            <p class="confidence-note">{{ confidenceNote(card.rec) }}</p>
 
             @if (card.isRecommended && card.reasons.length > 0) {
               <div class="option-card__why">

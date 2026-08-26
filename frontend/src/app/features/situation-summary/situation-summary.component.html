@@ -4,6 +4,14 @@
     <span class="sit-progress">{{ arrived() }}/{{ total() }} arrived</span>
   </div>
 
+  <!-- HMI review: the run clock only existed in the footer, which reads
+       as "I'll look when I have time". It belongs with the other numbers the
+       operator actually watches. -->
+  <div class="sit-clock">
+    <span class="sit-clock-label">Schritt</span>
+    <span class="sit-clock-value">{{ store.elapsedSteps() }} / {{ store.maxSteps() }}</span>
+  </div>
+
   <div class="sit-bar" [attr.title]="arrivedPct() + '% arrived'">
     <div class="sit-bar-fill" [style.width.%]="arrivedPct()"></div>
   </div>

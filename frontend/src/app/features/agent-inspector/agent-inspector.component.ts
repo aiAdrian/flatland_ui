@@ -2,6 +2,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/co
 import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainActionService } from '../../core/dispatch/train-action.service';
 
 @Component({
   selector: 'app-agent-inspector',
@@ -13,6 +14,8 @@ import { AgentColorService } from '../../core/agent-color.service';
 export class AgentInspectorComponent {
   store = inject(SessionStore);
   private agentColors = inject(AgentColorService);
+  /** Acting goes through the dispatch seam, never straight to the store. */
+  private trainActions = inject(TrainActionService);
 
   readonly activeAgent = computed<AgentDTO | null>(() => {
     const agents = this.store.agents();
@@ -53,16 +56,11 @@ export class AgentInspectorComponent {
   }
 
   /** Apply or clear a per-agent override from the overlay action buttons. */
-  onActionClick(handle: number, action: number, isOverride: boolean): void {
-    if (isOverride) {
-      this.store.clearOverride(handle);
-    } else {
-      this.store.setOverride(handle, action);
-    }
+  onActionClick(handle: number, action: number, _isOverride: boolean): void {
+    this.trainActions.toggle(handle, action, 'inspector');
   }
 
   isOverrideOption(handle: number, action: number): boolean {
-    const a = this.store.agents().find((x) => x.handle === handle);
-    return a?.override_action === action;
+    return this.trainActions.isActive(handle, action);
   }
 }

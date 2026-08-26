@@ -226,10 +226,57 @@ export class RecommendationsPanelComponent implements OnDestroy {
     return rem !== null && rem < 10;
   }
 
-  // Visualizing the confidence (0..1) as a stripe length
+  // ── Confidence (NOT the score) ────────────────────────────────────────────
+  // `confidence` answers "does this option really beat the current course?".
+  // The backend estimates it from the margin over the baseline measured against
+  // how far apart the policy branches lie (recommendation_generator.py). It is
+  // model-reported, not calibrated against observed outcomes — the note below
+  // says so, because the HMI review showed an unexplained % gets over-read.
+
   confidencePct(r: Recommendation): number {
     return Math.round(r.confidence * 100);
   }
+
+  /** Traffic-light band for the chip. A near-coin-flip must not look confident. */
+  confidenceLevel(r: Recommendation): 'high' | 'medium' | 'low' {
+    if (r.confidence >= 0.75) return 'high';
+    if (r.confidence >= 0.55) return 'medium';
+    return 'low';
+  }
+
+  /** One line of evidence for the number, phrased for an operator. */
+  confidenceNote(r: Recommendation): string {
+    if (r.confidenceBasis === 'mock') {
+      return 'Demo-Daten — kein echter Vergleichslauf dahinter.';
+    }
+
+    const margin = r.margin;
+    if (margin == null) {
+      return 'Modellwert der KI, nicht an beobachteten Ergebnissen kalibriert.';
+    }
+
+    const lead =
+      margin > 0.01 ? `${margin.toFixed(2)} besser als der aktuelle Kurs`
+      : margin < -0.01 ? `${Math.abs(margin).toFixed(2)} schlechter als der aktuelle Kurs`
+      : 'gleichauf mit dem aktuellen Kurs';
+
+    if (r.confidenceBasis === 'prior-only') {
+      return `${this._capitalize(lead)} — keine Vergleichsvarianten, daher schwache Evidenz.`;
+    }
+
+    const spread = r.dispersion ?? 0;
+    const agreement = spread > 0.5 ? 'die Varianten liegen weit auseinander'
+      : spread > 0.2 ? 'die Varianten liegen mittelweit auseinander'
+      : 'die Varianten liegen eng beieinander';
+
+    return `${this._capitalize(lead)}, ${agreement} (Streuung ${spread.toFixed(2)}). `
+      + 'Modellwert, nicht kalibriert.';
+  }
+
+  private _capitalize(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
 
   // ── Scored strategy cards (deck slides 1–2) ───────────────────────────────
   // Join each live recommendation with its backing scenario and derive the
@@ -259,10 +306,13 @@ export class RecommendationsPanelComponent implements OnDestroy {
   });
 
   /** Scenario score is roughly [-1, 1]; map to 0–100. Falls back to the
-   *  recommendation confidence when no scenario backs the card. */
+   *  recommendation's own utility score when no scenario backs the card —
+   *  never to `confidence`, which measures something else entirely. Both
+   *  inputs are the same branch score (the fallback is just clamped at 0), so
+   *  they go through the same mapping and the badge stays comparable. */
   private _scoreFor(rec: Recommendation, s?: ScenarioOption): number {
-    if (s?.score != null) return Math.round(((s.score + 1) / 2) * 100);
-    return Math.round(rec.confidence * 100);
+    const score = s?.score ?? rec.utilityScore ?? 0;
+    return Math.round(((score + 1) / 2) * 100);
   }
 
   /** Δ mean delay vs. the active plan (positive = worse). */

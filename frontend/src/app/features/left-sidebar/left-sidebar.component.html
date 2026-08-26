@@ -9,10 +9,36 @@
         Agents ({{ activeCount() }} / {{ totalCount() }})
       </h3>
 
+      <!-- HMI review: "Alle Züge oder nur die mit Konflikt?" -->
+      <div class="agent-filter">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="conflictsOnly()"
+          [attr.aria-pressed]="conflictsOnly()"
+          [disabled]="conflictCount() === 0 && !conflictsOnly()"
+          title="Züge, die in einem Konflikt stecken (blockiert, blockierend oder gestört)"
+          (click)="toggleConflictsOnly()">
+          Nur Konflikte ({{ conflictCount() }})
+        </button>
+        @if (conflictsOnly()) {
+          <span class="filter-hint">gefiltert — {{ totalCount() }} Züge insgesamt</span>
+        }
+      </div>
+
+      <!-- HMI review: "arr 112 = erwartete Ankunftszeit in Minuten?", "−80 = ?",
+           "Rot 0 = ?". Said once here so the rows can stay scannable. -->
+      <p class="agent-key">
+        <strong>Ank./Abf.</strong> planmässiger Simulationsschritt ·
+        <strong>noch N</strong> Puffer bis dahin (<strong>+N spät</strong> = darüber) ·
+        <strong>Störung N</strong> Restdauer der Störung
+      </p>
+
       <!-- ─── MOVING (always open) ────────────────────────────── -->
       <div class="agent-group">
         <div class="group-header group-moving">
           <span class="group-label">MOVING</span>
+          <span class="group-sub">unterwegs</span>
           <span class="group-count">{{ movingAgents().length }} / {{ totalCount() }}</span>
         </div>
 
@@ -32,8 +58,8 @@
                 <span class="agent-name">Train {{ a.handle }}</span>
 
                 @if (isMalfunctioning(a)) {
-                  <span class="resume-badge" title="{{ store.malfunctionTypeLabel(a) }} — resumes in {{ a.malfunction_remaining }} step(s)">
-                    ↻ {{ a.malfunction_remaining }}
+                  <span class="resume-badge" title="{{ store.malfunctionTypeLabel(a) }} — fährt in {{ a.malfunction_remaining }} Schritt(en) weiter">
+                    Störung {{ a.malfunction_remaining }}
                   </span>
                 }
 
@@ -42,15 +68,15 @@
                     READY → {{ formatEta(a) }}
                   </span>
                 } @else {
-                  <span class="agent-mid" title="Latest arrival">
-                    arr {{ a.latest_arrival ?? '–' }}
+                  <span class="agent-mid" title="Späteste planmässige Ankunft (Simulationsschritt)">
+                    Ank. {{ a.latest_arrival ?? '–' }}
                   </span>
                 }
 
                 <span
                   class="deadline-badge"
                   [style]="deadlineBadgeStyle(a)"
-                  title="Steps until / past latest arrival ({{ a.latest_arrival }})">
+                  title="{{ deadlineTooltip(a) }}">
                   {{ formatDeadlineDelta(a) }}
                 </span>
               </div>
@@ -74,11 +100,21 @@
                       <button
                         class="action-btn"
                         [class.override]="isOverrideOption(a.handle, opt.action)"
+                        [title]="isOverrideOption(a.handle, opt.action)
+                          ? 'Dein gesetzter Eingriff — nochmal klicken hebt ihn auf'
+                          : 'Als Eingriff für diesen Zug setzen'"
                         (click)="onActionClick(a.handle, opt.action, isOverrideOption(a.handle, opt.action))">
                         {{ opt.label }}
                       </button>
                     }
                   </div>
+                  <!-- HMI review: a red "Forward" next to a green
+                       FORWARD_ONLY cell badge was read as "forward is blocked".
+                       Red marks the override this operator has already set on
+                       this train — a toggle, not a barrier. -->
+                  @if (hasOverrideOption(a)) {
+                    <span class="actions-hint">rot = dein gesetzter Eingriff · nochmal klicken hebt ihn auf</span>
+                  }
                 </div>
               }
             </div>
@@ -95,6 +131,7 @@
           class="group-header group-waiting clickable"
           (click)="toggleGroup('WAITING')">
           <span class="group-label">WAITING</span>
+          <span class="group-sub">noch nicht abgefahren</span>
           <span class="group-count">{{ waitingAgents().length }} / {{ totalCount() }}</span>
           <span class="caret" [class.collapsed]="collapsed().WAITING">▾</span>
         </div>
@@ -116,10 +153,10 @@
                     <span class="malfunction-indicator agent-malfunction"
                           title="Malfunction: {{ a.malfunction_remaining }} step(s) remaining">!</span>
                   }
-                  <span class="agent-mid" title="Earliest departure">
-                    dep {{ a.earliest_departure ?? '–' }}
+                  <span class="agent-mid" title="Früheste planmässige Abfahrt (Simulationsschritt)">
+                    Abf. {{ a.earliest_departure ?? '–' }}
                   </span>
-                  <span class="countdown-badge" title="Steps until earliest departure">
+                  <span class="countdown-badge" title="Schritte bis zur frühesten Abfahrt">
                     {{ formatEta(a) }}
                   </span>
                 </div>
@@ -138,6 +175,7 @@
           class="group-header group-done clickable"
           (click)="toggleGroup('DONE')">
           <span class="group-label">DONE</span>
+          <span class="group-sub">am Ziel angekommen</span>
           <span class="group-count">{{ doneAgents().length }} / {{ totalCount() }}</span>
           <span class="caret" [class.collapsed]="collapsed().DONE">▾</span>
         </div>
@@ -159,8 +197,8 @@
                     <span class="malfunction-indicator agent-malfunction"
                           title="Malfunction: {{ a.malfunction_remaining }} step(s) remaining">!</span>
                   }
-                  <span class="agent-mid" title="Latest arrival target">
-                    arr {{ a.latest_arrival ?? '–' }}
+                  <span class="agent-mid" title="Späteste planmässige Ankunft (Simulationsschritt)">
+                    Ank. {{ a.latest_arrival ?? '–' }}
                   </span>
                   @if (isOverdue(a)) {
                     <span class="delay-badge">+{{ a.delay }} delay</span>

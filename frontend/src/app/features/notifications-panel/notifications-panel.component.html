@@ -32,6 +32,14 @@
     @if (store.notifications().length === 0) {
       <p class="empty">No events</p>
     } @else {
+      <!-- HMI review: "rot = Alarm, gelb = Vorsicht?" — the colour code
+           was guessable but never stated. State it. -->
+      <p class="severity-legend">
+        <span class="legend-item"><span class="legend-dot dot-error"></span>Störung / Konflikt</span>
+        <span class="legend-item"><span class="legend-dot dot-warning"></span>Hinweis, beobachten</span>
+        <span class="legend-item"><span class="legend-dot dot-info"></span>Information</span>
+      </p>
+
       <ul class="notif-list">
         @for (n of store.notifications(); track n.id) {
           <li class="notif"
