@@ -1,0 +1,17 @@
+{
+  "id": "e1-station-hold",
+  "name": "E1: Halt nach der Kreuzung",
+  "description": "E1 (WN→WAL) stands for 8 steps just after the crossing, with E2 following on the same track — the delay is passed straight on to the train behind.",
+  "scenario": "pf-ch-wn-wal-conflict",
+  "events": [
+    {
+      "step": 44,
+      "type": "train_delay",
+      "agent_handle": 0,
+      "delay_steps": 8,
+      "severity": "medium",
+      "label": "E1: außerplanmäßiger Halt (+8 Schritte)",
+      "description": "E1 steht auf freier Strecke; E2 folgt auf demselben Gleis und erbt die Verspätung."
+    }
+  ]
+}

@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from typing import Optional, Any
 
 from app.core.session_manager import session_manager
+from app.core.disturbances import apply_due_disturbances
 from app.core.marey_history import capture_marey_history_snapshot
 from app.core.serializer import serialize_env
 from app.core.ws_manager import ws_manager
@@ -112,6 +113,9 @@ async def _play_loop(session_id: str):
             policy.end_step()
             session.last_observations = next_obs
             session.last_info = info
+            # Same scripted-disturbance tick as the /step endpoint, so Play and
+            # single-stepping produce the same episode.
+            apply_due_disturbances(session_id, session, env)
             # Marey real-history snapshot after websocket/play step.
             capture_marey_history_snapshot(session)
         except Exception as e:

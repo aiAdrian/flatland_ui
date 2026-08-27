@@ -1285,7 +1285,7 @@ export class SessionStore {
     run();
   }
 
-  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown; scenarioPresetId?: string } = {}) {
+  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown; scenarioPresetId?: string; disturbanceIds?: string[] } = {}) {
     this.loading.set(true);
     this.error.set(null);
     this.message.set(null);
@@ -1316,6 +1316,7 @@ export class SessionStore {
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
     if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
     if (opts.scenarioPresetId != null) payload.scenario_preset_id = opts.scenarioPresetId;
+    if (opts.disturbanceIds?.length) payload.disturbance_ids = opts.disturbanceIds;
     const requestedScene = payload.infrastructure_scene as { id?: string; name?: string; cells?: unknown[]; agents?: unknown[] } | undefined;
     this.message.set(opts.scenarioPresetId
       ? `Loading prebuilt scenario: ${opts.scenarioPresetId}`
@@ -1325,8 +1326,12 @@ export class SessionStore {
     this.api.createSession(payload).subscribe({
       next: (s) => {
         this.session.set(s);
+        const disturbed = s.disturbance_ids?.length
+          ? ` · ${s.disturbance_ids.length} disturbance${s.disturbance_ids.length > 1 ? 's' : ''}`
+          : '';
         this.message.set(s.scenario_preset_id
           ? `Loaded scenario preset: ${s.scenario_preset_id} · ${s.width} × ${s.height} · ${s.num_agents} trains`
+            + (s.has_plan ? ' · running the premade plan' : '') + disturbed
           : s.infrastructure_scene_id
           ? `Loaded infrastructure scene: ${s.infrastructure_scene_id}`
           : 'Loaded random infrastructure');
@@ -1336,11 +1341,25 @@ export class SessionStore {
         if (opts.policyControlIds != null) {
           this.setEnabledControlPolicyIds(opts.policyControlIds);
         }
-        // A session born while Director mode is active runs under the
-        // Director's planner from its first step — same coupling as
-        // switching into the mode with a session already open.
-        if (this.interactionMode() === 'director'
+        // A planned scenario chooses its own policy: selecting it means "run
+        // this plan", so the backend already put the session on the plan
+        // policy and the signal only has to follow. Nothing to POST back.
+        // The plan policy is hidden in the global /policies listing (it is
+        // meaningless without a plan), so it also has to be added to the
+        // session's control policies — otherwise the toolbar dropdown would
+        // fall back to showing the first entry and claim the wrong driver.
+        if (s.has_plan && s.active_policy) {
+          const policy = s.active_policy as PolicyName;
+          if (!this.enabledControlPolicyIds().includes(policy)) {
+            this.setEnabledControlPolicyIds([policy, ...this.enabledControlPolicyIds()]);
+          }
+          this.setActivePolicy(policy);
+        } else if (this.interactionMode() === 'director'
             && this.activePolicy() !== 'goal_directed') {
+          // A session born while Director mode is active runs under the
+          // Director's planner from its first step — same coupling as
+          // switching into the mode with a session already open. A planned
+          // scenario is exempt: its plan is the thing under supervision.
           this._policyBeforeDirector = this.activePolicy();
           this._applySessionPolicy('goal_directed');
         }

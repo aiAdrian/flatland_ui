@@ -18,6 +18,7 @@ from app.policies.goal_directed_policy import GoalDirectedPolicy
 from app.policies.shortest_path_policy import ShortestPathPolicy
 from app.policies.forward_only_policy import ForwardOnlyPolicy
 from app.policies.do_nothing_policy import DoNothingPolicy
+from app.policies.plan_policy import PlanPolicy, trainruns_from_env
 from app.policies.random_policy import RandomPolicy
 
 
@@ -94,6 +95,10 @@ def _mk_do_nothing(env: RailEnv) -> Policy:
 
 def _mk_goal_directed(env: RailEnv) -> Policy:
     return GoalDirectedPolicy(env)
+
+
+def _mk_plan(env: RailEnv) -> Policy:
+    return PlanPolicy(env, trainruns_from_env(env))
 
 
 _REGISTRY: dict[str, PolicySpec] = {
@@ -242,7 +247,30 @@ _REGISTRY: dict[str, PolicySpec] = {
             "Director mode (WP 3.4): the human steers by goal weights, the planner re-plans against them."
         ),
     ),
+    # Only meaningful for a scenario that ships a plan file, so it is hidden
+    # by default and enabled per session by `Session.__init__` when the env
+    # carries one — otherwise the picker would offer "follow the plan" for
+    # environments that have no plan to follow. What-if branching is out for
+    # the same reason as the Director planner: a forked env has no plan.
+    "plan": PolicySpec(
+        id="plan",
+        label="Scripted Plan",
+        description=(
+            "Drives every train along the scenario's premade plan; trains the "
+            "plan does not cover, or that the operator overrode, fall back to "
+            "deadlock avoidance."
+        ),
+        is_default=False,
+        show_in_ui=False,
+        supports_scenarios=False,
+        runtime_factory=_mk_plan,
+        branch_factory=PlanPolicy,
+    ),
 }
+
+# Policies that no session offers unless something about that session unlocks
+# them. Keeps `show_in_ui` meaning "offer everywhere" rather than "offer never".
+PLAN_POLICY_ID = "plan"
 
 
 def policy_ids(*, include_hidden: bool = True) -> list[str]:

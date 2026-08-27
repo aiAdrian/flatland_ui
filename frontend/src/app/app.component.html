@@ -420,6 +420,37 @@
               </select>
             </label>
 
+            @if (selectedScenarioPreset(); as preset) {
+              @if (preset.has_plan) {
+                <p class="welcome-plan-note">
+                  <strong>Plan</strong> — this scenario ships a premade plan.
+                  The trains follow it exactly from the first step; anything
+                  you override leaves the plan and is driven by the AI instead.
+                </p>
+              }
+              @if (selectedPresetDisturbances().length) {
+                <fieldset class="welcome-disturbances">
+                  <legend>Disturbances</legend>
+                  <p class="welcome-disturbances-hint">
+                    Scripted events that hit at fixed steps. Pick any
+                    combination — none is the undisturbed reference run.
+                  </p>
+                  @for (disturbance of selectedPresetDisturbances(); track disturbance.id) {
+                    <label class="welcome-disturbance"
+                           [class.is-active]="isDisturbanceSelected(disturbance.id)">
+                      <input type="checkbox"
+                             [checked]="isDisturbanceSelected(disturbance.id)"
+                             (change)="toggleDisturbance(disturbance.id)">
+                      <span class="welcome-disturbance-text">
+                        <span class="welcome-disturbance-name">{{ disturbance.name }}</span>
+                        <span class="welcome-disturbance-desc">{{ disturbance.description }}</span>
+                      </span>
+                    </label>
+                  }
+                </fieldset>
+              }
+            }
+
             <sbb-button size="l" (click)="onWelcomeNewSession()">
               + New Session
             </sbb-button>

@@ -19,6 +19,15 @@ same environment, so nothing here is copied into the builder's local storage.
 A preset may pin the session settings that belong to the scenario rather than
 to the user's Settings fields (``session`` below) — otherwise a scenario would
 silently depend on those fields happening to be right.
+
+A preset may also ship two further layers, both optional:
+
+- ``plan`` — a ``*.plan.json`` giving every train's exact route and timing
+  (``app.core.plans``). Selecting the scenario makes the ``plan`` policy
+  available, which drives the trains along it.
+- ``disturbances`` — a directory of files describing what goes wrong and when
+  (``app.core.disturbances``). The user picks any subset of them at session
+  start, so one scenario+plan can be run against several conditions.
 """
 from __future__ import annotations
 
@@ -26,13 +35,15 @@ import json
 from pathlib import Path
 from typing import Any
 
+from app.core.disturbances import list_disturbances
+
 _FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
 ENV_PRESET = "env"
 SCENE_PRESET = "scene"
 
 # Keys that are implementation detail, not part of the UI payload.
-_INTERNAL_FIELDS = {"path", "kind", "session"}
+_INTERNAL_FIELDS = {"path", "kind", "session", "plan", "disturbances"}
 
 
 # id -> metadata. `path` points at the file; width/height/agents are the loaded
@@ -67,10 +78,54 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "height": 9,
         "agents": 3,
         "source": "Gleisschema of the Pfäffikon SZ–Chur line",
+        "plan": _FIXTURES / "pf_ch" / "pf-ch-wn-wal-conflict.plan.json",
+        "disturbances": _FIXTURES / "pf_ch" / "disturbances",
         # All three services are meant to be on the map from the first step;
         # Flatland's timetable generator would otherwise stagger them over the
         # first few steps and the conflict would not arise as intended.
-        "session": {"latest_departure_max": 0},
+        # malfunction_rate is pinned because this scenario ships a plan: with
+        # random breakdowns left on, the same plan and the same disturbances
+        # would still give a different episode every run.
+        "session": {
+            "latest_departure_max": 0,
+            "malfunction_rate": 0.0,
+            "max_episode_steps": 140,
+        },
+    },
+    "pf-ch-wn-wal-long-approach": {
+        "id": "pf-ch-wn-wal-long-approach",
+        "name": "PF–CH · WN↔WAL conflict (long approach)",
+        "kind": SCENE_PRESET,
+        "path": _FIXTURES / "pf_ch" / "pf-ch-wn-wal-long-approach.scene.json",
+        "width": 191,
+        "height": 9,
+        "agents": 3,
+        "source": "Gleisschema of the Pfäffikon SZ–Chur line",
+        "plan": _FIXTURES / "pf_ch" / "pf-ch-wn-wal-long-approach.plan.json",
+        "disturbances": _FIXTURES / "pf_ch" / "disturbances_long_approach",
+        # Same network, trains and targets as the short version; both spawns
+        # move one station further out (WN->ZB eastbound, WAL->FMS westbound)
+        # so the conflict is visible for longer before it has to be resolved.
+        #
+        # Its plan is authored, not recorded. Each train is routed
+        # individually, because Flatland's shortest path puts all of them on
+        # row 0 even where a parallel track exists — which makes the eastbound
+        # and westbound runs look like they contend for 26 columns when the
+        # single-track section is really only six (cols 96-101). Routed
+        # properly and with the departures spaced, all three converge on those
+        # six cells within about a dozen steps and pass through in the order
+        # 0, 1, 2 without any of them ever stopping.
+        #
+        # The single disturbance takes exactly the headway train 0 holds over
+        # train 1 away again, so the two meet at the section — the one thing a
+        # conflict-free plan cannot absorb, and therefore the decision the
+        # operator is there to make. Only then does anything wait, and it waits
+        # on the approach or at the mouth, never at a platform.
+        "session": {
+            "latest_departure_max": 0,
+            "malfunction_rate": 0.0,
+            "max_episode_steps": 180,
+        },
     },
 }
 
@@ -104,9 +159,50 @@ def preset_session_settings(preset_id: str) -> dict[str, Any]:
     return dict(get_preset(preset_id).get("session") or {})
 
 
+def preset_plan_path(preset_id: str) -> Path | None:
+    """The scenario's plan file, if it ships one and the file is there."""
+    path = get_preset(preset_id).get("plan")
+    if path is None or not Path(path).is_file():
+        return None
+    return Path(path)
+
+
+def preset_disturbances(preset_id: str) -> list[dict[str, Any]]:
+    """The scenario's disturbance files, parsed. Empty when it ships none."""
+    return list_disturbances(get_preset(preset_id).get("disturbances"))
+
+
+def select_disturbances(preset_id: str, ids: list[str] | None) -> list[dict[str, Any]]:
+    """The requested disturbances, in the scenario's own order.
+
+    An unknown id is an error rather than a silent skip: a study run that
+    quietly drops a condition would look like a valid run of that condition.
+    """
+    if not ids:
+        return []
+    wanted = set(ids)
+    available = preset_disturbances(preset_id)
+    unknown = wanted - {d["id"] for d in available}
+    if unknown:
+        raise KeyError(
+            f"Unknown disturbance(s) for {preset_id!r}: {', '.join(sorted(unknown))}"
+        )
+    return [d for d in available if d["id"] in wanted]
+
+
 def list_presets() -> list[dict[str, Any]]:
-    """Public listing for the UI picker (without the internal fields)."""
-    return [
-        {k: v for k, v in preset.items() if k not in _INTERNAL_FIELDS}
-        for preset in _PRESETS.values()
-    ]
+    """Public listing for the UI picker.
+
+    Internal fields are replaced by what the picker actually needs: whether a
+    plan exists, and the disturbances offered alongside it.
+    """
+    listing = []
+    for preset in _PRESETS.values():
+        entry = {k: v for k, v in preset.items() if k not in _INTERNAL_FIELDS}
+        entry["has_plan"] = preset_plan_path(preset["id"]) is not None
+        entry["disturbances"] = [
+            {"id": d["id"], "name": d["name"], "description": d["description"]}
+            for d in preset_disturbances(preset["id"])
+        ]
+        listing.append(entry)
+    return listing
