@@ -194,6 +194,8 @@ def create_session(req: SessionCreateRequest):
             height=session.env.height,
             num_agents=len(session.env.agents),
             scenario_preset_id=scenario_preset_id,
+            # Set for scene presets, which keep their scene on the session.
+            infrastructure_scene_id=getattr(session, "infrastructure_scene_id", None),
         )
 
     infrastructure_scene = req.infrastructure_scene or None

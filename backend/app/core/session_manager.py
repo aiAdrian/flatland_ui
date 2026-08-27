@@ -67,6 +67,11 @@ class SessionManager:
             scenario_preset_id=scenario_preset_id,
         )
         session = Session(sid, env, enabled_scenario_policy_set, enabled_policy_set)
+        # A scene preset is a scene that ships with the repo, so it must keep the
+        # same scene dict a hand-picked scene would — `stations_from_scene` reads
+        # it from here for the named stations.
+        if infrastructure_scene is None:
+            infrastructure_scene = getattr(env, "_infrastructure_scene", None)
         session.infrastructure_scene = infrastructure_scene
         session.scenario_preset_id = scenario_preset_id
         session.infrastructure_scene_id = (
