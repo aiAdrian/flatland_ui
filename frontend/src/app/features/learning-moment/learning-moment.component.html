@@ -1,0 +1,92 @@
+@if (moment(); as m) {
+  <div class="lm" [class.lm--revealed]="m.answered">
+    <div class="lm-head">
+      <span class="lm-icon" aria-hidden="true">🎯</span>
+      <span class="lm-title">Lernmoment</span>
+      <span class="lm-badge lm-badge--{{ m.eventType }}">{{ eventLabel() }}</span>
+      <button class="lm-close" type="button" (click)="close()" aria-label="Lernmoment schließen">
+        ✕
+      </button>
+    </div>
+
+    <p class="lm-context">
+      Schritt {{ m.step }} · du hast <strong>{{ m.chosen.label }}</strong> gewählt.
+    </p>
+
+    @if (!m.answered) {
+      <!-- Stage 1: the guess. No outcome is shown here, and none is in the
+           payload either — being told the answer teaches less than being wrong. -->
+      <p class="lm-question">{{ m.question }}</p>
+      <div class="lm-options">
+        @for (option of m.options; track option.id) {
+          <button class="lm-option" type="button" (click)="answer(option.id)">
+            {{ option.label }}
+          </button>
+        }
+      </div>
+      <p class="lm-hint">
+        Die Alternative wird auf einer Kopie der Episode wirklich durchgerechnet —
+        deine Schätzung entscheidet nur, wann du das Ergebnis siehst.
+      </p>
+    } @else {
+      <!-- Stage 2: the reveal. -->
+      <p class="lm-verdict" [class.is-hit]="m.predictionCorrect">
+        {{ verdict() }}
+        @if (predictionLabel()) {
+          <span class="lm-verdict__guess">Deine Schätzung: {{ predictionLabel() }}</span>
+        }
+      </p>
+
+      @if (m.evidence; as ev) {
+        <section class="lm-block">
+          <h4 class="lm-block__head">
+            Gemessen
+            <span class="lm-block__src">Simulation auf einer Kopie der Episode</span>
+          </h4>
+          <table class="lm-table">
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">{{ m.chosen.label }}</th>
+                <th scope="col">{{ m.alternative.label }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track row.label) {
+                <tr>
+                  <th scope="row">{{ row.label }}</th>
+                  <td [class.is-better]="row.better === 'actual'">{{ row.actual }}</td>
+                  <td [class.is-better]="row.better === 'alternative'">{{ row.alternative }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <p class="lm-paired">
+            Beide Zweige starten im selben Zustand und sehen dieselben künftigen
+            Störungen. Unterschied ist allein die Entscheidung.
+          </p>
+        </section>
+      }
+
+      @if (m.narrative; as narrative) {
+        <section class="lm-block lm-block--narrative">
+          <h4 class="lm-block__head">
+            Auslegung
+            <span class="lm-block__src">aus den Zahlen darüber formuliert</span>
+          </h4>
+          @if (narrative.explanation) {
+            <p class="lm-explanation">{{ narrative.explanation }}</p>
+          }
+          @if (narrative.takeaway) {
+            <p class="lm-takeaway">
+              <span class="lm-takeaway__label">Mitnehmen</span>
+              {{ narrative.takeaway }}
+            </p>
+          }
+        </section>
+      }
+
+      <button class="lm-done" type="button" (click)="close()">Weiter</button>
+    }
+  </div>
+}

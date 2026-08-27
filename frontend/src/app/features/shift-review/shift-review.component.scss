@@ -94,6 +94,14 @@
   color: var(--sbb-color-charcoal);
 }
 
+/* What the learning moments say together — the one line worth reading first. */
+.sv-line--pattern {
+  font-weight: 700;
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--sbb-color-violet);
+  padding: 4px 8px;
+}
+
 .sv-note {
   margin: 0;
   font-size: 11px;

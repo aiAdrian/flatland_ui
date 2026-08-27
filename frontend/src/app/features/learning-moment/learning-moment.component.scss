@@ -1,0 +1,237 @@
+:host {
+  display: block;
+}
+
+.lm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  border: 1px solid var(--app-severity-warn);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+}
+
+.lm--revealed {
+  border-color: var(--sbb-color-violet);
+}
+
+.lm-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lm-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.lm-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--sbb-color-cloud);
+  color: var(--sbb-color-charcoal);
+}
+.lm-badge--mistake {
+  background: var(--app-severity-error);
+  color: var(--sbb-color-white);
+}
+.lm-badge--near_miss {
+  background: var(--app-severity-warn);
+  color: var(--sbb-color-charcoal);
+}
+.lm-badge--surprising_success {
+  background: var(--app-positive);
+  color: var(--sbb-color-white);
+}
+
+.lm-close {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--sbb-color-granite);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+.lm-close:hover {
+  color: var(--sbb-color-charcoal);
+}
+
+.lm-context {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sbb-color-charcoal);
+}
+
+.lm-question {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--sbb-color-charcoal);
+}
+
+.lm-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.lm-option {
+  flex: 1 1 auto;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lm-option:hover {
+  background: var(--sbb-color-cloud);
+}
+
+.lm-hint,
+.lm-paired {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
+.lm-verdict {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--app-severity-warn);
+}
+.lm-verdict.is-hit {
+  color: var(--app-positive);
+}
+.lm-verdict__guess {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--sbb-color-granite);
+}
+
+.lm-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--sbb-color-cloud);
+  padding-top: 6px;
+}
+
+.lm-block__head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sbb-color-granite);
+}
+
+.lm-block__src {
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--sbb-color-granite);
+}
+
+.lm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.lm-table th,
+.lm-table td {
+  padding: 3px 4px;
+  text-align: right;
+  color: var(--sbb-color-charcoal);
+}
+.lm-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sbb-color-granite);
+  border-bottom: 1px solid var(--sbb-color-cloud);
+}
+.lm-table tbody th {
+  text-align: left;
+  font-weight: 400;
+  color: var(--sbb-color-granite);
+}
+.lm-table td.is-better {
+  font-weight: 700;
+  color: var(--app-positive);
+}
+
+.lm-block--narrative {
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--sbb-color-violet);
+  border-top: 0;
+  padding: 5px 8px;
+}
+
+.lm-explanation {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sbb-color-charcoal);
+}
+
+.lm-takeaway {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sbb-color-charcoal);
+}
+
+.lm-takeaway__label {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sbb-color-granite);
+}
+
+.lm-done {
+  align-self: flex-start;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border: 1px solid var(--sbb-color-violet);
+  border-radius: 3px;
+  background: var(--sbb-color-violet);
+  color: var(--sbb-color-white);
+  cursor: pointer;
+}
+.lm-done:hover {
+  filter: brightness(1.08);
+}

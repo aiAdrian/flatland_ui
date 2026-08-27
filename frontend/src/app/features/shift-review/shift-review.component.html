@@ -99,6 +99,49 @@
       </div>
     }
 
+    <!-- 2a. Lernmomente: die einzelnen Momente sind Einzelfälle, hier steht was
+         sie zusammen sagen. Die Zahlen kommen aus der Simulation, die
+         Mitnahmesätze sind daraus formuliert. -->
+    @if (learningMoments().length > 0) {
+      <div class="sv-block">
+        <span class="sv-block__title">
+          Lernmomente ({{ learningMoments().length }})
+        </span>
+        @if (learningSummary(); as s) {
+          @if (s.pattern) {
+            <p class="sv-line sv-line--pattern">{{ s.pattern }}</p>
+          }
+          <p class="sv-line">
+            {{ s.answered }} von {{ s.total }} beantwortet, davon
+            {{ s.mispredicted }} anders als geschätzt.
+          </p>
+        }
+        @for (m of learningMoments(); track m.id) {
+          <div class="sv-moment">
+            <div class="sv-moment__head">
+              <span class="sv-badge">{{ momentEventLabel(m.eventType) }}</span>
+              <span class="sv-moment__step">Schritt {{ m.step }}</span>
+            </div>
+            <p class="sv-moment__text">
+              {{ m.chosen.label }} statt {{ m.alternative.label }}.
+              @if (m.evidence; as ev) {
+                Gemessen: {{ ev.actual.total_delay }} gegen
+                {{ ev.counterfactual.total_delay }} Verspätung,
+                {{ ev.actual.arrived }} gegen {{ ev.counterfactual.arrived }}
+                angekommen.
+              }
+            </p>
+            @if (m.narrative?.takeaway; as takeaway) {
+              <p class="sv-moment__text">Mitnehmen: {{ takeaway }}</p>
+            }
+            @if (!m.answered) {
+              <p class="sv-moment__why">Nicht beantwortet.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+
     <!-- 2b. Der Plan, nachgespielt -->
     @if (predictedVsVerified(); as pv) {
       <div class="sv-block">

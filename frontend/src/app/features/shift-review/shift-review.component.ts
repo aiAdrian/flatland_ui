@@ -9,6 +9,10 @@ import {
   untracked,
 } from '@angular/core';
 import { ApiService, DirectorVerification } from '../../core/api.service';
+import {
+  LEARNING_MOMENT_EVENT_LABELS,
+  LearningMomentEvent,
+} from '../../core/learning-moment';
 import { AgentDTO } from '../../core/models';
 import { OperatorModelService, ValueAxis } from '../../core/operator-model.service';
 import { SessionStore } from '../../core/session.store';
@@ -70,6 +74,9 @@ export class ShiftReviewComponent {
       const open = this.store.shiftReviewOpen();
       if (!sid || !open) return;
       untracked(() => {
+        // The moments were collected during the shift; re-read them so the
+        // review shows the pattern across them, not only the last one seen.
+        this.store.refreshLearningMoments();
         if (this.verification() || this.verifyFailed()) return;
         this.api.verifyDirectorPlan(sid).subscribe({
           next: (v) => this.verification.set(v),
@@ -87,6 +94,14 @@ export class ShiftReviewComponent {
       (a.malfunction_remaining ?? 0) > 0 ||
       String(a.state ?? '').toUpperCase().includes('MALFUNCTION')
     );
+  }
+
+  /** The episode's Learning Moments and what they say together. */
+  readonly learningMoments = computed(() => this.store.learningMoments());
+  readonly learningSummary = computed(() => this.store.learningMomentSummary());
+
+  momentEventLabel(event: LearningMomentEvent): string {
+    return LEARNING_MOMENT_EVENT_LABELS[event] ?? event;
   }
 
   readonly kpis = computed<ShiftKpis>(() => {

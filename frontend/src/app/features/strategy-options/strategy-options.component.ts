@@ -847,6 +847,9 @@ export class StrategyOptionsComponent {
       axis: VALUE_AXIS_BY_FOCUS[tile.strategy.focus],
       tradedAway: traded,
       hypothesis: strategyHypothesis(tile.strategy.focus, traded),
+      // Lets the store evaluate what the focuses *not* chosen would have done.
+      focusId: tile.strategy.id,
+      weights: tile.strategy.weights,
     });
   }
 

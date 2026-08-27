@@ -19,6 +19,7 @@ import { GoalAchievementComponent } from './features/goal-achievement/goal-achie
 import { StrategyForecastComponent } from './features/strategy-forecast/strategy-forecast.component';
 import { StrategyOptionsComponent } from './features/strategy-options/strategy-options.component';
 import { CoLearningEffectComponent } from './features/co-learning-effect/co-learning-effect.component';
+import { LearningMomentComponent } from './features/learning-moment/learning-moment.component';
 import { StrategyReflectionComponent } from './features/strategy-reflection/strategy-reflection.component';
 import { AiActivityComponent } from './features/ai-activity/ai-activity.component';
 import { ShiftReviewComponent } from './features/shift-review/shift-review.component';
@@ -86,6 +87,7 @@ type RuntimeLayoutOption = {
     StrategyOptionsComponent,
     CoLearningEffectComponent,
     StrategyReflectionComponent,
+    LearningMomentComponent,
     AiActivityComponent,
     ShiftReviewComponent,
     LearningRecordsComponent,

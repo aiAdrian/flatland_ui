@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
-import { ApiService, DirectorDivergence } from './api.service';
+import { ApiService, DirectorDivergence, DirectorWeights } from './api.service';
 import {
   VISUAL_ENCODING_PRESETS,
   VisualEncoding,
@@ -26,6 +26,12 @@ import {
   ScenarioOption,
   WhatIfTrajById,
 } from './events/event-types';
+import {
+  LearningMomentPrediction,
+  LearningMomentSide,
+  LearningMomentSummary,
+  LearningMomentView,
+} from './learning-moment';
 import { ForecastSignals } from './strategy-forecast';
 import { WebSocketService } from './websocket.service';
 import {
@@ -641,8 +647,90 @@ export class SessionStore {
   } | null>(null);
 
   /**
+   * A Learning Moment waiting for the operator's prediction, or — once they have
+   * answered — carrying the revealed comparison. Null when there is nothing to
+   * show, which is most of the time: the backend triggers roughly three to five
+   * per episode.
+   */
+  readonly pendingLearningMoment = signal<LearningMomentView | null>(null);
+
+  /** Everything this episode produced, for the shift review to read across. */
+  readonly learningMoments = signal<LearningMomentView[]>([]);
+  readonly learningMomentSummary = signal<LearningMomentSummary | null>(null);
+
+  /**
+   * Ask the backend whether the decision just taken deserves a Learning Moment.
+   *
+   * Fire and forget: the evaluation forward-simulates the alternatives and takes
+   * seconds, so it must not block the operator. A negative answer is the common
+   * case and is dropped silently — the alternative would be a stream of "nothing
+   * to learn here" messages.
+   *
+   * Only one moment is held at a time. A second one arriving while the first is
+   * still unanswered is discarded rather than queued: the point is to interrupt
+   * briefly at a relevant moment, not to build a backlog of interruptions.
+   */
+  evaluateLearningMoment(chosen: LearningMomentSide, decisionSeq?: number): void {
+    const sid = this.session()?.id;
+    if (!sid) return;
+    this.api.evaluateLearningMoment(sid, chosen, decisionSeq).subscribe({
+      next: (res) => {
+        if (!res.triggered || !res.moment) return;
+        if (this.pendingLearningMoment()) return;
+        this.pendingLearningMoment.set(res.moment);
+        this.refreshLearningMoments();
+      },
+      error: () => {
+        // A missing moment costs nothing; surfacing an error for it would.
+      },
+    });
+  }
+
+  /** Submit the prediction; the response carries the measured comparison. */
+  answerLearningMoment(prediction: LearningMomentPrediction): void {
+    const sid = this.session()?.id;
+    const moment = this.pendingLearningMoment();
+    if (!sid || !moment || moment.answered) return;
+    this.api.answerLearningMoment(sid, moment.id, prediction).subscribe({
+      next: (res) => {
+        this.pendingLearningMoment.set(res.moment);
+        this.refreshLearningMoments();
+      },
+      error: () => this.pendingLearningMoment.set(null),
+    });
+  }
+
+  /** Close the moment. An answered one stays in the episode's list. */
+  dismissLearningMoment(): void {
+    this.pendingLearningMoment.set(null);
+  }
+
+  refreshLearningMoments(): void {
+    const sid = this.session()?.id;
+    if (!sid) return;
+    this.api.getLearningMoments(sid).subscribe({
+      next: (res) => {
+        this.learningMoments.set(res.moments);
+        this.learningMomentSummary.set(res.summary);
+      },
+      error: () => {},
+    });
+  }
+
+  private _clearLearningMoments(): void {
+    this.pendingLearningMoment.set(null);
+    this.learningMoments.set([]);
+    this.learningMomentSummary.set(null);
+  }
+
+  /**
    * Log a committed strategy focus and open its reflection prompt.
    * Returns the decision-log sequence number.
+   *
+   * When the caller passes the focus id and its dials, this also starts the
+   * Learning Moment evaluation for the choice — the same decision, looked at
+   * from the other side: the reflection asks *why* it was chosen, the moment
+   * asks what the alternative *would have done*.
    */
   recordStrategyChoice(choice: {
     title: string;
@@ -650,6 +738,8 @@ export class SessionStore {
     axis: DecisionValueAxis;
     tradedAway: string | null;
     hypothesis: string;
+    focusId?: string;
+    weights?: DirectorWeights;
   }): number {
     const now = Date.now();
     const seq = this._appendDecision({
@@ -675,6 +765,16 @@ export class SessionStore {
       tradedAway: choice.tradedAway,
       hypothesis: choice.hypothesis,
     });
+    if (choice.focusId && choice.weights) {
+      this.evaluateLearningMoment(
+        {
+          id: choice.focusId,
+          label: `${choice.ident} · ${choice.title}`,
+          weights: { ...choice.weights },
+        },
+        seq,
+      );
+    }
     return seq;
   }
 
@@ -1240,6 +1340,7 @@ export class SessionStore {
     this.coLearningFeedback.set([]);
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
+    this._clearLearningMoments();
     this.impact.set([]);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
@@ -1427,6 +1528,7 @@ export class SessionStore {
     this.reflectionRequested.set(false);
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
+    this._clearLearningMoments();
     this.previewScenarioId.set(null);
     this.whatIfPreview.set(null);
     this.directorPlanPaths.set(null);
@@ -1456,6 +1558,7 @@ export class SessionStore {
     this.coLearningFeedback.set([]);
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
+    this._clearLearningMoments();
     this.impact.set([]);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);

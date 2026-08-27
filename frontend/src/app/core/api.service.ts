@@ -14,6 +14,13 @@ import {
   StepResponse,
 } from './models';
 import { AppNotification, ImpactItem, KpiPriorities, Recommendation, ScenarioOption, WhatIfResult } from './events/event-types';
+import {
+  LearningMomentEvaluation,
+  LearningMomentList,
+  LearningMomentPrediction,
+  LearningMomentSide,
+  LearningMomentView,
+} from './learning-moment';
 
 /** Build the KPI query params for the scenario/recommendation endpoints. */
 function kpiParams(kpi?: KpiPriorities): { [k: string]: string } {
@@ -465,6 +472,43 @@ export class ApiService {
     return this.http.post<WhatIfResult>(
       `${API_BASE}/session/${id}/what-if-override`,
       { overrides },
+    );
+  }
+
+  /** Ask whether the decision just taken is worth a Learning Moment.
+   *
+   *  Slow by nature — one forward simulation per branch, so roughly ten seconds
+   *  for a choice plus two alternatives. Callers fire it and forget it; the
+   *  moment surfaces when the answer arrives. A `triggered: false` response is
+   *  the normal case, not an error. */
+  evaluateLearningMoment(
+    id: string,
+    chosen: LearningMomentSide,
+    decisionSeq?: number,
+  ): Observable<LearningMomentEvaluation> {
+    return this.http.post<LearningMomentEvaluation>(
+      `${API_BASE}/session/${id}/learning-moment/evaluate`,
+      { chosen, decisionSeq },
+    );
+  }
+
+  /** Submit the operator's prediction and get the measured comparison back. */
+  answerLearningMoment(
+    id: string,
+    momentId: string,
+    prediction: LearningMomentPrediction,
+  ): Observable<{ session_id: string; moment: LearningMomentView }> {
+    return this.http.post<{ session_id: string; moment: LearningMomentView }>(
+      `${API_BASE}/session/${id}/learning-moment/${momentId}/answer`,
+      { prediction },
+    );
+  }
+
+  /** Every moment of this episode plus the pattern across them — what the
+   *  shift review reads. */
+  getLearningMoments(id: string): Observable<LearningMomentList> {
+    return this.http.get<LearningMomentList>(
+      `${API_BASE}/session/${id}/learning-moments`,
     );
   }
 

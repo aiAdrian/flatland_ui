@@ -12,6 +12,7 @@ from app.core.serializer import serialize_env
 from app.core.ws_manager import ws_manager
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
+from app.core.learning_moments import learning_moment_store
 from app.core.marey_history import capture_marey_history_snapshot, reset_marey_history
 from app.core.scenario_presets import get_preset, list_presets
 from app.models.session import (
@@ -418,6 +419,8 @@ async def reset_session(session_id: str):
     _capture_marey_history_snapshot(session)
     override_manager.clear_all(session_id)
     notification_manager.clear_session(session_id)
+    # The moments belong to the episode that just ended, not to the next one.
+    learning_moment_store.clear_session(session_id)
 
     await _broadcast_state(session_id, session.env)
 
@@ -455,6 +458,7 @@ def delete_session(session_id: str):
         raise HTTPException(404, f"Session {session_id} not found")
     override_manager.clear_all(session_id)
     notification_manager.clear_session(session_id)
+    learning_moment_store.clear_session(session_id)
     _STRATEGY_CACHE.pop(session_id, None)
     return {"deleted": session_id}
 
