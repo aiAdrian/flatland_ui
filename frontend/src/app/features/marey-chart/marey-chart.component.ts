@@ -4,6 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
 import { deltaSteps } from '../../core/combined-actions/combined-actions-preview';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { ApiService } from '../../core/api.service';
 import { RailTile, NextDecision, DecisionOption, AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
@@ -115,6 +116,9 @@ export class MareyChartComponent implements AfterViewInit {
   private readonly store = inject(SessionStore);
   private readonly api = inject(ApiService);
   private readonly colors = inject(AgentColorService);
+  /** Shared train naming (core/train-identity.service.ts), so a line reads as
+   *  the same train as the timetable row and the action package. */
+  readonly identity = inject(TrainIdentityService);
   private readonly railHover = inject(RailCellHoverService);
   // ── decision-pill click (mirrors left-sidebar.onActionClick) ────
   // First click sets the override; second click on the same action

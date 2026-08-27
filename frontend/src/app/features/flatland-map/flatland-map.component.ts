@@ -2,6 +2,7 @@ import {
   Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, viewChild, HostListener, AfterViewInit, OnDestroy
 } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { RailCellHoverService } from '../../services/rail-cell-hover.service';
 import { AgentDTO, DecisionCell, RailTile, DecisionOption, NextDecision } from '../../core/models';
@@ -99,6 +100,9 @@ interface DirectorPlanLine {
 })
 export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   store = inject(SessionStore);
+  /** Shared train naming (core/train-identity.service.ts), so the map speaks the
+   *  same vocabulary as the timetable, the ZWL and the action packages. */
+  readonly identity = inject(TrainIdentityService);
   private agentColors = inject(AgentColorService);
   readonly railHover = inject(RailCellHoverService);
 

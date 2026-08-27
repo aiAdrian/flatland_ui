@@ -294,14 +294,6 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
             collapsible: true,
             minHeight: 140,
           },
-          {
-            id: 'preset-ca-timetable',
-            type: 'timetable',
-            title: 'Fahrplan',
-            expanded: true,
-            collapsible: true,
-            minHeight: 200,
-          },
         ],
       },
       {
@@ -321,6 +313,17 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
             // Both views are peers here: the map shows *who* an action moves,
             // the ZWL shows *when* — neither alone answers the question.
             settings: { tabs: ['flatland-map', 'marey'] },
+          },
+          {
+            // Context, not events: the timetable says what each train is
+            // *supposed* to do, which is the frame you read the network view
+            // against — so it belongs under it, not in the event column.
+            id: 'preset-ca-timetable',
+            type: 'timetable',
+            title: 'Fahrplan',
+            expanded: true,
+            collapsible: true,
+            minHeight: 180,
           },
         ],
       },

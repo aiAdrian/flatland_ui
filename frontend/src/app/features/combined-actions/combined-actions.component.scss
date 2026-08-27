@@ -111,3 +111,46 @@ app-action-card.is-previewed {
   line-height: 1.35;
   color: var(--sbb-color-graphite);
 }
+
+/* Calm state (widget E1 §3): a coordinated re-ordering answers contention, so
+   when there is none the panel says so instead of offering three fixes for a
+   problem the operator does not have. The cards stay readable but step back —
+   hiding them entirely would make the panel look broken. */
+.ca__calm {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 5px 7px;
+  border-radius: 3px;
+  background: var(--sbb-color-milk);
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
+.ca__calm-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--app-positive);
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.ca__calm-hint { color: var(--sbb-color-graphite); }
+
+.ca__cards.is-idle {
+  opacity: 0.55;
+}
+
+.ca__count.is-alert {
+  background: var(--app-severity-warn);
+  color: var(--sbb-color-white);
+}
+
+.ca__reason {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--app-severity-warn);
+}

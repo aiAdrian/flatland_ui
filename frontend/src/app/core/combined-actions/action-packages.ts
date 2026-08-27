@@ -1,4 +1,5 @@
 import { ImpactPrediction, predictImpact } from './impact-prediction';
+export { SERVICE_ROSTER as ALL_TRAINS } from '../train-identity.service';
 
 /**
  * Combined Actions — the authored action packages.
@@ -53,25 +54,6 @@ export const ACTION_PACKAGES: readonly ActionPackage[] = [
     recommended: false,
     rationale: 'Keeps the regional cadence intact, delays the long-distance pair.',
   },
-];
-
-/**
- * Every distinct train across the packages, in a fixed order.
- *
- * The order is the binding order onto the session's live Flatland handles (see
- * the panel's `handleByTrain`): first train ↔ lowest handle. Fixed here rather
- * than derived, so the same session always binds the same way and a study can
- * be replayed.
- */
-export const ALL_TRAINS: readonly string[] = [
-  'IC_703',
-  'ICE_42',
-  'RE_18',
-  'S8_214',
-  'EC_91',
-  'RB_51',
-  'IR_227',
-  'TGV_12',
 ];
 
 /** Category per train, for chip styling. Authored alongside the fixtures. */

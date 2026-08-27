@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
-import { ACTION_PACKAGES, ActionPackage, ALL_TRAINS } from '../../core/combined-actions/action-packages';
+import { ACTION_PACKAGES, ActionPackage } from '../../core/combined-actions/action-packages';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { predictImpact } from '../../core/combined-actions/impact-prediction';
 import { perTrainDeltaMin } from '../../core/combined-actions/combined-actions-preview';
 import { ActionCardComponent, ActionFraming, ActivePreview } from './components/action-card/action-card.component';
@@ -47,6 +48,7 @@ export class CombinedActionsComponent implements OnDestroy {
   }
 
   readonly store = inject(SessionStore);
+  private readonly identity = inject(TrainIdentityService);
 
   /** The version each card is currently showing, by package id. */
   private readonly activeByPackage = signal<Record<string, ActivePreview>>({});
@@ -55,42 +57,36 @@ export class CombinedActionsComponent implements OnDestroy {
    *  only one at a time, on purpose (two overlapping overlays are unreadable). */
   readonly previewedPackage = signal<string | null>(null);
 
-  /** The card that is open. One at a time: three open cards plus the plot ran
-   *  to 1220 px in a 509 px column, so nothing was fully visible. */
+  /** The card the operator opened for editing. Null = all three sit in their
+   *  compact form, which is the default: folding two of three hid exactly the
+   *  comparison the panel exists to support. */
   private readonly _expandedPackage = signal<string | null>(null);
 
   /**
-   * Defaults to the AI's pick where there is one, else the first package — the
-   * card the operator is most likely to want open.
+   * Which card is expanded. Empty = none, and that is the normal state now.
    *
-   * While the chart is open **no** card is: the two are different jobs. The
-   * chart is for comparing options, an open card is for editing one, and the
-   * panel does not have the height for both — which is the whole reason this
-   * accordion exists.
+   * Every card keeps its sequence and its figures in compact form, so all three
+   * can be compared at a glance; opening one adds the diff, the version chooser
+   * and the buttons. The earlier accordion — one card open, two folded to a
+   * headline — bought height by hiding two thirds of the comparison, which was
+   * the wrong trade.
    */
-  readonly expandedPackage = computed<string>(() => {
-    if (this.plotOpen()) return '';
-    const chosen = this._expandedPackage();
-    if (chosen) return chosen;
-    const list = this.packages();
-    return (list.find((p) => p.recommended) ?? list[0])?.id ?? '';
-  });
+  readonly expandedPackage = computed<string>(() => this._expandedPackage() ?? '');
 
-  /** Opening a card closes the chart, for the same reason. */
+  /** Toggle a card open; opening one closes any other. */
   expand(packageId: string): void {
-    this._expandedPackage.set(packageId);
-    this.plotOpen.set(false);
+    this._expandedPackage.update((current) => (current === packageId ? null : packageId));
   }
 
   /**
-   * The trade-off plot is opened by hand, never on its own.
+   * The trade-off plot is visible by default.
    *
-   * It costs ~180 px, and the panel has to fit its column **without scrolling**
-   * — a plot that opened itself the moment a variant appeared put the column
-   * back into a scroll at exactly the moment the operator was working. Folded,
-   * its one-line summary still carries the trade.
+   * Hiding it behind a toggle to save height meant the comparison simply was not
+   * there any more — the operator had to know to look for it. It is the answer
+   * to "which of these is better", so it stays on screen; the height is paid for
+   * by the cards being compact instead.
    */
-  readonly plotOpen = signal(false);
+  readonly plotOpen = signal(true);
 
   togglePlot(): void {
     this.plotOpen.update((open) => !open);
@@ -174,20 +170,39 @@ export class CombinedActionsComponent implements OnDestroy {
   /**
    * Service name → live Flatland handle.
    *
-   * The packages are fixtures (`IC_703`, `ICE_42`, …) while the map and the
-   * Marey draw real agents, so without a binding the consequence overlay has
-   * nothing to point at. Names are bound to the session's handles in a fixed
-   * order, which is stable for a given session and obvious enough to explain in
-   * a study ("IC_703 is train 0"). Trains beyond the agent count stay unbound
-   * and simply do not take part in the overlay — nothing is invented.
+   * Delegated to `TrainIdentityService`, which is what the map, the ZWL and the
+   * timetable also read. That shared naming is the point: an action that talks
+   * about `IC_703` and a timetable row that says `IC_703` are now provably the
+   * same train, instead of two vocabularies that happened to look alike.
    */
-  readonly handleByTrain = computed<Record<string, number>>(() => {
-    const agents = [...this.store.agents()].sort((a, b) => a.handle - b.handle);
-    const out: Record<string, number> = {};
-    ALL_TRAINS.forEach((train, i) => {
-      if (i < agents.length) out[train] = agents[i].handle;
-    });
-    return out;
+  readonly handleByTrain = computed<Record<string, number>>(() => this.identity.handleByName());
+
+  /**
+   * Is anything actually wrong?
+   *
+   * A coordinated re-ordering is an answer to contention — offering three of
+   * them while every train is running to plan invites the operator to fix
+   * something that is not broken, and trains them to ignore the panel. So the
+   * packages appear when the network gives a reason: a malfunction, or a train
+   * the impact analysis reports as blocked.
+   */
+  readonly disrupted = computed(() => {
+    if (this.store.impact().length > 0) return true;
+    return this.store.agents().some(
+      (a) => !!a.is_malfunctioning || (a.malfunction_remaining ?? 0) > 0,
+    );
+  });
+
+  /** Why the panel is showing what it shows, in one line. */
+  readonly disruptionReason = computed(() => {
+    const blocked = this.store.impact().length;
+    const broken = this.store.agents().filter(
+      (a) => !!a.is_malfunctioning || (a.malfunction_remaining ?? 0) > 0,
+    ).length;
+    const parts: string[] = [];
+    if (broken) parts.push(`${broken} Störung${broken === 1 ? '' : 'en'}`);
+    if (blocked) parts.push(`${blocked} Zug/Züge blockiert`);
+    return parts.join(' · ');
   });
 
   /** True once the session has enough trains to bind the packages onto. */
