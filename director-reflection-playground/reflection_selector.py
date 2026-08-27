@@ -40,7 +40,9 @@ def score_episode(
     rationale_mode = user.get("rationale_mode")
     selected = user.get("selected_strategy")
 
-    pattern = analyze_pattern(all_episodes, episode)
+    # Only deliberate prior decisions may count as a pattern: a recommendation
+    # the operator clicked through must not come back as "you mostly chose X".
+    pattern = analyze_pattern(all_episodes, episode, evidence_only=True)
     relation = pattern_relation(pattern, selected)
 
     score = 0.0
@@ -133,6 +135,32 @@ def _count_quick_accept_runs(episodes: list[dict[str, Any]]) -> list[str]:
     if len(run) >= 3:
         flagged.extend(run)
     return flagged
+
+
+def selection_report(
+    episodes: list[dict[str, Any]],
+    max_moments: int = MAX_REFLECTION_MOMENTS,
+) -> dict[str, Any]:
+    """Selected moments plus what was left out, so the UI can say why.
+
+    ``skipped_uneventful`` are decisions that scored zero -- routine accepts with
+    no pattern relation and no surprise. ``skipped_ranked_lower`` scored above
+    zero but lost to a higher-scoring or more diverse case.
+    """
+    selected = select_reflection_moments(episodes, max_moments)
+    selected_ids = {m["decision_id"] for m in selected}
+    scored = [score_episode(ep, episodes) for ep in episodes]
+    uneventful = [s for s in scored if s["score"] <= 0]
+    ranked_lower = [
+        s for s in scored if s["score"] > 0 and s["decision_id"] not in selected_ids
+    ]
+    return {
+        "selected": selected,
+        "considered": len(episodes),
+        "skipped_uneventful": len(uneventful),
+        "skipped_ranked_lower": len(ranked_lower),
+        "max_moments": max_moments,
+    }
 
 
 def select_reflection_moments(

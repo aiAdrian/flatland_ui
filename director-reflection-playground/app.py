@@ -10,12 +10,14 @@ interface so it can later be swapped for a local LLM implementation.
 
 from __future__ import annotations
 
+import os
 import time
 
 import streamlit as st
 
 import event_logger as ev
 from database import Database
+from demo_profile import DEMO_PROFILE_ID, reset_profile, seed_demo_profile
 from director_mode import DirectorSession
 from fake_reflection_agent import FakeReflectionAgent
 from live_director import LiveDirector
@@ -26,7 +28,7 @@ from learning_store import (
     STATUS_CORRECTED,
     STATUS_REJECTED,
 )
-from reflection_selector import select_reflection_moments
+from reflection_selector import selection_report
 from forecast import build_forecast, strategy_score
 from baseline import ai_only_shift
 from scenario_engine import classify_outcome, list_scenarios, load_scenario
@@ -92,6 +94,7 @@ def _init_state() -> None:
     ss.setdefault("pending_choice", None)
     ss.setdefault("reason_other", False)
     ss.setdefault("moments", [])
+    ss.setdefault("selection_report", None)
     ss.setdefault("reflection_index", 0)
     ss.setdefault("reflection_stage", "question")
     ss.setdefault("current_question", None)
@@ -112,6 +115,7 @@ def reset_session() -> None:
         "pending_choice",
         "reason_other",
         "moments",
+        "selection_report",
         "reflection_index",
         "reflection_stage",
         "current_question",
@@ -289,12 +293,23 @@ def render_why_panel(dp: dict, recommended: str, adaptive) -> None:
 
     base_name = strategy_name(adaptive.baseline)
     reco_name = strategy_name(recommended)
+    if adaptive.adjusted:
+        effect_txt = (
+            f"Without your profile: <b>{base_name}</b>.<br>"
+            f"With it: <b>{reco_name}</b>."
+        )
+    else:
+        effect_txt = (
+            f"Your profile and the baseline agree here — both point to "
+            f"<b>{reco_name}</b>."
+        )
     co_learning = (
         f"<div style='margin-top:12px;padding-top:10px;border-top:1px solid #eee;'>"
         f"<b>🔁 CO-LEARNING EFFECT</b>"
-        f"<div style='font-size:12px;color:#666;margin-top:4px;'>"
-        f"Without learned preference: <b>{base_name}</b> would be recommended.<br>"
-        f"With learned preference: <b>{reco_name}</b> is recommended.</div>"
+        f"<div style='font-size:12px;color:#666;margin-top:4px;'>{effect_txt}</div>"
+        # the model already spells out *why* it shifted; show it instead of hiding it
+        f"<div style='font-size:11px;color:#777;margin-top:6px;'>"
+        f"{adaptive.explanation}</div>"
         f"<div style='font-size:11px;color:#999;margin-top:6px;'>"
         f"Applied as ranking adjustment only, not a hard rule.</div></div>"
     )
@@ -341,7 +356,23 @@ def render_outcome(episode: dict) -> None:
 # --------------------------------------------------------------------------- #
 # Debug view
 # --------------------------------------------------------------------------- #
+def _debug_enabled() -> bool:
+    """Developer view, off by default.
+
+    Enable with ``PLAYGROUND_DEBUG=1`` or by appending ``?debug=1`` to the URL.
+    It shows raw JSON and is not meant for the people the demo is shown to.
+    """
+    if os.getenv("PLAYGROUND_DEBUG", "").strip().lower() not in ("", "0", "false"):
+        return True
+    try:
+        return str(st.query_params.get("debug", "")).strip().lower() in ("1", "true")
+    except Exception:  # query params unavailable in older Streamlit
+        return False
+
+
 def render_debug(session: DirectorSession) -> None:
+    if not _debug_enabled():
+        return
     with st.expander("🛠 Debug view (raw events, episodes, patterns, learnings)"):
         tabs = st.tabs(["Events", "Decision Episodes", "Learnings"])
         with tabs[0]:
@@ -373,15 +404,44 @@ def view_select() -> None:
             f"{prof.prior_decisions} decision(s) and "
             f"**{len(prof.confirmed_learnings)} confirmed learning(s)** into this shift."
         )
-        if prof.confirmed_learnings:
-            with st.expander("Learnings the AI will apply for you", expanded=False):
-                for lg in prof.confirmed_learnings:
-                    st.markdown(f"- {lg['statement']}")
+        with st.expander(
+            f"What the AI stores about you ({len(prof.confirmed_learnings)} "
+            f"learning(s)) — and how to delete it",
+            expanded=False,
+        ):
+            for lg in prof.confirmed_learnings:
+                st.markdown(f"- {lg['statement']}")
+            if prof.preferences:
+                st.caption(
+                    "Counted tendencies: "
+                    + ", ".join(
+                        f"{strategy_name(s)} ×{c}"
+                        for s, c in sorted(prof.preferences.items(),
+                                           key=lambda kv: -kv[1])
+                    )
+                )
+            st.caption(
+                "Only decisions you confirmed with a reason are counted. Quick "
+                "accepts and deadline defaults are not."
+            )
+            if st.button("🗑 Delete this profile", key="reset_profile"):
+                reset_profile(st.session_state.db, st.session_state.operator_id)
+                st.rerun()
     else:
         st.info(
             f"New profile **{prof.profile_id}** — the AI has no picture of you yet. "
             f"Confirm learnings in the reflection to make future shifts start warm."
         )
+        st.caption(
+            "A cold start cannot show the cross-session effect: there is nothing "
+            "carried over yet. Load the prepared profile to see a shift that starts "
+            "warm, or work two shifts under the same name."
+        )
+        if st.button(f"🔥 Load prepared profile · {DEMO_PROFILE_ID}",
+                     key="seed_profile"):
+            seed_demo_profile(st.session_state.db, DEMO_PROFILE_ID)
+            st.session_state.operator_id = DEMO_PROFILE_ID
+            st.rerun()
 
     st.markdown("### Choose a scenario")
 
@@ -688,7 +748,10 @@ def _render_decision_ui(controller: LiveDirector) -> None:
         st.markdown(network_svg(proj, display_height=230), unsafe_allow_html=True)
         st.markdown(
             forecast_table(build_forecast(
-                situation, eff, open_problems=controller.kpis.get("open_problems", 0))),
+                situation, eff,
+                open_problems=controller.kpis.get("open_problems", 0),
+                expected=expected,
+                strategy_label=strategy_name(selected))),
             unsafe_allow_html=True,
         )
 
@@ -865,14 +928,16 @@ def view_live() -> None:
 def _enter_reflection_intro() -> None:
     session: DirectorSession = st.session_state.session
     session.start_reflection()
-    moments = select_reflection_moments(session.episodes())
+    report = selection_report(session.episodes())
+    moments = report["selected"]
     for m in moments:
         session.logger.log(
             ev.EVENT_REFLECTION_CASE_SELECTED,
             ev.ACTOR_REFLECTION_AGENT,
             {"decision_id": m["decision_id"], "case_type": m["case_type"],
-             "score": m["score"]},
+             "score": m["score"], "reasons": m["reasons"]},
         )
+    st.session_state.selection_report = report
     st.session_state.moments = moments
     st.session_state.reflection_index = 0
     st.session_state.reflection_stage = "question"
@@ -982,6 +1047,15 @@ def view_reflection_intro() -> None:
 
     st.divider()
     st.markdown(f"### 🔎 I found {len(moments)} moment(s) worth reflecting on.")
+    report = st.session_state.get("selection_report") or {}
+    if report:
+        st.caption(
+            f"Out of {report['considered']} decisions this shift. "
+            f"{report['skipped_uneventful']} were routine (accepted, no pattern "
+            f"relation, no surprise), {report['skipped_ranked_lower']} scored lower "
+            f"or repeated a case type already covered. At most "
+            f"{report['max_moments']} moments are shown to keep the reflection short."
+        )
     st.markdown(timeline(moments), unsafe_allow_html=True)
 
     if st.button("Start reflection →", type="primary"):
@@ -1115,6 +1189,41 @@ def _render_reflection_question(session, agent, case) -> None:
         st.rerun()
 
 
+def _evidence_sentence(ev_data: dict) -> str:
+    """Say what the evidence numbers actually refer to, and name the exceptions.
+
+    The counts compare this learning's target strategy against what the operator
+    deliberately chose in comparable situations earlier in the shift.
+    """
+    basis = ev_data.get("evidence_basis")
+    target = strategy_name(ev_data.get("target_strategy"))
+    if basis != "similar_decisions":
+        return (
+            "No comparable earlier decision this shift — this learning rests on "
+            "your answer just now, not on a counted pattern."
+        )
+    supporting = ev_data.get("supporting_decisions", 0)
+    contradictory = ev_data.get("contradictory_decisions", 0)
+    total = supporting + contradictory
+    txt = (
+        f"Of {total} comparable decision(s) you made deliberately, "
+        f"<b>{supporting}</b> point to <i>{target}</i>"
+    )
+    if contradictory:
+        examples = ev_data.get("contradictory_examples") or []
+        detail = ", ".join(
+            f"{e.get('time_label') or e.get('decision_id')} → "
+            f"{strategy_name(e.get('strategy'))}"
+            for e in examples[:3]
+        )
+        txt += f" and <b>{contradictory}</b> go elsewhere"
+        if detail:
+            txt += f" ({detail})"
+    else:
+        txt += " and none go elsewhere"
+    return txt + "."
+
+
 def _render_learning_candidate(session, case) -> None:
     candidate = st.session_state.current_candidate
     learning_id = st.session_state.current_learning_id
@@ -1132,9 +1241,10 @@ def _render_learning_candidate(session, case) -> None:
           <div style="font-size:15px;font-weight:600;">{candidate['statement']}</div>
           <div style="margin-top:8px;font-size:13px;">{cond_lines}</div>
           <div style="margin-top:8px;font-size:13px;color:#555;">
-            Confidence: <b>{candidate.get('confidence', 'Low')}</b> ·
-            Evidence: <b>{ev_data.get('supporting_decisions', 0)}</b> supporting,
-            <b>{ev_data.get('contradictory_decisions', 0)}</b> contradictory
+            Confidence: <b>{candidate.get('confidence', 'Low')}</b>
+          </div>
+          <div style="margin-top:4px;font-size:12px;color:#666;">
+            {_evidence_sentence(ev_data)}
           </div>
         </div>
         """,
@@ -1411,16 +1521,21 @@ def view_summary() -> None:
             unsafe_allow_html=True,
         )
 
-    st.markdown("### ⚠️ Contradictory Evidence")
-    contradictory = [l for l in confirmed if l.get("evidence", {}).get("contradictory_decisions", 0)]
+    st.markdown("### ⚠️ Where your own decisions disagree with a learning")
+    st.caption(
+        "A learning points at one strategy. These are the confirmed learnings "
+        "where you deliberately chose something else in a comparable situation "
+        "earlier in the shift — worth revisiting rather than an error."
+    )
+    contradictory = [
+        l for l in confirmed if l.get("evidence", {}).get("contradictory_decisions", 0)
+    ]
     if contradictory:
         for l in contradictory:
-            st.write(
-                f"- {l['statement']} "
-                f"({l['evidence'].get('contradictory_decisions')} contradictory)"
-            )
+            st.markdown(f"- {l['statement']}  \n  {_evidence_sentence(l['evidence'])}",
+                        unsafe_allow_html=True)
     else:
-        st.write("No contradictory evidence recorded.")
+        st.write("None — your confirmed learnings match how you actually decided.")
 
     st.markdown("### ❓ Open Questions")
     if rejected:

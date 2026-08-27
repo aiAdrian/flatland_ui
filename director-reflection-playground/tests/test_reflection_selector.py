@@ -16,6 +16,7 @@ from strategies import (  # noqa: E402
     CASE_UNEXPECTED_OUTCOME,
     CONFIRMATION_OVERRIDE,
     CONFIRMATION_QUICK_ACCEPT,
+    CONFIRMATION_REASONED_ACCEPT,
     RATIONALE_FREE_TEXT,
     RATIONALE_NONE,
 )
@@ -46,14 +47,38 @@ def _episode(step, strategy, confirmation, rationale=RATIONALE_NONE,
 
 def test_override_free_text_scores_high():
     episodes = [
-        _episode(1, "protect_critical_connection", CONFIRMATION_QUICK_ACCEPT),
-        _episode(2, "protect_critical_connection", CONFIRMATION_QUICK_ACCEPT),
+        _episode(1, "protect_critical_connection", CONFIRMATION_REASONED_ACCEPT),
+        _episode(2, "protect_critical_connection", CONFIRMATION_REASONED_ACCEPT),
         _episode(3, "stabilize_network", CONFIRMATION_OVERRIDE, RATIONALE_FREE_TEXT),
     ]
     scored = score_episode(episodes[2], episodes)
     # deviation (+5) + override free text (+4)
     assert scored["score"] >= 9
     assert scored["case_type"] in (CASE_PATTERN_DEVIATION, CASE_OVERRIDE)
+
+
+def test_passive_accepts_do_not_establish_a_pattern():
+    """A clicked-through recommendation must not come back as the user's pattern.
+
+    The UI tells the operator that a quick accept is not counted as preference
+    evidence, so the reflection may not contradict that afterwards.
+    """
+    episodes = [
+        _episode(1, "protect_critical_connection", CONFIRMATION_QUICK_ACCEPT),
+        _episode(2, "protect_critical_connection", CONFIRMATION_QUICK_ACCEPT),
+        _episode(3, "stabilize_network", CONFIRMATION_OVERRIDE, RATIONALE_FREE_TEXT),
+    ]
+    scored = score_episode(episodes[2], episodes)
+    assert scored["pattern"]["sample_size"] == 0
+    assert scored["pattern_relation"] == "no_pattern"
+    assert scored["case_type"] == CASE_OVERRIDE  # still worth reflecting on
+
+    deliberate = [
+        _episode(1, "protect_critical_connection", CONFIRMATION_REASONED_ACCEPT),
+        _episode(2, "protect_critical_connection", CONFIRMATION_REASONED_ACCEPT),
+        _episode(3, "stabilize_network", CONFIRMATION_OVERRIDE, RATIONALE_FREE_TEXT),
+    ]
+    assert score_episode(deliberate[2], deliberate)["pattern"]["sample_size"] == 2
 
 
 def test_unexpected_outcome_is_flagged():

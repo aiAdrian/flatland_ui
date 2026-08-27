@@ -11,6 +11,7 @@ from __future__ import annotations
 import abc
 from typing import Any
 
+from pattern_analyzer import MIN_SAMPLE_FOR_TENDENCY
 from strategies import (
     CASE_LEARNING_ADJUSTED,
     CASE_OVERRIDE,
@@ -91,9 +92,20 @@ class FakeReflectionAgent(ReflectionAgent):
         actual_txt = strategy_name(selected)
 
         if case_type == CASE_PATTERN_DEVIATION:
+            # One earlier decision is an observation, not a tendency. Say which.
+            sample = int(pattern.get("sample_size", 0) or 0)
+            if sample >= MIN_SAMPLE_FOR_TENDENCY:
+                basis = (
+                    f"In {sample} similar situations you mostly chose "
+                    f"'{expected_txt}'"
+                )
+            else:
+                basis = (
+                    f"The one similar situation so far, you handled with "
+                    f"'{expected_txt}'"
+                )
             question = (
-                f"In similar situations you have mostly chosen "
-                f"'{expected_txt}'. This time you chose '{actual_txt}'. "
+                f"{basis}. This time you chose '{actual_txt}'. "
                 f"What was different this time?"
             )
             options = _DIFFERENCE_OPTIONS
@@ -205,8 +217,6 @@ class FakeReflectionAgent(ReflectionAgent):
         free_text = interpretation["free_text"]
 
         counts = pattern.get("counts", {})
-        supporting = counts.get(expected_pattern, 0) if expected_pattern else 0
-        contradictory = sum(counts.values()) - supporting
 
         statement = None
         conditions: dict[str, Any] = {}
@@ -258,8 +268,6 @@ class FakeReflectionAgent(ReflectionAgent):
         if statement is None:
             statement = "No clear learning could be derived from this reflection."
 
-        confidence = self._confidence_label(supporting, contradictory)
-
         # the strategy this learning nudges future recommendations toward
         if signals.get("network_priority"):
             target = "stabilize_network"
@@ -269,24 +277,74 @@ class FakeReflectionAgent(ReflectionAgent):
             target = selected
         conditions = {**conditions, "target_strategy": target}
 
+        # Evidence is counted against *this* learning's target strategy, not
+        # against whatever happened to be the most frequent choice. A learning
+        # that points somewhere else than the operator's past decisions has to
+        # show that as contradicting evidence, not hide it.
+        evidence = self._evidence_for_target(pattern, target)
+        evidence.update(
+            {
+                "reference_decision_id": ep.get("decision_id"),
+                "expected_pattern": expected_pattern,
+                "actual_decision": selected,
+            }
+        )
+
         return {
             "case_type": case["case_type"],
             "statement": statement,
             "conditions": conditions,
             "boundaries": boundaries,
-            "confidence": confidence,
-            "evidence": {
-                "supporting_decisions": supporting,
-                "contradictory_decisions": contradictory,
-                "reference_decision_id": ep.get("decision_id"),
-                "expected_pattern": expected_pattern,
-                "actual_decision": selected,
-            },
+            "confidence": self._confidence_label(
+                evidence["supporting_decisions"],
+                evidence["contradictory_decisions"],
+                evidence["evidence_basis"],
+            ),
+            "evidence": evidence,
             "user_reflection_text": free_text or None,
         }
 
     @staticmethod
-    def _confidence_label(supporting: int, contradictory: int) -> str:
+    def _evidence_for_target(
+        pattern: dict[str, Any], target: str | None
+    ) -> dict[str, Any]:
+        """Count similar prior decisions for and against the learning's target."""
+        counts = pattern.get("counts", {}) or {}
+        by_strategy = pattern.get("decisions_by_strategy", {}) or {}
+        total = sum(counts.values())
+        if not target or total == 0:
+            # Nothing comparable happened yet -- say so instead of printing zeros
+            # that read like "no contradiction found".
+            return {
+                "supporting_decisions": 0,
+                "contradictory_decisions": 0,
+                "evidence_basis": "no_comparable_decisions",
+                "target_strategy": target,
+                "supporting_examples": [],
+                "contradictory_examples": [],
+            }
+        supporting = counts.get(target, 0)
+        contradictory_examples = [
+            {**item, "strategy": strategy}
+            for strategy, items in by_strategy.items()
+            if strategy != target
+            for item in items
+        ]
+        return {
+            "supporting_decisions": supporting,
+            "contradictory_decisions": total - supporting,
+            "evidence_basis": "similar_decisions",
+            "target_strategy": target,
+            "supporting_examples": list(by_strategy.get(target, [])),
+            "contradictory_examples": contradictory_examples,
+        }
+
+    @staticmethod
+    def _confidence_label(
+        supporting: int, contradictory: int, basis: str = "similar_decisions"
+    ) -> str:
+        if basis != "similar_decisions":
+            return "Unproven"
         if supporting >= 4 and contradictory <= 1:
             return "High"
         if supporting >= 2:

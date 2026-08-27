@@ -37,6 +37,21 @@ müsste ein Tunnel (`cloudflared`, `ngrok`) davor.
 
 Beenden mit `Ctrl-C` im Terminal.
 
+## Warm starten (für Vorführungen wichtig)
+
+Bei einem Kaltstart kennt die KI dich nicht, also kann sie ihre Empfehlung auch nicht
+wegen einer früheren Zusage verschieben — der Kern des Co-Learnings bleibt unsichtbar.
+Auf dem Startbildschirm gibt es dafür **„Load prepared profile"**: das schreibt eine
+plausible frühere Schicht samt zwei bestätigten Learnings über die normale Mechanik in
+die Datenbank. Danach greift im Szenario `Demo (2 min)` an jedem Punkt mit kritischer
+Verbindung sichtbar ein Learning („Because you taught me this before …").
+
+Was gespeichert ist, steht auf dem Startbildschirm unter „What the AI stores about
+you"; dort lässt sich das Profil auch löschen.
+
+Der Debug view (rohes JSON) ist standardmäßig aus. Bei Bedarf:
+`PLAYGROUND_DEBUG=1 ./start-demo.sh` oder `?debug=1` an die URL hängen.
+
 ## Durchlauf
 
 Szenario wählen (`Demo (2 min)` für einen kurzen Durchgang, 6 Entscheidungen) → pro

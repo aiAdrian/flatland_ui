@@ -10,6 +10,21 @@ from __future__ import annotations
 from typing import Any
 
 
+# Confirmation modes that do not express a preference: the operator either
+# clicked the recommendation through or let the deadline decide. Kept in sync
+# with ``user_model._NON_EVIDENCE_MODES`` and ``values._NON_EVIDENCE``.
+NON_EVIDENCE_MODES = {"quick_accept", "deferred_to_ai"}
+
+# A pattern claim needs at least this many similar prior decisions before it may
+# be phrased as a tendency ("you mostly choose X") rather than a single case.
+MIN_SAMPLE_FOR_TENDENCY = 2
+
+
+def is_preference_evidence(episode: dict[str, Any]) -> bool:
+    mode = episode.get("user_decision", {}).get("confirmation_mode")
+    return mode not in NON_EVIDENCE_MODES
+
+
 def _ripple_bucket(value: str | None) -> str:
     if value in ("low", "medium"):
         return "low_or_medium"
@@ -39,18 +54,27 @@ def analyze_pattern(
     episodes: list[dict[str, Any]],
     reference_episode: dict[str, Any],
     exclude_reference: bool = True,
+    evidence_only: bool = False,
 ) -> dict[str, Any]:
     """Return the expected user pattern for contexts similar to the reference.
 
     Only episodes *before* the reference (by simulation step) plus the reference
     itself when ``exclude_reference`` is False are considered similar evidence.
+
+    With ``evidence_only`` the passive confirmation modes are dropped, so a
+    recommendation the operator merely clicked through cannot later be quoted
+    back to them as their own preference.
     """
     ref_ctx = reference_episode.get("context", {})
     ref_step = reference_episode.get("simulation_step", -1)
 
     counts: dict[str, int] = {}
     similar_ids: list[str] = []
+    ids_by_strategy: dict[str, list[dict[str, Any]]] = {}
     for ep in episodes:
+        if evidence_only and not is_preference_evidence(ep):
+            # a passively accepted recommendation is not a stated preference
+            continue
         if ep.get("simulation_step", -1) >= ref_step:
             # only look at prior decisions to model an evolving pattern
             if not (
@@ -64,6 +88,12 @@ def analyze_pattern(
         if strategy:
             counts[strategy] = counts.get(strategy, 0) + 1
             similar_ids.append(ep.get("decision_id"))
+            ids_by_strategy.setdefault(strategy, []).append(
+                {
+                    "decision_id": ep.get("decision_id"),
+                    "time_label": ep.get("context", {}).get("time_label", ""),
+                }
+            )
 
     total = sum(counts.values())
     if total == 0:
@@ -73,6 +103,7 @@ def analyze_pattern(
             "counts": {},
             "sample_size": 0,
             "similar_decision_ids": [],
+            "decisions_by_strategy": {},
         }
 
     expected_strategy = max(counts, key=counts.get)
@@ -83,6 +114,9 @@ def analyze_pattern(
         "counts": counts,
         "sample_size": total,
         "similar_decision_ids": similar_ids,
+        # which decisions back which strategy -- lets the UI name the evidence
+        # instead of only counting it
+        "decisions_by_strategy": ids_by_strategy,
     }
 
 

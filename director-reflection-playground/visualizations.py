@@ -263,6 +263,13 @@ def forecast_table(forecast: dict[str, Any]) -> str:
                 f"{cell['text']}</span></td>"
             )
         body += f"<tr>{cells}</tr>"
+        # the derivation behind this row -- answers "why this value"
+        if row.get("driver"):
+            body += (
+                f"<tr><td colspan='{len(columns) + 1}' style='padding:0 8px 6px 20px;"
+                f"font-size:11px;color:#777;border-bottom:1px solid #f0f1f4;'>"
+                f"↳ {row['driver']}</td></tr>"
+            )
 
     open_problems = forecast.get("open_problems", 0)
     horizon = forecast.get("horizon_min", 30)
@@ -277,9 +284,18 @@ def forecast_table(forecast: dict[str, Any]) -> str:
                        f"{open_problems} open problem(s) — the future is getting "
                        f"uncertain. Stabilising decisions widen this horizon again.")
         horizon_color = COLOR_RISK if horizon > 0 else COLOR_CONFLICT
+    assumptions = forecast.get("assumptions") or []
+    assumptions_html = (
+        "<div style='font-size:11px;color:#888;margin-top:4px;'>Model: "
+        + " · ".join(assumptions)
+        + "</div>"
+        if assumptions
+        else ""
+    )
     legend = (
         f"<div style='font-size:12px;color:{horizon_color};font-weight:600;"
         f"margin-top:6px;'>{horizon_txt}</div>"
+        f"{assumptions_html}"
         f"<div style='font-size:11px;color:#777;'>Confidence: "
         f"<span style='color:{COLOR_PROTECTED};'>■ High</span> "
         f"<span style='color:{COLOR_RISK};'>■ Medium</span> "
@@ -337,12 +353,23 @@ def timeline(moments: list[dict[str, Any]]) -> str:
         time_label = ctx.get("time_label", "")
         strat = strategy_name(ep.get("user_decision", {}).get("selected_strategy"))
         tag, color = label_map.get(m["case_type"], (m["case_type"], COLOR_NORMAL))
+        # why this moment was picked -- the selector already scores this, so show it
+        reasons = m.get("reasons") or []
+        reason_txt = " · ".join(reasons) if reasons else ""
+        sample = (m.get("pattern") or {}).get("sample_size", 0)
+        basis_txt = (
+            f" — compared against {sample} similar earlier decision(s)"
+            if sample
+            else " — no comparable earlier decision yet"
+        )
         items.append(
-            f'<div style="display:flex;align-items:center;margin:6px 0;">'
+            f'<div style="display:flex;align-items:flex-start;margin:6px 0;">'
             f'<div style="width:52px;font-weight:600;color:#333;">{time_label}</div>'
             f'<div style="flex:1;padding-left:10px;border-left:3px solid {color};">'
             f'<div style="font-weight:600;">{strat}</div>'
-            f'<div style="font-size:12px;color:{color};">{tag}</div></div></div>'
+            f'<div style="font-size:12px;color:{color};">{tag}</div>'
+            f'<div style="font-size:11px;color:#777;">Selected because: '
+            f'{reason_txt}{basis_txt}</div></div></div>'
         )
     return "".join(items)
 
