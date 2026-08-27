@@ -833,6 +833,12 @@
     </div>
   
     <div class="footer-right">
+      <!-- Which build is on screen. `dev` = served locally; a sha + timestamp
+           means this is the deployed Space image. Without it "did the deploy
+           land?" can only be answered by guessing at the UI. -->
+      @if (buildInfo.label(); as build) {
+        <span class="footer-build" [attr.title]="buildInfo.detail()">{{ build }}</span>
+      }
       @if (store.session()) {
         <span class="footer-session-id">
           Session: {{ store.session()?.id }}
