@@ -470,7 +470,7 @@
              here"; without this the operator had to guess which one. Native SVG
              <title> so it needs no tooltip machinery and no extra state. -->
         @if (hasAgentProblem(a)) {
-          <title>Zug {{ a.handle }}: {{ agentProblemLines(a).join(' · ') }}</title>
+          <title>{{ identity.nameFor(a.handle) }} (Zug {{ a.handle }}): {{ agentProblemLines(a).join(' · ') }}</title>
         }
 
         <!-- Combined Actions (widget E1): dispatch rank + this train's share of
@@ -494,7 +494,7 @@
                 [attr.y]="agentY(a) - 24"
                 text-anchor="middle">{{ delta }}</text>
             }
-            <title>{{ combinedActionTrain(a.handle) }} — released {{ rank }}. of the action{{ combinedActionDelta(a.handle) ? ' · ' + combinedActionDeltaLabel(a.handle) + ' min predicted' : '' }}</title>
+            <title>{{ identity.nameFor(a.handle) }} — released {{ rank }}. of the action{{ combinedActionDelta(a.handle) ? ' · ' + combinedActionDeltaLabel(a.handle) + ' min predicted' : '' }}</title>
           </g>
         }
 

@@ -106,3 +106,12 @@
   color: var(--sbb-color-granite);
   font-weight: 400;
 }
+
+/* The service name is the train's identity everywhere now; the handle stays as
+   the technical id so a row can still be tied to the map glyph. */
+.tt-train-handle {
+  margin-left: 4px;
+  font-size: 9px;
+  color: var(--sbb-color-graphite);
+  font-variant-numeric: tabular-nums;
+}

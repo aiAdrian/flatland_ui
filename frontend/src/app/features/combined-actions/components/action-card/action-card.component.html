@@ -6,10 +6,9 @@
   [class.ac--collapsed]="!expanded"
 >
   <header
-    class="ac__head"
-    [class.is-clickable]="!expanded"
-    [attr.role]="expanded ? null : 'button'"
-    [attr.tabindex]="expanded ? null : 0"
+    class="ac__head is-clickable"
+    role="button"
+    [attr.tabindex]="0"
     [attr.aria-expanded]="expanded"
     (click)="onHeaderClick()"
     (keydown.enter)="onHeaderClick()"
@@ -31,52 +30,31 @@
       <span class="ac__badge ac__badge--human">Human modified</span>
     }
 
-    @if (!expanded && active()?.prediction; as p) {
-      <span class="ac__spacer"></span>
-      <span class="ac__headline">
-        <span class="ac__headline-delay">↓ {{ p.delayReductionMin }} min</span>
-        <span class="ac__headline-energy">{{ p.energyKwh }} kWh</span>
-      </span>
-    }
+    <span class="ac__spacer"></span>
+    <span class="ac__chevron" [class.is-open]="expanded" aria-hidden="true">›</span>
   </header>
 
-  @if (expanded) {
+  <!-- The sequence and the figures are always on screen: comparing three actions
+       is the job, and folding two of them to a headline hid two thirds of it.
+       Expanding adds the diff, the version chooser and the buttons. -->
+  @if (expanded && modified()) {
+    <p class="ac__diff-row ac__diff-row--ai">
+      <span class="ac__diff-tag ac__diff-tag--ai">AI</span>
+      <span class="ac__diff-text">{{ aiVersion()?.order?.join(' · ') }}</span>
+    </p>
+  }
 
-  <!-- Once a variant exists the card shows BOTH orders, stacked and labelled.
-       Markers alone left the reader reconstructing the edit from four little
-       arrows; the AI's row sitting right above yours makes the change something
-       you see rather than something you work out. -->
-  @if (modified()) {
-    <div class="ac__diff">
-      <!-- The AI's order as plain text, not a second row of chips: it is the
-           reference, it is never dragged, and a chip row for it cost the card a
-           whole extra line in a column that has none to spare. -->
-      <p class="ac__diff-row ac__diff-row--ai">
-        <span class="ac__diff-tag ac__diff-tag--ai">AI</span>
-        <span class="ac__diff-text">{{ aiVersion()?.order?.join(' · ') }}</span>
-      </p>
-      <div class="ac__diff-row ac__diff-row--human">
-        <app-train-sequence
-          class="ac__sequence"
-          [order]="active()?.order ?? []"
-          [editable]="editable"
-          [referenceOrder]="aiVersion()?.order ?? []"
-          [compact]="true"
-          (reorder)="onReorder($event)"
-        ></app-train-sequence>
-      </div>
-      @if (changeSummary(); as summary) {
-        <p class="ac__change">{{ summary }}</p>
-      }
-    </div>
-  } @else {
-    <app-train-sequence
-      class="ac__sequence"
-      [order]="active()?.order ?? []"
-      [editable]="editable"
-      [compact]="true"
-      (reorder)="onReorder($event)"
-    ></app-train-sequence>
+  <app-train-sequence
+    class="ac__sequence"
+    [order]="active()?.order ?? []"
+    [editable]="editable"
+    [referenceOrder]="modified() ? (aiVersion()?.order ?? []) : []"
+    [compact]="true"
+    (reorder)="onReorder($event)"
+  ></app-train-sequence>
+
+  @if (expanded && changeSummary(); as summary) {
+    <p class="ac__change">{{ summary }}</p>
   }
 
   <app-impact-metrics
@@ -88,63 +66,64 @@
     [delta]="active()?.delta ?? null"
   ></app-impact-metrics>
 
-  <!-- The choice. Only once a variant exists: before that there is nothing to
-       choose between, and a one-option chooser is just noise. -->
-  @if (hasChoice()) {
-    <div class="ac__choice" role="radiogroup" aria-label="Which version do you keep?">
-      <span class="ac__choice-q">Keep</span>
-      @for (v of versions(); track v.id) {
-        <button
-          type="button"
-          class="ac__version"
-          role="radio"
-          [class.is-active]="activeId() === v.id"
-          [attr.data-origin]="v.origin"
-          [attr.aria-checked]="activeId() === v.id"
-          (click)="select(v.id)"
-        >
-          <span class="ac__version-name">{{ v.origin === 'ai' ? 'AI' : v.label }}</span>
-          @if (v.prediction) {
-            <span class="ac__version-fig">−{{ v.prediction.delayReductionMin }}′</span>
-            <span class="ac__version-fig ac__version-fig--energy">{{ v.prediction.energyKwh }}&#8202;kWh</span>
-          }
-        </button>
-        @if (v.origin === 'human' && editable) {
+  @if (expanded) {
+    <!-- The choice. Only once a variant exists: before that there is nothing to
+         choose between, and a one-option chooser is just noise. -->
+    @if (hasChoice()) {
+      <div class="ac__choice" role="radiogroup" aria-label="Which version do you keep?">
+        <span class="ac__choice-q">Keep</span>
+        @for (v of versions(); track v.id) {
           <button
             type="button"
-            class="ac__discard"
-            [attr.aria-label]="'Discard ' + v.label"
-            title="Discard this variant"
-            (click)="discard(v.id)"
-          >×</button>
+            class="ac__version"
+            role="radio"
+            [class.is-active]="activeId() === v.id"
+            [attr.data-origin]="v.origin"
+            [attr.aria-checked]="activeId() === v.id"
+            (click)="select(v.id)"
+          >
+            <span class="ac__version-name">{{ v.origin === 'ai' ? 'AI' : v.label }}</span>
+            @if (v.prediction) {
+              <span class="ac__version-fig">−{{ v.prediction.delayReductionMin }}′</span>
+              <span class="ac__version-fig ac__version-fig--energy">{{ v.prediction.energyKwh }}&#8202;kWh</span>
+            }
+          </button>
+          @if (v.origin === 'human' && editable) {
+            <button
+              type="button"
+              class="ac__discard"
+              [attr.aria-label]="'Discard ' + v.label"
+              title="Discard this variant"
+              (click)="discard(v.id)"
+            >×</button>
+          }
+        }
+      </div>
+    }
+
+    <footer class="ac__foot">
+      @if (!modified()) {
+        <span class="ac__rationale">{{ pkg.rationale }}</span>
+      }
+
+      @if (editable) {
+        <span class="ac__spacer"></span>
+        <button
+          type="button"
+          class="ac__btn ac__btn--reset"
+          [disabled]="!modified()"
+          (click)="reset()"
+          title="Show the AI's proposal again (variants are kept)"
+        >
+          AI order
+        </button>
+
+        @if (applied(); as name) {
+          <span class="ac__applied" role="status">{{ name }} applied</span>
+        } @else {
+          <button type="button" class="ac__btn ac__btn--apply" (click)="apply()">Apply</button>
         }
       }
-    </div>
-  }
-
-  <footer class="ac__foot">
-    @if (!modified()) {
-      <span class="ac__rationale">{{ pkg.rationale }}</span>
-    }
-
-    @if (editable) {
-      <span class="ac__spacer"></span>
-      <button
-        type="button"
-        class="ac__btn ac__btn--reset"
-        [disabled]="!modified()"
-        (click)="reset()"
-        title="Show the AI's proposal again (variants are kept)"
-      >
-        AI order
-      </button>
-
-      @if (applied(); as name) {
-        <span class="ac__applied" role="status">{{ name }} applied</span>
-      } @else {
-        <button type="button" class="ac__btn ac__btn--apply" (click)="apply()">Apply</button>
-      }
-    }
-  </footer>
+    </footer>
   }
 </article>

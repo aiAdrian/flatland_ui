@@ -26,7 +26,8 @@
             (mouseleave)="onRowLeave()">
             <td class="tt-train">
               <span class="tt-chip" [style.background]="r.color"></span>
-              <span class="tt-train-id">#{{ r.handle }}</span>
+              <span class="tt-train-id">{{ identity.nameFor(r.handle) }}</span>
+              <span class="tt-train-handle">#{{ r.handle }}</span>
             </td>
             <td class="tt-stop">{{ r.from }}</td>
             <td class="tt-stop">{{ r.to }}</td>

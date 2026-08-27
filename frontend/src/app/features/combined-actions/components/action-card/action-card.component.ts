@@ -154,6 +154,9 @@ export class ActionCardComponent implements OnInit, OnDestroy {
   onReorder(next: string[]): void {
     if (!this.editable) return;
     this.clearApplied();
+    // Dragging is an edit, and an edit has a "what changed" to show — so the
+    // card opens itself rather than making the operator find the chevron.
+    if (!this.expanded) this.expandRequested.emit(this.pkg.id);
 
     if (this.activeId() === 'ai') {
       const id = `v${this.variants().length + 1}`;
@@ -198,10 +201,9 @@ export class ActionCardComponent implements OnInit, OnDestroy {
     this.select('ai');
   }
 
-  /** Clicking a collapsed card's header opens it. An open card's header does
-   *  nothing, so the click cannot close the only thing you are working on. */
+  /** The header toggles the card's detail. */
   onHeaderClick(): void {
-    if (!this.expanded) this.expandRequested.emit(this.pkg.id);
+    this.expandRequested.emit(this.pkg.id);
   }
 
   apply(): void {

@@ -45,7 +45,7 @@
                           (mouseenter)="onAgentMouseEnter(lbl.handle)"
                           (mouseleave)="onAgentMouseLeave()"
                           (click)="onAgentClick(lbl.handle, $event)"
-                          [title]="'Agent ' + lbl.handle">
+                          [title]="identity.nameFor(lbl.handle) + ' (Zug ' + lbl.handle + ')'">
                     {{ lbl.handle }}
                     @if (isAgentMalfunctioning(lbl.handle)) {
                       <span class="malfunction-indicator topo-malfunction" [title]="agentMalfunctionTitle(lbl.handle)">!</span>
@@ -250,7 +250,7 @@
               [attr.stroke]="c.color"
               [class.is-earlier]="c.deltaMin < 0"
             >
-              <title>Zug {{ c.handle }}: {{ c.deltaMin > 0 ? '+' : '' }}{{ c.deltaMin }} min — {{ consequenceLabel() }}</title>
+              <title>{{ identity.nameFor(c.handle) }}: {{ c.deltaMin > 0 ? '+' : '' }}{{ c.deltaMin }} min — {{ consequenceLabel() }}</title>
             </path>
           }
         </g>

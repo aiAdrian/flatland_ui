@@ -4,6 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
 import { deltaSteps } from '../../core/combined-actions/combined-actions-preview';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { ApiService } from '../../core/api.service';
 import { RailTile, NextDecision, DecisionOption, AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
@@ -118,6 +119,10 @@ export class MareyChartComponent implements AfterViewInit {
   private readonly colors = inject(AgentColorService);
   /** Acting goes through the dispatch seam, never straight to the store. */
   private readonly trainActions = inject(TrainActionService);
+
+  /** Shared train naming (core/train-identity.service.ts), so a line reads as
+   *  the same train as the timetable row and the action package. */
+  readonly identity = inject(TrainIdentityService);
   private readonly railHover = inject(RailCellHoverService);
   // ── decision-pill click ─────────────────────────────────────────
   // The toggle rule used to be copied here from left-sidebar; it now lives once

@@ -1,7 +1,10 @@
 <section class="ca">
   <header class="ca__head">
     <span class="ca__title" [attr.title]="modeBehavior().hint">Combined Actions</span>
-    <span class="ca__count">{{ packages().length }}</span>
+    <span class="ca__count" [class.is-alert]="disrupted()">{{ packages().length }}</span>
+    @if (disrupted() && disruptionReason()) {
+      <span class="ca__reason">{{ disruptionReason() }}</span>
+    }
 
     <!-- The chart lives behind a header toggle rather than on its own row: it is
          worth 180 px only when you are comparing, and the panel has to fit its
@@ -18,13 +21,21 @@
     </button>
   </header>
 
+  @if (!disrupted()) {
+    <p class="ca__calm">
+      <span class="ca__calm-dot" aria-hidden="true"></span>
+      Netz läuft nach Plan — keine koordinierte Aktion nötig.
+      <span class="ca__calm-hint">Die Vorschläge erscheinen bei einer Störung.</span>
+    </p>
+  }
+
   @if (!plotOpen()) {
     <p class="ca__plot-summary">{{ plotSummary() }}</p>
   } @else {
     <app-tradeoff-plot class="ca__plot" [points]="tradeoffPoints()"></app-tradeoff-plot>
   }
 
-  <div class="ca__cards">
+  <div class="ca__cards" [class.is-idle]="!disrupted()">
     @for (pkg of packages(); track pkg.id) {
       <app-action-card
         [class.is-previewed]="previewedPackage() === pkg.id"

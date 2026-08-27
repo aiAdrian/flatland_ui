@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainIdentityService } from '../../core/train-identity.service';
 
 /** One schedule row. `from`/`to` are the shared station labels (S{n}) — the same
  *  labels the map stations layer renders, so a stop can be read across both.
@@ -46,6 +47,9 @@ export class TimetableComponent {
 
   private store = inject(SessionStore);
   private colors = inject(AgentColorService);
+  /** Shared train naming, so a row reads the same as the map, the ZWL and
+   *  the action packages (core/train-identity.service.ts). */
+  readonly identity = inject(TrainIdentityService);
 
   readonly rows = computed<TimetableRow[]>(() =>
     this.store.agents().map((a) => {
