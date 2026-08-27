@@ -1583,6 +1583,16 @@
   flex-shrink: 0;
 }
 
+/* The other half of the same problem: a row that names NO height fills what is
+   left of the screen instead of collapsing to its content. Without it a layout
+   shorter than the viewport left a dead band under it — the map and the action
+   column stopped halfway down the page while the bottom third stayed empty.
+   `--fixed` stops a sized row shrinking; this one lets an unsized row grow. */
+.runtime-design__row--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 /* Same rule the hardcoded layout gets from `.three-col.is-behind`: step aside
    while the closing review owns the screen, but stay in the DOM so returning to
    the shift does not re-plan the three strategies (~20 s). `!important` because

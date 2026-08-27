@@ -37,6 +37,7 @@ import {
   strategyLabelForAction,
 } from './learning-store.service';
 import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState, StationRef } from './models';
+import { CombinedActionPreview } from './combined-actions/combined-actions-preview';
 
 /**
  * One human intervention captured while in Co-Learning mode (WP 3.3).
@@ -133,6 +134,26 @@ export class SessionStore {
     branch: WhatIfTrajById;
     handles: number[];
   } | null>(null);
+
+  /**
+   * Combined Actions (widget E1) consequence overlay: the action version the
+   * operator is currently looking at, expressed per *train handle* so the map
+   * and the Marey can draw it.
+   *
+   * Reordering a dispatch priority list changes timing, not topology — so the
+   * Marey shifts the affected trains' future lines along the time axis, and the
+   * map marks which trains the action moves and in what order they are
+   * released. Set by the Combined Actions panel; cleared when it is destroyed,
+   * the same discipline as `previewScenarioId` and `whatIfPreview`.
+   *
+   * ⚠ The figures behind it are the widget's deterministic **mock** predictor,
+   * not simulation output — see docs/plans/widget-e1-combined-actions.md §8.
+   */
+  readonly combinedActionPreview = signal<CombinedActionPreview | null>(null);
+
+  setCombinedActionPreview(preview: CombinedActionPreview | null): void {
+    this.combinedActionPreview.set(preview);
+  }
 
   /** Director plan map overlay: the committed plan's per-train cell
    *  paths (planned entry step per cell, so the map clips to the

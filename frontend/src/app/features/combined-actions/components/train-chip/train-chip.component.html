@@ -1,0 +1,19 @@
+<span
+  class="chip"
+  [class.chip--interactive]="interactive"
+  [class.chip--dragging]="dragging"
+  [class.chip--compact]="compact"
+  [attr.data-category]="category"
+>
+  @if (!compact) {
+    <span class="chip__pos">{{ position }}</span>
+  }
+  <span class="chip__id">{{ train }}</span>
+  @if (shift !== 0) {
+    <span
+      class="chip__shift"
+      [class.chip__shift--earlier]="shift < 0"
+      [attr.title]="(shift < 0 ? 'Moved ' + -shift + ' earlier' : 'Moved ' + shift + ' later') + ' than the AI proposal'"
+    >{{ shiftLabel }}</span>
+  }
+</span>

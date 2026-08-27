@@ -55,6 +55,22 @@ export class ViewTabsComponent {
       this.store.interactionMode();
       this._activeType.set(null);
     });
+
+    // Tell the store which of the two center views is on screen.
+    //
+    // `showMap` / `showMarey` were introduced for the `toggle-view` composite,
+    // but they are read more widely than that: `activeHandle()` falls back to
+    // the first agent only while the Marey is showing, and without that fallback
+    // the Marey has no path axis and draws nothing at all until the operator
+    // happens to select a train. A tab bar that never touched the signals
+    // therefore opened an empty ZWL — see the Combined Actions preset, whose
+    // consequence overlay lives in exactly that view.
+    effect(() => {
+      const type = this.active()?.type;
+      if (type !== 'flatland-map' && type !== 'marey') return;
+      this.store.showMap.set(type === 'flatland-map');
+      this.store.showMarey.set(type === 'marey');
+    });
   }
 
   /** The tabs to show: the configured subset (from the layout designer, stored

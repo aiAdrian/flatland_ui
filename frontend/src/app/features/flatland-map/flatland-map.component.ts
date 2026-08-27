@@ -1648,6 +1648,34 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     return this.store.notificationHoverHandles().has(handle);
   }
 
+  // ── Combined Actions (widget E1) consequence overlay ─────────────────────
+  // A dispatch priority order changes *timing*, not topology, so the map shows
+  // the half of the consequence that is topological: which trains the action
+  // moves, and in what order they are released. Drawing a reroute here would be
+  // a lie — the time shift is the Marey's job.
+
+  /** 1-based dispatch rank of this train in the previewed action, or null. */
+  combinedActionRank(handle: number): number | null {
+    return this.store.combinedActionPreview()?.rankByHandle[handle] ?? null;
+  }
+
+  /** Predicted delay change for this train under the previewed action, minutes. */
+  combinedActionDelta(handle: number): number | null {
+    const delta = this.store.combinedActionPreview()?.deltaMinByHandle[handle];
+    return delta === undefined ? null : delta;
+  }
+
+  /** The service name the action card shows for this train. */
+  combinedActionTrain(handle: number): string | null {
+    return this.store.combinedActionPreview()?.trainByHandle[handle] ?? null;
+  }
+
+  combinedActionDeltaLabel(handle: number): string {
+    const delta = this.combinedActionDelta(handle);
+    if (delta === null || delta === 0) return '';
+    return `${delta > 0 ? '+' : ''}${delta}`;
+  }
+
   agentTarget(a: AgentDTO): [number, number] | null {
     const anyAgent = a as any;
     return (anyAgent.target ?? anyAgent.target_position ?? null) as [number, number] | null;

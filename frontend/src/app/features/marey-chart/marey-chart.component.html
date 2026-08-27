@@ -236,6 +236,25 @@
           </g>
         }
       </g>
+
+      <!-- Combined Actions (widget E1): the previewed action's consequence,
+           i.e. each affected train's future line shifted along the time axis by
+           the minutes the action gains or costs it. Dashed and drawn above the
+           forecast, so it reads as "what would happen", never as the forecast. -->
+      @if (consequenceLines().length > 0) {
+        <g class="marey-consequence">
+          @for (c of consequenceLines(); track c.handle) {
+            <path
+              class="consequence"
+              [attr.d]="c.d"
+              [attr.stroke]="c.color"
+              [class.is-earlier]="c.deltaMin < 0"
+            >
+              <title>Zug {{ c.handle }}: {{ c.deltaMin > 0 ? '+' : '' }}{{ c.deltaMin }} min — {{ consequenceLabel() }}</title>
+            </path>
+          }
+        </g>
+      }
     </svg>
     <!-- Zoom overlay (above pan-cross) -->
     <!-- Swap-axes overlay: where flatland-map has its opacity slider -->

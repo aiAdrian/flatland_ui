@@ -62,6 +62,8 @@ type RuntimeLayoutOption = {
   /** `preset` = shipped with the repo (core/layout/layout-presets.ts) and
    *  therefore reviewable; `user` = saved in this browser only. */
   kind: 'system' | 'preset' | 'user';
+  /** Preset only: one sentence on what the layout is for. */
+  purpose?: string;
   design?: any;
 };
 
@@ -1083,6 +1085,7 @@ export class AppComponent implements OnInit {
         id: preset.id,
         name: preset.name,
         kind: 'preset',
+        purpose: preset.purpose,
         design: { id: preset.id, name: preset.name, layout: preset.layout },
       });
     }

@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.ca {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 9px;
+}
+
+:host(.embedded) .ca { padding: 7px 8px; }
+
+.ca__head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ca__title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--sbb-color-granite);
+}
+
+.ca__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ca__hint {
+  flex: 1 1 160px;
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
+/* The plot folds away to a single line until there is a trade to look at. It is
+   the most useful thing on the panel once a variant exists and the least useful
+   before that — and at 200 px it was pushing all three cards off screen. */
+.ca__plot-toggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-left: auto;
+  padding: 1px 4px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 2px;
+  background: none;
+  cursor: pointer;
+}
+
+.ca__plot-toggle:hover { background: var(--app-hover-bg); }
+
+.ca__plot-chevron {
+  display: inline-block;
+  color: var(--sbb-color-granite);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 120ms ease;
+}
+
+.ca__plot-chevron.is-open { transform: rotate(90deg); }
+
+.ca__plot-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sbb-color-granite);
+}
+
+.ca__plot-summary {
+  margin: 0;
+  font-size: 9px;
+  color: var(--sbb-color-graphite);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ca__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* The card whose consequence is currently drawn in the map and the ZWL. Kept
+   quiet — the overlay in the other panels is the loud part. */
+app-action-card.is-previewed {
+  outline: 1px solid var(--app-whatif-human);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+.ca__provenance {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.35;
+  color: var(--sbb-color-graphite);
+}

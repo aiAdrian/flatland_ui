@@ -391,7 +391,7 @@
                 (focus)="refreshRuntimeLayouts()"
                 (change)="setRuntimeLayout($any($event.target).value)">
                 @for (layout of runtimeLayoutOptions(); track layout.id) {
-                  <option [value]="layout.id">
+                  <option [value]="layout.id" [attr.title]="layout.purpose || null">
                     {{ layout.name }}{{ layoutKindSuffix(layout.kind) }}
                   </option>
                 }

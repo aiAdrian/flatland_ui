@@ -1,0 +1,90 @@
+:host {
+  display: inline-flex;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 3px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-left: 3px solid var(--app-train-category-regional);
+  border-radius: 3px;
+  background: var(--sbb-color-white);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--sbb-color-charcoal);
+  transition: border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.chip[data-category='long-distance'] { border-left-color: var(--app-train-category-long-distance); }
+.chip[data-category='regional']      { border-left-color: var(--app-train-category-regional); }
+.chip[data-category='suburban']      { border-left-color: var(--app-train-category-suburban); }
+
+.chip__pos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip__id {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+}
+
+.chip--interactive {
+  cursor: grab;
+}
+
+.chip--interactive:hover {
+  border-color: var(--app-hover-border);
+  box-shadow: 0 0 0 2px var(--app-hover-ring-soft);
+}
+
+.chip--dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+/* How far this train moved from the AI proposal. Uses the human/AI split: a
+   change is the dispatcher's, so it is blue whichever way it went. */
+.chip__shift {
+  padding: 0 3px;
+  border-radius: 2px;
+  background: var(--app-whatif-human);
+  color: var(--sbb-color-white);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 13px;
+  letter-spacing: 0.2px;
+}
+
+/* Compact chip: four of these plus their markers stay on one line in a ~250 px
+   sequence, which is what keeps a card from doubling in height (and the panel
+   from scrolling) the moment it is opened.
+   The position badge is dropped here on purpose — left-to-right reading order
+   already carries the sequence, and the map badge carries the rank where it
+   actually needs a number. */
+.chip--compact {
+  gap: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  line-height: 15px;
+  border-left-width: 2px;
+}
+
+.chip--compact .chip__shift {
+  font-size: 8px;
+  line-height: 11px;
+  padding: 0 2px;
+}
