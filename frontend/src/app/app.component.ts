@@ -19,6 +19,9 @@ import { GoalAchievementComponent } from './features/goal-achievement/goal-achie
 import { StrategyForecastComponent } from './features/strategy-forecast/strategy-forecast.component';
 import { StrategyOptionsComponent } from './features/strategy-options/strategy-options.component';
 import { CoLearningEffectComponent } from './features/co-learning-effect/co-learning-effect.component';
+import { CombinedActionsComponent } from './features/combined-actions/combined-actions.component';
+import { ProblemOverviewComponent } from './features/combined-actions/problem-overview.component';
+import { DecisionLogPanelComponent } from './features/decision-log/decision-log-panel.component';
 import { LearningMomentComponent } from './features/learning-moment/learning-moment.component';
 import { StrategyReflectionComponent } from './features/strategy-reflection/strategy-reflection.component';
 import { AiActivityComponent } from './features/ai-activity/ai-activity.component';
@@ -88,6 +91,9 @@ type RuntimeLayoutOption = {
     CoLearningEffectComponent,
     StrategyReflectionComponent,
     LearningMomentComponent,
+    CombinedActionsComponent,
+    ProblemOverviewComponent,
+    DecisionLogPanelComponent,
     AiActivityComponent,
     ShiftReviewComponent,
     LearningRecordsComponent,
@@ -346,6 +352,15 @@ export class AppComponent implements OnInit {
   readonly shiftScreenOpen = computed(
     () => this.store.interactionMode() === 'director' && this.store.shiftReviewOpen(),
   );
+
+  /**
+   * Modes that drop the left pane and give the centre the room instead.
+   *
+   * Both put their decision surface above the map, which needs the width: the
+   * situation panels on the left are context those modes already carry in the
+   * surface itself.
+   */
+  readonly wideCentre = computed(() => this.store.interactionMode() === 'director');
 
   /** Label of the currently active collaboration mode (for the header dropdown). */
   currentModeLabel(): string {

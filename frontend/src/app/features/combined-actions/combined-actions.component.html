@@ -1,0 +1,46 @@
+<section class="ca" aria-label="Kombinierte Maßnahmen">
+  <header class="ca-head">
+    <span class="ca-title">Kombinierte Maßnahmen</span>
+  </header>
+
+  <p class="ca-conflict">
+    {{ window().location }} · {{ baseline().totalDelay }} min Verspätung ohne
+    Eingriff, Horizont {{ window().horizonMinutes }} min
+  </p>
+
+  <p class="ca-choose">
+    Eine Maßnahme wählen — der Abschnitt lässt sich nur einmal disponieren.
+    Anklicken hebt die betroffenen Züge auf der Karte hervor.
+  </p>
+
+  <div class="ca-list">
+    @for (action of offered(); track action.action.id) {
+      <app-action-card
+        [proposal]="action"
+        [window]="window()"
+        [baseline]="baseline()"
+        [chosen]="isChosen(action.action.id)"
+        [locked]="isLocked(action.action.id)"
+        [showingOnMap]="isFocused(action.action.id)"
+        (confirmed)="onConfirmed(action.action.id, $event)"
+        (revoked)="revoke()"
+        (focused)="focus(action.action.id, $event)"
+      ></app-action-card>
+    }
+  </div>
+
+  @if (lastConfirmed(); as last) {
+    <p class="ca-applied" role="status">
+      Gewählt: {{ last.controlled }} Züge gesteuert · −{{ last.reduction }} min
+      @if (last.modified) {
+        · in der geänderten Reihenfolge
+      }
+    </p>
+  }
+
+  <p class="ca-method">
+    {{ proposal().consideredCount }} Kandidaten simuliert, bester je
+    Eingriffstiefe gezeigt. Heuristische Warteschlange am Engpass, kein
+    Flatland-Lauf.
+  </p>
+</section>

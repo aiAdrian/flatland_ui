@@ -58,6 +58,9 @@ export interface WidgetModeBehaviour {
   recommendation: string | null;
   'co-learning': string | null;
   director: string | null;
+  /** Optional so the ~15 catalogue entries written before this mode existed stay
+   *  valid; an absent entry reads as "no mode-specific behaviour documented yet". */
+  'combined-actions'?: string | null;
 }
 
 export interface WidgetMeta {

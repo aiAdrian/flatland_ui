@@ -1617,7 +1617,12 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   }
 
   isNotificationHovered(handle: number): boolean {
-    return this.store.notificationHoverHandles().has(handle);
+    // Same visual channel, two triggers: hovering a notification, and opening a
+    // Combined Action whose controlled trains these are.
+    return (
+      this.store.notificationHoverHandles().has(handle) ||
+      this.store.combinedActionHandles().has(handle)
+    );
   }
 
   agentTarget(a: AgentDTO): [number, number] | null {

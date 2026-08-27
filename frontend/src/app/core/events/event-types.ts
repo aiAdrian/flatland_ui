@@ -30,7 +30,11 @@ export type KpiWeights = KpiPriorities;
  *  - 'co-learning'    = WP 3.3 (human and AI adapt to each other)
  *  - 'director'       = WP 3.4 (AI acts autonomously on high-level directives)
  */
-export type InteractionMode = 'recommendation' | 'co-learning' | 'director';
+export type InteractionMode =
+  | 'recommendation'
+  | 'co-learning'
+  | 'director'
+  | 'combined-actions';
 
 export type NotificationKind = 'info' | 'warning' | 'error';
 

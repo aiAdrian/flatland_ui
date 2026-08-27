@@ -86,6 +86,27 @@ export const MODE_INTROS: ModeIntro[] = [
     goal:
       'See how well the AI performs autonomously — and notice where you feel the pull to intervene.',
   },
+  {
+    mode: 'combined-actions',
+    wp: 'WP 3.2',
+    title: 'Combined Actions',
+    tagline: 'The AI proposes a package, you reorder it.',
+    whatHappens:
+      'The AI offers three coordinated packages, each an ordered sequence of trains through one bottleneck, with the delay it expects to avoid.',
+    yourRole:
+      'You are not limited to picking one. Drag the trains into the order you want and the prediction is recomputed for your order.',
+    whatYouCanControl: [
+      'Reorder the trains inside any package by dragging a chip (or Alt + arrow keys)',
+      'Reset a package back to the AI’s proposal',
+      'Apply a package — as proposed, or as you changed it',
+    ],
+    watchFor: [
+      'The badge growing to “Empfohlen von KI · Vom Dispatcher geändert” after an edit',
+      'The small comparison of the AI’s number against yours',
+    ],
+    goal:
+      'See what overriding a coordinated action actually costs — before committing to it.',
+  },
 ];
 
 export function modeIntroFor(mode: InteractionMode): ModeIntro {

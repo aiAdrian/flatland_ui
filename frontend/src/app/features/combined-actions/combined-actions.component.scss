@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.ca {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ca-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ca-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.ca-hint {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+/* Stacked, because the widget lives in the right column: the three levels of
+   intervention are read top to bottom, cheapest first. */
+.ca-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ca-conflict {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
+/* Says out loud that the choice is exclusive, before the operator finds out by
+   clicking. */
+.ca-choose {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+}
+
+.ca-applied {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--app-positive);
+}
+
+.ca-method {
+  margin: 0;
+  font-size: 10px;
+  font-style: italic;
+  color: var(--sbb-color-granite);
+}

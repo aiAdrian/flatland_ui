@@ -1,0 +1,310 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.ac {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+}
+
+/* The AI's pick reads as the default: a left edge, not a filled card. */
+.ac.is-recommended {
+  border-left: 4px solid var(--app-positive);
+}
+
+/* Once edited, the human's hand is the thing to notice. */
+.ac.is-modified {
+  border-left: 4px solid var(--app-severity-warn);
+}
+
+.ac-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.ac-ident {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ac-summary {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.ac-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  white-space: nowrap;
+}
+
+.ac-badge--human {
+  background: var(--app-severity-warn);
+  color: var(--sbb-color-charcoal);
+}
+
+.ac-badge--map {
+  background: var(--app-whatif-human);
+  color: var(--sbb-color-white);
+}
+
+/* The card the map is following. A ring rather than a fill, so it does not
+   compete with the recommendation and the modified marks on the left edge. */
+.ac.is-on-map {
+  box-shadow: 0 0 0 2px var(--app-whatif-human);
+}
+
+.ac-where,
+.ac-why {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
+.ac-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+.ac-btn {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+}
+
+.ac-btn:hover:not(:disabled) {
+  background: var(--sbb-color-cloud);
+}
+
+.ac-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ac-btn--apply {
+  border-color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+}
+
+.ac-btn--apply:hover:not(:disabled) {
+  background: var(--sbb-color-charcoal);
+  filter: brightness(1.25);
+}
+
+.ac-applied {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--app-positive);
+}
+
+/* A confirmed action is done with: it reads as settled rather than active. */
+.ac.is-confirmed {
+  border-left-color: var(--app-positive);
+  background: var(--sbb-color-milk);
+}
+
+/* Review is a step on the card, not a dialog — so it is a disclosure, styled as
+   a quiet line rather than a button competing with Confirm. */
+.ac-review-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+}
+
+.ac-review-toggle:hover {
+  text-decoration: underline;
+}
+
+.ac-review-count {
+  margin-left: auto;
+  font-weight: 400;
+  color: var(--sbb-color-granite);
+}
+
+.ac-review {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 5px 7px;
+  border-left: 3px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-milk);
+}
+
+.ac-review__group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ac-review__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sbb-color-granite);
+}
+
+.ac-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ac-row__train {
+  color: var(--sbb-color-charcoal);
+}
+
+.ac-row__impact {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--sbb-color-granite);
+}
+
+.ac-row__impact.is-gain {
+  color: var(--app-positive);
+}
+
+.ac-row__impact.is-loss {
+  color: var(--app-severity-warn);
+}
+
+.ac-review__rest {
+  margin: 0;
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
+/* An action that is out of play because another one was chosen. Dimmed rather
+   than hidden: the comparison is still worth seeing. */
+.ac.is-locked {
+  opacity: 0.55;
+}
+
+.ac-locked {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.ac-arm-question {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+/* The plan, step by step. Numbered because the order is the whole content. */
+.ac-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 5px 7px;
+  list-style: none;
+  border-left: 3px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-milk);
+  counter-reset: step;
+}
+
+.ac-plan__step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
+.ac-plan__step::before {
+  counter-increment: step;
+  content: counter(step) '.';
+  color: var(--sbb-color-granite);
+  font-variant-numeric: tabular-nums;
+}
+
+.ac-plan__train {
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.ac-plan__step.is-controlled .ac-plan__train {
+  text-decoration: underline;
+}
+
+.ac-plan__what {
+  flex: 1 1 auto;
+}
+
+.ac-plan__tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+}
+
+.ac-plan__tag--baseline {
+  background: var(--sbb-color-cloud);
+  color: var(--sbb-color-granite);
+}
+
+.ac-plan__delay {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.ac-plan__delay.is-gain {
+  color: var(--app-positive);
+}
+
+.ac-plan__delay.is-loss {
+  color: var(--app-severity-warn);
+}

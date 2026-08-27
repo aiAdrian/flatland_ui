@@ -106,6 +106,9 @@ export class ImpactPanelComponent implements OnDestroy {
       case 'recommendation': return { decisionMoment: 'countdown', reflectAfterDecision: false };
       case 'co-learning':    return { decisionMoment: 'hold', reflectAfterDecision: true };
       case 'director':       return { decisionMoment: 'none', reflectAfterDecision: false };
+      // Combined Actions holds its own decision moment in the cards: the package
+      // waits for an Apply, so nothing here counts down for it.
+      case 'combined-actions': return { decisionMoment: 'hold', reflectAfterDecision: false };
     }
   });
 

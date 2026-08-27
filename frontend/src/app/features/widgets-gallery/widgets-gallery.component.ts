@@ -150,8 +150,9 @@ export class WidgetsGalleryComponent implements OnInit, OnDestroy {
   }
 
   // ── Per-mode presentation ────────────────────────────────────────────────
+  /** Undefined (a mode the entry predates) reads the same as "nothing to say". */
   behaviourFor(widget: WidgetMeta, mode: InteractionMode): string | null {
-    return widget.perMode[mode];
+    return widget.perMode[mode] ?? null;
   }
 
   /** Emphasise the column matching the active session mode, or the mode filter. */

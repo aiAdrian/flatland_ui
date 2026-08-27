@@ -189,6 +189,45 @@ export class SessionStore {
    */
   readonly directorOutlookBlocker = signal<string | null>(null);
 
+  /**
+   * Record an applied Combined Action in the decision log.
+   *
+   * A multi-train package is one decision even though it touches several trains,
+   * so it gets one entry with `handle: -1` — the established placeholder for
+   * "not about a single train" (see `recordStrategyChoice`). `action` is
+   * `'override'` when the dispatcher reordered the AI's proposal and `'accept'`
+   * when they took it as offered: that difference is the whole point of the mode,
+   * and it is what the log is for.
+   */
+  recordCombinedAction(confirmed: {
+    controlled: string[];
+    affected: string[];
+    modified: boolean;
+    reduction: number;
+    aiReduction: number;
+  }): number {
+    const indirect = confirmed.affected.filter(
+      (train) => !confirmed.controlled.includes(train),
+    );
+    const cost = confirmed.modified
+      ? `; KI −${confirmed.aiReduction} min, bestätigt −${confirmed.reduction} min`
+      : `; −${confirmed.reduction} min`;
+    return this._appendDecision({
+      t: Date.now(),
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      handle: -1,
+      accountableOwner: 'human',
+      action: confirmed.modified ? 'override' : 'accept',
+      aiSuggestion: null,
+      decisionTimeMs: null,
+      rationale:
+        `Kombinierte Maßnahme: ${confirmed.controlled.join(' → ')}`
+        + (indirect.length ? `; indirekt betroffen: ${indirect.join(', ')}` : '')
+        + cost,
+    });
+  }
+
   readonly directorFocusOutlook = signal<{
     subject: string;
     signals: ForecastSignals;
@@ -261,6 +300,16 @@ export class SessionStore {
   /** Agent handles highlighted because the user hovers an agent-related
    *  notification. This is intentionally separate from selection. */
   readonly notificationHoverHandles = signal<Set<number>>(new Set<number>());
+
+  /**
+   * Agent handles a Combined Action would dispatch — highlighted on the map while
+   * the operator has that action open.
+   *
+   * A separate signal rather than a reuse of the notification-hover set: both end
+   * up drawn the same way, but they are triggered by different things and clearing
+   * one must not clear the other.
+   */
+  readonly combinedActionHandles = signal<Set<number>>(new Set<number>());
 
   setNotificationHoverAgents(handles: number[]): void {
     const clean = handles
@@ -618,6 +667,11 @@ export class SessionStore {
         return 'neutral';
       case 'director':
         return 'none';
+      case 'combined-actions':
+        // The AI does mark one package as its recommendation, so the same
+        // framing as WP 3.1 applies — the difference is that the human can edit
+        // the option rather than only pick between them.
+        return 'recommended';
     }
   });
 

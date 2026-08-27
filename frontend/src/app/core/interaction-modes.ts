@@ -19,4 +19,5 @@ export const INTERACTION_MODES: InteractionModeInfo[] = [
   { id: 'recommendation', label: 'Recommendation', wp: 'WP 3.1', description: 'The AI suggests a ranked option; you decide.' },
   { id: 'co-learning', label: 'Co-Learning', wp: 'WP 3.3', description: 'The AI offers neutral options; you decide and reflect.' },
   { id: 'director', label: 'Director', wp: 'WP 3.4', description: 'The AI runs autonomously on your directives; you supervise.' },
+  { id: 'combined-actions', label: 'Combined Actions', wp: 'WP 3.2', description: 'The AI proposes coordinated multi-train packages; you reorder them and see the cost.' },
 ];

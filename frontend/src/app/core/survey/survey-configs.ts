@@ -85,6 +85,15 @@ function modeSection(mode: InteractionMode): SurveySection {
           { id: 'dir_aware', text: 'I always knew what the system was doing and why.', type: 'likert', min: 1, max: 7, minLabel: 'Strongly disagree', maxLabel: 'Strongly agree' },
         ],
       };
+    case 'combined-actions':
+      return {
+        id: 'mode-cmb',
+        title: 'Combined Actions',
+        questions: [
+          { id: 'cmb_reorder', text: 'Changing the proposed train order was easy.', type: 'likert', min: 1, max: 7, minLabel: 'Strongly disagree', maxLabel: 'Strongly agree' },
+          { id: 'cmb_consequence', text: 'I understood what my change cost compared with the AI’s proposal.', type: 'likert', min: 1, max: 7, minLabel: 'Strongly disagree', maxLabel: 'Strongly agree' },
+        ],
+      };
   }
 }
 
@@ -92,6 +101,7 @@ const MODE_LABEL: Record<InteractionMode, string> = {
   recommendation: 'Recommendation',
   'co-learning': 'Co-Learning',
   director: 'Director',
+  'combined-actions': 'Combined Actions',
 };
 
 /**

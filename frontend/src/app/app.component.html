@@ -48,6 +48,16 @@
                   <path d="M19.4 16l-5.2-3" />
                 </svg>
               }
+              @case ('combined-actions') {
+                <!-- Three ordered tracks merging: a package, not a single call. -->
+                <svg class="mode-tab__ico" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h11" />
+                  <path d="M3 12h18" />
+                  <path d="M3 18h11" />
+                  <path d="M14 6l4 3" />
+                  <path d="M14 18l4-3" />
+                </svg>
+              }
             }
             {{ m.label }}
             @if (store.demoActive() && store.interactionMode() === m.id) {
@@ -146,13 +156,20 @@
          cost ~20 s to compute, and "← Zurück zur laufenden Schicht" must not pay
          for them again. -->
     <div class="three-col"
-         [class.two-col]="store.interactionMode() === 'director'"
+         [class.two-col]="wideCentre()"
          [class.is-behind]="shiftScreenOpen()">
-      @if (store.interactionMode() !== 'director') {
+      @if (!wideCentre()) {
         <aside class="left-pane">
-          <app-panel-shell [panel]="panelSituationSummary"></app-panel-shell>
-          <app-panel-shell [panel]="panelNotifications"></app-panel-shell>
-          <app-panel-shell [panel]="panelAgents"></app-panel-shell>
+          @if (store.interactionMode() === 'combined-actions') {
+            <!-- Problem on the left, map in the middle, actions on the right: the
+                 dispatcher reads left to right, from what is wrong to what to do
+                 about it. -->
+            <app-problem-overview></app-problem-overview>
+          } @else {
+            <app-panel-shell [panel]="panelSituationSummary"></app-panel-shell>
+            <app-panel-shell [panel]="panelNotifications"></app-panel-shell>
+            <app-panel-shell [panel]="panelAgents"></app-panel-shell>
+          }
         </aside>
       }
 
@@ -276,6 +293,14 @@
             <app-panel-shell [panel]="panelImpact"></app-panel-shell>
             <app-panel-shell [panel]="panelScenario"></app-panel-shell>
             <ng-container [ngTemplateOutlet]="agentInspectorPanel"></ng-container>
+          }
+          @case ('combined-actions') {
+            <!-- The decision surface itself lives here, in the right column: the
+                 cards are read top to bottom while the map below stays visible,
+                 and confirming is the last thing on the way down. The log under
+                 it accumulates what was confirmed. -->
+            <app-combined-actions></app-combined-actions>
+            <app-decision-log-panel></app-decision-log-panel>
           }
           @case ('director') {
             <!-- Deliberately short. Director asks one question — which objective

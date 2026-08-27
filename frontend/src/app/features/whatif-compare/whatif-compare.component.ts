@@ -81,6 +81,8 @@ export class WhatifCompareComponent implements OnDestroy {
         return { canCommit: true, aiLabel: 'AI plan', note: 'Formulate your own action and compare it with the AI — neither is marked “right”.' };
       case 'director':
         return { canCommit: false, aiLabel: 'AI plan (autonomous)', note: 'Supervisory what-if — inspect a branch; the AI keeps actuation under the directive.' };
+      case 'combined-actions':
+        return { canCommit: true, aiLabel: 'AI package', note: 'Compare your reordered package against the one the AI proposed.' };
     }
   });
 

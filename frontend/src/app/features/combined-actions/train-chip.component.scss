@@ -1,0 +1,41 @@
+:host {
+  display: inline-block;
+}
+
+.tc {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+  color: var(--sbb-color-charcoal);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: grab;
+}
+
+.tc:hover {
+  border-color: var(--sbb-color-granite);
+}
+
+/* The chip left behind while dragging: present but clearly not the live one. */
+.tc.is-dragging {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+/* Sits somewhere other than where the AI put it. */
+.tc.is-moved {
+  border-color: var(--app-severity-warn);
+  border-left-width: 3px;
+}
+
+.tc-grip {
+  color: var(--sbb-color-granite);
+  font-size: 10px;
+  line-height: 1;
+}

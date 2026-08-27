@@ -1,0 +1,41 @@
+<div
+  class="ts"
+  role="list"
+  [class.is-disabled]="disabled"
+  (dragover)="allowDrop($event)"
+  (drop)="drop($event)"
+>
+  @for (train of items(); track train; let i = $index) {
+    <span
+      class="ts-slot"
+      role="listitem"
+      [class.is-target]="dropIndex() === i"
+      [attr.draggable]="disabled ? null : true"
+      [attr.tabindex]="disabled ? null : 0"
+      [attr.aria-label]="label(train, i)"
+      (dragstart)="startDrag(i, $event)"
+      (dragend)="endDrag()"
+      (dragover)="hoverChip(i, $event)"
+      (keydown)="onKey(i, $event)"
+    >
+      <app-train-chip
+        [train]="train"
+        [dragging]="dragIndex() === i"
+        [moved]="movedFromAi(train, i)"
+      ></app-train-chip>
+    </span>
+
+    @if (!$last) {
+      <span class="ts-arrow" aria-hidden="true">→</span>
+    }
+  }
+
+  <!-- Drop zone for "put it last": without it the final position is only
+       reachable by aiming at the right half of the last chip. -->
+  <span
+    class="ts-slot ts-slot--end"
+    [class.is-target]="dropIndex() === items().length"
+    (dragover)="hoverEnd($event)"
+    aria-hidden="true"
+  ></span>
+</div>

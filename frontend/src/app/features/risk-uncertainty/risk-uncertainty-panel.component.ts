@@ -66,6 +66,8 @@ export class RiskUncertaintyPanelComponent {
       case 'recommendation': return { framing: 'recommendation', interactive: true };
       case 'co-learning':    return { framing: 'assessment', interactive: true };
       case 'director':       return { framing: 'supervisory', interactive: false };
+      // The human edits the proposal here, so uncertainty is theirs to act on.
+      case 'combined-actions': return { framing: 'assessment', interactive: true };
     }
   });
 
