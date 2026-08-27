@@ -473,6 +473,31 @@
           <title>Zug {{ a.handle }}: {{ agentProblemLines(a).join(' · ') }}</title>
         }
 
+        <!-- Combined Actions (widget E1): dispatch rank + this train's share of
+             the action's predicted delay change, while an action is previewed. -->
+        @if (combinedActionRank(a.handle); as rank) {
+          <g class="ca-rank" [class.ca-rank--earlier]="(combinedActionDelta(a.handle) ?? 0) < 0">
+            <circle
+              class="ca-rank__bg"
+              [attr.cx]="agentX(a) - 13"
+              [attr.cy]="agentY(a) - 13"
+              r="9" />
+            <text
+              class="ca-rank__text"
+              [attr.x]="agentX(a) - 13"
+              [attr.y]="agentY(a) - 9"
+              text-anchor="middle">{{ rank }}</text>
+            @if (combinedActionDeltaLabel(a.handle); as delta) {
+              <text
+                class="ca-rank__delta"
+                [attr.x]="agentX(a) - 13"
+                [attr.y]="agentY(a) - 24"
+                text-anchor="middle">{{ delta }}</text>
+            }
+            <title>{{ combinedActionTrain(a.handle) }} — released {{ rank }}. of the action{{ combinedActionDelta(a.handle) ? ' · ' + combinedActionDeltaLabel(a.handle) + ' min predicted' : '' }}</title>
+          </g>
+        }
+
         @if (isMalfunctioning(a)) {
           <circle
             class="malfunction-badge-bg"

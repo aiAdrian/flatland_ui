@@ -1,0 +1,284 @@
+:host {
+  display: block;
+}
+
+/* Laid out as a stack, not a row: the card lives in the right-hand column now,
+   where a horizontal band would wrap into an unreadable mess. Each line answers
+   one question — which action, in what order, at what cost, which version. */
+.ac {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 9px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-left: 3px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: var(--sbb-color-white);
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+/* The AI's pick and a human-touched card are the only two states worth colour;
+   everything else stays neutral so the distinction reads at a glance. */
+.ac--recommended { border-left-color: var(--app-whatif-ai); }
+
+.ac--modified {
+  border-left-color: var(--app-whatif-human);
+  background: var(--sbb-color-milk);
+}
+
+.ac--readonly { background: var(--sbb-color-milk); }
+
+.ac__head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.ac__id {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 2px;
+  background: var(--sbb-color-charcoal);
+  color: var(--sbb-color-white);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ac__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.ac__badge {
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.ac__badge--ai {
+  color: var(--app-whatif-ai);
+  border: 1px solid var(--app-whatif-ai);
+}
+
+.ac__badge--human {
+  color: var(--app-whatif-human);
+  border: 1px solid var(--app-whatif-human);
+}
+
+/* ── the choice ──────────────────────────────────────────────────────────── */
+
+.ac__choice {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px dashed var(--sbb-color-cloud);
+}
+
+.ac__choice-q {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sbb-color-granite);
+  margin-right: 2px;
+}
+
+.ac__version {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 2px;
+  background: var(--sbb-color-white);
+  font-size: 10px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.ac__version:hover { border-color: var(--app-hover-border); }
+
+.ac__version[data-origin='ai'].is-active {
+  border-color: var(--app-whatif-ai);
+  box-shadow: inset 0 0 0 1px var(--app-whatif-ai);
+}
+
+.ac__version[data-origin='human'].is-active {
+  border-color: var(--app-whatif-human);
+  box-shadow: inset 0 0 0 1px var(--app-whatif-human);
+}
+
+.ac__version-name { font-weight: 700; }
+.ac__version-fig { color: var(--app-positive); font-weight: 600; }
+.ac__version-fig--energy { color: var(--sbb-color-granite); }
+
+.ac__discard {
+  border: none;
+  background: none;
+  padding: 0 2px;
+  margin-right: 3px;
+  color: var(--sbb-color-graphite);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ac__discard:hover { color: var(--app-severity-error); }
+
+/* ── footer ──────────────────────────────────────────────────────────────── */
+
+.ac__foot {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.ac__spacer { flex: 1 1 auto; }
+
+.ac__rationale {
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+  flex: 1 1 100%;
+}
+
+/* ── the diff ────────────────────────────────────────────────────────────── */
+
+.ac__diff {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 5px;
+  /* A rule instead of a box: a bordered card inside a bordered card cost two
+     lines of height in a column that has none, and said nothing extra. */
+  border-left: 2px solid var(--app-whatif-human);
+}
+
+.ac__diff-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+/* The AI's row is the reference, not an option — muted so the eye lands on the
+   row that can actually be dragged. */
+.ac__diff-row--ai {
+  opacity: 0.7;
+  margin: 0;
+  align-items: center;
+}
+
+.ac__diff-text {
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+  font-variant-numeric: tabular-nums;
+  line-height: 15px;
+}
+
+.ac__diff-tag {
+  flex: 0 0 auto;
+  width: 26px;
+  padding: 1px 0;
+  border-radius: 2px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--sbb-color-white);
+  line-height: 15px;
+}
+
+.ac__diff-tag--ai { background: var(--app-whatif-ai); }
+.ac__diff-tag--human { background: var(--app-whatif-human); }
+
+.ac__change {
+  margin: 1px 0 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--app-whatif-human);
+  font-variant-numeric: tabular-nums;
+}
+
+.ac__btn {
+  padding: 2px 8px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 2px;
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.ac__btn:hover:not(:disabled) {
+  border-color: var(--app-hover-border);
+  background: var(--app-hover-bg);
+}
+
+.ac__btn:disabled { opacity: 0.4; cursor: default; }
+
+.ac__btn--apply { border-color: var(--sbb-color-charcoal); }
+
+.ac__applied {
+  padding: 2px 8px;
+  border: 1px solid var(--app-positive);
+  border-radius: 2px;
+  color: var(--app-positive);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── collapsed ───────────────────────────────────────────────────────────── */
+
+.ac--collapsed {
+  padding: 5px 9px;
+  gap: 0;
+}
+
+.ac__head.is-clickable {
+  cursor: pointer;
+}
+
+.ac__head.is-clickable:hover .ac__label {
+  text-decoration: underline;
+}
+
+.ac__head:focus-visible {
+  outline: 2px solid var(--app-whatif-human);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* The headline a collapsed card keeps: enough to compare three options without
+   opening any of them. */
+.ac__headline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ac__headline-delay {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--app-positive);
+}
+
+.ac__headline-energy {
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}

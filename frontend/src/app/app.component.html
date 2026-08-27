@@ -98,6 +98,7 @@
         @for (row of runtimeRows(runtimeColumns()); track row.id) {
           <div
             class="runtime-design__row"
+            [class.runtime-design__row--fill]="runtimeRowHeightPx(row) === null"
             [style.height.px]="runtimeRowHeightPx(row)"
             [style.grid-template-columns]="runtimeRowGridTemplate(row)"
             [attr.data-runtime-row]="row.id"
@@ -389,8 +390,8 @@
                 (focus)="refreshRuntimeLayouts()"
                 (change)="setRuntimeLayout($any($event.target).value)">
                 @for (layout of runtimeLayoutOptions(); track layout.id) {
-                  <option [value]="layout.id">
-                    {{ layout.name }}{{ layout.kind === 'system' ? '' : ' · user' }}
+                  <option [value]="layout.id" [attr.title]="layout.purpose || null">
+                    {{ layout.name }}{{ layoutOriginLabel(layout.kind) }}
                   </option>
                 }
               </select>

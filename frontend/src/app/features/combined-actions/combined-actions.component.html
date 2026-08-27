@@ -1,0 +1,49 @@
+<section class="ca">
+  <header class="ca__head">
+    <span class="ca__title" [attr.title]="modeBehavior().hint">Combined Actions</span>
+    <span class="ca__count">{{ packages().length }}</span>
+
+    <!-- The chart lives behind a header toggle rather than on its own row: it is
+         worth 180 px only when you are comparing, and the panel has to fit its
+         column without scrolling. Folded, its summary rides in the header. -->
+    <button
+      type="button"
+      class="ca__plot-toggle"
+      [attr.aria-expanded]="plotOpen()"
+      [attr.title]="plotOpen() ? 'Hide the energy/delay chart' : 'Show the energy/delay chart'"
+      (click)="togglePlot()"
+    >
+      <span class="ca__plot-chevron" [class.is-open]="plotOpen()" aria-hidden="true">›</span>
+      <span class="ca__plot-title">Energy vs. delay</span>
+    </button>
+  </header>
+
+  @if (!plotOpen()) {
+    <p class="ca__plot-summary">{{ plotSummary() }}</p>
+  } @else {
+    <app-tradeoff-plot class="ca__plot" [points]="tradeoffPoints()"></app-tradeoff-plot>
+  }
+
+  <div class="ca__cards">
+    @for (pkg of packages(); track pkg.id) {
+      <app-action-card
+        [class.is-previewed]="previewedPackage() === pkg.id"
+        [pkg]="pkg"
+        [framing]="modeBehavior().framing"
+        [editable]="modeBehavior().editable"
+        [expanded]="expandedPackage() === pkg.id"
+        (activeChanged)="onActiveChanged($event)"
+        (expandRequested)="expand($event)"
+        (pointerenter)="onCardEnter(pkg)"
+        (pointerleave)="onCardLeave()"
+      ></app-action-card>
+    }
+  </div>
+
+  <!-- Provenance, stated rather than implied. One line on screen with the full
+       wording on hover: the panel has to fit its column without scrolling, and
+       an honesty note that pushes the cards off screen helps nobody. -->
+  <p class="ca__provenance" [attr.title]="provenanceDetail()">
+    {{ bound() ? 'Modelled figures, not simulation output ⓘ' : 'No session trains bound yet ⓘ' }}
+  </p>
+</section>

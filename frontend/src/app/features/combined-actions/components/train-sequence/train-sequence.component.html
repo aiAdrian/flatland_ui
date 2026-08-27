@@ -1,0 +1,50 @@
+<div
+  class="ts"
+  [class.ts--readonly]="!editable"
+  [class.ts--dragging]="dragging()"
+  [class.ts--compact]="compact"
+  role="list"
+  [attr.aria-label]="'Dispatch order: ' + order.join(', ')"
+>
+  @for (train of order; track train; let i = $index) {
+    <span class="ts__gap" [class.ts__gap--active]="isInsertAt(i)" aria-hidden="true">
+      @if (i > 0 && !compact) {
+        <span class="ts__arrow">→</span>
+      }
+    </span>
+
+    <div
+      class="ts__slot"
+      role="listitem"
+      [attr.data-train]="train"
+      [class.ts__slot--dragging]="dragIndex() === i"
+      [style.transform]="offsetFor(i) ? 'translateX(' + offsetFor(i) + 'px)' : null"
+      [attr.tabindex]="editable ? 0 : null"
+      [attr.aria-label]="
+        train + ', position ' + (i + 1) + ' of ' + order.length +
+        (editable ? '. Use arrow left or right to move it.' : '')
+      "
+      (pointerdown)="onPointerDown(i, $event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel($event)"
+      (keydown)="onKeydown(i, $event)"
+    >
+      <app-train-chip
+        [train]="train"
+        [category]="categoryOf(train)"
+        [position]="i + 1"
+        [interactive]="editable"
+        [dragging]="dragIndex() === i"
+        [shift]="shiftOf(train, i)"
+        [compact]="compact"
+      ></app-train-chip>
+    </div>
+  }
+
+  <span
+    class="ts__gap ts__gap--tail"
+    [class.ts__gap--active]="isInsertAt(order.length)"
+    aria-hidden="true"
+  ></span>
+</div>

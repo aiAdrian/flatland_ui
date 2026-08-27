@@ -1,0 +1,81 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.ts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 4px;
+}
+
+/* The gap between two chips: normally the "→" separator, and during a drag the
+   place the insertion marker appears. The marker is absolutely positioned so
+   showing it never reflows the sequence — the chips must not jump while the
+   operator is aiming at a gap. */
+.ts__gap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 12px;
+  align-self: stretch;
+}
+
+.ts__gap--tail {
+  min-width: 8px;
+}
+
+.ts__gap--active::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--app-whatif-human);
+}
+
+.ts__arrow {
+  color: var(--sbb-color-graphite);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ts__slot {
+  display: inline-flex;
+  border-radius: 3px;
+  /* The chip is dragged with pointer events, so the browser must not claim the
+     gesture for a touch scroll or a text selection. */
+  touch-action: none;
+  user-select: none;
+}
+
+/* Follows the pointer. No transition while dragging — the transform IS the
+   pointer position, and easing it would make the chip lag behind the finger. */
+.ts__slot--dragging {
+  position: relative;
+  z-index: 1;
+}
+
+.ts--dragging {
+  cursor: grabbing;
+}
+
+.ts__slot:focus-visible {
+  outline: 2px solid var(--app-whatif-human);
+  outline-offset: 1px;
+}
+
+.ts--readonly .ts__slot {
+  cursor: default;
+}
+
+.ts--compact {
+  gap: 2px;
+}
+
+.ts--compact .ts__gap {
+  min-width: 5px;
+}
