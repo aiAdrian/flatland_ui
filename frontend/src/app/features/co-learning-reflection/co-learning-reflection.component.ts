@@ -81,7 +81,6 @@ export class CoLearningReflectionComponent {
   axisLabel(axis: ValueAxis | null): string {
     return axis ? VALUE_AXIS_LABELS[axis] : '—';
   }
-
   // ── Mirroring [MR]: the operator's own run, reflected back ──────────
   readonly interventions = computed(() => this.store.coLearningFeedback());
   readonly interventionCount = computed(() => this.interventions().length);

@@ -5,6 +5,7 @@ warnings.filterwarnings("ignore")
 
 import pytest  # noqa: E402
 
+import app.policies.goal_based_policies.dataset as dataset  # noqa: E402
 import app.policies.goal_directed_policy as module  # noqa: E402
 from app.policies.goal_directed_policy import (  # noqa: E402
     GoalDirectedPolicy,
@@ -26,6 +27,8 @@ def fresh_caches(monkeypatch):
     monkeypatch.setattr(module, "_PLAYERS", type(module._PLAYERS)())
     monkeypatch.setattr(module, "_PLAN_INFO", type(module._PLAN_INFO)())
     monkeypatch.setattr(module, "_SCHEDULES", type(module._SCHEDULES)())
+    monkeypatch.setattr(module, "_RESET_GEN", type(module._RESET_GEN)())
+    monkeypatch.setattr(module, "_UNROUTABLE", type(module._UNROUTABLE)())
     monkeypatch.setattr(module, "_ENV_WEIGHTS", type(module._ENV_WEIGHTS)())
     monkeypatch.setattr(module, "_REPLAN_STATE", type(module._REPLAN_STATE)())
     monkeypatch.setattr(module, "_MODELS", None)
@@ -114,6 +117,48 @@ def test_the_plan_and_its_progress_survive_policy_rebuilds(monkeypatch, env):
     first_player = module._PLAYERS[env]
     GoalDirectedPolicy(env)  # a later request's fresh policy object
     assert module._PLAYERS[env] is first_player
+
+
+def test_a_genuine_env_reset_replans_instead_of_freezing_forever(monkeypatch):
+    """Regression: session APIs reuse the same env object across a Reset
+    (see api/sessions.py's reset_session), so `env in _PLAYERS` alone can't
+    tell "still the same episode" from "was just reset" — it used to keep
+    driving the old, fully-consumed SchedulePlayer, and every train sat on
+    DO_NOTHING forever. `env.num_resets` (bumped by Flatland's own
+    RailEnv.reset(), and only by that) is the fix's actual signal."""
+    from app.policies.goal_based_policies.dataset import Layout, build_layout_env
+
+    monkeypatch.setattr(module, "DEFAULT_EVALUATOR", "/nonexistent.ckpt")
+    fresh = build_layout_env(Layout(index=0, seed=2001, size=30, cities=2), 4)
+    policy = GoalDirectedPolicy(fresh)
+    first_player = module._PLAYERS[fresh]
+
+    fresh.reset(regenerate_rail=False, regenerate_schedule=False)
+    policy.reset(fresh)  # what `_build_policy` does on the next request
+
+    assert module._PLAYERS[fresh] is not first_player
+    # And the new player actually drives — not stuck on the old one's
+    # exhausted schedule.
+    assert policy.act_for_handle(0) is not None
+
+
+def test_an_unroutable_env_is_not_replanned_on_every_request(monkeypatch, env):
+    """Regression: every request rebuilds the policy and calls reset() on
+    it (see api/sessions.py's _build_policy). Without caching the failure,
+    an unroutable env re-ran the full model-guided search on every single
+    request instead of once per episode."""
+    monkeypatch.setattr(module, "DEFAULT_EVALUATOR", "/nonexistent.ckpt")
+    calls = []
+
+    def spy(*args, **kwargs):
+        calls.append(1)
+        return None  # unroutable
+
+    monkeypatch.setattr(dataset, "plan_all_lines", spy)
+    GoalDirectedPolicy(env)
+    assert len(calls) == 1
+    GoalDirectedPolicy(env)  # a later request's fresh policy object
+    assert len(calls) == 1, "replanned an env already known to be unroutable"
 
 
 def test_a_malfunction_triggers_a_residual_replan(monkeypatch, tmp_path):
