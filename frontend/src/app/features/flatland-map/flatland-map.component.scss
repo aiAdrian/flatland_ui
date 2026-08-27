@@ -1182,3 +1182,35 @@
   text-anchor: middle;
   pointer-events: none;
 }
+
+/* Combined Actions (widget E1) dispatch-rank badge.
+   Sits opposite the malfunction badge so the two never overlap. Blue is the
+   dispatcher's side of the A3S/TraceRL split — the order shown is the one on
+   the card, AI proposal or human variant alike; which of the two it is is the
+   card's job to say, not the map's. */
+.ca-rank__bg {
+  fill: var(--app-whatif-human);
+  stroke: var(--sbb-color-white);
+  stroke-width: 1.5;
+}
+
+.ca-rank__text {
+  fill: var(--sbb-color-white);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ca-rank__delta {
+  fill: var(--app-severity-error);
+  font-size: 9px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: var(--sbb-color-white);
+  stroke-width: 2.5px;
+}
+
+/* A train the action pulls forward gains time — the one case where the figure
+   is good news. */
+.ca-rank--earlier .ca-rank__delta {
+  fill: var(--app-positive);
+}

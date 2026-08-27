@@ -83,6 +83,10 @@
          cannot express — the forecast needs its four time columns, the tiles
          need to sit above the map). Mapped here so the Widget Gallery can
          preview them live instead of falling through to the placeholder. -->
+    @case ('combined-actions') {
+      <app-combined-actions [embedded]="true"></app-combined-actions>
+    }
+
     @case ('strategy-options') {
       <app-strategy-options></app-strategy-options>
     }

@@ -45,6 +45,9 @@ import {
 import { InteractionMode } from './core/events/event-types';
 import { INTERACTION_MODES } from './core/interaction-modes';
 import { PanelInstance, isPanelAvailableInMode } from './core/layout';
+// Imported from the file rather than the barrel: `core/layout/index.ts` does not
+// re-export the presets yet.
+import { LAYOUT_PRESETS } from './core/layout/layout-presets';
 import { PanelShellComponent } from './features/layout/components/panel-shell/panel-shell.component';
 
 import { LayoutDesignerComponent } from './features/layout-designer/layout-designer.component';
@@ -57,7 +60,9 @@ import { ConfigShellComponent } from './features/config-shell/config-shell.compo
 type RuntimeLayoutOption = {
   id: string;
   name: string;
-  kind: 'system' | 'user';
+  kind: 'system' | 'preset' | 'user';
+  /** Preset only: one sentence on what the layout is for. */
+  purpose?: string;
   design?: any;
 };
 
@@ -1021,6 +1026,16 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /** Where a layout option comes from — the hardcoded default carries no
+   *  suffix, a repo preset is distinguished from the user's own saved designs. */
+  layoutOriginLabel(kind: RuntimeLayoutOption['kind']): string {
+    switch (kind) {
+      case 'system': return '';
+      case 'preset': return ' · preset';
+      case 'user': return ' · user';
+    }
+  }
+
   loadRuntimeLayoutOptions(): RuntimeLayoutOption[] {
     const options: RuntimeLayoutOption[] = [
       {
@@ -1029,6 +1044,19 @@ export class AppComponent implements OnInit {
         kind: 'system',
       },
     ];
+
+    // Layouts shipped with the repo (core/layout/layout-presets.ts). Offered
+    // between the hardcoded default and the user's own saved designs so a
+    // reviewable, versioned layout is selectable without an import step.
+    for (const preset of LAYOUT_PRESETS) {
+      options.push({
+        id: preset.id,
+        name: preset.name,
+        kind: 'preset',
+        purpose: preset.purpose,
+        design: { id: preset.id, name: preset.name, layout: preset.layout },
+      });
+    }
 
     const candidateKeys = [
       'flatland.designer.designs.v1',

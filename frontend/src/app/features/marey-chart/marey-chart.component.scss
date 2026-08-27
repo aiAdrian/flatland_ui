@@ -1023,3 +1023,21 @@
   height: 100% !important;
 }
 /*layout-panel-fill-fix:marey-scale-to-panel*/.marey-layout{min-height:0;grid-template-rows:48px minmax(0,1fr) 64px!important}.cell-marey,.cell-time-axis{min-height:0}.cell-marey .marey-svg{min-height:0!important}
+
+/* Combined Actions consequence overlay (widget E1).
+   Dashed, so it is legible as a hypothetical against the solid forecast beneath
+   it. Blue reads "the human's version" per the A3S/TraceRL convention the rest
+   of the app uses; the stroke keeps the agent's own colour so the operator can
+   still tell the trains apart. */
+.marey-consequence .consequence {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-dasharray: 5 3;
+  stroke-linecap: round;
+  opacity: 0.9;
+  pointer-events: stroke;
+}
+
+.marey-consequence .consequence.is-earlier {
+  stroke-dasharray: 7 3;
+}

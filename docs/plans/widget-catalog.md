@@ -223,6 +223,29 @@ influence right now (e.g. malfunction duration, other trains under AI control)
   contribution (Grote's Partial Non-Control), not in any consortium deliverable
   found. Stays a from-scratch build, deliberately.
 
+## E. Coordinated multi-train actions
+
+### E1. Combined Actions (multi-train packages, human-reorderable) — [UIX]+[D3.4]+[D2.3] — **FIRST CUT (built)**
+`kind` **Decision Support** · overview-detail · `dataSource` **mock**. Three
+AI-proposed *coordinated* actions — each an ordered train priority list over the
+trains contending for one resource — with the predicted impact, affected-train
+count and confidence per package. The dispatcher reorders the chips in place
+(drag-and-drop, or `←`/`→` on a focused chip); the sequence updates immediately
+and the prediction is recalculated behind a short "Updating prediction…" state.
+The AI proposal and the human version stay side by side ("Recommended by AI ·
+Human modified", `AI −14 min · Current −9 min`, plus a Reset to the AI order).
+- **Effort:** M. Frontend only; no backend.
+- **Contributes:** Q1 (three genuinely different framings of the same widget),
+  Q2 (a prediction that is stable per order, and never claims high confidence for
+  an order it was not seeded on), Q3 (the human-modified action is never
+  presented as the AI's).
+- **AI4REALNET check:** the *interaction* is grounded in T3.4 / `Tokener`
+  (a coordinated priority order is the unit of negotiation) and T2.3
+  (expected outcome per alternative). The *prediction* is a deliberate mock —
+  the reuse target is the CBS/PP solver in `flatland-blackbox`, behind the
+  `ImpactPredictor` seam. Stated explicitly in the spec's §8, not by omission.
+- **Spec:** [`widget-e1-combined-actions.md`](widget-e1-combined-actions.md).
+
 ## Not widgets (kept off this list deliberately)
 - **Full A3S adoption** — architecture stance (service wrapper, Redis/Hydra),
   not a widget; B1 is its minimal in-app expression.

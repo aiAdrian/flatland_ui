@@ -1583,3 +1583,13 @@
   color: var(--sbb-color-granite);
 }
 
+
+/* A row that names no height fills what is left of the screen instead of
+   collapsing to its content. Without this a layout shorter than the viewport
+   left a dead band under it — the map and the action column stopped halfway
+   down the page while the bottom third stayed empty. Rows that DO name a height
+   keep it: an explicit number is an instruction, not a hint. */
+.runtime-design__row--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
