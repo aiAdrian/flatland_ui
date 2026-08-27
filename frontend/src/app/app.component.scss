@@ -1583,3 +1583,13 @@
   color: var(--sbb-color-granite);
 }
 
+/* Build stamp in the footer. Deliberately the quietest thing down there: it is
+   for answering "which version am I looking at?", not for reading while you
+   dispatch. */
+.footer-build {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--sbb-color-graphite);
+  opacity: 0.8;
+  cursor: default;
+}

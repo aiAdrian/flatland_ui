@@ -54,6 +54,7 @@ import { InfrastructureSceneStorageService } from './features/infrastructure-bui
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
+import { BuildInfoService } from './core/build-info.service';
 type RuntimeLayoutOption = {
   id: string;
   name: string;
@@ -156,6 +157,10 @@ export class AppComponent implements OnInit {
   }
 
   store = inject(SessionStore);
+
+  /** Build stamp for the footer — see BuildInfoService. */
+
+  readonly buildInfo = inject(BuildInfoService);
   private api = inject(ApiService);
   private infrastructureStorage = inject(InfrastructureSceneStorageService);
 
