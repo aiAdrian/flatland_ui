@@ -1,0 +1,17 @@
+{
+  "id": "e1-late-into-the-section",
+  "name": "E1: +6 Schritte vor dem Einspurabschnitt",
+  "description": "E1 stands for 6 steps at Weesen, exactly the headway the plan gives it over E2. It therefore reaches the single-track section at the same step E2 is planned to. Without it all three trains drive through the section non-stop; with it E2 has to give way in front of it, and W1 — timed to arrive just as E2 clears — is held at the eastern mouth too.",
+  "scenario": "pf-ch-wn-wal-long-approach",
+  "events": [
+    {
+      "step": 18,
+      "type": "train_delay",
+      "agent_handle": 0,
+      "delay_steps": 6,
+      "severity": "high",
+      "label": "E1: außerplanmäßiger Halt in WN (+6 Schritte)",
+      "description": "E1 verliert genau den Vorsprung, den der Fahrplan ihm vor E2 gibt. Beide erreichen den Einspurabschnitt jetzt im selben Schritt; W1 folgt planmäßig als drittes."
+    }
+  ]
+}

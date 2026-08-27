@@ -1,8 +1,10 @@
 import uuid
 from typing import Dict, Optional
 from flatland.envs.rail_env import RailEnv
+from app.core.disturbances import DisturbanceScheduler
 from app.core.env_factory import create_env
-from app.policies.registry import scenario_policy_factories, policy_specs
+from app.policies.plan_policy import trainruns_from_env
+from app.policies.registry import PLAN_POLICY_ID, scenario_policy_factories, policy_specs
 
 
 class Session:
@@ -38,6 +40,20 @@ class Session:
         if not self.enabled_policy_ids:
             self.enabled_policy_ids = policy_available
 
+        # A scenario that ships a plan runs it from the first step — that is
+        # what selecting such a scenario means. The plan policy is a property
+        # of the environment rather than a user toggle, so it is enabled here
+        # regardless of the client's `enabled_policy_ids`, and never offered
+        # for an env without a plan.
+        self.trainrun_plan = trainruns_from_env(env)
+        if self.trainrun_plan:
+            self.enabled_policy_ids.add(PLAN_POLICY_ID)
+            self.policy = PLAN_POLICY_ID
+
+        # Scripted disturbances, attached by SessionManager.create.
+        self.disturbances: list[dict] = []
+        self.disturbance_scheduler = DisturbanceScheduler()
+
         # Real executed trajectory history for Marey.
         # Shape compatible with hmi_scenario_adapter._extract_trajectories().
         self.marey_history_snapshots: list[dict] = []
@@ -59,6 +75,7 @@ class SessionManager:
         enabled_policy_ids = env_kwargs.pop("enabled_policy_ids", None)
         infrastructure_scene = env_kwargs.pop("infrastructure_scene", None)
         scenario_preset_id = env_kwargs.pop("scenario_preset_id", None)
+        disturbances = env_kwargs.pop("disturbances", None) or []
         enabled_scenario_policy_set = set(enabled_scenario_policy_ids or []) if enabled_scenario_policy_ids is not None else None
         enabled_policy_set = set(enabled_policy_ids or []) if enabled_policy_ids is not None else None
         env = create_env(
@@ -74,6 +91,8 @@ class SessionManager:
             infrastructure_scene = getattr(env, "_infrastructure_scene", None)
         session.infrastructure_scene = infrastructure_scene
         session.scenario_preset_id = scenario_preset_id
+        session.disturbances = list(disturbances)
+        session.disturbance_scheduler = DisturbanceScheduler(disturbances)
         session.infrastructure_scene_id = (
             str(infrastructure_scene.get("id"))
             if isinstance(infrastructure_scene, dict) and infrastructure_scene.get("id")

@@ -4,7 +4,10 @@ export type PolicyName =
   | 'forward_only'
   | 'do_nothing'
   | 'random'
-  | 'goal_directed';
+  | 'goal_directed'
+  /** Drives the scenario's premade plan. Only offered by a scenario that
+   *  ships one; the backend selects it at session creation. */
+  | 'plan';
 
 export interface PolicyInfo {
   id: PolicyName;
@@ -147,6 +150,14 @@ export interface SessionInfo {
   num_agents: number;
   infrastructure_scene_id?: string | null;
   scenario_preset_id?: string | null;
+  /** True when the scenario shipped a plan; then `active_policy` is the plan
+   *  policy and the trains follow it from the first step. */
+  has_plan?: boolean;
+  /** Policy the backend put the session on. Set for a planned scenario, which
+   *  chooses its own policy rather than inheriting the UI's default. */
+  active_policy?: string | null;
+  /** Disturbances the backend actually applied. */
+  disturbance_ids?: string[];
 }
 
 /** A station (stop) derived from the trains' origins and targets. The `label`
@@ -161,6 +172,15 @@ export interface StationRef {
   col: number;
 }
 
+/** One scripted disturbance a scenario offers: what goes wrong, and when.
+ *  Any subset can be selected at session start, including none (the control
+ *  condition). See backend `app/core/disturbances.py`. */
+export interface ScenarioDisturbance {
+  id: string;
+  name: string;
+  description: string;
+}
+
 /** A prebuilt scenario preset (e.g. an ECML 2026 scene) offered in the picker. */
 export interface ScenarioPreset {
   id: string;
@@ -169,6 +189,11 @@ export interface ScenarioPreset {
   height: number;
   agents: number;
   source?: string;
+  /** True when the scenario ships a plan: every train's exact route and
+   *  timing. Such a session runs the plan from its first step. */
+  has_plan?: boolean;
+  /** Scripted disturbances offered alongside the scenario; empty if none. */
+  disturbances?: ScenarioDisturbance[];
 }
 
 export interface StepResponse {

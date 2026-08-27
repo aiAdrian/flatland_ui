@@ -414,8 +414,17 @@
 .welcome {
   flex: 1;
   display: flex;
-  align-items: center;
+  /* `align-items: center` would clip the top of a card taller than the
+     viewport and put it out of reach — the flex overflow trap. Align to the
+     start and let the card's `margin: auto 0` do the centring instead: that
+     centres while there is spare room and degrades to "scroll from the top"
+     once there is not. `min-height: 0` is what lets this pane shrink inside
+     the `height: 100vh; overflow: hidden` host, without which `overflow-y`
+     has nothing to scroll. */
+  align-items: flex-start;
   justify-content: center;
+  min-height: 0;
+  overflow-y: auto;
   background: var(--sbb-color-milk, #f6f6f6);
   padding: 32px;
 }
@@ -425,6 +434,7 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  margin: auto 0;
   padding: 48px 64px;
   background: var(--sbb-color-white, #fff);
   border: 1px solid var(--sbb-color-cloud, #d2d2d2);
@@ -1123,6 +1133,92 @@
   font-weight: 700;
   padding: var(--sbb-spacing-fixed-1x) var(--sbb-spacing-fixed-2x);
   text-overflow: ellipsis;
+}
+
+/* Plan + disturbance pickers: full width inside the two-column welcome grid,
+   because both are properties of the one Infrastructure chosen above. */
+.welcome-plan-note,
+.welcome-disturbances {
+  grid-column: 1 / -1;
+  min-width: 0;
+  text-align: left;
+}
+
+.welcome-plan-note {
+  margin: 0;
+  padding: var(--sbb-spacing-fixed-2x);
+  border-left: 2px solid var(--sbb-color-sky);
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.welcome-plan-note strong {
+  color: var(--sbb-color-charcoal);
+}
+
+.welcome-disturbances {
+  display: grid;
+  gap: var(--sbb-spacing-fixed-1x);
+  margin: 0;
+  padding: var(--sbb-spacing-fixed-2x);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+}
+
+.welcome-disturbances legend {
+  padding: 0 var(--sbb-spacing-fixed-1x);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--sbb-color-granite);
+  font-weight: 700;
+}
+
+.welcome-disturbances-hint {
+  margin: 0 0 var(--sbb-spacing-fixed-1x);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+}
+
+.welcome-disturbance {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--sbb-spacing-fixed-2x);
+  padding: var(--sbb-spacing-fixed-1x);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.welcome-disturbance.is-active {
+  border-color: var(--sbb-color-sky);
+  background: var(--sbb-color-milk);
+}
+
+.welcome-disturbance input {
+  margin-top: 2px;
+}
+
+.welcome-disturbance-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.welcome-disturbance-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.welcome-disturbance-desc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
 }
 
 @media (max-width: 720px) {

@@ -1,0 +1,17 @@
+{
+  "id": "w1-door-fault",
+  "name": "W1: Türstörung im Einspurabschnitt",
+  "description": "W1 (WAL→WN) stands for 8 steps while it occupies the single-track section, so both eastbound trains have to wait it out.",
+  "scenario": "pf-ch-wn-wal-conflict",
+  "events": [
+    {
+      "step": 10,
+      "type": "train_delay",
+      "agent_handle": 2,
+      "delay_steps": 8,
+      "severity": "high",
+      "label": "W1: Türstörung (+8 Schritte)",
+      "description": "W1 blockiert den Einspurabschnitt; E1 und E2 warten laut Plan bereits auf die Kreuzung."
+    }
+  ]
+}

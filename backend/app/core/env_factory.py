@@ -12,10 +12,12 @@ from app.core.infrastructure_scene_adapter import (
     scene_to_line_generator,
     scene_to_rail_generator,
 )
+from app.core.plans import load_plan
 from app.core.scenario_presets import (
     SCENE_PRESET,
     get_preset,
     load_preset_scene,
+    preset_plan_path,
     preset_session_settings,
 )
 from app.core.station_aware_env import StationAwareRailEnv
@@ -264,10 +266,23 @@ def load_preset_env(scenario_preset_id: str) -> RailEnv:
             number_of_agents=count_routable_agents(scene),
             infrastructure_scene=scene,
             latest_departure_max=settings.get("latest_departure_max"),
+            malfunction_rate=float(settings.get("malfunction_rate") or 0.0),
         )
         # Read once here rather than again in session_manager; the same stash
         # pattern the module already uses for _initial_obs / _max_episode_steps.
         env._infrastructure_scene = scene
+        # A plan is part of the scenario, so it rides along on the env. That
+        # keeps the policy registry's (env) -> Policy factory signature intact,
+        # which is what lets `plan` be an ordinary policy in the picker.
+        plan_path = preset_plan_path(scenario_preset_id)
+        env._trainrun_plan = load_plan(plan_path) if plan_path is not None else None
+        # Flatland sizes the episode to the undisturbed timetable, which leaves
+        # a scenario built for disturbances no room to absorb one: the plan
+        # here already runs to within a few steps of the horizon. A scenario
+        # that ships disturbances therefore pins its own headroom.
+        horizon = settings.get("max_episode_steps")
+        if horizon:
+            env._max_episode_steps = int(horizon)
         return env
 
     env, _ = RailEnvPersister.load_new(str(preset["path"]))
