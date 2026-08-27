@@ -9,10 +9,13 @@ Two shapes per (session, cache_key) pair:
 Both are computed from the same ScenarioBuilder run, so storing both
 lets us serve recommendations and scenarios from one compute.
 
-Cache key format: "{step}:{override_hash}"
+Cache key format: "{step}:{override_hash}:{kpi_hash}"
   - step: elapsed_steps * 1000 + horizon
   - override_hash: MD5 of sorted override items (first 8 chars)
-This ensures cache is invalidated when overrides change.
+  - kpi_hash: MD5 of the scoring weights (first 6 chars)
+Callers must build this key identically to hit an existing entry - a
+missing or differently-derived segment (e.g. a caller with no kpi_*
+params of its own falling back to default weights) causes a silent miss.
 """
 from typing import Any, Dict, List, Optional, Tuple
 

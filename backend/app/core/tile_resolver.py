@@ -53,7 +53,17 @@ def _build_lookup() -> Dict[int, Tuple[str, int]]:
     Build mapping: uint16_transition -> (svg_filename, rotation_degrees).
 
     Each base transition is rotated 0/90/180/270 degrees, producing 4 entries
-    per base type (some collapse if symmetric).
+    per base type (some collapse if symmetric). Rotating one 2-way switch's
+    artwork by 180 degrees reproduces another switch's own un-rotated
+    geometry bit-for-bit, so several transition values have more than one
+    valid (svg, rotation) label; first entry wins in RAIL_FILES iteration
+    order (flatland.utils.graphics_pil.PILSVG.load_pngs resolves the same
+    ambiguity the opposite way - unconditional overwrite, i.e. last entry
+    wins - since it only needs *a* correctly-oriented image, not a specific
+    canonical name). The Infrastructure Builder canvas never rotates switch
+    tiles - it always draws one of the 8 named Weiche_* assets un-rotated,
+    keyed by connections + switchFacing - so the canonical (rotation=0)
+    label is the one that matches what it renders.
     """
     transitions = RailEnvTransitions()
     lookup: Dict[int, Tuple[str, int]] = {}
@@ -70,6 +80,13 @@ def _build_lookup() -> Dict[int, Tuple[str, int]]:
             rotated = transitions.rotate_transition(base_uint16, rot)
             if rotated not in lookup:
                 lookup[rotated] = (svg_file, rot)
+
+    # Two ambiguous values land, under the iteration order above, on an
+    # earlier sibling switch's rotated artwork instead of their own
+    # canonical form. Pin those explicitly rather than depend on
+    # RAIL_FILES dict order to pick the canvas-matching label.
+    for trans_str in ("EE WW ES NW", "NN SS NW ES"):
+        lookup[_transition_string_to_uint16(trans_str)] = (RAIL_FILES[trans_str], 0)
 
     return lookup
 
