@@ -72,8 +72,8 @@ export class TradeoffPlotComponent {
   readonly hovered = signal<string | null>(null);
 
   readonly width = 280;
-  readonly height = 180;
-  private readonly pad = { top: 26, right: 20, bottom: 32, left: 46 };
+  readonly height = 150;
+  private readonly pad = { top: 20, right: 18, bottom: 26, left: 44 };
 
   /** Fraction of each axis kept clear at both ends.
    *

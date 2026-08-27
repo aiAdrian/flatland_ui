@@ -6,8 +6,8 @@
 .ca {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 7px 9px;
+  gap: 4px;
+  padding: 5px 8px;
 }
 
 :host(.embedded) .ca { padding: 7px 8px; }
@@ -94,7 +94,7 @@
 .ca__cards {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 /* The card whose consequence is currently drawn in the map and the ZWL. Kept

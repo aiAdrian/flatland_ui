@@ -73,9 +73,15 @@
 }
 
 .ts--compact {
-  gap: 2px;
+  gap: 1px;
 }
 
+/* 4 chips = 203 px in a 233 px row: it fits, and only the gaps pushed it onto a
+   second line. Every wrapped row costs the panel ~21 px it does not have. */
 .ts--compact .ts__gap {
-  min-width: 5px;
+  min-width: 2px;
+}
+
+.ts--compact .ts__gap--tail {
+  min-width: 0;
 }
