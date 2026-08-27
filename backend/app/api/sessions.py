@@ -918,31 +918,40 @@ def get_director_strategies(session_id: str):
         fork = copy.deepcopy(session.env)
         fork_player = SchedulePlayer(graph, fork)
         fork_player.restore(snapshot)
-        if at_start:
-            plan = director_plan(fork, graph, weights, *models)
-            # A full-horizon plan replaces the schedules outright; there is no
-            # captured head to splice onto (§3.8 splices tails, §3.7 does not).
-            for schedule in plan.schedules:
-                fork_player.set_schedule(schedule)
-            changed = sorted(
-                handle for handle in handles
-                if _schedule_entries(plan.schedules, handle)
-                != _schedule_entries(schedules, handle)
-            )
-        else:
-            plan = residual_plan(
-                fork, graph, weights, *models,
-                player=fork_player, schedules=schedules,
-                reason=f"strategy-{preset['id']}",
-            )
-            if plan is None:
-                out.append({
-                    **preset, "plan": None, "paths": None,
-                    "divergence": {"reroutes": {}, "holds": []},
-                })
-                continue
-            apply_residual_plan(fork_player, plan)
-            changed = sorted(plan.tails)
+        try:
+            if at_start:
+                plan = director_plan(fork, graph, weights, *models)
+                # A full-horizon plan replaces the schedules outright; there is
+                # no captured head to splice onto (§3.8 splices tails, §3.7
+                # does not).
+                for schedule in plan.schedules:
+                    fork_player.set_schedule(schedule)
+                changed = sorted(
+                    handle for handle in handles
+                    if _schedule_entries(plan.schedules, handle)
+                    != _schedule_entries(schedules, handle)
+                )
+            else:
+                # residual_plan raises rather than returning None on failure
+                # (ValueError from an infeasible residual search); caught
+                # below along with anything director_plan can raise.
+                plan = residual_plan(
+                    fork, graph, weights, *models,
+                    player=fork_player, schedules=schedules,
+                    reason=f"strategy-{preset['id']}",
+                )
+                apply_residual_plan(fork_player, plan)
+                changed = sorted(plan.tails)
+        except Exception:
+            # Degrades instead of failing (this function's own contract): one
+            # bad preset (a torch shape/dtype error, an edge case in
+            # capture_progress/splice_entries) must not 500 the whole tile
+            # set — the other presets can still be offered.
+            out.append({
+                **preset, "plan": None, "paths": None,
+                "divergence": {"reroutes": {}, "holds": []},
+            })
+            continue
         option_paths = {h: fork_player.future_path(h) for h in handles}
         reroutes: dict[str, list] = {}
         holds: list[dict] = []

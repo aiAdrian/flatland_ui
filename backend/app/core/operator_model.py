@@ -140,7 +140,12 @@ def infer_value_axis(
     ``None`` when the option is best on nothing (a compromise) and no context
     hint applies.
     """
-    others = [a for a in alternatives if a is not chosen]
+    # `!=`, not `is not`: chosen/alternatives are independently parsed from
+    # the same request body (Pydantic), so even the literal same option is
+    # never the same object — `is not` never filtered anything, so a
+    # single-option accept always compared `chosen` against itself and was
+    # misread as a deliberate VALUE_STABILITY preference.
+    others = [a for a in alternatives if a != chosen]
     if not others:
         # Nothing to compare against: fall back to the context hint.
         return VALUE_CONNECTION if (context or {}).get("connection_critical") else None

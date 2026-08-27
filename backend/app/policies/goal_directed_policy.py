@@ -64,6 +64,23 @@ _ENV_WEIGHTS: "weakref.WeakKeyDictionary[RailEnv, Tuple[float, float, float]]" =
     weakref.WeakKeyDictionary())
 _SCHEDULES: "weakref.WeakKeyDictionary[RailEnv, list]" = (
     weakref.WeakKeyDictionary())
+# `env.num_resets` (Flatland) increments on every genuine RailEnv.reset()
+# call and nowhere else — unlike `_elapsed_steps`, which is 0 both for an
+# env that has never been stepped yet AND for one that was just reset, so
+# it cannot tell "still the same episode" from "reset happened". The
+# session API reuses the same env object across a reset (see
+# api/sessions.py's reset_session), so without this, `reset()` below saw
+# `env in _PLAYERS` and kept driving a fully-consumed SchedulePlayer
+# forever — every train frozen (DO_NOTHING) after any Director-mode reset.
+_RESET_GEN: "weakref.WeakKeyDictionary[RailEnv, int]" = (
+    weakref.WeakKeyDictionary())
+# Marks an env whose planning failed (unroutable). Without this, an
+# unroutable env re-ran the full model-guided search on every single
+# `reset()` call — and every request rebuilds the policy and calls
+# `reset()` on it (see api/sessions.py's `_build_policy`) — turning a
+# per-episode cost into a per-request one.
+_UNROUTABLE: "weakref.WeakKeyDictionary[RailEnv, bool]" = (
+    weakref.WeakKeyDictionary())
 # Per-env re-planning state: which malfunctions were
 # already reacted to, when the next reaction is allowed, and whether a
 # mid-episode weight change is waiting to be applied.
@@ -489,12 +506,24 @@ class GoalDirectedPolicy(Policy):
 
     def reset(self, env: RailEnv) -> None:
         self._env = env
-        if env in _PLAYERS:
+        gen = int(getattr(env, "num_resets", 0) or 0)
+        if _RESET_GEN.get(env) != gen:
+            # First time we've seen this env, or Flatland's own reset() ran
+            # on it since we last planned (session APIs reuse the same env
+            # object across a reset, see `_RESET_GEN`'s comment) — any
+            # cached plan describes a world that no longer exists.
+            _PLAYERS.pop(env, None)
+            _PLAN_INFO.pop(env, None)
+            _SCHEDULES.pop(env, None)
+            _UNROUTABLE.pop(env, None)
+            _RESET_GEN[env] = gen
+        elif env in _PLAYERS or env in _UNROUTABLE:
             return
         graph = build_decision_point_graph(env)
         schedules, info = self._plan(env, graph)
         if schedules is None:
             _PLAN_INFO[env] = info
+            _UNROUTABLE[env] = True
             return
         _PLAYERS[env] = SchedulePlayer(graph, env, schedules)
         _PLAN_INFO[env] = info
