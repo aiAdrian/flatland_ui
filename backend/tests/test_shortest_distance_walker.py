@@ -9,6 +9,7 @@ from flatland.envs.rail_env import RailEnv
 from flatland.envs.rail_env_action import RailEnvActions
 from flatland.envs.rail_generators import sparse_rail_generator
 
+from app.utils.agent_compat import agent_direction, agent_position, agent_target
 from app.utils.shortest_distance_walker import ShortestDistanceWalker
 
 
@@ -32,10 +33,10 @@ def _run_until_on_map(env: RailEnv, handle: int, max_steps: int = 30) -> bool:
     """Step env with MOVE_FORWARD until the given agent has a position
     on the grid. Returns True if the agent made it onto the map."""
     for _ in range(max_steps):
-        if env.agents[handle].position is not None:
+        if agent_position(env.agents[handle]) is not None:
             return True
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
-    return env.agents[handle].position is not None
+    return agent_position(env.agents[handle]) is not None
 
 
 def test_walker_constructs_and_resets(env):
@@ -51,7 +52,7 @@ def test_walk_one_step_off_map_uses_initial_position(env):
     fall back to initial_position and still produce a valid lookahead."""
     w = ShortestDistanceWalker(env)
     handle = 0
-    assert env.agents[handle].position is None  # off-map at start
+    assert agent_position(env.agents[handle]) is None  # off-map at start
     result = w.walk_one_step(handle)
     assert result is not None, "walker should use initial_position when off-map"
     next_pos, next_dir, action, transitions = result
@@ -69,7 +70,7 @@ def test_walk_one_step_on_map(env):
     assert result is not None
     next_pos, next_dir, action, transitions = result
     # Sanity: next_pos should be a neighbor of current position
-    cur = env.agents[handle].position
+    cur = agent_position(env.agents[handle])
     dr = abs(next_pos[0] - cur[0])
     dc = abs(next_pos[1] - cur[1])
     assert dr + dc == 1, f"next_pos {next_pos} is not a neighbor of {cur}"
@@ -94,7 +95,7 @@ def test_walk_to_target_makes_progress(env):
     assert walked > 0, "walker should progress at least one cell"
 
     # Adjacent cells along the trace.
-    prev = env.agents[handle].position
+    prev = agent_position(env.agents[handle])
     for pos, _ in visited:
         dr = abs(pos[0] - prev[0])
         dc = abs(pos[1] - prev[1])
@@ -116,7 +117,7 @@ def test_walk_to_target_terminates_at_target(env):
             return True
 
     w = TracingWalker(env)
-    target = env.agents[handle].target
+    target = agent_target(env.agents[handle])
     w.walk_to_target(handle, max_steps=500)
 
     if visited:

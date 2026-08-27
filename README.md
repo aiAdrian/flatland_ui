@@ -161,7 +161,7 @@ URL, no CORS configuration needed.
 
 ```bash
 docker build -t flatland-dispatcher .
-docker run -p 8000:8000 flatland-dispatcher
+docker run --rm -p 8000:8000 flatland-dispatcher
 # → http://localhost:8000
 ```
 

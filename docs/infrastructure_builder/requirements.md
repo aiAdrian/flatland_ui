@@ -134,6 +134,13 @@ Implemented scene-to-Flatland conversion details:
   and target endpoints remain visible and traversable.
 - Builder `switch` cells are exported as known Flatland switch transitions that
   resolve to `Weiche_*.svg` tiles in the runtime map view.
+- The Builder canvas selects switch tiles by name (connections +
+  `switchFacing`), never by rotation. The runtime map, by contrast, resolves
+  Flatland's raw transition bitmask back to a tile (`tile_resolver.py`); since
+  rotating one switch asset can reproduce another switch's own artwork
+  bit-for-bit, some bitmask values have more than one valid label, and the two
+  that don't naturally resolve to the Builder's un-rotated choice are pinned
+  explicitly.
 - Draft/incomplete trains are not simulated. Only trains with both start and
   target are counted as routable and receive compact Flatland handles `0..n-1`.
 - If a selected scene contains no routable train, the backend rejects session

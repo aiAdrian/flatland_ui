@@ -12,6 +12,7 @@ from flatland.envs.rail_generators import sparse_rail_generator
 from app.core.scenario_runner import BranchResult, TrajectoryBranchRunner
 from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
 from app.policies.shortest_path_policy import ShortestPathPolicy
+from app.utils.agent_compat import agent_position
 
 
 def _make_env(num_agents: int = 2, seed: int = 42) -> RailEnv:
@@ -78,7 +79,7 @@ def test_runner_does_not_modify_base_env():
     """The runner must always fork; the base env must be untouched."""
     env = _make_env()
     base_elapsed_before = env._elapsed_steps
-    base_pos_before = [a.position for a in env.agents]
+    base_pos_before = [agent_position(a) for a in env.agents]
 
     runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
     runner.run_branch(overrides={}, max_steps=20)
@@ -87,7 +88,7 @@ def test_runner_does_not_modify_base_env():
     assert env._elapsed_steps == base_elapsed_before, (
         "base env was modified — fork is leaking"
     )
-    base_pos_after = [a.position for a in env.agents]
+    base_pos_after = [agent_position(a) for a in env.agents]
     assert base_pos_before == base_pos_after, "base env agent positions changed"
 
 

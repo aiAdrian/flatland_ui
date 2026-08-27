@@ -3,6 +3,13 @@ from flatland.envs.rail_env import RailEnv
 
 from app.core.tile_resolver import build_rail_tiles
 from app.core.cell_classifier import classify_cell_type, lookahead_to_decision, find_decision_cells
+from app.utils.agent_compat import (
+    agent_direction,
+    agent_initial_direction,
+    agent_initial_position,
+    agent_position,
+    agent_target,
+)
 
 
 def _safe_int(v):
@@ -164,11 +171,11 @@ def serialize_agent(env, agent, override_action=None) -> Dict[str, Any]:
 
     return {
         "handle": int(agent.handle),
-        "position": _safe_pos(agent.position),
-        "direction": _safe_int(agent.direction),
-        "initial_position": _safe_pos(agent.initial_position),
-        "initial_direction": _safe_int(agent.initial_direction),
-        "target": _safe_pos(agent.target) or [0, 0],
+        "position": _safe_pos(agent_position(agent)),
+        "direction": _safe_int(agent_direction(agent)),
+        "initial_position": _safe_pos(agent_initial_position(agent)),
+        "initial_direction": _safe_int(agent_initial_direction(agent)),
+        "target": _safe_pos(agent_target(agent)) or [0, 0],
         "stops": stops,
         "state": state_str,
         "speed": speed,

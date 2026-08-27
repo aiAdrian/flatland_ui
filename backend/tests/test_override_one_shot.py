@@ -13,6 +13,7 @@ from app.core.cell_classifier import classify_cell_at
 from app.core.override_manager import override_manager
 from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
 from app.policies.override_policy import OverridePolicy
+from app.utils.agent_compat import agent_direction, agent_position
 
 
 def _make_env(num_agents=2, seed=42):
@@ -41,9 +42,10 @@ def test_override_cleared_after_application_at_switch():
     for _ in range(60):
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
         for h, a in enumerate(env.agents):
-            if a.position is None:
+            pos, direction = agent_position(a), agent_direction(a)
+            if pos is None:
                 continue
-            kind = classify_cell_at(env, a.position, a.direction)
+            kind = classify_cell_at(env, pos, direction)
             if kind in ("SWITCH", "MERGING"):
                 handle_at_switch = h
                 break
@@ -88,9 +90,10 @@ def test_override_parked_when_not_at_decision_cell():
     for _ in range(20):
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
         for h, a in enumerate(env.agents):
-            if a.position is None:
+            pos, direction = agent_position(a), agent_direction(a)
+            if pos is None:
                 continue
-            kind = classify_cell_at(env, a.position, a.direction)
+            kind = classify_cell_at(env, pos, direction)
             if kind not in ("SWITCH", "MERGING"):
                 handle_on_track = h
                 break
@@ -126,7 +129,7 @@ def test_override_does_not_persist_across_multiple_steps():
     # Step a bit so an agent is on the map.
     for _ in range(15):
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
-    on_map = [h for h, a in enumerate(env.agents) if a.position is not None]
+    on_map = [h for h, a in enumerate(env.agents) if agent_position(a) is not None]
     if not on_map:
         pytest.skip("no agent on map")
     h = on_map[0]

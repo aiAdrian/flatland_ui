@@ -47,6 +47,7 @@ STOP_MOVING_ACTION_VALUE = int(RailEnvActions.STOP_MOVING.value)
 from app.core.conflict_detector import Conflict, ConflictDetectionCallbacks
 from app.policies.base import Policy
 from app.policies.override_policy import OverridePolicy
+from app.utils.agent_compat import agent_direction, agent_position
 
 
 # ── Public types ────────────────────────────────────────────────────
@@ -69,18 +70,20 @@ def deadlocked_agents(env) -> set:
     """
     agents_at_pos = {}
     for h, a in enumerate(env.agents):
-        if a.position is not None:
-            agents_at_pos[tuple(a.position)] = h
+        pos = agent_position(a)
+        if pos is not None:
+            agents_at_pos[tuple(pos)] = h
 
     deadlocked = set()
     for h, a in enumerate(env.agents):
         s = a.state.name if hasattr(a.state, "name") else str(a.state)
         if s in ("DONE", "WAITING"):
             continue
-        if a.position is None or a.direction is None:
+        pos, direction = agent_position(a), agent_direction(a)
+        if pos is None or direction is None:
             continue
-        dy, dx = _DIR_DELTA.get(int(a.direction), (0, 0))
-        front = (int(a.position[0]) + dy, int(a.position[1]) + dx)
+        dy, dx = _DIR_DELTA.get(int(direction), (0, 0))
+        front = (int(pos[0]) + dy, int(pos[1]) + dx)
         if front in agents_at_pos:
             deadlocked.add(h)
             deadlocked.add(agents_at_pos[front])

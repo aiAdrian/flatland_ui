@@ -15,6 +15,7 @@ from app.core.scenario_runner import BranchResult
 from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
 from app.policies.forward_only_policy import ForwardOnlyPolicy
 from app.policies.do_nothing_policy import DoNothingPolicy
+from app.utils.agent_compat import agent_position
 
 
 def _make_env(num_agents: int = 2, seed: int = 42) -> RailEnv:
@@ -121,12 +122,12 @@ def test_builder_skips_candidate_equal_to_baseline():
 def test_builder_does_not_modify_base_env():
     env = _make_env()
     elapsed_before = env._elapsed_steps
-    pos_before = [a.position for a in env.agents]
+    pos_before = [agent_position(a) for a in env.agents]
 
     _builder(env).generate_scenarios(_candidates(), horizon=15)
 
     assert env._elapsed_steps == elapsed_before
-    assert [a.position for a in env.agents] == pos_before
+    assert [agent_position(a) for a in env.agents] == pos_before
 
 
 def test_builder_scenarios_serialise():

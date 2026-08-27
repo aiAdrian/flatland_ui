@@ -400,6 +400,7 @@ def get_marey_data(session_id: str):
     from app.core.override_manager import override_manager
     from app.core.marey_topology import classify_marey_point
     from app.core.tile_resolver import resolve_tile
+    from app.core.scenario_builder import scoring_weights_from_kpi
 
     sess = session_manager.get(session_id)
     if not sess:
@@ -420,7 +421,10 @@ def get_marey_data(session_id: str):
     max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)
     horizon = max(50, max_ep - elapsed) if max_ep else 200
     
-    # Build cache key (must match /hmi/scenarios logic)
+    # Build cache key (must match /hmi/scenarios logic). get_marey_data has
+    # no kpi_* query params of its own, so assume /hmi/scenarios was last
+    # populated with its default weights - the only combination the frontend
+    # actually uses when polling this endpoint.
     import hashlib
     try:
         all_overrides = dict(override_manager.get_all(session_id))
@@ -429,7 +433,11 @@ def get_marey_data(session_id: str):
     override_hash = hashlib.md5(
         str(sorted(all_overrides.items())).encode()
     ).hexdigest()[:8]
-    cache_key_str = f"{elapsed * 1000 + horizon}:{override_hash}"
+    weights = scoring_weights_from_kpi()
+    kpi_hash = hashlib.md5(
+        f"{weights.done:.3f}:{weights.delay:.3f}:{weights.deadlock:.3f}".encode()
+    ).hexdigest()[:6]
+    cache_key_str = f"{elapsed * 1000 + horizon}:{override_hash}:{kpi_hash}"
     
     # Try to get scenario from cache first
     scenarios = scenario_cache.get_scenarios(session_id, cache_key_str)
