@@ -266,6 +266,9 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
         id: 'preset-ca-context',
         rowId: 'preset-ca-row',
         name: 'Lage',
+        // Left and right are deliberately equal: they carry the same weight in
+        // the task (what is going on ↔ what to do about it), and an asymmetric
+        // pair read as an accident rather than as a hierarchy.
         width: 24,
         role: 'sidebar',
         panels: [
@@ -291,7 +294,10 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
         id: 'preset-ca-network',
         rowId: 'preset-ca-row',
         name: 'Netz & ZWL',
-        width: 44,
+        // The centre is the widest thing on the screen by a clear margin: the
+        // Streckenspiegel and the ZWL are what the operator actually reads, and
+        // at 44 % both were cramped.
+        width: 52,
         role: 'main',
         panels: [
           {
@@ -320,7 +326,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
         id: 'preset-ca-actions',
         rowId: 'preset-ca-row',
         name: 'Kombinierte Aktionen',
-        width: 32,
+        width: 24,
         role: 'sidebar',
         panels: [
           {

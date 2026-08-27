@@ -3,10 +3,26 @@
 }
 
 .im {
+  /* One row, not a stack: in a 24 % column the panel has to fit its height
+     budget, and the headline plus its qualifiers are short enough to sit on a
+     single line. Wraps on its own if a translation makes them longer. */
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 130px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 1px;
+  min-width: 0;
+}
+
+.im__primary,
+.im__secondary {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.im__compare {
+  flex: 1 1 100%;
 }
 
 .im__primary {
