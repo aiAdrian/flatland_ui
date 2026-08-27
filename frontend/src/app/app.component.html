@@ -306,8 +306,10 @@
               } @else {
                 <p class="right-outlook__empty">
                   <strong>Wirkung über 30 Minuten</strong><br />
-                  Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um
-                  ihre Prognose zu sehen.
+                  {{
+                    store.directorOutlookBlocker() ??
+                      'Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um ihre Prognose zu sehen.'
+                  }}
                 </p>
               }
             </section>

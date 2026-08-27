@@ -179,6 +179,16 @@ export class SessionStore {
    *  strategy tiles for the forecast strip below the map. Null = no focus picked
    *  yet, and the forecast says so instead of projecting a policy that is not
    *  the one driving. */
+  /**
+   * Why the impact forecast has nothing to show, in the operator's words. Null
+   * while a forecast is on screen.
+   *
+   * Two different empty states used to share one message that named neither:
+   * before the first step the A/B/C tiles have no plans at all, so "pick a
+   * strategy" was advice that could not work yet.
+   */
+  readonly directorOutlookBlocker = signal<string | null>(null);
+
   readonly directorFocusOutlook = signal<{
     subject: string;
     signals: ForecastSignals;
@@ -1538,6 +1548,7 @@ export class SessionStore {
     this.directorPreviewIsCommitted.set(false);
     this.directorPreviewIsFullPlan.set(false);
     this.directorFocusOutlook.set(null);
+    this.directorOutlookBlocker.set(null);
     this.directorNextDecision.set(null);
     this.directorAiWorkload.set(null);
     this.directorPreviewDivergence.set(null);

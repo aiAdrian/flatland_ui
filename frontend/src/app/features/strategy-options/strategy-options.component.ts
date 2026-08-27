@@ -447,6 +447,17 @@ export class StrategyOptionsComponent {
 
     if (!subject || !current) {
       this.store.directorFocusOutlook.set(null);
+      // Say which of the two blockers it is. Without a running plan there is no
+      // baseline to project a delta against, and no amount of clicking helps.
+      this.store.directorOutlookBlocker.set(
+        !current
+          ? (this.unavailableReason() === null
+              ? 'Noch kein Plan, gegen den sich eine Wirkung rechnen lässt. Lass die '
+                + 'Episode einen Schritt laufen — danach planen die Kacheln A/B/C.'
+              : 'Die Kacheln haben noch keinen Plan: ' + this.unavailableReason())
+          : 'Wähle links eine Strategie („Auf Karte“ oder „Übernehmen“), um ihre '
+            + 'Prognose zu sehen.',
+      );
       return;
     }
     const delta = {
@@ -454,6 +465,7 @@ export class StrategyOptionsComponent {
       connections: subject.plan!.utilities.connections - current.utilities.connections,
       stability: subject.plan!.utilities.stability - current.utilities.stability,
     };
+    this.store.directorOutlookBlocker.set(null);
     this.store.directorFocusOutlook.set({
       subject: `${subject.ident} · ${STRATEGY_COPY[subject.focus].title}`,
       signals: signalsFromFocusDelta(delta),
