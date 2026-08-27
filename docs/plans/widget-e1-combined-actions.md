@@ -201,3 +201,18 @@ trustable), verifiable by reset → re-apply the same edit.
   one line, so it ships with a layout of its own: the `Combined Actions · Demo`
   preset in [`core/layout/layout-presets.ts`](../../frontend/src/app/core/layout/layout-presets.ts),
   selectable in the start screen's Layout dropdown. It is the only two-row preset.
+- **The forecast horizon is not yet one decision, and it has to become one.**
+  Three surfaces will forecast the same contention over three different spans:
+  the contentions endpoint from
+  [`widget-e1-live-conflicts-prompt.md`](widget-e1-live-conflicts-prompt.md) caps
+  `run_branch` at 50 steps; the alternative Combined Actions variant carries its
+  own `horizonMinutes` per conflict window; Learning Moments
+  (`backend/app/core/learning_moments.py`, `roman/director-strategies-shift-review`)
+  simulates **to the end of the episode**, at a measured 3–4 s per branch.
+  The same conflict can therefore show different numbers in two panels on one
+  screen, for a reason the operator cannot see. That is a direct hit on Q2
+  (calibrated trust) — a figure that changes with an invisible parameter is not
+  a figure anyone can learn to rely on. The horizon has to be one named, shared
+  parameter, surfaced wherever a forecast figure is: either pinned repo-wide, or
+  per scenario and then stated on the panel. Deciding it is a prerequisite for
+  using any two of these surfaces together in a study, not a polish item.
