@@ -203,13 +203,219 @@ def _group_contentions(conflicts) -> list[dict]:
         handles = sorted({int(h) for c in cs for h in c.agents})
         earliest = min(cs, key=lambda c: c.step)
         pos = earliest.position
+        # Union of every conflict's contended_cells — the contention's window,
+        # carried on each blocked event by the detector (info["contended_cells"]).
+        # Empty for kinds that don't compute it (swap/deadlock); those keep a
+        # null window downstream rather than a fabricated one.
+        window: set = set()
+        for c in cs:
+            for cell in (c.info or {}).get("contended_cells", []) or []:
+                window.add((int(cell[0]), int(cell[1])))
         out.append({
             "step": int(earliest.step),
             "position": [int(pos[0]), int(pos[1])] if pos is not None else None,
             "kind": earliest.kind,
             "handles": handles,
+            "window": sorted([ [r, c] for (r, c) in window ]) if window else [],
         })
     out.sort(key=lambda g: (g["step"], g["handles"][0] if g["handles"] else 0))
+    return out
+
+
+# ── per-handle enrichment (Task 1: the four quantities) ───────────
+
+
+def _station_label_map(sess) -> dict[tuple, str]:
+    """cell (row, col) → station name, from the session's infrastructure scene.
+
+    The scene's stations carry `name` + `x`/`y` (col = x, row = y — the same
+    mapping `stations_from_scene` uses). Built once per call; empty when the
+    session has no scene or the scene carries no station names. A contended
+    cell that maps to no station is reported by its cell, never a fabricated
+    name."""
+    scene = getattr(sess, "infrastructure_scene", None)
+    if not isinstance(scene, dict):
+        return {}
+    out: dict[tuple, str] = {}
+    for st in scene.get("stations", []) or []:
+        if not isinstance(st, dict):
+            continue
+        try:
+            cell = (int(st["y"]), int(st["x"]))
+            name = st.get("name")
+            if name:
+                out[cell] = str(name)
+        except (KeyError, TypeError, ValueError):
+            continue
+    return out
+
+
+def _location_for(window: list[tuple], station_labels: dict[tuple, str]) -> dict:
+    """Where the contention bites, for the panel to say. A station name where
+    the window overlaps a named station; otherwise the representative cell.
+    Never invented: when neither holds, the cell is returned explicitly and
+    `kind` says which."""
+    if not window:
+        return {"kind": "none", "name": None, "cell": None}
+    rep = sorted(window)[0]
+    # The *overlap*, not just the representative cell. A path-overlap window is
+    # hundreds of cells wide, and its lexicographically smallest cell is a
+    # corner of it — almost never a platform, so checking that one alone
+    # reported `null` on scenes carrying 32 named stations.
+    named = sorted(cell for cell in window if cell in station_labels)
+    if named:
+        # A window spanning several stations reports the first in reading
+        # order; the cell is returned beside the name, so the panel is never
+        # left with a label it cannot locate.
+        at = named[0]
+        return {
+            "kind": "station",
+            "name": station_labels[at],
+            "cell": [int(at[0]), int(at[1])],
+        }
+    return {"kind": "cell", "name": None, "cell": [int(rep[0]), int(rep[1])]}
+
+
+def _cell_of(agent) -> Optional[tuple]:
+    """(row, col) of an agent, or None when off-map. Snapshot entries carry
+    the same shape under ``pos``."""
+    p = getattr(agent, "position", None)
+    if p is None:
+        return None
+    return (int(p[0]), int(p[1]))
+
+
+def _waypoint_nearest_cell(env, handle: int, target: tuple) -> Optional[int]:
+    """Index into ``agent.waypoints`` of the stop cell nearest `target`
+    (Manhattan), preferring a real stop with a latest_arrival over the bare
+    origin/target. Returns None when the agent has no waypoints.
+
+    `target` is a contended cell. Slack is the time-slip a train has at the
+    *relevant* deadline — the one closest to where the contention bites — so
+    the waypoint nearest the contended cell is the one whose
+    ``latest_arrival`` slack is reported. Documented because "nearest" is a
+    choice: an exact-cell match would almost never fire (trains rarely stop
+    exactly on a conflict cell), and the target waypoint would report slack
+    at the journey end, not at the contention. Manhattan distance on the
+    grid is the stable, cheap proxy."""
+    ag = env.agents[handle]
+    wps = getattr(ag, "waypoints", None) or []
+    if not wps:
+        return None
+    best_i, best_d = None, None
+    for i, stop in enumerate(wps):
+        if not stop:
+            continue
+        pos = stop[0].position if hasattr(stop[0], "position") else None
+        if pos is None:
+            continue
+        cell = (int(pos[0]), int(pos[1]))
+        d = abs(cell[0] - target[0]) + abs(cell[1] - target[1])
+        if best_d is None or d < best_d:
+            best_i, best_d = i, d
+    return best_i
+
+
+def _slack_at(env, handle: int, target: tuple, elapsed: int) -> dict:
+    """Slack (steps) at the waypoint nearest `target`: that waypoint's
+    ``latest_arrival`` minus the current elapsed step. Negative = already
+    overdue at that stop. ``null`` + ``unavailable_reason`` when not derivable
+    (no waypoints, or the chosen waypoint carries no latest_arrival).
+
+    Reuses the per-stop time-window arrays the env already carries
+    (``waypoints_latest_arrival``), the same source `serializer.py` reads —
+    no second source of truth."""
+    ag = env.agents[handle]
+    wps = getattr(ag, "waypoints", None) or []
+    if not wps:
+        return {"value": None, "unavailable_reason": "no_waypoints"}
+    idx = _waypoint_nearest_cell(env, handle, target)
+    if idx is None:
+        return {"value": None, "unavailable_reason": "no_stop_cell"}
+    wlas = getattr(ag, "waypoints_latest_arrival", None) or []
+    if idx >= len(wlas):
+        return {"value": None, "unavailable_reason": "no_time_window"}
+    latest = wlas[idx]
+    if latest is None:
+        return {"value": None, "unavailable_reason": "no_latest_arrival"}
+    return {"value": int(latest) - int(elapsed), "unavailable_reason": None}
+
+
+def _enrich_handles(
+    handles: list[int],
+    window: list[tuple],
+    result,
+    env,
+    elapsed: int,
+) -> dict[int, dict]:
+    """The four quantities per handle, all derived from the one forecast
+    `result` (BranchResult: snapshots + agent_outcomes) plus the live env for
+    the waypoint time-windows — no second run_branch.
+
+    baselineOrder / headway — measured against `window`, the contended cell
+    set carried on the conflict events (the same path-overlap that defined
+    the contention). `baselineOrder` is the order in which each handle first
+    enters any window cell; `headway` is how many steps it occupies window
+    cells (first entry to last presence). A handle that never enters a window
+    cell within the horizon gets null + unavailable_reason — never a silent
+    zero (a fabricated zero is worse than a missing field).
+
+    entryDelay — the existing serializer.py formula (steps overdue vs.
+    latest_arrival; 0 while not overdue or already arrived). `agent_outcomes`
+    already computes exactly this — reused directly, nothing re-derived.
+
+    slack — `_slack_at` at the waypoint nearest the window's representative
+    cell; null + reason when not derivable.
+    """
+    window_set = {(int(r), int(c)) for r, c in window}
+    rep = window_set and sorted(window_set)[0]  # representative cell, stable
+
+    # First/last window-cell presence per handle, from the branch snapshots.
+    first_enter: dict[int, int] = {}
+    last_present: dict[int, int] = {}
+    for snap in result.snapshots:
+        step = int(snap.get("step", 0))
+        agents = snap.get("agents", {})
+        for h in handles:
+            a = agents.get(h)
+            if not a:
+                continue
+            pos = a.get("pos")
+            if pos is None:
+                continue
+            cell = (int(pos[0]), int(pos[1]))
+            if cell not in window_set:
+                continue
+            if h not in first_enter:
+                first_enter[h] = step
+            last_present[h] = step
+
+    out: dict[int, dict] = {}
+    for h in handles:
+        entry = first_enter.get(h)
+        last = last_present.get(h)
+        if entry is None:
+            baseline_order = {"value": None, "unavailable_reason": "never_enters_window"}
+            headway = {"value": None, "unavailable_reason": "never_enters_window"}
+        else:
+            baseline_order = {"value": int(entry), "unavailable_reason": None}
+            headway = {"value": int(last - entry), "unavailable_reason": None}
+
+        ao = result.agent_outcomes.get(h) or {}
+        entry_delay = {"value": int(ao.get("delay", 0)), "unavailable_reason": None}
+
+        slack = (
+            _slack_at(env, h, rep, elapsed) if rep is not None
+            else {"value": None, "unavailable_reason": "no_window"}
+        )
+
+        out[h] = {
+            "agentHandle": int(h),
+            "baselineOrder": baseline_order,
+            "headway": headway,
+            "entryDelay": entry_delay,
+            "slack": slack,
+        }
     return out
 
 
@@ -221,18 +427,48 @@ def get_contentions(session_id: str):
     Runs a no-override forecast branch (the predicted course of the network
     from the current step) and returns the multi-agent conflicts it hits,
     grouped into contention groups most-urgent first, plus the **forecast
-    budget** the panel states on screen:
+    budget** the panel states on screen. Each group carries, additively to
+    `handles` (which stays unchanged for the existing variant):
 
-        {"horizonSteps": 50, "groups": [
-            {"step": 14, "position": [2, 96], "kind": "blocked", "handles": [0, 1, 2]}
-        ]}
+      * `window`        — the contended cell set (the same path-overlap that
+                           defined the contention; never a position guessed
+                           downstream),
+      * `location`       — a station name where the window overlaps one, else
+                           the representative cell; never invented,
+      * `perHandle`      — the four derived quantities per handle, all from
+                           the one forecast `result` (no second run_branch):
+        - `baselineOrder` — step the handle first enters a window cell,
+        - `headway`       — steps it occupies window cells,
+        - `entryDelay`    — overdue steps vs. latest_arrival (the existing
+                             serializer.py formula; agent_outcomes already
+                             computes it),
+        - `slack`         — latest_arrival at the waypoint nearest the window
+                             minus elapsed.
+        Each is `{value, unavailable_reason}` — a quantity not derivable in
+        the horizon is `null` with a reason, never a silent zero.
+
+        {"horizonSteps": 50, "groups": [{
+          "step": 18, "position": [2, 124], "kind": "blocked",
+          "handles": [5, 8, 10],
+          "window": [[2, 124]],
+          "location": {"kind": "station", "name": "Olten", "cell": [2, 124]},
+          "perHandle": [{
+            "agentHandle": 5,
+            "baselineOrder": {"value": 16, "unavailable_reason": null},
+            "headway": {"value": 3, "unavailable_reason": null},
+            "entryDelay": {"value": 0, "unavailable_reason": null},
+            "slack": {"value": 12, "unavailable_reason": null}
+          }]
+        }]}
 
     `horizonSteps` is the compute budget the forecast ran with — how far
     `run_branch` looked ahead. It is *not* a reliability statement (the
     strategy-forecast panel's load-shrinking `horizonMinutes` is that); the two
     are deliberately different things (spec §8). The frontend renders it in
     minutes via the shared `MINUTES_PER_STEP` convention so the panel says how
-    far ahead it looked in the operator's unit.
+    far ahead it looked in the operator's unit. All times at this boundary are
+    in simulation steps; the frontend converts. Train names stay frontend —
+    handles are returned as `agentHandle`, never a service name.
 
     Empty groups — not an error — when the network has no contentions ahead,
     and on any forecast failure (a forecast must never break the panel).
@@ -273,6 +509,21 @@ def get_contentions(session_id: str):
         runner = TrajectoryBranchRunner(env, baseline_factory)
         result = runner.run_branch(overrides={}, max_steps=_CONTENTION_MAX_STEPS)
         groups = _group_contentions(result.conflicts)
+
+        # Additive enrichment (Task 1 + Task 2): per group, a `location` and a
+        # `perHandle` block with the four derived quantities. `handles` is left
+        # unchanged so the existing Combined Actions variant keeps working off
+        # the same field; the enrichment rides alongside. All times are in
+        # simulation steps at the API boundary — the frontend renders minutes
+        # via the shared MINUTES_PER_STEP convention. Train names stay frontend:
+        # every handle is returned as `agentHandle`, never a service name.
+        station_labels = _station_label_map(sess)
+        for g in groups:
+            window = [(int(r), int(c)) for r, c in g.get("window", []) or []]
+            g["location"] = _location_for(window, station_labels)
+            g["perHandle"] = list(_enrich_handles(
+                g["handles"], window, result, env, elapsed,
+            ).values())
     except Exception as e:
         _perf_log.warning("Contentions forecast failed for %s: %r", session_id, e)
         return _empty()

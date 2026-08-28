@@ -326,3 +326,72 @@ All five acceptance criteria met. Full backend suite: 402 passed, 0 failed.
 Frontend: 23/23 combined-actions specs pass; `ng build` clean. Spec §4 row
 "Packages derived from live conflicts" marked green; §8 carries the design
 notes. Nothing on the out-of-scope list was touched.
+
+---
+
+## Follow-up tasks (2026-08-28)
+
+Three follow-ups the same delegation spawned, recorded for the same
+asked-vs-built diff.
+
+### Follow-up 3 — surface the forecast horizon (landed)
+
+The spec's §8 flagged the horizon as "not yet one decision": the contentions
+endpoint caps `run_branch` at 50 steps while other surfaces use other spans,
+so the same conflict could show different numbers for an invisible reason — a
+direct Q2 (calibrated trust) hit. Resolved by **surfacing each surface's own
+horizon on its panel, in one shared unit** — not by pinning one repo-wide
+constant (that would have erased strategy-forecast's load-shrinking
+`horizonMinutes`, which is a reliability statement, not a budget). The endpoint
+now returns `horizonSteps` (always present, even with no contention); the
+panel renders it in minutes via the existing `MINUTES_PER_STEP = 1`
+(`combined-actions-preview.ts:26`) — the single step↔minute meeting point, no
+second constant. The **budget vs reliability** distinction is written into §8
+so "pinned vs per scenario" stays a later, cheap, one-line call once Learning
+Moments actually coexists on `explore_db`.
+
+### Follow-up 1+2 — the four quantities + additive payload (landed)
+
+Derive `baselineOrder`, `headway`, `entryDelay`, `slack` per handle — all from
+the one forecast `result` (no second `run_branch`). Key decisions, each a place
+the brief's first framing would have produced a worse answer:
+
+- **The window is the path-overlap, not the conflict position.** `_contenders`
+  already computed the pairwise path-overlap to decide contention and threw it
+  away; carried it onto the event as `info["contended_cells"]` instead. The
+  window must be the same path-overlap that defined the contention, else a
+  group and its window are built by different criteria and a train can land in
+  a group whose window it never enters. `baselineOrder`/`headway` measure
+  against that union. (The first three window-definition options — conflict
+  cell, conflict cell + predecessor, conflict cell's row — were rejected: on
+  PF–CH the trains freeze ~25 cells apart and never reach the same cell in the
+  50-step horizon, so all three would have made nearly every handle null. A
+  path-overlap window is non-empty precisely for the contending trains.)
+- **`entryDelay` is reused, not re-derived.** `BranchResult.agent_outcomes[h]["delay"]`
+  already computes the exact `serializer.py:118-128` formula (`elapsed - latest`
+  when overdue, else 0). The brief's "check whether agent_outcomes already
+  answers it" check: it does — read directly, nothing new invented.
+- **`slack` at the waypoint nearest the contended cell.** With waypoint
+  timetables (pf-ch-corridor-stops has them; pf-ch-wn-wal-conflict does not),
+  slack is measured at the stop closest to where the contention bites, not at
+  the journey end. Manhattan distance on the grid; documented in the docstring.
+- **No silent zeros.** A quantity not derivable in the horizon is `null` +
+  `unavailable_reason` (e.g. `never_enters_window`, `no_latest_arrival`,
+  `no_waypoints`). A fabricated zero is worse than a missing field.
+- **Additive payload, `handles` unchanged.** The four quantities ride in a
+  `perHandle` block alongside `window` and `location`; `handles` stays a flat
+  int list so the existing Combined Actions variant keeps working. `location`
+  is a station name where the window overlaps one (from the infrastructure
+  scene), else the cell — never invented. Train names stay frontend: handles
+  returned as `agentHandle`, never a service name. Times in steps at the API
+  boundary; the frontend converts.
+
+The `_group_contentions` two-pass fix (union everything, then key by the
+settled root — a root found mid-union goes stale) was already on disk from a
+parallel edit and was preserved, not overwritten.
+
+Verified on pf-ch-corridor-stops (the only preset whose trains carry
+intermediate stops, against which slack is measurable): 58 touched/core
+backend tests pass; the null-path, the slack-reason variety, the entryDelay↔
+serializer equivalence, and the additive-`handles` contract all pinned by
+new tests in `test_hmi_contentions_derivation.py`.

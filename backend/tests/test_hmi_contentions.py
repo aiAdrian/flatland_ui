@@ -96,11 +96,16 @@ def test_contentions_returns_real_handles_for_pf_ch_conflict():
 
 
 def test_contentions_empty_for_conflict_free_session():
-    """A fresh session whose trains are not yet contending returns empty
-    groups — the panel keeps its empty state and never synthesises a package
-    to fill. The horizon budget is still present, so the panel can state its
-    lookahead even with nothing ahead."""
-    sid = _make_simple_session(num_agents=2)
+    """A session that cannot contend returns empty groups — the panel keeps its
+    empty state and never synthesises a package to fill. The horizon budget is
+    still present, so the panel can state its lookahead even with nothing ahead.
+
+    One agent, deliberately: a contention needs two handles by definition, so
+    this premise holds by construction. With two agents it did not — the
+    forecast looks `_CONTENTION_MAX_STEPS` into the *future*, and two trains on
+    a small generated map often do meet in it, which made this test fail about
+    one run in five while asserting nothing the endpoint controls."""
+    sid = _make_simple_session(num_agents=1)
     r = client.get(f"/session/{sid}/hmi/contentions")
     assert r.status_code == 200, r.text
     assert _groups(r) == []

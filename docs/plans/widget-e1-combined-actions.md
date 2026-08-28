@@ -233,21 +233,32 @@ trustable), verifiable by reset → re-apply the same edit.
   one line, so it ships with a layout of its own: the `Combined Actions · Demo`
   preset in [`core/layout/layout-presets.ts`](../../frontend/src/app/core/layout/layout-presets.ts),
   selectable in the start screen's Layout dropdown. It is the only two-row preset.
-- **The forecast horizon is not yet one decision, and it has to become one.**
-  Three surfaces will forecast the same contention over three different spans:
-  the contentions endpoint from
-  [`widget-e1-live-conflicts-prompt.md`](widget-e1-live-conflicts-prompt.md) caps
-  `run_branch` at 50 steps; the alternative Combined Actions variant carries its
-  own `horizonMinutes` per conflict window; Learning Moments
-  (`backend/app/core/learning_moments.py`, `roman/director-strategies-shift-review`)
-  simulates **to the end of the episode**, at a measured 3–4 s per branch.
-  The same conflict can therefore show different numbers in two panels on one
-  screen, for a reason the operator cannot see. That is a direct hit on Q2
-  (calibrated trust) — a figure that changes with an invisible parameter is not
-  a figure anyone can learn to rely on. The horizon has to be one named, shared
-  parameter, surfaced wherever a forecast figure is: either pinned repo-wide, or
-  per scenario and then stated on the panel. Deciding it is a prerequisite for
-  using any two of these surfaces together in a study, not a polish item.
+- **Two different things are both called "horizon", and only one of them is the
+  Q2 risk.** Distinguished 2026-08-28 while surfacing the contentions lookahead,
+  because conflating them would have erased a feature:
+  - **Compute budgets** — how far a forecast *looks ahead*: the contentions
+    endpoint's `_CONTENTION_MAX_STEPS = 50` and Learning Moments'
+    simulate-to-episode-end are budgets, chosen for cost (one `run_branch` call
+    stays cheap). These are the surfaces that *can* show different numbers for
+    the same conflict, because they look different distances ahead.
+  - **A reliability statement** — how far a forecast is *worth trusting*:
+    `strategy-forecast.horizonMinutes` (0/10/20/30) shrinks with system load on
+    purpose, so the far columns turn 'unknown' instead of pretending to know.
+    That shrinking is an honest limit, not a budget.
+  Pulling these onto one constant would erase the reliability feature, so the
+  Q2 fix is *not* "one horizon repo-wide." It is: surface each surface's own
+  horizon on its panel, in one shared unit. Landed: the contentions endpoint
+  returns its budget as `horizonSteps` (always present, even with no contention),
+  and the panel renders it in minutes via the shared
+  `MINUTES_PER_STEP = 1` convention (`combined-actions-preview.ts:26` — the
+  single place steps and minutes meet; no second constant). The
+  load-shrinking `horizonMinutes` stays separate because it is a different kind
+  of number. **Still open:** whether the *budgets* should be pinned to one
+  value or left per-surface — deferred until Learning Moments lands on
+  `explore_db`, at which point the two budget surfaces actually coexist and the
+  trade-off is real. Deciding it now would be premature; deciding it later is
+  one line, because the shared convention already makes the two budgets
+  comparable.
 - **`tests/test_conflict_detector.py` does not specify the detector, and looked
   like it did.** Found 2026-08-27 while briefing the live-conflicts work: all six
   `_detect_*` methods in `ConflictDetectionCallbacks` were empty `pass` stubs
@@ -263,3 +274,19 @@ trustable), verifiable by reset → re-apply the same edit.
   event is produced at all. Anything built on `get_conflicts()` needs its own
   assertions that a known contention actually emits — and a skip whose message
   names an external cause deserves suspicion before it is believed.
+- **The contention window is far wider than a bottleneck, and `headway` inherits
+  that.** The window is the path overlap that defined the contention in the
+  first place — consistent with `_contenders` by design, so that no train can be
+  in a group without appearing in its window. But on `pf-ch-corridor-stops` the
+  remaining paths of twelve trains overlap across **158 cells**, roughly the
+  corridor itself. `headway` is then "steps spent anywhere in half the network",
+  not "occupancy of the contended resource": one train reports 50, the entire
+  forecast horizon. For the queue model that consumes these figures
+  (`combined-actions-package`, `delay_k = max(0, entryDelay_k + Σ headway_before_k
+  − slack_k)`) that is too coarse to price a wait. Narrowing it means narrowing
+  the *contender* definition too — the two must keep the same criterion — so it
+  is one decision, not two: either contenders stay path-overlap and `headway`
+  is renamed to what it measures, or both move to a bottleneck definition and
+  the PF–CH case (trains ~25 cells apart, never face-to-face inside the horizon)
+  has to be caught another way. Recorded rather than patched, because picking
+  one changes which trains a package names.

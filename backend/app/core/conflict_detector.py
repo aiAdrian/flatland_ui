@@ -215,7 +215,15 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
             # line). Adjacency alone misses the distant case the PF–CH
             # single-track conflict exhibits, so the blocker set is the
             # path-overlap set rather than only the train in the next cell.
-            contenders = self._contenders(env, h)
+            #
+            # `contended_cells` is the union of those pairwise overlaps — the
+            # contention's *window*. Carried on the event (rather than
+            # re-derived downstream from the conflict position) so the panel's
+            # baselineOrder/headway measure against the same path-overlap that
+            # defined the contention, not against a position the contenders
+            # may never reach. Empty when no contender overlaps (a lone stalled
+            # train); the agents list then still names the emitter.
+            contenders, contended_cells = self._contenders(env, h)
             agents = sorted({h, *contenders})
             pos = tuple(ag.position) if ag.position is not None else None
             self._conflicts.append(
@@ -224,12 +232,13 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
                     step=step,
                     agents=agents,
                     position=pos,
-                    # `emitter` is the stalled train whose streak crossed the
-                    # threshold — distinct from the other `agents`, which are
-                    # its contenders. Lets callers count emissions per train
-                    # rather than per handle-membership (a handle appears in
-                    # its own event and in each contender's).
-                    info={"consecutive_stops": int(cur), "emitter": int(h)},
+                    info={
+                        "consecutive_stops": int(cur),
+                        "emitter": int(h),
+                        "contended_cells": [
+                            [int(r), int(c)] for (r, c) in sorted(contended_cells)
+                        ],
+                    },
                 )
             )
             self._blocked_emitted[h] = step
@@ -310,20 +319,40 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
 
     # ── detection helpers ───────────────────────────────────────────
 
-    def _contenders(self, env: RailEnv, handle: int) -> List[int]:
+    def _contenders(
+        self, env: RailEnv, handle: int
+    ) -> tuple[List[int], frozenset]:
         """Other on-map trains whose remaining shortest path shares at least
         one cell with `handle`'s — i.e. the trains it is contending with for
-        track ahead. A face-to-face ahead is the special case where the
-        shared cell is the one directly in front; the general case (a distant
-        merge onto a single line, the PF–CH Wal conflict) is caught by the
-        full path overlap, which adjacency alone misses.
+        track ahead — together with the **contended cell set**: the union of
+        every pairwise overlap with those trains.
+
+        The overlap is the contention's *window*. It is computed here (where
+        ``isdisjoint`` runs anyway) and returned so a conflict event can carry
+        it as ``info["contended_cells"]``: the window has to be derived from
+        the same path-overlap that defines the contention, else a group and
+        its window would be built by different criteria and a train could land
+        in a group whose window it never enters. Carrying it on the event
+        (instead of re-deriving it downstream from positions) is what makes
+        ``baselineOrder`` / ``headway`` measure against the contention itself.
+
+        A face-to-face ahead is the special case where the shared cell is the
+        one directly in front; the general case (a distant merge onto a single
+        line, the PF–CH Wal conflict) is caught by the full path overlap,
+        which adjacency alone misses.
 
         Only on-map, not-done trains are candidates — a done train no longer
-        holds any cell it would block others on."""
+        holds any cell it would block others on.
+
+        Returns ``(contender_handles, contended_cells)``; the cell set is
+        empty when the handle has no remaining path or no contender overlaps
+        it.
+        """
         mine = self._remaining_path_cells(env, handle)
         if not mine:
-            return []
+            return [], frozenset()
         out: List[int] = []
+        cells: set = set()
         for h2, a2 in enumerate(env.agents):
             if h2 == handle or a2.position is None:
                 continue
@@ -331,9 +360,12 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
             if s2 == "DONE":
                 continue
             theirs = self._remaining_path_cells(env, h2)
-            if theirs and not mine.isdisjoint(theirs):
-                out.append(h2)
-        return out
+            if theirs:
+                overlap = mine & theirs
+                if overlap:
+                    out.append(h2)
+                    cells |= overlap
+        return out, frozenset(cells)
 
     def _remaining_path_cells(
         self, env: RailEnv, handle: int, cap: int = 300

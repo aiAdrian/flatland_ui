@@ -208,8 +208,48 @@ export interface ContentionGroup {
    *  deadlock cycle. */
   kind: 'blocked' | 'swap_attempt' | 'deadlock_cycle';
   /** Every contending train handle — every chip on every package resolves to
-   *  one of these, never a phantom. */
+   *  one of these, never a phantom. Unchanged across versions — the existing
+   *  Combined Actions variant reads this field alone. */
   handles: number[];
+  /** The contended cell set — the same path-overlap that defined the
+   *  contention. Empty for kinds that don't compute it. */
+  window?: [number, number][];
+  /** Where the contention bites: a station name where the window overlaps a
+   *  named station, else the representative cell; never invented. */
+  location?: ContentionLocation;
+  /** The four derived quantities per handle, all from the one forecast
+   *  branch (no second run_branch). Each is `{value, unavailable_reason}` — a
+   *  quantity not derivable in the horizon is null with a reason, never a
+   *  silent zero. Times are in simulation steps; convert via MINUTES_PER_STEP. */
+  perHandle?: PerHandleMeasures[];
+}
+
+/** A derived quantity: a value when derivable, or null + a reason when not. */
+export interface DerivedMeasure {
+  value: number | null;
+  unavailable_reason: string | null;
+}
+
+/** Where the contention bites — station name where known, else the cell. */
+export interface ContentionLocation {
+  kind: 'station' | 'cell' | 'none';
+  name: string | null;
+  cell: [number, number] | null;
+}
+
+/** The four quantities the panel derives per contending handle (Task 1). */
+export interface PerHandleMeasures {
+  /** The handle — train names stay frontend, so this is a handle, not a name. */
+  agentHandle: number;
+  /** Step the handle first enters a window cell (null if it never does). */
+  baselineOrder: DerivedMeasure;
+  /** Steps the handle occupies window cells (null if it never enters). */
+  headway: DerivedMeasure;
+  /** Overdue steps vs. latest_arrival (the serializer.py formula; 0 while not
+   *  overdue or already arrived). */
+  entryDelay: DerivedMeasure;
+  /** latest_arrival at the waypoint nearest the window minus elapsed. */
+  slack: DerivedMeasure;
 }
 
 /** Response of `GET /hmi/contentions`: the contention groups plus the
