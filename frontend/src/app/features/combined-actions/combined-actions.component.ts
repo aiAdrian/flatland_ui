@@ -5,7 +5,7 @@ import { TrainIdentityService } from '../../core/train-identity.service';
 import { predictImpact } from '../../core/combined-actions/impact-prediction';
 import { perTrainDeltaMin, MINUTES_PER_STEP } from '../../core/combined-actions/combined-actions-preview';
 import { plannedTransfers, transferOutcome } from '../../core/combined-actions/connections';
-import { ActionCardComponent, ActionFraming, ActivePreview } from './components/action-card/action-card.component';
+import { ActionCardComponent, ActionFraming, ActivePreview, AppliedAction } from './components/action-card/action-card.component';
 import { TradeoffPlotComponent, TradeoffPoint } from './components/tradeoff-plot/tradeoff-plot.component';
 
 /** How the widget presents its packages in the active interaction mode. */
@@ -365,6 +365,43 @@ export class CombinedActionsComponent implements OnDestroy {
     }
     return points;
   });
+
+  /**
+   * A card was applied — the one moment this widget makes a decision worth a
+   * record.
+   *
+   * Written through `recordCoordinatedAction`, not `_appendDecision`: the seam
+   * fills the schema fields so this variant and the package variant cannot
+   * drift apart in how they record the same kind of choice. `committed: false`
+   * because Apply reaches no planner today (spec §4) — the log says what
+   * happened, which is that an order was chosen, not that a train moved.
+   */
+  onApplied(event: AppliedAction): void {
+    const byName = this.handleByTrain();
+    const handles = event.appliedOrder
+      .map((train) => byName[train])
+      .filter((handle): handle is number => handle != null);
+    const aiTransfers = this.transfersFor(event.aiOrder);
+    const appliedTransfers = this.transfersFor(event.appliedOrder);
+    this.store.recordCoordinatedAction({
+      variant: 'packages',
+      label: event.label,
+      aiOrder: event.aiOrder,
+      appliedOrder: event.appliedOrder,
+      handles,
+      aiImpact: {
+        delayReductionMin: event.aiDelayReductionMin,
+        transfersKept: aiTransfers.connectionsKept,
+        transfersTotal: aiTransfers.connectionsTotal,
+      },
+      appliedImpact: {
+        delayReductionMin: event.appliedDelayReductionMin,
+        transfersKept: appliedTransfers.connectionsKept,
+        transfersTotal: appliedTransfers.connectionsTotal,
+      },
+      committed: false,
+    });
+  }
 
   /** A card changed which version it is showing. */
   onActiveChanged(preview: ActivePreview): void {

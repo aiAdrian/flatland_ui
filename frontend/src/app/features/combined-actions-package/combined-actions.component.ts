@@ -118,13 +118,35 @@ export class CombinedActionsPackageComponent {
       reduction: metrics.totalDelayReduction,
     });
     // The decision log is the app's audit trail, and a confirmed multi-train
-    // action — especially one the dispatcher reordered first — is exactly what it
-    // exists to record.
-    // Not recorded yet: writing a decision-log entry per confirmed package
-    // is a flagged item in the E1 spec (§4) because the store's
-    // `_appendDecision` has no public seam. Porting this variant must not
-    // open that seam as a side effect — it is a decision of its own, and it
-    // would change the other Combined Actions variant too.
+    // action — especially one the dispatcher reordered first — is exactly what
+    // it exists to record. Written through the same seam the other Combined
+    // Actions variant uses, so the two cannot drift apart in how they record
+    // the same kind of choice.
+    const aiOrder = this.offered().find(
+      (o) => o.action.id === event.evaluated.action.id.replace(/_human$/, ''),
+    )?.action.sequence;
+    this.store.recordCoordinatedAction({
+      variant: 'package',
+      // What the operator saw, not the internal candidate id: the card is
+      // headed by how many trains the action steers, and `cand_2_1` in a log
+      // strip reads as a leaked identifier rather than as a decision.
+      label: `${metrics.controlledTrains} Züge gesteuert · ${event.evaluated.action.strategy}`,
+      aiOrder: [...(aiOrder ?? event.evaluated.action.sequence)],
+      appliedOrder: [...event.evaluated.action.sequence],
+      handles: event.evaluated.action.sequence
+        .map((train) => trainFacts(this.window(), train).agentHandle)
+        .filter((handle) => handle >= 0),
+      aiImpact: {
+        delayReductionMin: this.aiReductionFor(event.evaluated),
+        affectedTrains: metrics.affectedTrains,
+      },
+      appliedImpact: {
+        delayReductionMin: metrics.totalDelayReduction,
+        affectedTrains: metrics.affectedTrains,
+      },
+      // This variant confirms an order; no train is controlled here either.
+      committed: false,
+    });
   }
 
   /** The number the AI promised for the card this confirmation came from. */

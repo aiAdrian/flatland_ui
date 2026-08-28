@@ -46,6 +46,7 @@
         [expanded]="expandedPackage() === pkg.id"
         (activeChanged)="onActiveChanged($event)"
         (expandRequested)="expand($event)"
+        (applyRequested)="onApplied($event)"
         (pointerenter)="onCardEnter(pkg)"
         (pointerleave)="onCardLeave()"
       ></app-action-card>

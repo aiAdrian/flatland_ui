@@ -46,6 +46,15 @@ export interface ActivePreview {
  *
  * `pkg.aiOrder` is never mutated; it lives on as the `ai` version.
  */
+/** What the card knows at the moment Apply is pressed. */
+export interface AppliedAction {
+  label: string;
+  aiOrder: readonly string[];
+  appliedOrder: readonly string[];
+  aiDelayReductionMin: number | null;
+  appliedDelayReductionMin: number | null;
+}
+
 @Component({
   selector: 'app-action-card',
   standalone: true,
@@ -82,6 +91,11 @@ export class ActionCardComponent implements OnInit, OnDestroy {
 
   /** The operator wants this card open. */
   @Output() expandRequested = new EventEmitter<string>();
+
+  /** Applied, with both orders and both predictions — the card knows the
+   *  versions, the panel knows the handles and the transfers, and the decision
+   *  record needs all four. */
+  @Output() applyRequested = new EventEmitter<AppliedAction>();
 
   private readonly predictor = inject(ImpactPredictionService);
 
@@ -227,6 +241,17 @@ export class ActionCardComponent implements OnInit, OnDestroy {
 
   apply(): void {
     if (!this.editable) return;
+    const ai = this.aiVersion();
+    const current = this.active();
+    if (ai && current) {
+      this.applyRequested.emit({
+        label: this.pkg.label,
+        aiOrder: [...ai.order],
+        appliedOrder: [...current.order],
+        aiDelayReductionMin: ai.prediction?.delayReductionMin ?? null,
+        appliedDelayReductionMin: current.prediction?.delayReductionMin ?? null,
+      });
+    }
     this.applied.set(this.active()?.label ?? null);
     if (this.appliedTimer) clearTimeout(this.appliedTimer);
     this.appliedTimer = setTimeout(() => this.applied.set(null), ActionCardComponent.APPLIED_MS);

@@ -14,6 +14,7 @@ import {
   DecisionOwner,
   DecisionValueAxis,
   actionLabelFor,
+  CoordinatedDecision,
 } from './decision-log';
 import type { ActionOrigin } from './dispatch/train-action.service';
 import {
@@ -1757,6 +1758,39 @@ export class SessionStore {
    *  rest of the network keeps running, until the human decides. Unlike
    *  setOverride this is NOT logged as a human intervention — it's the safe
    *  default that creates the decision moment, not the human's choice. */
+  /**
+   * Record a coordinated multi-train action — the public seam the Combined
+   * Actions surfaces write through.
+   *
+   * `_appendDecision` stays private: every other decision in the log comes from
+   * a store-owned choke-point (setOverride / clearOverride / systemHold), and
+   * opening the raw append to components would let any surface write any shape.
+   * This seam takes the coordinated shape and fills the schema fields itself,
+   * so the two variants cannot drift apart in how they record the same kind of
+   * decision.
+   *
+   * `handle: -1` follows the convention `action: 'strategy'` set: not about one
+   * train, and the schema is not made to pretend otherwise.
+   */
+  recordCoordinatedAction(decision: CoordinatedDecision, decisionTimeMs: number | null = null): number {
+    const modified =
+      decision.appliedOrder.length !== decision.aiOrder.length ||
+      decision.appliedOrder.some((train, i) => train !== decision.aiOrder[i]);
+    return this._appendDecision({
+      t: Date.now(),
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      handle: -1,
+      accountableOwner: 'human',
+      // The two values the schema reserved for accept-vs-override and never
+      // wired: taking the AI's order is an acceptance, changing it is not.
+      action: modified ? 'override' : 'accept',
+      aiSuggestion: decision.label,
+      decisionTimeMs,
+      coordinated: decision,
+    });
+  }
+
   systemHold(handle: number) {
     const s = this.session();
     if (!s) return;
