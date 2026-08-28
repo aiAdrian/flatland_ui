@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
@@ -36,6 +36,17 @@ interface ReflectionQuestion {
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CoLearningReflectionComponent {
+  /** Rendered inside a panel-shell (a layout placed it) rather than as its own
+   *  expansion panel. Same convention as every other placeable widget — without
+   *  it a layout could only nest a panel inside a panel, which is why this
+   *  widget was not placeable at all (mode-scoped-layouts-plan.md §1). */
+  @Input() embedded = false;
+
+  @HostBinding('class.embedded')
+  get embeddedClass(): boolean {
+    return this.embedded;
+  }
+
   store = inject(SessionStore);
 
 

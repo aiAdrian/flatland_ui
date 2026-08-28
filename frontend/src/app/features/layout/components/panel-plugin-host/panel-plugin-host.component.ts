@@ -3,6 +3,8 @@ import { PanelInstance } from '../../../../core/layout';
 
 import { NotificationsPanelComponent } from '../../../notifications-panel/notifications-panel.component';
 import { AgentsPanelComponent } from '../../../agents-panel/agents-panel.component';
+import { AgentsTableComponent } from '../../../agents-table/agents-table.component';
+import { CoLearningReflectionComponent } from '../../../co-learning-reflection/co-learning-reflection.component';
 import { TimetableComponent } from '../../../timetable/timetable.component';
 import { ViewTabsComponent } from '../../../view-tabs/view-tabs.component';
 import { KpiFilterComponent } from '../../../kpi-filter/kpi-filter.component';
@@ -46,6 +48,8 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     AgentInspectorComponent,
     NotificationsPanelComponent,
     AgentsPanelComponent,
+    AgentsTableComponent,
+    CoLearningReflectionComponent,
     TimetableComponent,
     ViewTabsComponent,
     KpiFilterComponent,

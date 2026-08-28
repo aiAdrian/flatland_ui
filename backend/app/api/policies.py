@@ -14,6 +14,16 @@ class PolicyInfo(BaseModel):
     is_default: bool = False
     show_in_ui: bool = False
     supports_scenarios: bool = False
+    # Catalog metadata for the Algorithm Gallery. Served from the registry so
+    # there is no second copy to drift; see PolicySpec for what each means.
+    family: str = "rule-based"
+    deterministic: bool = True
+    role: str = "operational"
+    observation: str = "DummyObservationBuilder"
+    at_conflict: str = ""
+    provenance: str = ""
+    licence: str = "Flatland (base set)"
+    grounding: str = ""
 
 
 @router.get("/policies", response_model=list[PolicyInfo])
@@ -32,6 +42,14 @@ def list_policies() -> list[PolicyInfo]:
             is_default=(spec.id == default_id),
             show_in_ui=spec.show_in_ui,
             supports_scenarios=spec.supports_scenarios,
+            family=spec.family,
+            deterministic=spec.deterministic,
+            role=spec.role,
+            observation=spec.observation,
+            at_conflict=spec.at_conflict,
+            provenance=spec.provenance,
+            licence=spec.licence,
+            grounding=spec.grounding,
         )
         for spec in specs
     ]

@@ -110,3 +110,17 @@
   line-height: 1.35;
   color: var(--sbb-color-granite);
 }
+
+// Waiting for a strategy (Director, nothing committed yet). Moved here from
+// app.component.scss so the widget carries its own empty state on every render
+// path, not just the fixed Director slot.
+.sf-empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sbb-color-granite);
+}
+
+.sf-empty strong {
+  color: var(--sbb-color-charcoal);
+}

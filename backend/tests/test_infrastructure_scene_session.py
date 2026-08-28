@@ -172,14 +172,19 @@ def test_infrastructure_scene_switch_exports_as_known_switch_tile():
 
 
 def test_infrastructure_scene_switch_visuals_match_builder_canvas():
+    # Expected tiles mirror builder-canvas.component.ts `switchTileHref()`:
+    # a dedicated sprite per switch geometry, always unrotated. Several sprites
+    # rotate onto the same transition value, so the resolver used to answer some
+    # of these with an equivalent rotated stand-in; it now prefers the dedicated
+    # sprite (see tile_resolver._build_lookup), and both views name the same tile.
     cases = [
         (["N", "E", "W"], "forward", ("Weiche_horizontal_oben_rechts.svg", 0)),
         (["N", "E", "W"], "reverse", ("Weiche_horizontal_oben_links.svg", 0)),
-        (["E", "S", "W"], "forward", ("Weiche_horizontal_oben_links.svg", 180)),
+        (["E", "S", "W"], "forward", ("Weiche_horizontal_unten_rechts.svg", 0)),
         (["E", "S", "W"], "reverse", ("Weiche_horizontal_unten_links.svg", 0)),
-        (["N", "E", "S"], "forward", ("Weiche_horizontal_oben_links.svg", 90)),
-        (["N", "E", "S"], "reverse", ("Weiche_horizontal_oben_rechts.svg", 90)),
-        (["N", "S", "W"], "forward", ("Weiche_horizontal_oben_rechts.svg", 270)),
+        (["N", "E", "S"], "forward", ("Weiche_vertikal_oben_rechts.svg", 0)),
+        (["N", "E", "S"], "reverse", ("Weiche_vertikal_unten_rechts.svg", 0)),
+        (["N", "S", "W"], "forward", ("Weiche_vertikal_oben_links.svg", 0)),
         (["N", "S", "W"], "reverse", ("Weiche_vertikal_unten_links.svg", 0)),
     ]
 

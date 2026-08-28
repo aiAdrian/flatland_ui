@@ -52,12 +52,16 @@ import { InfrastructureBuilderComponent } from './features/infrastructure-builde
 import { InfrastructureScene, InfrastructureSceneSummary } from './features/infrastructure-builder/models/scene.model';
 import { InfrastructureSceneStorageService } from './features/infrastructure-builder/services/infrastructure-scene-storage.service';
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
+import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
+import { LAYOUT_PRESETS } from './core/layout/layout-presets';
 type RuntimeLayoutOption = {
   id: string;
   name: string;
-  kind: 'system' | 'user';
+  /** `preset` = shipped with the repo (core/layout/layout-presets.ts) and
+   *  therefore reviewable; `user` = saved in this browser only. */
+  kind: 'system' | 'preset' | 'user';
   design?: any;
 };
 
@@ -70,6 +74,7 @@ type RuntimeLayoutOption = {
     LayoutDesignerComponent,
     InfrastructureBuilderComponent,
     WidgetsGalleryComponent,
+    AlgorithmsGalleryComponent,
     ToolbarComponent,
     TrackLayoutComponent,
     GraphicTimetableComponent,
@@ -128,6 +133,14 @@ export class AppComponent implements OnInit {
       window.location.pathname === '/widgets' ||
       window.location.hash === '#/widgets' ||
       window.location.hash.endsWith('/widgets')
+    );
+  }
+
+  get showAlgorithmsGallery(): boolean {
+    return (
+      window.location.pathname === '/algorithms' ||
+      window.location.hash === '#/algorithms' ||
+      window.location.hash.endsWith('/algorithms')
     );
   }
 
@@ -471,6 +484,29 @@ export class AppComponent implements OnInit {
     this.demoComplete.set(false);
     this.createSession(opts);
     this.store.startDemo();
+  }
+
+  /** Direct entry into the Director screen — Roman's & Gereon's design
+   *  (strategy tiles, forecast, AI-activity feed, reflection, shift review),
+   *  the one that's been live since `director-strategies-shift-review` /
+   *  `goal_oriented_agents`. It is *not* a "Layout" option: those presets
+   *  render through the generic panel grid, and per
+   *  docs/plans/layout-grid-model-plan.md §2b, "activating a saved design
+   *  loses all Director behaviour" — the bar, the tiles-above-map placement,
+   *  the forecast's four columns, the shift-review takeover all live only in
+   *  the hardcoded default layout. So this button does the two things that
+   *  together guarantee that screen rather than a degraded stand-in:
+   *  force the Default Layout, then switch into Director before the session
+   *  is even created (`newSession` reads the mode to pick the goal_directed
+   *  policy from step one). Skips the Guided Demo's Recommendation →
+   *  Co-Learning walk and its survey — this is "show Director right now",
+   *  not the full three-mode tour. */
+  startDirectorSession() {
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+    this.setRuntimeLayout(this.systemRuntimeLayoutId);
+    this.store.setInteractionMode('director');
+    this.createSession(opts);
   }
 
   /** Finish the current demo mode → open its survey (advance happens on close). */
@@ -1021,6 +1057,16 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /** Where a layout comes from — a preset ships with the repo, a user layout
+   *  only exists in this browser. Worth telling apart in the picker. */
+  layoutKindSuffix(kind: RuntimeLayoutOption['kind']): string {
+    switch (kind) {
+      case 'system': return '';
+      case 'preset': return ' · Preset';
+      case 'user': return ' · user';
+    }
+  }
+
   loadRuntimeLayoutOptions(): RuntimeLayoutOption[] {
     const options: RuntimeLayoutOption[] = [
       {
@@ -1029,6 +1075,17 @@ export class AppComponent implements OnInit {
         kind: 'system',
       },
     ];
+
+    // Repo-shipped layouts come before browser-local ones: a preset is
+    // versioned and reviewable, a saved design is one person's localStorage.
+    for (const preset of LAYOUT_PRESETS) {
+      options.push({
+        id: preset.id,
+        name: preset.name,
+        kind: 'preset',
+        design: { id: preset.id, name: preset.name, layout: preset.layout },
+      });
+    }
 
     const candidateKeys = [
       'flatland.designer.designs.v1',

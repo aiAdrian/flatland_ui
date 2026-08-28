@@ -8,6 +8,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { AgentDTO } from '../../core/models';
 
 type AgentGroup = 'MOVING' | 'WAITING' | 'DONE';
@@ -23,6 +24,9 @@ type AgentGroup = 'MOVING' | 'WAITING' | 'DONE';
 export class LeftSidebarComponent {
   store = inject(SessionStore);
   private agentColors = inject(AgentColorService);
+  /** Acting on a train goes through the dispatch seam, never straight to the
+   *  store — see core/dispatch/train-action.service.ts. */
+  private trainActions = inject(TrainActionService);
 
   // Collapsed state per group (default: all open).
   readonly collapsed = signal<Record<AgentGroup, boolean>>({
@@ -33,10 +37,33 @@ export class LeftSidebarComponent {
 
   readonly totalCount = computed(() => this.store.agents().length);
 
+  // ── "Nur Konflikte" filter ────────────────────────────────────────────────
+  // HMI review: "Alle Züge oder nur die mit Konflikt?" — the list showed
+  // every train with no way to narrow it to the ones that need a decision.
+
+  /** The conflict set is defined once in the store — the disposition table asks
+   *  the same question and must get the same answer. */
+  readonly conflictCount = computed(() => this.store.conflictHandles().size);
+
+  readonly conflictsOnly = signal(false);
+
+  toggleConflictsOnly(): void {
+    this.conflictsOnly.update((v) => !v);
+  }
+
+  /** Narrow a group to the conflict set while the filter is on. */
+  private applyConflictFilter(list: AgentDTO[]): AgentDTO[] {
+    if (!this.conflictsOnly()) return list;
+    const handles = this.store.conflictHandles();
+    return list.filter((a) => handles.has(a.handle));
+  }
+
   /** MOVING includes anyone currently *acting* on the map:
    *  READY_TO_DEPART, MOVING, STOPPED, MALFUNCTION. */
   readonly movingAgents = computed<AgentDTO[]>(() => {
-    const list = this.store.agents().filter((a) => this.isMovingGroupAgent(a));
+    const list = this.applyConflictFilter(
+      this.store.agents().filter((a) => this.isMovingGroupAgent(a)),
+    );
 
     // Malfunctions first, then most urgent deadlines.
     return list.sort((a, b) => {
@@ -51,7 +78,9 @@ export class LeftSidebarComponent {
   });
 
   readonly waitingAgents = computed<AgentDTO[]>(() => {
-    const list = this.store.agents().filter((a) => this.isWaitingGroupAgent(a));
+    const list = this.applyConflictFilter(
+      this.store.agents().filter((a) => this.isWaitingGroupAgent(a)),
+    );
 
     return list.sort((a, b) => {
       const ea = a.earliest_departure ?? Number.POSITIVE_INFINITY;
@@ -61,11 +90,17 @@ export class LeftSidebarComponent {
   });
 
   readonly doneAgents = computed<AgentDTO[]>(() => {
-    const list = this.store.agents().filter((a) => this.isDoneGroupAgent(a));
+    const list = this.applyConflictFilter(
+      this.store.agents().filter((a) => this.isDoneGroupAgent(a)),
+    );
     return list.sort((a, b) => a.handle - b.handle);
   });
 
-  readonly activeCount = computed(() => this.movingAgents().length);
+  /** Unfiltered — the header count must keep meaning the same when the
+   *  "nur Konflikte" filter narrows the visible lists. */
+  readonly activeCount = computed(
+    () => this.store.agents().filter((a) => this.isMovingGroupAgent(a)).length,
+  );
 
   /** Total delay across all overdue agents (sum), and how many are delayed.
    *  Used for the global header badge. */
@@ -106,17 +141,12 @@ export class LeftSidebarComponent {
     this.store.toggleAgentSelection(handle);
   }
 
-  onActionClick(handle: number, action: number, isOverride: boolean): void {
-    if (isOverride) {
-      this.store.clearOverride(handle);
-    } else {
-      this.store.setOverride(handle, action);
-    }
+  onActionClick(handle: number, action: number, _isOverride: boolean): void {
+    this.trainActions.toggle(handle, action, 'roster');
   }
 
   isOverrideOption(handle: number, action: number): boolean {
-    const a = this.store.agents().find((x) => x.handle === handle);
-    return a?.override_action === action;
+    return this.trainActions.isActive(handle, action);
   }
 
   // ── group semantics ───────────────────────────────────────────────
@@ -191,11 +221,34 @@ export class LeftSidebarComponent {
   }
 
   /** Format the time-to-deadline as `-12` or `+5`. */
+  /** Steps of slack against the latest arrival.
+   *
+   *  Used to render as a bare "−80", which the HMI review read as a
+   *  deficit ("−80 = ?"). It is the opposite: 80 steps still in hand. The sign
+   *  alone cannot carry that, so the badge says which side of the deadline the
+   *  train is on. */
   formatDeadlineDelta(a: AgentDTO): string {
     const t = a.time_to_deadline;
     if (t === null || t === undefined) return '–';
-    if (t >= 0) return `−${t}`;       // 'time remaining' → minus sign
-    return `+${-t}`;                  // overdue → plus sign
+    if (t >= 0) return `noch ${t}`;   // slack left before latest arrival
+    return `+${-t} spät`;             // past the latest arrival
+  }
+
+  deadlineTooltip(a: AgentDTO): string {
+    const t = a.time_to_deadline;
+    const target = a.latest_arrival ?? '–';
+    if (t === null || t === undefined) return `Späteste Ankunft: ${target}`;
+    return t >= 0
+      ? `Noch ${t} Schritt(e) Puffer bis zur spätesten Ankunft (${target})`
+      : `${-t} Schritt(e) über der spätesten Ankunft (${target})`;
+  }
+
+  /** True when one of the offered actions is the override currently set on this
+   *  train — i.e. when the red styling appears and needs explaining. */
+  hasOverrideOption(a: AgentDTO): boolean {
+    return (a.next_decision?.options ?? []).some(
+      (opt) => this.isOverrideOption(a.handle, opt.action),
+    );
   }
 
   formatEta(a: AgentDTO): string {

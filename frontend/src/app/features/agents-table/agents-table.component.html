@@ -1,0 +1,144 @@
+@if (embedded) {
+  <ng-container [ngTemplateOutlet]="tableContent"></ng-container>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel agents-table-lyne-panel" color="white" size="s" expanded>
+    <sbb-expansion-panel-header>
+      <span class="lyne-panel-title">Trains — Dispositionstabelle</span>
+    </sbb-expansion-panel-header>
+
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="tableContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #tableContent>
+  <div class="agents-table">
+
+    @if (!store.state()) {
+      <p class="empty">Keine aktive Session.</p>
+    } @else {
+
+      <div class="table-head">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="conflictsOnly()"
+          [attr.aria-pressed]="conflictsOnly()"
+          [disabled]="conflictCount() === 0 && !conflictsOnly()"
+          title="Züge, die in einem Konflikt stecken (blockiert, blockierend oder gestört)"
+          (click)="toggleConflictsOnly()">
+          Nur Konflikte ({{ conflictCount() }})
+        </button>
+
+        @if (conflictsOnly()) {
+          <span class="head-hint">gefiltert — {{ totalCount() }} Züge insgesamt</span>
+        }
+
+        @if (modeBehavior().hint) {
+          <span class="head-hint head-hint--mode">{{ modeBehavior().hint }}</span>
+        }
+      </div>
+
+      <!-- Wide content scrolls inside its own box; the surrounding layout must
+           never be pushed sideways by a table (spec §8). -->
+      <div class="table-scroll">
+        <table class="disposition">
+          <thead>
+            <tr>
+              <th scope="col" class="col-status">Status</th>
+              <th scope="col" class="col-train">Zug</th>
+              <th scope="col" class="col-message">Meldung</th>
+              <th scope="col" class="col-schedule">Soll</th>
+              <th scope="col" class="col-slack">Puffer</th>
+              <th scope="col" class="col-switch">Nächste Weiche</th>
+              <th scope="col" class="col-actions">Aktion</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (row of rows(); track row.handle) {
+              <tr
+                class="train-row"
+                [class.in-conflict]="row.inConflict"
+                [class.selected]="isSelected(row.handle)"
+                (click)="onRowClick(row.handle)">
+
+                <td class="col-status">
+                  <span class="status-label">{{ row.statusLabel }}</span>
+                  @if (row.malfunctionSteps !== null) {
+                    <span class="disruption-badge"
+                          [title]="store.malfunctionTypeLabel(row.agent) + ' — fährt in ' + row.malfunctionSteps + ' Schritt(en) weiter'">
+                      Störung {{ row.malfunctionSteps }}
+                    </span>
+                  }
+                </td>
+
+                <td class="col-train">
+                  <span class="train-dot" [style.background]="row.color"></span>
+                  <span class="train-id">{{ row.handle }}</span>
+                </td>
+
+                <td class="col-message">
+                  @if (row.message) {
+                    {{ row.message }}
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+
+                <td class="col-schedule">
+                  <span class="muted">{{ row.scheduleLabel }}</span> {{ row.scheduleValue }}
+                </td>
+
+                <td class="col-slack" [class.late]="row.slackLate">{{ row.slack }}</td>
+
+                <td class="col-switch">
+                  @if (row.nextSwitch !== '—') {
+                    {{ row.nextSwitch }}
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+
+                <td class="col-actions" (click)="$event.stopPropagation()">
+                  @if (row.options.length === 0) {
+                    <span class="muted">—</span>
+                  } @else {
+                    @for (opt of row.options; track opt.action) {
+                      <button
+                        type="button"
+                        class="action-btn"
+                        [class.is-mine]="opt.isMine"
+                        [class.is-ai]="opt.isAiRecommended"
+                        [title]="opt.isMine
+                          ? 'Dein gesetzter Eingriff — nochmal klicken hebt ihn auf'
+                          : (opt.isAiRecommended
+                              ? 'Empfehlung der KI für diesen Zug'
+                              : 'Als Eingriff für diesen Zug setzen')"
+                        (click)="onAction(row.handle, opt.action)">
+                        {{ opt.label }}@if (opt.isAiRecommended) {<span class="ai-star" aria-label="Empfehlung der KI"> ★</span>}
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            }
+
+            @if (rows().length === 0) {
+              <tr>
+                <td class="empty-row" colspan="7">
+                  @if (conflictsOnly()) {
+                    Kein Zug steckt gerade in einem Konflikt.
+                  } @else {
+                    Keine Züge.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</ng-template>

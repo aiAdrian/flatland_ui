@@ -1,4 +1,5 @@
 import { InteractionMode } from './events/event-types';
+import type { ActionOrigin } from './dispatch/train-action.service';
 
 /**
  * Decision Log (Tile A2) — the session's owned, timestamped decision record.
@@ -46,6 +47,12 @@ export interface DecisionLogEntry {
   t: number;
   /** Simulation step at which the decision was made. */
   simStep: number;
+  /** Which surface the operator acted from (map, roster, table, …). The same
+   *  action is deliberately offered in several places; recording the affordance
+   *  turns "which one do dispatchers actually use?" into a measurement instead
+   *  of an assertion (HMI review §3). Absent on entries written before the
+   *  dispatch seam existed, and on system-owned holds. */
+  origin?: ActionOrigin;
   /** Active interaction mode when the decision was made. */
   mode: InteractionMode;
   /** Agent (train handle) the decision concerned. */

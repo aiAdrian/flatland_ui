@@ -134,6 +134,13 @@
   margin: 0 0 8px 0;
 }
 
+.conf-caption {
+  margin: -4px 0 8px;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
 .conf-bar {
   height: 4px;
   background: var(--sbb-color-cloud);

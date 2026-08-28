@@ -11,162 +11,320 @@
     </p>
   </div>
 
-  <!-- Kind legend / picker: the "which kind do I need?" decision aid -->
-  <section class="gallery__legend">
-    <button
-      class="legend-chip"
-      type="button"
-      [class.is-active]="kindFilter() === 'all'"
-      (click)="setKindFilter('all')">
-      All kinds
-    </button>
-    @for (k of kindOrder; track k) {
+  <!-- Governance bar: catalog health at a glance, and every number is a filter. -->
+  <section class="govbar">
+    <span class="govbar__label">Catalog</span>
+    <span class="govbar__total">{{ total() }} widgets</span>
+    <span class="govbar__sep"></span>
+
+    @for (s of statusTally(); track s.id) {
       <button
-        class="legend-chip"
         type="button"
-        [class.is-active]="kindFilter() === k"
-        [style.--chip-color]="kindVar(k)"
-        (click)="setKindFilter(k)">
-        <span class="legend-chip__dot"></span>
-        {{ kindMeta[k].label }}
-        @if (kindMeta[k].aiNovel) { <span class="legend-chip__star" title="AI-novel core capability">★</span> }
+        class="govbar__stat"
+        [class.is-active]="statusFilter() === s.id"
+        (click)="setStatusFilter(statusFilter() === s.id ? 'all' : s.id)">
+        <span class="dot" [style.background]="statusColorVar(s.id)"></span>{{ s.n }} {{ s.label }}
+      </button>
+    }
+
+    <span class="govbar__spacer"></span>
+
+    <button
+      type="button"
+      class="govbar__stat"
+      [class.is-active]="provFilter() === 'mock'"
+      (click)="setProvFilter(provFilter() === 'mock' ? 'all' : 'mock')"
+      title="Widgets whose data is mock or partly mock — see docs/reference/data-provenance.md">
+      <span class="dot" [style.background]="provVar('mock')"></span>{{ mockCount() }} mock-backed
+    </button>
+
+    @if (driftCount() > 0) {
+      <button
+        type="button"
+        class="govbar__drift"
+        [class.is-active]="driftOnly()"
+        (click)="toggleDriftOnly()"
+        title="Registry availability disagrees with panel-mode-availability.ts">
+        ⚠ {{ driftCount() }} availability drift
       </button>
     }
   </section>
 
-  <!-- Secondary controls: mode filter + status filter + search -->
-  <section class="gallery__controls">
-    <div class="control-group">
-      <span class="control-label">Mode</span>
-      <div class="segmented">
-        <button type="button" [class.is-active]="modeFilter() === 'all'" (click)="setModeFilter('all')">All</button>
-        @for (m of modeColumns; track trackByMode($index, m)) {
-          <button type="button" [class.is-active]="modeFilter() === m.id" (click)="setModeFilter(m.id)">
-            {{ m.label }}
-          </button>
+  <!-- Facet rail: one chip vocabulary (sbb-tag) for all four facets. -->
+  <section class="rail">
+    <div class="rail__row">
+      <span class="rail__label">Kind</span>
+      <sbb-tag-group multiple size="s" class="rail__tags">
+        <sbb-tag
+          size="s"
+          [checked]="kindFilter().size === 0"
+          (change)="clearKinds()">
+          All kinds
+        </sbb-tag>
+        @for (f of kindFacets(); track f.id) {
+          <sbb-tag
+            size="s"
+            [checked]="isKindActive(f.id)"
+            [attr.amount]="f.amount"
+            (change)="toggleKind(f.id)">
+            <span class="dot dot--icon" slot="icon" [style.background]="f.colorVar"></span>
+            {{ f.label }}
+          </sbb-tag>
         }
-      </div>
+      </sbb-tag-group>
     </div>
 
-    <div class="control-group">
-      <span class="control-label">Status</span>
-      <div class="segmented">
-        <button type="button" [class.is-active]="statusFilter() === 'all'" (click)="setStatusFilter('all')">All</button>
-        @for (s of statusColumns; track s.id) {
-          <button type="button" [class.is-active]="statusFilter() === s.id" (click)="setStatusFilter(s.id)">
-            {{ s.label }}
-          </button>
+    <div class="rail__divider"></div>
+
+    <div class="rail__row">
+      <span class="rail__label">Mode</span>
+      <sbb-tag-group size="s" class="rail__tags">
+        <sbb-tag size="s" [checked]="modeFilter() === 'all'" (change)="setModeFilter('all')">
+          All modes
+        </sbb-tag>
+        @for (f of modeFacets; track f.id) {
+          <sbb-tag size="s" [checked]="modeFilter() === f.id" (change)="setModeFilter(f.id)">
+            {{ f.label }}
+          </sbb-tag>
         }
-      </div>
+      </sbb-tag-group>
     </div>
 
-    <label class="control-group control-group--search">
-      <span class="control-label">Search</span>
-      <input type="search" placeholder="title, description, grounding…" [ngModel]="query()" (ngModelChange)="query.set($event)" />
-    </label>
+    <div class="rail__row">
+      <span class="rail__label">Status</span>
+      <sbb-tag-group size="s" class="rail__tags">
+        <sbb-tag size="s" [checked]="statusFilter() === 'all'" (change)="setStatusFilter('all')">
+          Any status
+        </sbb-tag>
+        @for (f of statusFacets(); track f.id) {
+          <sbb-tag
+            size="s"
+            [checked]="statusFilter() === f.id"
+            [attr.amount]="f.amount"
+            (change)="setStatusFilter(f.id)">
+            <span class="dot dot--icon" slot="icon" [style.background]="f.colorVar"></span>
+            {{ f.label }}
+          </sbb-tag>
+        }
+      </sbb-tag-group>
+    </div>
 
-    <div class="gallery__count">
-      {{ totalShown() }} widget{{ totalShown() === 1 ? '' : 's' }}
-      @if (kindFilter() !== 'all' || modeFilter() !== 'all' || statusFilter() !== 'shipped' || query()) {
-        <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
-      }
+    <div class="rail__row">
+      <span class="rail__label">Data</span>
+      <sbb-tag-group size="s" class="rail__tags">
+        <sbb-tag size="s" [checked]="provFilter() === 'all'" (change)="setProvFilter('all')">
+          Any source
+        </sbb-tag>
+        @for (f of provFacets(); track f.id) {
+          <sbb-tag
+            size="s"
+            [checked]="provFilter() === f.id"
+            [attr.amount]="f.amount"
+            (change)="setProvFilter(f.id)">
+            <span class="dot dot--icon" slot="icon" [style.background]="f.colorVar"></span>
+            {{ f.label }}
+          </sbb-tag>
+        }
+      </sbb-tag-group>
+
+      <label class="rail__search">
+        <input
+          type="search"
+          placeholder="title, promise, grounding, type…"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)" />
+      </label>
     </div>
   </section>
 
-  <!-- Grouped widgets -->
+  <div class="resultline">
+    <span>Showing <strong>{{ shownCount() }}</strong> of {{ total() }} widgets</span>
+    @if (isFiltered()) {
+      <button class="link-btn" type="button" (click)="resetFilters()">reset filters</button>
+    }
+    <span class="resultline__spacer"></span>
+    <span class="resultline__hint">Click a row to open it.</span>
+  </div>
+
   @for (group of groups(); track trackByKind($index, group)) {
     <section class="kind-section">
       <div class="kind-section__head" [style.--kind-color]="kindVar(group.kind)">
-        <span class="kind-section__badge">{{ group.meta.label }}</span>
+        <span class="kind-section__name">{{ group.meta.label }}</span>
         <span class="kind-section__answers">“{{ group.meta.answers }}”</span>
         @if (group.meta.aiNovel) { <span class="kind-section__novel">AI-novel ★</span> }
+        <span class="kind-section__spacer"></span>
+        <span class="kind-section__count">{{ group.entries.length }}</span>
         <p class="kind-section__blurb">{{ group.meta.blurb }}</p>
       </div>
 
-      <div class="widget-grid">
-        @for (widget of group.widgets; track trackByType($index, widget)) {
-          <article class="widget-card" [style.--kind-color]="kindVar(widget.kind)">
-            <div class="widget-card__top">
-              <h3 class="widget-card__title">{{ widget.title }}</h3>
-              <span class="widget-card__status" [attr.data-status]="widget.status">{{ statusLabel(widget.status) }}</span>
-            </div>
+      <div class="rows">
+        @for (entry of group.entries; track trackByEntry($index, entry)) {
+          <article
+            class="row"
+            [class.is-open]="isExpanded(entry)"
+            [style.--kind-color]="kindVar(entry.widget.kind)">
 
-            <div class="widget-card__meta">
-              <span class="widget-card__kind">{{ kindMeta[widget.kind].label }}</span>
-              <span class="widget-card__gran">{{ widget.granularity }}</span>
-              <span class="widget-card__prov"
-                    [style.--prov-color]="provVar(widget.dataSource)"
-                    [title]="provMeta[widget.dataSource].blurb">{{ provMeta[widget.dataSource].label }}</span>
-              @if (widget.catalogId) { <span class="widget-card__id">{{ widget.catalogId }}</span> }
-            </div>
+            <!-- Compact head — the whole line is the target. -->
+            <div
+              class="row__head"
+              role="button"
+              tabindex="0"
+              [attr.aria-expanded]="isExpanded(entry)"
+              (click)="toggleExpanded(entry)"
+              (keydown.enter)="toggleExpanded(entry)"
+              (keydown.space)="toggleExpanded(entry)">
+              <span class="row__stripe"></span>
+              <span class="row__title">{{ entry.widget.title }}</span>
 
-            <p class="widget-card__desc">{{ widget.description }}</p>
-            <p class="widget-card__promise"><strong>You can:</strong> {{ widget.promise }}</p>
-
-            <!-- Preview -->
-            <div class="widget-card__preview">
-              @if (isLive(widget)) {
-                <div class="preview-frame preview-frame--live">
-                  <app-panel-plugin-host [panel]="previewPanel(widget)"></app-panel-plugin-host>
-                </div>
-              } @else {
-                <div class="preview-frame preview-frame--schematic" [attr.data-kind]="widget.kind">
-                  <span class="schematic__bar schematic__bar--head"></span>
-                  <span class="schematic__bar"></span>
-                  <span class="schematic__bar schematic__bar--short"></span>
-                  <span class="schematic__label">{{ widget.type || widget.catalogId }}</span>
-                </div>
+              @if (entry.variants.length > 1) {
+                <span class="pill pill--variant">{{ entry.variants.length }} variants</span>
               }
-              @if (canPreviewLive(widget)) {
-                <button class="preview-toggle" type="button" (click)="toggleLive(widget)">
-                  {{ isLive(widget) ? 'Show schematic' : 'Live preview' }}
-                </button>
-              } @else {
-                <span class="preview-toggle preview-toggle--disabled">no component yet</span>
+              @if (entry.widget.catalogId) {
+                <span class="pill pill--id">{{ entry.widget.catalogId }}</span>
               }
+              @if (availabilityMismatch(entry.widget)) {
+                <span class="pill pill--drift" title="Registry vs runtime availability disagree">⚠ drift</span>
+              }
+
+              <span class="row__desc">{{ entry.widget.description }}</span>
+
+              <span class="pill pill--prov" [title]="provMeta[entry.widget.dataSource].blurb">
+                <span class="dot" [style.background]="provVar(entry.widget.dataSource)"></span>
+                {{ provMeta[entry.widget.dataSource].label }}
+              </span>
+
+              <span class="row__status">
+                <span class="dot" [style.background]="statusColorVar(entry.widget.status)"></span>
+                {{ statusLabel(entry.widget.status) }}
+              </span>
+
+              <span class="row__chevron" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6.5 L8 10.5 L12 6.5" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
             </div>
 
-            <!-- Per-mode behaviour -->
-            <div class="widget-card__modes">
-              @for (m of modeColumns; track trackByMode($index, m)) {
-                <div
-                  class="mode-row"
-                  [class.is-emphasis]="isEmphasisedMode(m.id)"
-                  [class.is-unavailable]="!availableIn(widget, m.id)">
-                  <span class="mode-row__name">
-                    {{ m.label }} <span class="mode-row__wp">{{ m.wp }}</span>
-                  </span>
-                  <span class="mode-row__body">
-                    @if (availableIn(widget, m.id) && behaviourFor(widget, m.id)) {
-                      {{ behaviourFor(widget, m.id) }}
+            <!-- Expanded detail -->
+            @if (isExpanded(entry)) {
+              <div class="row__body">
+                <div class="row__main">
+                  @if (entry.variants.length > 1) {
+                    <div class="variants">
+                      <span class="variants__label">Variant</span>
+                      @for (v of entry.variants; track trackByWidget($index, v)) {
+                        <button
+                          type="button"
+                          class="variants__btn"
+                          [class.is-active]="isVariantActive(entry, v)"
+                          (click)="pickVariant(entry, v)">
+                          {{ v.variantLabel || v.title }}
+                          @if (v.variantDefault) { <span class="variants__default">default</span> }
+                        </button>
+                      }
+                    </div>
+                  }
+
+                  <p class="promise"><strong>You can:</strong> {{ entry.widget.promise }}</p>
+
+                  <div class="modes">
+                    @if (sameInAllModes(entry.widget)) {
+                      <div class="modes__same">
+                        <span class="pill">All three modes</span>
+                        <span>No mode-specific branching.</span>
+                      </div>
                     } @else {
-                      <span class="mode-row__na">not offered in this mode</span>
+                      @for (m of modeRows(entry.widget); track trackByMode($index, m)) {
+                        <div
+                          class="mode-row"
+                          [class.is-emphasis]="isEmphasisedMode(m.id)"
+                          [class.is-unavailable]="!m.body">
+                          <span class="mode-row__name">
+                            {{ m.label }}<span class="mode-row__sub">{{ m.sublabel }}</span>
+                          </span>
+                          <span class="mode-row__body">
+                            {{ m.body || 'not offered in this mode' }}
+                          </span>
+                        </div>
+                      }
                     }
-                  </span>
-                </div>
-              }
-            </div>
+                  </div>
 
-            <!-- Grounding + links -->
-            <div class="widget-card__foot">
-              <p class="widget-card__grounding"><span>Grounded in:</span> {{ widget.grounding }}</p>
-              @if (widget.spec) {
-                <a class="widget-card__spec" [href]="widget.spec">spec ↗</a>
-              }
-              @if (availabilityMismatch(widget)) {
-                <span class="widget-card__warn" title="Registry availability disagrees with panel-mode-availability.ts">⚠ availability drift</span>
-              }
-            </div>
+                  <p class="grounding"><span>Grounded in:</span> {{ entry.widget.grounding }}</p>
+
+                  <div class="row__actions">
+                    @if (canPreview(entry.widget)) {
+                      <button type="button" class="btn-primary" (click)="openOverlay(entry.widget)">
+                        Open full preview
+                      </button>
+                    } @else {
+                      <span class="btn-disabled">no component yet</span>
+                    }
+                    <span class="pill pill--type">{{ entry.widget.type || entry.widget.catalogId }}</span>
+                    <span class="pill pill--gran">{{ entry.widget.granularity }}</span>
+                    <!-- What the widget may change. Declared per widget, not
+                         derived from `kind` — see WidgetWrites. -->
+                    <span class="pill pill--writes writes-{{ entry.widget.writes }}"
+                          [title]="writesBlurb[entry.widget.writes]">
+                      {{ writesLabel[entry.widget.writes] }}
+                    </span>
+                    @if (entry.widget.spec) {
+                      <a class="spec-link" [href]="entry.widget.spec">spec ↗</a>
+                    }
+                  </div>
+                </div>
+
+                <div class="row__preview">
+                  @if (canPreview(entry.widget)) {
+                    <div class="preview">
+                      <div class="preview__head">
+                        <span>Preview</span>
+                        <code>{{ entry.widget.type }}</code>
+                      </div>
+                      <div class="preview__frame">
+                        <app-panel-plugin-host [panel]="previewPanel(entry.widget)"></app-panel-plugin-host>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="preview preview--empty">
+                      <span class="schematic__bar schematic__bar--head"></span>
+                      <span class="schematic__bar"></span>
+                      <span class="schematic__bar schematic__bar--short"></span>
+                      <span class="schematic__label">not built yet</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           </article>
         }
       </div>
     </section>
   }
 
-  @if (totalShown() === 0) {
+  @if (shownCount() === 0) {
     <div class="gallery__empty">
       No widgets match these filters.
       <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
     </div>
   }
 </div>
+
+<!-- Full-size preview overlay — center widgets (map, view-tabs, marey) are
+     unreadable in a 300px column, which was the main limit of the v1 preview. -->
+@if (overlayWidget(); as w) {
+  <div class="overlay" (click)="closeOverlay()">
+    <div class="overlay__panel" (click)="$event.stopPropagation()">
+      <div class="overlay__head">
+        <span class="overlay__title">{{ w.title }}</span>
+        <code class="overlay__type">{{ w.type }}</code>
+        <span class="overlay__spacer"></span>
+        <button type="button" class="overlay__close" (click)="closeOverlay()" aria-label="Close preview">✕</button>
+      </div>
+      <div class="overlay__body">
+        <app-panel-plugin-host [panel]="previewPanel(w)"></app-panel-plugin-host>
+      </div>
+    </div>
+  </div>
+}

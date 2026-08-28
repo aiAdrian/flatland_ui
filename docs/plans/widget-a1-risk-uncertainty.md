@@ -39,7 +39,7 @@ Data **in** (available now):
 
 | Signal / endpoint | Field used | Role |
 |---|---|---|
-| `store.recommendations` / `getRecommendations` | `confidence` | primary reliability, Recommendation mode |
+| `store.recommendations` / `getRecommendations` | `confidence`, `margin`, `dispersion`, `confidenceBasis` | primary reliability, Recommendation mode. **Since the 2026-08 HMI review** `confidence` is a real confidence — P(option beats the current course), estimated in `recommendation_generator.estimate_confidence` from the branch ensemble — not the option's utility score (that moved to `utilityScore`). Still uncalibrated. |
 | `store.scenarios` / `getScenarios` | `score`, `kpiDeltas` | **dispersion across alternatives** = uncertainty proxy (ensemble-style) |
 | `store.impact` / `getImpact` | `ImpactOption.delta` | per-option consequence spread |
 | `api.whatIfOverride` | `summary` | consequence preview on hover (already used by impact panel) |

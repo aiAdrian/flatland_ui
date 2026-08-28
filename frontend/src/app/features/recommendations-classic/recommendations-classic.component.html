@@ -27,7 +27,7 @@
                (mouseleave)="previewOff(r)">
             <div class="rec-head">
               <span class="ai-badge">AI</span>
-              <span class="confidence">{{ confidencePct(r) }}%</span>
+              <span class="confidence">Konfidenz {{ confidencePct(r) }}%</span>
               @if (remaining(r) !== null) {
                 <span class="countdown">{{ remaining(r) }}s</span>
               }
@@ -42,6 +42,9 @@
             <div class="conf-bar">
               <div class="conf-fill" [style.width]="confidencePct(r) + '%'"></div>
             </div>
+            <!-- HMI review: the bare % was read as a fulfilment quota.
+                 Say what it measures, right where it is shown. -->
+            <p class="conf-caption">Sicherheit, dass diese Option den aktuellen Kurs schlägt</p>
 
             <div class="actions">
               @if (canAcceptRecommendation(r)) {

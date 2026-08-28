@@ -91,4 +91,60 @@ describe('RecommendationsPanelComponent look-ahead pinning', () => {
     expect(cmp.isPinned(orphan)).toBeFalse();
     expect(store.previewScenarioId()).toBeNull();
   });
+
+  // ── Confidence, after the HMI review ("27% = Erfüllungsquote?") ──────────
+  // The card must present confidence as evidence about beating the current
+  // course, never as the option's outcome quality.
+
+  it('does not colour a near-coin-flip confidence as a green light', () => {
+    expect(cmp.confidenceLevel({ ...rec('r', 't', 's'), confidence: 0.52 })).toBe('low');
+    expect(cmp.confidenceLevel({ ...rec('r', 't', 's'), confidence: 0.6 })).toBe('medium');
+    expect(cmp.confidenceLevel({ ...rec('r', 't', 's'), confidence: 0.8 })).toBe('high');
+  });
+
+  it('names the margin and the spread in the evidence line', () => {
+    const note = cmp.confidenceNote({
+      ...rec('r', 't', 's'),
+      confidence: 0.78,
+      margin: 0.26,
+      dispersion: 0.18,
+      confidenceBasis: 'ensemble-margin',
+    });
+    expect(note).toContain('0.26 besser');
+    expect(note).toContain('0.18');
+    expect(note).toContain('nicht kalibriert');
+  });
+
+  it('says so when an option is behind the current course', () => {
+    const note = cmp.confidenceNote({
+      ...rec('r', 't', 's'),
+      confidence: 0.41,
+      margin: -0.09,
+      dispersion: 0.55,
+      confidenceBasis: 'ensemble-margin',
+    });
+    expect(note).toContain('0.09 schlechter');
+    expect(note).toContain('weit auseinander');
+  });
+
+  it('flags a missing ensemble instead of implying one', () => {
+    const note = cmp.confidenceNote({
+      ...rec('r', 't', 's'),
+      confidence: 0.6,
+      margin: 0.1,
+      confidenceBasis: 'prior-only',
+    });
+    expect(note).toContain('keine Vergleichsvarianten');
+  });
+
+  it('falls back to the utility score, not the confidence, for the card score', () => {
+    // No backing scenario → the badge must not silently show a confidence.
+    // Same mapping as the scenario path ([-1,1] → 0–100), so 0.3 → 65, and a
+    // confidence of 0.9 must not leak in as "90".
+    store.scenarios.set([]);
+    store.recommendations.set([
+      { ...rec('r9', 'Orphan', 'scn_missing'), confidence: 0.9, utilityScore: 0.3 },
+    ]);
+    expect(cmp.strategyCards()[0].score).toBe(65);
+  });
 });

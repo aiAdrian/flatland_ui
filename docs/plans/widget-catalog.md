@@ -231,6 +231,18 @@ influence right now (e.g. malfunction duration, other trains under AI control)
 - **Competence-maintenance / AI-free practice phases** — mode/scenario-level
   design (guardian paradox), not a panel.
 
+## Outside this catalog: information-architecture variants
+
+This catalog lists **AI-novel capabilities** (A–D). A widget can also be worth
+building because it rearranges what we already show — those get a spec but no
+catalog id, and are tracked in `core/widgets/widget-catalog.ts` like everything
+else:
+
+- **Trains v2 · Dispositionstabelle** (`agents-table`, first cut, 2026-08-23) —
+  one row per train carrying its situation *and* its action, from the HMI
+  review. Variant of the `agents` role, not a new one.
+  Spec: [`widget-agents-table.md`](widget-agents-table.md).
+
 ## Suggested first wave
 **A1 (Risk & Uncertainty)** + **A2 (Decision log)** + **D1 (allocation display)**
 — together they materialise Trust, make accountability measurable, and surface

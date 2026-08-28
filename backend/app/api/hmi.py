@@ -386,7 +386,13 @@ def get_recommendations(
 
 
 @router.get("/{session_id}/hmi/marey-data")
-def get_marey_data(session_id: str):
+def get_marey_data(
+    session_id: str,
+    kpi_time: float = Query(1.0, ge=0.0, le=1.0, description="KPI priority: time"),
+    kpi_energy: float = Query(0.5, ge=0.0, le=1.0, description="KPI priority: energy"),
+    kpi_platform: float = Query(0.5, ge=0.0, le=1.0, description="KPI priority: platform routing"),
+    kpi_train: float = Query(0.5, ge=0.0, le=1.0, description="KPI priority: train routing"),
+):
     """Combined history + forecast trajectories for Marey-Chart.
     
     For each agent:
@@ -399,6 +405,7 @@ def get_marey_data(session_id: str):
     from app.core.scenario_cache import scenario_cache
     from app.core.override_manager import override_manager
     from app.core.marey_topology import classify_marey_point
+    from app.core.scenario_builder import scoring_weights_from_kpi
     from app.core.tile_resolver import resolve_tile
 
     sess = session_manager.get(session_id)
@@ -429,7 +436,13 @@ def get_marey_data(session_id: str):
     override_hash = hashlib.md5(
         str(sorted(all_overrides.items())).encode()
     ).hexdigest()[:8]
-    cache_key_str = f"{elapsed * 1000 + horizon}:{override_hash}"
+    # The KPI weights are part of the key in /hmi/scenarios, so they must be here
+    # too — without them this endpoint can never hit the entry that endpoint wrote.
+    weights = scoring_weights_from_kpi(kpi_time, kpi_energy, kpi_platform, kpi_train)
+    kpi_hash = hashlib.md5(
+        f"{weights.done:.3f}:{weights.delay:.3f}:{weights.deadlock:.3f}".encode()
+    ).hexdigest()[:6]
+    cache_key_str = f"{elapsed * 1000 + horizon}:{override_hash}:{kpi_hash}"
     
     # Try to get scenario from cache first
     scenarios = scenario_cache.get_scenarios(session_id, cache_key_str)

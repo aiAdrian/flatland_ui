@@ -335,16 +335,6 @@
   background: var(--sbb-color-milk, #f6f6f6);
 }
 
-.right-outlook__empty {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--sbb-color-granite, #686868);
-}
-.right-outlook__empty strong {
-  color: var(--sbb-color-charcoal, #212121);
-}
-
 /* Co-Learning (WP 3.3): reflection tile below the map. Its own Lyne feature
    panel is the single collapse surface (consistent with the other panels):
    collapsed = just the header, open = content that scrolls within a capped
@@ -1583,3 +1573,20 @@
   color: var(--sbb-color-granite);
 }
 
+
+/* A row with an explicit height from the layout designer must keep it. Without
+   this the flex column shrinks it to fit the viewport — the inline height still
+   reads 330px while the row computes to 151px — and `overflow: hidden` then
+   clips the panels instead of the container scrolling. Rows without a set
+   height keep flexing. */
+.runtime-design__row--fixed {
+  flex-shrink: 0;
+}
+
+/* Same rule the hardcoded layout gets from `.three-col.is-behind`: step aside
+   while the closing review owns the screen, but stay in the DOM so returning to
+   the shift does not re-plan the three strategies (~20 s). `!important` because
+   the runtime container sets `display: flex !important` further up. */
+.runtime-design.is-behind {
+  display: none !important;
+}

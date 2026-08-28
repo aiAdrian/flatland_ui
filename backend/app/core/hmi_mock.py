@@ -178,6 +178,7 @@ def generate_recommendations(session_id: str, step: int) -> List[Recommendation]
     sid = f"s_{step // 50}_{seed % 3}"
     aid = str(seed % 5)
     confidence = 0.55 + ((seed >> 6) % 45) / 100.0
+    utility = 0.40 + ((seed >> 3) % 55) / 100.0
     countdown = 15 + (seed % 45)
     return [Recommendation(
         id=f"r_{step // 30}_{seed % 100}",
@@ -186,6 +187,10 @@ def generate_recommendations(session_id: str, step: int) -> List[Recommendation]
         confidence=round(confidence, 2),
         countdownSeconds=countdown,
         scenarioId=sid,
+        utilityScore=round(utility, 2),
+        # Mock data has no branch ensemble behind it — say so rather than
+        # dressing a seeded number up as evidence.
+        confidenceBasis="mock",
     )]
 
 

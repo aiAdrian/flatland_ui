@@ -15,6 +15,7 @@ import {
   DecisionValueAxis,
   actionLabelFor,
 } from './decision-log';
+import type { ActionOrigin } from './dispatch/train-action.service';
 import {
   AppNotification,
   ImpactItem,
@@ -585,6 +586,33 @@ export class SessionStore {
     const idx = ((agent.handle % types.length) + types.length) % types.length;
     return `${types[idx]} (demo)`;
   }
+
+  /** True when this train is disrupted, by whichever field the backend used. */
+  isMalfunctioning(agent: AgentDTO): boolean {
+    return !!agent.is_malfunctioning
+      || (agent.malfunction_remaining ?? 0) > 0
+      || String(agent.state ?? '').toUpperCase().includes('MALFUNCTION');
+  }
+
+  /**
+   * Trains a conflict actually involves: everyone the impact analysis names
+   * (blocked or blocking) plus everyone currently disrupted.
+   *
+   * Lives here rather than in a panel because more than one surface needs the
+   * same answer — the roster's "nur Konflikte" filter and the disposition
+   * table's. Two copies of the definition would be two definitions.
+   */
+  readonly conflictHandles = computed<ReadonlySet<number>>(() => {
+    const handles = new Set<number>();
+    for (const item of this.impact()) {
+      handles.add(item.handle);
+      handles.add(item.blocked_by);
+    }
+    for (const a of this.agents()) {
+      if (this.isMalfunctioning(a)) handles.add(a.handle);
+    }
+    return handles;
+  });
 
   /** True while the AI drives the simulation autonomously (Director / WP 3.4). */
   readonly aiInControl = computed(() => this.interactionMode() === 'director');
@@ -1564,7 +1592,18 @@ export class SessionStore {
     });
   }
 
-  setOverride(handle: number, action: number, owner: DecisionOwner = 'human') {
+  /** Apply an override to one train.
+   *
+   *  Widgets should not call this directly — `TrainActionService` is the doorway
+   *  (core/dispatch/train-action.service.ts). It carries the toggle rule and the
+   *  `origin`, so acting is a visible dependency rather than a side effect of
+   *  having the store injected for reading. */
+  setOverride(
+    handle: number,
+    action: number,
+    owner: DecisionOwner = 'human',
+    origin?: ActionOrigin,
+  ) {
     const s = this.session();
     if (!s) return;
 
@@ -1605,6 +1644,7 @@ export class SessionStore {
       action: actionLabelFor(action),
       aiSuggestion,
       decisionTimeMs: owner === 'human' ? this._closeDecisionWindow(handle) : null,
+      origin,
     });
 
     // Workstream B Tier 1 (deck slide 7): after a human override that deviated
@@ -1669,7 +1709,9 @@ export class SessionStore {
     });
   }
 
-  clearOverride(handle: number, owner: DecisionOwner = 'human') {
+  /** Release the standing override. Same note as `setOverride`: go through
+   *  `TrainActionService`. */
+  clearOverride(handle: number, owner: DecisionOwner = 'human', origin?: ActionOrigin) {
     const s = this.session();
     if (!s) return;
 
@@ -1687,6 +1729,7 @@ export class SessionStore {
       action: 'proceed',
       aiSuggestion: this._currentTopRecommendation(),
       decisionTimeMs: owner === 'human' ? this._closeDecisionWindow(handle) : null,
+      origin,
     });
 
     this.api.clearOverride(s.id, handle).subscribe({

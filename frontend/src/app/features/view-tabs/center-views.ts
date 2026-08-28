@@ -25,8 +25,11 @@ export interface CenterViewDef {
 }
 
 export const CENTER_VIEWS: CenterViewDef[] = [
-  { type: 'flatland-map', label: 'Map', component: FlatlandMapComponent },
-  { type: 'marey', label: 'Marey', component: GraphicTimetableComponent },
+  // Dispatcher vocabulary, asked for in the 2026-08-24 review: the network
+  // view is the Streckenspiegel, the time-distance diagram is the ZWL. These
+  // are the words the operators used; "Map"/"Marey" were ours.
+  { type: 'flatland-map', label: 'Streckenspiegel', component: FlatlandMapComponent },
+  { type: 'marey', label: 'ZWL', component: GraphicTimetableComponent },
   { type: 'timetable', label: 'Timetable', component: TimetableComponent, inputs: () => ({ embedded: true }) },
   {
     type: 'goal-achievement',

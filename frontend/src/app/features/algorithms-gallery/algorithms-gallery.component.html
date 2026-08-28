@@ -1,0 +1,242 @@
+<app-config-shell active="algorithms"></app-config-shell>
+
+<div class="gallery">
+  <div class="gallery__intro">
+    <h1>Algorithm Gallery</h1>
+    <p class="gallery__lead">
+      Every decision algorithm this playground can run, grouped by <em>how it decides</em>.
+      An algorithm is a study condition, so what matters is not its name but what it does
+      when trains contend, where it came from, and whether it may be published.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="gallery__empty">Loading the registry…</div>
+  } @else if (loadError()) {
+    <div class="gallery__error">
+      <strong>{{ loadError() }}</strong>
+      <p>
+        This catalog is read live from <code>GET /policies</code> rather than kept as a
+        second copy in the frontend — so it is always in step with what actually runs,
+        but it needs the backend up.
+      </p>
+    </div>
+  } @else {
+
+    <!-- Governance bar -->
+    <section class="govbar">
+      <span class="govbar__label">Registry</span>
+      <span class="govbar__total">{{ total() }} algorithms</span>
+      <span class="govbar__sep"></span>
+
+      @for (r of roleTally(); track r.id) {
+        <button
+          type="button"
+          class="govbar__stat"
+          [class.is-active]="roleFilter() === r.id"
+          (click)="setRole(roleFilter() === r.id ? 'all' : r.id)">
+          <span class="dot" [style.background]="roleVar(r.id)"></span>{{ r.n }} {{ r.label }}
+        </button>
+      }
+
+      <span class="govbar__spacer"></span>
+
+      <span class="govbar__licences" title="Licence of each algorithm's source">
+        @for (l of licences(); track l.licence) {
+          <span class="pill pill--licence">{{ l.licence }} · {{ l.n }}</span>
+        }
+      </span>
+
+      @if (learnedCount() === 0) {
+        <span class="govbar__gap" title="No learned policy is connected — see docs/reference/">
+          ⚠ nothing learned connected
+        </span>
+      }
+    </section>
+
+    <!-- Facet rail -->
+    <section class="rail">
+      <div class="rail__row">
+        <span class="rail__label">Family</span>
+        <sbb-tag-group multiple size="s" class="rail__tags">
+          <sbb-tag size="s" [checked]="familyFilter().size === 0" (change)="clearFamilies()">
+            All families
+          </sbb-tag>
+          @for (f of familyFacets(); track f.id) {
+            <sbb-tag
+              size="s"
+              [checked]="isFamilyActive(f.id)"
+              [attr.amount]="f.amount"
+              (change)="toggleFamily(f.id)">
+              <span class="dot dot--icon" slot="icon" [style.background]="f.colorVar"></span>
+              {{ f.label }}
+            </sbb-tag>
+          }
+        </sbb-tag-group>
+      </div>
+
+      <div class="rail__divider"></div>
+
+      <div class="rail__row">
+        <span class="rail__label">Role</span>
+        <sbb-tag-group size="s" class="rail__tags">
+          <sbb-tag size="s" [checked]="roleFilter() === 'all'" (change)="setRole('all')">Any role</sbb-tag>
+          @for (f of roleFacets(); track f.id) {
+            <sbb-tag
+              size="s"
+              [checked]="roleFilter() === f.id"
+              [attr.amount]="f.amount"
+              (change)="setRole(f.id)">
+              <span class="dot dot--icon" slot="icon" [style.background]="f.colorVar"></span>
+              {{ f.label }}
+            </sbb-tag>
+          }
+        </sbb-tag-group>
+      </div>
+
+      <div class="rail__row">
+        <span class="rail__label">Behaviour</span>
+        <sbb-tag-group size="s" class="rail__tags">
+          <sbb-tag size="s" [checked]="determinismFilter() === 'all'" (change)="setDeterminism('all')">
+            Any
+          </sbb-tag>
+          <sbb-tag
+            size="s"
+            [checked]="determinismFilter() === 'deterministic'"
+            (change)="setDeterminism('deterministic')">
+            Deterministic
+          </sbb-tag>
+          <sbb-tag
+            size="s"
+            [checked]="determinismFilter() === 'stochastic'"
+            (change)="setDeterminism('stochastic')">
+            Stochastic
+          </sbb-tag>
+        </sbb-tag-group>
+
+        <label class="rail__search">
+          <input
+            type="search"
+            placeholder="name, provenance, grounding, id…"
+            [ngModel]="query()"
+            (ngModelChange)="query.set($event)" />
+        </label>
+      </div>
+    </section>
+
+    <div class="resultline">
+      <span>Showing <strong>{{ shownCount() }}</strong> of {{ total() }} algorithms</span>
+      @if (isFiltered()) {
+        <button class="link-btn" type="button" (click)="resetFilters()">reset filters</button>
+      }
+      <span class="resultline__spacer"></span>
+      <span class="resultline__hint">Click a row to open it.</span>
+    </div>
+
+    @for (group of groups(); track trackByFamily($index, group)) {
+      <section class="family-section">
+        <div class="family-section__head" [style.--family-color]="group.colorVar">
+          <span class="family-section__name">{{ group.label }}</span>
+          <span class="family-section__answers">“{{ group.answers }}”</span>
+          <span class="family-section__spacer"></span>
+          <span class="family-section__count">{{ group.entries.length }}</span>
+          <p class="family-section__blurb">{{ group.blurb }}</p>
+        </div>
+
+        <div class="rows">
+          @for (p of group.entries; track trackByPolicy($index, p)) {
+            <article
+              class="row"
+              [class.is-open]="isExpanded(p)"
+              [style.--family-color]="familyVar(p.family)">
+
+              <div
+                class="row__head"
+                role="button"
+                tabindex="0"
+                [attr.aria-expanded]="isExpanded(p)"
+                (click)="toggleExpanded(p)"
+                (keydown.enter)="toggleExpanded(p)"
+                (keydown.space)="toggleExpanded(p)">
+                <span class="row__stripe"></span>
+                <span class="row__title">{{ p.label }}</span>
+
+                @if (p.is_default) { <span class="pill pill--default">default</span> }
+                @if (!p.show_in_ui) { <span class="pill pill--hidden">hidden in UI</span> }
+                @if (!p.supports_scenarios) {
+                  <span class="pill pill--noscenario" title="Not offered for what-if branching">no what-if</span>
+                }
+
+                <span class="row__desc">{{ p.description }}</span>
+
+                <span class="pill pill--det">{{ p.deterministic ? 'deterministic' : 'stochastic' }}</span>
+
+                <span class="row__role">
+                  <span class="dot" [style.background]="roleVar(p.role)"></span>{{ roleMeta[p.role].label }}
+                </span>
+
+                <span class="row__chevron" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 6.5 L8 10.5 L12 6.5" stroke="currentColor" stroke-width="1.5"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+              </div>
+
+              @if (isExpanded(p)) {
+                <div class="row__body">
+                  <div class="row__main">
+                    <p class="at-conflict">
+                      <strong>At a conflict:</strong> {{ p.at_conflict || '—' }}
+                    </p>
+
+                    <dl class="facts">
+                      <div class="facts__row">
+                        <dt>Role</dt>
+                        <dd>{{ roleMeta[p.role].label }} — {{ roleMeta[p.role].blurb }}</dd>
+                      </div>
+                      <div class="facts__row">
+                        <dt>Observation</dt>
+                        <dd><code>{{ p.observation }}</code></dd>
+                      </div>
+                      <div class="facts__row">
+                        <dt>What-if</dt>
+                        <dd>
+                          {{ p.supports_scenarios
+                            ? 'Available for scenario branching — cheap enough to fork per what-if.'
+                            : 'Not offered for branching (too expensive to re-run per fork, or stateful across the episode).' }}
+                        </dd>
+                      </div>
+                      <div class="facts__row">
+                        <dt>Provenance</dt>
+                        <dd>{{ p.provenance || '—' }}</dd>
+                      </div>
+                      <div class="facts__row">
+                        <dt>Licence</dt>
+                        <dd><span class="pill pill--licence">{{ p.licence }}</span></dd>
+                      </div>
+                    </dl>
+
+                    <p class="grounding"><span>Grounded in:</span> {{ p.grounding || '—' }}</p>
+
+                    <div class="row__actions">
+                      <span class="pill pill--type">{{ p.id }}</span>
+                      <span class="pill pill--family">{{ familyMeta[p.family].label }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (shownCount() === 0) {
+      <div class="gallery__empty">
+        No algorithms match these filters.
+        <button class="link-btn" type="button" (click)="resetFilters()">reset</button>
+      </div>
+    }
+  }
+</div>

@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { EventBusService } from '../../core/events/event-bus.service';
 import { LayerVisibility } from '../../core/events/event-types';
@@ -18,6 +18,16 @@ import { LayerVisibility } from '../../core/events/event-types';
 export class LayerVisibilityComponent {
   store = inject(SessionStore);
   bus = inject(EventBusService);
+
+  /** Symbol key for the map. HMI review: "Was bedeuten die Icons? Sie
+   *  waren vorher nicht sichtbar." — toggling a layer on made glyphs appear
+   *  that nothing on screen explained. Closed by default so it costs no space
+   *  until asked for. */
+  readonly legendOpen = signal(false);
+
+  toggleLegend(): void {
+    this.legendOpen.update((v) => !v);
+  }
 
   toggle(layer: keyof LayerVisibility) {
     const cur = this.store.layerVisibility();

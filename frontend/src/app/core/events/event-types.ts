@@ -110,9 +110,19 @@ export interface Recommendation {
   id: string;
   title: string;
   description: string;
+  /** 0..1 — estimated P(this option beats the course currently being flown).
+   *  NOT a measure of how good the outcome is; that is `utilityScore`. */
   confidence: number;
   countdownSeconds: number;
   scenarioId?: string;
+  /** 0..1 — outcome quality on the weighted KPI scale the sliders define. */
+  utilityScore?: number;
+  /** Option score minus current-course score (the evidence for `confidence`). */
+  margin?: number;
+  /** Spread of scores across the evaluated policies (how much they disagree). */
+  dispersion?: number;
+  /** Provenance of `confidence`: 'ensemble-margin' | 'prior-only' | 'mock'. */
+  confidenceBasis?: string;
 }
 
 /** One tactical option for an affected train. */

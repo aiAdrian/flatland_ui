@@ -1,6 +1,11 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
 
-export type ConfigArea = 'dispatcher' | 'designer' | 'infrastructure-builder' | 'widgets';
+export type ConfigArea =
+  | 'dispatcher'
+  | 'designer'
+  | 'infrastructure-builder'
+  | 'widgets'
+  | 'algorithms';
 
 interface AreaLink {
   id: ConfigArea;
@@ -14,6 +19,7 @@ const AREA_LINKS: AreaLink[] = [
   { id: 'designer', label: 'Layout Designer', href: '/designer', icon: 'grid-small' },
   { id: 'infrastructure-builder', label: 'Infrastructure Builder', href: '/infrastructure-builder', icon: 'map-small' },
   { id: 'widgets', label: 'Widgets Gallery', href: '/widgets', icon: 'apps-small' },
+  { id: 'algorithms', label: 'Algorithm Gallery', href: '/algorithms', icon: 'circle-information-small' },
 ];
 
 /**
@@ -60,6 +66,7 @@ export class ConfigShellComponent {
     designer: 'Layout Designer',
     'infrastructure-builder': 'Infrastructure Builder',
     widgets: 'Widget Gallery',
+    algorithms: 'Algorithm Gallery',
   };
 
   get subtitle(): string {

@@ -28,7 +28,6 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 |----------------|:--------------:|:-----------:|:--------:|
 | `situation-summary` | ● | ● | ● |
 | `notifications` | ● | ● | ● |
-| `agents` (`agents-list`) | ● | ● | ● |
 | `flatland-map` | ● | ● | ● |
 | `graphic-timetable` (`marey`) | ● | ● | ● |
 | `agent-inspector` | ● | ● | ● |
@@ -36,13 +35,41 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `whatif-compare` | ● | ● | ● read-only (no Commit) |
 | `risk-uncertainty` | ● | ● | ● read-only |
 | `decision-log` | ● | ● | ● |
-| `scenario` | ○ | ◐ collapsed | ◐ collapsed |
-| `kpi-filter` | ○ | ○ | ○ |
-| `director-weights` | ○ | ○ | ● |
+| `scenario` | ○ | ● neutral compare surface | ○ |
+| `agents` (`agents-list`) | ● | ● | ○ |
+| `agents-table` | ● | ● | ○ |
 | `recommendations` | ● | ○ | ○ |
+| `recommendations-classic` (v1) | ● | ○ | ○ |
 | `co-learning-reflection` | ○ | ● | ○ |
-| `goal-achievement` | ○ | ○ | ● |
 | `director-directive` | ○ | ○ | ● |
+| `strategy-options` | ○ | ○ | ● A/B/C window |
+| `strategy-forecast` | ○ | ○ | ● |
+| `strategy-reflection` | ○ | ○ | ● |
+| `ai-activity` | ○ | ○ | ● |
+| `co-learning-effect` | ○ | ○ | ● *(named for Co-Learning, offered only in Director — deliberate gap)* |
+| `shift-review` | ○ | ○ | ● |
+| `kpi-filter` | ○ | ○ | ○ *(offered in no mode; `kpiPriorities` stays at defaults)* |
+| `director-weights` | ○ | ○ | ○ *(superseded by the A/B/C tiles)* |
+| `goal-achievement` | ○ | ○ | ○ *(superseded by the A/B/C tiles; kept wired)* |
+
+> **Empty ≠ absent.** `kpi-filter`, `director-weights` and `goal-achievement` are
+> offered in *no* mode: they stay registered and wired, so re-enabling one is a
+> config flip, but no default layout surfaces them. A panel type absent from the
+> map entirely is available *everywhere*.
+>
+> `agents-table` is **v2 of the `agents` role** (docs/plans/widget-agents-table.md),
+> so it inherits the role's availability exactly — a variant that quietly changed
+> which modes offer it would make the role meaningless. Its per-mode *behaviour*
+> does differ, through `optionPresentation()`: in Recommendation the AI's
+> recommendation for a train is starred in its row (sourced from the impact
+> analysis, the only real per-train recommendation there is); in Co-Learning the
+> options are rendered as equal choices with no preferred marking.
+>
+> The `agents` row lost Director: the Director supervises objectives while the AI
+> owns individual trains, so a per-train table is noise there.
+>
+> Generated from `frontend/src/app/core/layout/panel-mode-availability.ts`
+> (checked 2026-08-19). That file is the source of truth; this table documents it.
 
 ## Behaviour per mode
 
