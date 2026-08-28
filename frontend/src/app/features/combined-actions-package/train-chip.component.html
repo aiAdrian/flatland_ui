@@ -1,0 +1,9 @@
+<span
+  class="tc"
+  [class.is-dragging]="dragging"
+  [class.is-moved]="moved"
+  [attr.title]="title()"
+>
+  <span class="tc-id">{{ id() }}</span>
+  <span class="tc-grip" aria-hidden="true">⠿</span>
+</span>

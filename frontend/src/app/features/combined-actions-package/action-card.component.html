@@ -1,0 +1,184 @@
+@if (ai(); as aiAction) {
+  <article
+    class="ac"
+    [class.is-recommended]="aiAction.recommended"
+    [class.is-modified]="modified()"
+    [class.is-confirmed]="isConfirmed()"
+    [class.is-locked]="isLocked()"
+    [class.is-on-map]="showingOnMap"
+    (click)="takeFocus()"
+  >
+    <header class="ac-head">
+      <!-- Reordering never changes *which* trains are controlled, only their
+           order, so this count comes from the proposal and is always present. -->
+      <span class="ac-ident">{{ aiAction.metrics.controlledTrains }}</span>
+      <span class="ac-summary">Züge gesteuert</span>
+      @for (badge of badges(); track badge) {
+        <span
+          class="ac-badge"
+          [class.ac-badge--human]="badge === 'Vom Dispatcher geändert'"
+        >{{ badge }}</span>
+      }
+      @if (showingOnMap) {
+        <span class="ac-badge ac-badge--map">auf der Karte</span>
+      }
+    </header>
+
+    <app-ca-pkg-sequence
+      [order]="order()"
+      [aiOrder]="aiAction.action.sequence"
+      [disabled]="readOnly()"
+      (reorder)="onReorder($event)"
+    ></app-ca-pkg-sequence>
+
+    @if (current(); as evaluated) {
+      <app-ca-pkg-metrics
+        [metrics]="evaluated.metrics"
+        [aiMetrics]="aiAction.metrics"
+        [baselineDelay]="baselineDelay()"
+        [status]="status()"
+        [modified]="modified()"
+        [previousMinutes]="previousMinutes()"
+      ></app-ca-pkg-metrics>
+
+      <!-- Review before confirm: an action that reorders a junction changes trains
+           nobody dispatched, and those are listed here rather than buried. -->
+      <button
+        type="button"
+        class="ac-review-toggle"
+        [attr.aria-expanded]="reviewOpen()"
+        (click)="toggleReview()"
+      >
+        {{ reviewOpen() ? '▾' : '▸' }} Auswirkungen ansehen
+        <span class="ac-review-count">
+          {{ evaluated.metrics.affectedTrains }} Züge betroffen
+        </span>
+      </button>
+
+      @if (reviewOpen() && status() === 'ready') {
+        <div class="ac-review">
+          <div class="ac-review__group">
+            <span class="ac-review__label">Gesteuert</span>
+            @for (row of controlledImpacts(); track row.train) {
+              <span class="ac-row">
+                <span class="ac-row__train">{{ row.train }}</span>
+                <span
+                  class="ac-row__impact"
+                  [class.is-gain]="row.impact < 0"
+                  [class.is-loss]="row.impact > 0"
+                >{{ row.impact > 0 ? '+' : '' }}{{ row.impact }} min</span>
+              </span>
+            }
+          </div>
+
+          @if (sideEffects().length > 0) {
+            <div class="ac-review__group">
+              <span class="ac-review__label">
+                Nicht gesteuert, aber betroffen
+              </span>
+              @for (row of sideEffects(); track row.train) {
+                <span class="ac-row">
+                  <span class="ac-row__train">{{ row.train }}</span>
+                  <span
+                    class="ac-row__impact"
+                    [class.is-gain]="row.impact < 0"
+                    [class.is-loss]="row.impact > 0"
+                  >{{ row.impact > 0 ? '+' : '' }}{{ row.impact }} min</span>
+                </span>
+              }
+            </div>
+          }
+
+          @if (evaluated.metrics.unchanged.length > 0) {
+            <p class="ac-review__rest">
+              Unberührt: {{ evaluated.metrics.unchanged.join(', ') }}
+            </p>
+          }
+        </div>
+      }
+    }
+
+    <!-- How the trains actually run under this action, including the ones nobody
+         dispatched. Separate from the impact figures: that panel says how much,
+         this one says what happens. -->
+    <button
+      type="button"
+      class="ac-review-toggle"
+      [attr.aria-expanded]="planOpen()"
+      (click)="togglePlan()"
+    >
+      {{ planOpen() ? '▾' : '▸' }} Umleitung im Detail
+      <span class="ac-review-count">{{ plan().length }} Züge in der Reihenfolge</span>
+    </button>
+
+    @if (planOpen() && status() === 'ready') {
+      <ol class="ac-plan">
+        @for (step of plan(); track step.train) {
+          <li class="ac-plan__step" [class.is-controlled]="step.role === 'controlled'">
+            <span class="ac-plan__train">{{ step.train }}</span>
+            <span class="ac-plan__what">
+              @if (step.command === 'proceed') {
+                fährt zuerst durch den Abschnitt
+              } @else {
+                hält, bis {{ step.after }} frei ist
+                @if (step.waitMinutes > 0) {
+                  · wartet {{ step.waitMinutes }} min
+                }
+              }
+              @if (step.role === 'controlled') {
+                <span class="ac-plan__tag">gesteuert</span>
+              } @else {
+                <span class="ac-plan__tag ac-plan__tag--baseline">nach Fahrplan</span>
+              }
+            </span>
+            <span
+              class="ac-plan__delay"
+              [class.is-gain]="step.delayAfter < step.delayBefore"
+              [class.is-loss]="step.delayAfter > step.delayBefore"
+            >{{ step.delayBefore }} → {{ step.delayAfter }} min</span>
+          </li>
+        }
+      </ol>
+    }
+
+    <footer class="ac-actions">
+      @if (isConfirmed()) {
+        <span class="ac-applied" role="status">Diese Maßnahme ist gewählt</span>
+        <button type="button" class="ac-btn" (click)="revoke()">
+          Auswahl aufheben
+        </button>
+      } @else if (isLocked()) {
+        <span class="ac-locked">Eine andere Maßnahme ist gewählt</span>
+      } @else if (isArmed()) {
+        <!-- The second press. Deliberately worded as a question: the first press
+             was interest, this one is the commitment. -->
+        <span class="ac-arm-question">Diese Maßnahme übernehmen?</span>
+        <button
+          type="button"
+          class="ac-btn ac-btn--apply"
+          (click)="confirmFinal()"
+        >
+          Endgültig bestätigen
+        </button>
+        <button type="button" class="ac-btn" (click)="cancelArm()">Abbrechen</button>
+      } @else {
+        <button
+          type="button"
+          class="ac-btn"
+          [disabled]="!modified()"
+          (click)="reset()"
+        >
+          Zurücksetzen
+        </button>
+        <button
+          type="button"
+          class="ac-btn ac-btn--apply"
+          [disabled]="status() === 'updating'"
+          (click)="arm()"
+        >
+          Bestätigen
+        </button>
+      }
+    </footer>
+  </article>
+}

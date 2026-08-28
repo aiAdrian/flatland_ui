@@ -343,8 +343,91 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
   },
 };
 
+/**
+ * Combined Actions · Package variant — the second answer to the same problem.
+ *
+ * Roman's variant is not a different *mode*, it is a different interface to the
+ * same decision, so it gets a layout rather than a fourth `InteractionMode`.
+ * The reading order is its argument: what is wrong on the left, the network in
+ * the middle, the one action that answers it on the right — the dispatcher
+ * reads left to right, from problem to remedy, instead of meeting three options
+ * before knowing what they are for.
+ *
+ * The left column is wider than the demo preset's 24 %: the problem overview is
+ * prose-shaped, and below ~28 % its sentences wrapped every three words.
+ */
+const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
+  id: 'preset-combined-actions-package',
+  name: 'Combined Actions · Package variant',
+  purpose: 'Problem links, Netz/ZWL in der Mitte, rechts ein einzelnes Aktionspaket zum Umsortieren und Bestätigen.',
+  layout: {
+    columns: [
+      {
+        id: 'preset-cap-problem',
+        rowId: 'preset-cap-row',
+        name: 'Problem',
+        width: 28,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-cap-overview',
+            type: 'problem-overview',
+            title: 'Problem Overview',
+            expanded: true,
+            collapsible: true,
+            minHeight: 200,
+          },
+          {
+            id: 'preset-cap-situation',
+            type: 'situation-summary',
+            title: 'Situation Summary',
+            expanded: true,
+            collapsible: true,
+            minHeight: 110,
+          },
+        ],
+      },
+      {
+        id: 'preset-cap-network',
+        rowId: 'preset-cap-row',
+        name: 'Netz & ZWL',
+        width: 44,
+        role: 'main',
+        panels: [
+          {
+            id: 'preset-cap-views',
+            type: 'view-tabs',
+            title: 'Streckenspiegel & ZWL',
+            expanded: true,
+            collapsible: true,
+            minHeight: 320,
+          },
+        ],
+      },
+      {
+        id: 'preset-cap-action',
+        rowId: 'preset-cap-row',
+        name: 'Aktion',
+        width: 28,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-cap-package',
+            type: 'combined-actions-package',
+            title: 'Combined Actions',
+            expanded: true,
+            collapsible: true,
+            minHeight: 420,
+          },
+        ],
+      },
+    ],
+  },
+};
+
 export const LAYOUT_PRESETS: readonly LayoutPreset[] = [
   COLEARNING_STUDY2,
   RECOMMENDATION_STUDY2,
   COMBINED_ACTIONS_DEMO,
+  COMBINED_ACTIONS_PACKAGE,
 ];

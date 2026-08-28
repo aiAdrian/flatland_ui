@@ -153,6 +153,16 @@ export class SessionStore {
    */
   readonly combinedActionPreview = signal<CombinedActionPreview | null>(null);
 
+  /** Trains an action package is currently holding the operator's attention on.
+   *
+   *  The package variant of Combined Actions marks *which* trains an action
+   *  takes hold of rather than a full consequence preview: its conflict window
+   *  is a fixture, so drawing a rerouted path would be a claim it cannot make.
+   *  Kept beside `combinedActionPreview` rather than folded into it — the two
+   *  variants say different things, and collapsing them would force one to
+   *  pretend to the other's precision. */
+  readonly combinedActionHandles = signal<ReadonlySet<number>>(new Set());
+
   setCombinedActionPreview(preview: CombinedActionPreview | null): void {
     this.combinedActionPreview.set(preview);
   }

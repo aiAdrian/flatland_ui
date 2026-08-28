@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.im {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.im-primary {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--app-positive);
+}
+
+.im-arrow {
+  font-size: 12px;
+}
+
+.im-minutes {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.im-unit {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+/* The pending state occupies the same line, so the card does not jump. */
+.im-pending {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--sbb-color-granite);
+}
+
+.im-delta {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-severity-warn);
+}
+
+.im-meta,
+.im-compare,
+.im-source {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.im-compare {
+  font-variant-numeric: tabular-nums;
+}
+
+.im-source {
+  font-style: italic;
+}

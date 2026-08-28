@@ -26,6 +26,8 @@ import { FlatlandMapComponent } from '../../../flatland-map/flatland-map.compone
 import { GraphicTimetableComponent } from '../../../graphic-timetable/graphic-timetable.component';
 import { SituationSummaryComponent } from '../../../situation-summary/situation-summary.component';
 import { CombinedActionsComponent } from '../../../combined-actions/combined-actions.component';
+import { CombinedActionsPackageComponent } from '../../../combined-actions-package/combined-actions.component';
+import { ProblemOverviewComponent } from '../../../combined-actions-package/problem-overview.component';
 
 import { AgentInspectorComponent } from '../../../agent-inspector/agent-inspector.component';
 import { GoalAchievementPanelComponent } from '../../../../shared/layout/panels/goal-achievement-panel/goal-achievement-panel.component';
@@ -72,6 +74,8 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     GraphicTimetableComponent,
     SituationSummaryComponent,
     CombinedActionsComponent,
+    CombinedActionsPackageComponent,
+    ProblemOverviewComponent,
   ],
   templateUrl: './panel-plugin-host.component.html',
   styleUrl: './panel-plugin-host.component.scss',

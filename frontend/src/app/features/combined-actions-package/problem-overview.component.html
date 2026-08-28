@@ -1,0 +1,61 @@
+<section class="po" aria-label="Aktuelles Problem">
+  <header class="po-head">
+    <span class="po-badge" aria-hidden="true">!</span>
+    <span class="po-title">Aktuelles Problem</span>
+  </header>
+
+  <p class="po-where">{{ window().location }}</p>
+  <p class="po-why">{{ window().reason }}</p>
+
+  <div class="po-kpis">
+    <span class="po-kpi">
+      <span class="po-kpi__value">{{ baseline().totalDelay }}</span>
+      <span class="po-kpi__label">min Verspätung ohne Eingriff</span>
+    </span>
+    <span class="po-kpi">
+      <span class="po-kpi__value">{{ trainsLate() }} / {{ rows().length }}</span>
+      <span class="po-kpi__label">Züge verspätet</span>
+    </span>
+    <span class="po-kpi">
+      <span class="po-kpi__value">{{ window().horizonMinutes }}</span>
+      <span class="po-kpi__label">min Horizont</span>
+    </span>
+  </div>
+
+  @if (worst(); as w) {
+    <p class="po-worst">
+      Am stärksten betroffen: <strong>{{ w.train }}</strong> mit
+      {{ w.delay }} min — steht als {{ w.position }}. in der Reihenfolge hinter
+      allen längeren Zügen.
+    </p>
+  }
+
+  <!-- The queue as the timetable would run it. This is the thing the actions
+       below rearrange, so it has to be visible to judge them. -->
+  <table class="po-table">
+    <caption class="po-caption">Reihenfolge nach Fahrplan</caption>
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Zug</th>
+        <th scope="col">bringt mit</th>
+        <th scope="col">belegt</th>
+        <th scope="col">Verspätung</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.train) {
+        <tr [class.is-worst]="row.delay === worst().delay && row.delay > 0">
+          <td>{{ row.position }}</td>
+          <td class="po-train">
+            {{ row.train }}
+            <span class="po-service">{{ row.service }}</span>
+          </td>
+          <td>{{ row.entryDelay }} min</td>
+          <td>{{ row.headway }} min</td>
+          <td class="po-delay" [class.is-late]="row.delay > 0">{{ row.delay }} min</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
