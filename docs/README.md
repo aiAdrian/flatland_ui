@@ -98,7 +98,7 @@ Experiment design and scenario material.
 Dated records of tasks handed to other agents/models, with the brief and the review outcome. Kept for reflection.
 
 - [2026-07-11-mvp-rationale-capture-glm.md](delegation/2026-07-11-mvp-rationale-capture-glm.md) — Workstream B Tier 1 built by GLM 5.2; reviewed + live-verified
-- [2026-07-11-gallery-fixture-previews-glm.md](delegation/2026-07-11-gallery-fixture-previews-glm.md) — fixture-backed live previews in the Widget Gallery
+- [2026-07-11-gallery-fixture-previews-glm.md](delegation/2026-07-11-gallery-fixture-previews-glm.md) — fixture-backed live previews in the Widget Gallery; delegated to GLM 5.2
 
 ## archive/ — one-off artefacts
 Prompts, superseded analyses and finished discussion material. Kept for provenance; **not maintained**.
