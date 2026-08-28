@@ -59,6 +59,46 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "agents": 6,
         "source": "flatland-association/ecml2026-starterkit",
     },
+    # Olten — a real Swiss network, taken verbatim from the MIT-licensed
+    # `flatland-association/flatland-scenarios` (see fixtures/olten/SOURCE.md).
+    # The first scenarios here that nobody on this project authored, which is
+    # the point: the PF-CH scenes are built from a Gleisschema by hand, and a
+    # study wants at least one environment it did not design its own answer for.
+    # They also carry a timetable dense enough for transfers to exist — 171
+    # planned connections against the hand-built corridor's 66 — so the
+    # Combined Actions transfers axis has real data rather than authored data.
+    "olten": {
+        "id": "olten",
+        "name": "Olten — undisrupted",
+        "kind": ENV_PRESET,
+        "path": _FIXTURES / "olten" / "olten.pkl",
+        "width": 35,
+        "height": 60,
+        "agents": 52,
+        "source": "flatland-association/flatland-scenarios (MIT)",
+    },
+    "olten-disrupted": {
+        "id": "olten-disrupted",
+        "name": "Olten — disrupted",
+        "kind": ENV_PRESET,
+        "path": _FIXTURES / "olten" / "olten_disrupted.pkl",
+        "width": 35,
+        "height": 60,
+        "agents": 52,
+        "source": "flatland-association/flatland-scenarios (MIT)",
+    },
+    "olten-partially-closed": {
+        "id": "olten-partially-closed",
+        "name": "Olten — partially closed",
+        "kind": ENV_PRESET,
+        "path": _FIXTURES / "olten" / "olten_partially_closed.pkl",
+        "width": 35,
+        "height": 60,
+        "agents": 52,
+        # The variant the WP4 orchestrator playground runner loads, so results
+        # here are the ones comparable to the validation campaign's.
+        "source": "flatland-association/flatland-scenarios (MIT)",
+    },
     "pf-ch-corridor": {
         "id": "pf-ch-corridor",
         "name": "PF–CH corridor (double track)",
