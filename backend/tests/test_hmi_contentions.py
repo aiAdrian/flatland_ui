@@ -164,3 +164,40 @@ def test_contentions_always_states_its_horizon():
     sid_pfch = _make_pfch_session()
     _drive(sid_pfch, 8)
     assert _horizon(client.get(f"/session/{sid_pfch}/hmi/contentions")) == _CONTENTION_MAX_STEPS
+
+
+def test_group_contentions_merges_transitive_chain():
+    """Conflicts that only share a handle *transitively* are one contention.
+
+    A stalled queue emits one event per stopped train, and two of them can name
+    disjoint pairs that a third one joins. Grouping while the unions are still
+    being made keyed the first two by roots that went stale, so the contention
+    split across several groups — with the shared train in each of them, which
+    is what the grouping exists to prevent.
+    """
+    from app.api.hmi import _group_contentions
+    from app.core.conflict_detector import Conflict
+
+    groups = _group_contentions([
+        Conflict(kind="blocked", step=10, agents=[0, 1], position=(2, 50)),
+        Conflict(kind="blocked", step=11, agents=[2, 3], position=(2, 60)),
+        Conflict(kind="blocked", step=12, agents=[1, 2], position=(2, 55)),
+    ])
+
+    assert len(groups) == 1
+    assert groups[0]["handles"] == [0, 1, 2, 3]
+    assert groups[0]["step"] == 10, "the group carries its earliest conflict"
+
+
+def test_group_contentions_keeps_unrelated_contentions_apart():
+    """Merging must not go the other way: two contentions sharing no train
+    stay two groups, most-urgent first."""
+    from app.api.hmi import _group_contentions
+    from app.core.conflict_detector import Conflict
+
+    groups = _group_contentions([
+        Conflict(kind="blocked", step=20, agents=[7, 8], position=(2, 90)),
+        Conflict(kind="blocked", step=10, agents=[0, 1], position=(2, 50)),
+    ])
+
+    assert [g["handles"] for g in groups] == [[0, 1], [7, 8]]

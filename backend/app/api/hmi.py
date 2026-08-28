@@ -178,17 +178,25 @@ def _group_contentions(conflicts) -> list[dict]:
         if ra != rb:
             parent[ra] = rb
 
-    groups: dict[int, list] = {}
-    for c in conflicts:
-        if c.kind not in _CONTENTION_KINDS:
-            continue
+    # Two passes, and the second one is not optional: a root found while the
+    # unions are still being made goes stale the moment a later conflict joins
+    # its component to another. Keying the groups during the first pass split
+    # one contention across several groups — with a train in both, since its
+    # handle is in each conflict it appears in. Union everything first, then
+    # key by the settled root.
+    relevant = [
+        c for c in conflicts
+        if c.kind in _CONTENTION_KINDS and len({int(h) for h in c.agents}) >= 2
+        # a single stopped train is a delay, not a contention
+    ]
+    for c in relevant:
         agents = [int(h) for h in c.agents]
-        if len(agents) < 2:
-            continue  # a single stopped train is a delay, not a contention
         for h in agents:
             union(agents[0], h)
-        root = find(agents[0])
-        groups.setdefault(root, []).append(c)
+
+    groups: dict[int, list] = {}
+    for c in relevant:
+        groups.setdefault(find(int(c.agents[0])), []).append(c)
 
     out: list[dict] = []
     for cs in groups.values():
