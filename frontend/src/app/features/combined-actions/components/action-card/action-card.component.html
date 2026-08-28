@@ -53,7 +53,11 @@
     (reorder)="onReorder($event)"
   ></app-train-sequence>
 
-  @if (expanded && changeSummary(); as summary) {
+  <!-- Also on a collapsed card: the badge says *that* the operator changed this
+       one, and without the sentence they would have to open it again to recall
+       *what* they changed. It costs a line only on cards they actually edited,
+       and the fuller AI-vs-yours diff above stays expanded-only. -->
+  @if (changeSummary(); as summary) {
     <p class="ac__change">{{ summary }}</p>
   }
 
