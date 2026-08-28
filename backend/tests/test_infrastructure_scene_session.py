@@ -228,3 +228,46 @@ def test_session_api_uses_payload_infrastructure_scene_instead_of_random_generat
     assert state["infrastructure_scene_id"] == "probe_scene"
     assert state["infrastructure_scene_diagnostics"]["rail_cell_count"] == 6
     assert state["infrastructure_scene_diagnostics"]["routable_agent_count"] == 1
+
+def test_scene_via_stops_become_intermediate_waypoints():
+    """A scene agent's `via` list turns into waypoint groups between the ends.
+
+    Flatland's `agent_waypoints` is a list of *groups*; a scheduled stop is
+    another group. Without `via` the line stays the two groups every scene
+    authored before the field produces — asserted here so the field cannot
+    quietly change existing scenes.
+    """
+    from app.core.infrastructure_scene_adapter import scene_to_line_generator
+
+    scene = _straight_scene()
+    plain = scene_to_line_generator(scene).generate(None, 1)
+    assert len(plain.agent_waypoints[0]) == 2
+
+    with_stops = _straight_scene()
+    with_stops["agents"][0]["via"] = [
+        {"cellId": "cell_3_2", "x": 3, "y": 2},
+        {"cellId": "cell_5_2", "x": 5, "y": 2},
+    ]
+    line = scene_to_line_generator(with_stops).generate(None, 1)
+    groups = line.agent_waypoints[0]
+
+    assert len(groups) == 4, "origin + two stops + destination"
+    assert [g[0].position for g in groups[1:3]] == [(2, 3), (2, 5)], "row, col order"
+    # Only the destination may carry direction None: an intermediate stop is
+    # departed from again, and Flatland reads its transitions off the bearing.
+    assert all(g[0].direction is not None for g in groups[:-1])
+    assert groups[-1][0].direction is None
+
+
+def test_scene_via_stops_ignore_malformed_entries():
+    """One unusable stop must not cost the train its whole line."""
+    from app.core.infrastructure_scene_adapter import scene_to_line_generator
+
+    scene = _straight_scene()
+    scene["agents"][0]["via"] = [
+        {"cellId": "cell_3_2", "x": 3, "y": 2},
+        {"cellId": "cell_4_2"},          # no coordinates
+        "cell_5_2",                       # not a dict
+    ]
+    groups = scene_to_line_generator(scene).generate(None, 1).agent_waypoints[0]
+    assert len(groups) == 3, "origin + the one usable stop + destination"

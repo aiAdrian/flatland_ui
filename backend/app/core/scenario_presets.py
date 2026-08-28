@@ -69,6 +69,21 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "agents": 16,
         "source": "Gleisschema of the Pfäffikon SZ–Chur line",
     },
+    "pf-ch-corridor-stops": {
+        "id": "pf-ch-corridor-stops",
+        "name": "PF–CH corridor (with intermediate stops)",
+        "kind": SCENE_PRESET,
+        "path": _FIXTURES / "pf_ch" / "pf-ch-corridor-stops.scene.json",
+        "width": 191,
+        "height": 9,
+        "agents": 16,
+        "source": "Gleisschema of the Pfäffikon SZ–Chur line",
+        # The corridor variant whose trains call at stations on the way instead
+        # of only at origin and destination. Without intermediate calls a
+        # scenario has no train pairs meeting at a station, so
+        # `planned_connections` finds nothing and any connection-based measure
+        # is flat — see the E1 spec's §8 note on the trade-off axes.
+    },
     "pf-ch-wn-wal-conflict": {
         "id": "pf-ch-wn-wal-conflict",
         "name": "PF–CH · WN↔WAL single-track conflict",

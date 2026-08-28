@@ -130,6 +130,49 @@ def _routable_agents(scene: dict[str, Any]) -> list[tuple[dict[str, Any], tuple[
     return routable
 
 
+
+def _bearing(origin: tuple[int, int], destination: tuple[int, int]) -> int:
+    """Direction index to travel from one cell towards another.
+
+    Column difference wins over row difference: the corridor scenes run along
+    the x axis, and a stop's platform row differs from the next one's often
+    enough that the row would otherwise decide the bearing at every station.
+    """
+    if destination[1] > origin[1]:
+        return _DIR_INDEX["E"]
+    if destination[1] < origin[1]:
+        return _DIR_INDEX["W"]
+    if destination[0] > origin[0]:
+        return _DIR_INDEX["S"]
+    return _DIR_INDEX["N"]
+
+
+def _via_stops(agent: dict[str, Any]) -> list[tuple[int, int]]:
+    """Scheduled intermediate stops of one scene agent, origin/destination aside.
+
+    A scene may give an agent a `via` list — the stations it calls at on the
+    way. Each entry is `{x, y}` (a `cellId` is accepted and ignored, it is
+    there for the drawing tool). Entries without usable coordinates are
+    skipped rather than failing the whole line: one malformed stop must not
+    cost the scenario its train.
+
+    Without `via` the result is empty and the line stays origin → destination,
+    which is what every scene authored before this field does.
+    """
+    raw = agent.get("via")
+    if not isinstance(raw, list):
+        return []
+    stops: list[tuple[int, int]] = []
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        x, y = entry.get("x"), entry.get("y")
+        if x is None or y is None:
+            continue
+        stops.append((int(y), int(x)))  # Flatland positions are (row, col)
+    return stops
+
+
 def count_routable_agents(scene: dict[str, Any]) -> int:
     return len(_routable_agents(scene))
 
@@ -228,10 +271,21 @@ class SceneLineGen:
         for handle, (agent, start, target) in enumerate(_routable_agents(self.scene)[:num_agents]):
             start_cell = cells.get(agent.get("startCellId"))
             direction = _direction_from_start_target(start, target, start_cell)
-            waypoints[handle] = [
-                [Waypoint(start, direction)],
-                [Waypoint(target, None)],
-            ]
+            # `agent_waypoints` is a list of waypoint *groups*, so a scheduled
+            # stop between origin and destination is simply another group. A
+            # scene without `via` produces the two-group line it always did.
+            #
+            # Only the destination may carry direction `None`: nothing is read
+            # off it. An intermediate stop is departed from again, so it needs
+            # the bearing towards the next point or Flatland cannot look up its
+            # transitions.
+            stops = _via_stops(agent)
+            groups = [[Waypoint(start, direction)]]
+            for index, stop in enumerate(stops):
+                nxt = stops[index + 1] if index + 1 < len(stops) else target
+                groups.append([Waypoint(stop, _bearing(stop, nxt))])
+            groups.append([Waypoint(target, None)])
+            waypoints[handle] = groups
             speeds.append(float(agent.get("speed") or 1.0))
 
         if not waypoints:
