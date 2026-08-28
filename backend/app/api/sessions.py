@@ -487,6 +487,10 @@ def delete_session(session_id: str):
     override_manager.clear_all(session_id)
     notification_manager.clear_session(session_id)
     _STRATEGY_CACHE.pop(session_id, None)
+    # Its own put() only drops stale *steps* of the same session, so without
+    # this a deleted session's last forecast stayed for the process's life.
+    from app.core.contention_cache import contention_cache
+    contention_cache.clear_session(session_id)
     return {"deleted": session_id}
 
 
@@ -524,6 +528,16 @@ def _invalidate_scenario_forecasts(session_id: str) -> None:
     try:
         from app.core.scenario_cache import scenario_cache
         scenario_cache.clear_session(session_id)
+    except Exception:
+        pass
+    # The contention forecast keys on (session_id, step) alone, so it survives
+    # a policy switch that happens *within* a step — and its baseline is that
+    # very policy (`_rollout_baseline`). Override changes deliberately do not
+    # invalidate it (the predicted course ignores overrides by design), but a
+    # change to what drives the session must.
+    try:
+        from app.core.contention_cache import contention_cache
+        contention_cache.clear_session(session_id)
     except Exception:
         pass
     # Same reasoning for the strategy answers: they compare each focus against

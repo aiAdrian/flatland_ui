@@ -206,3 +206,41 @@ def test_group_contentions_keeps_unrelated_contentions_apart():
     ])
 
     assert [g["handles"] for g in groups] == [[0, 1], [7, 8]]
+
+
+def test_contention_cache_released_when_the_session_goes():
+    """A deleted session leaves nothing behind.
+
+    The cache's own `put()` only drops stale *steps* of the same session, so
+    without an explicit release a session's last forecast stayed for the life
+    of the process — small per session, unbounded across a long-running server.
+    """
+    from app.core.contention_cache import contention_cache
+
+    sid = _make_simple_session(num_agents=1)
+    client.get(f"/session/{sid}/hmi/contentions")
+    assert any(k[0] == sid for k in contention_cache._cache), "nothing was cached to release"
+
+    client.delete(f"/session/{sid}")
+    assert not any(k[0] == sid for k in contention_cache._cache)
+
+
+def test_contention_cache_dropped_when_the_driving_policy_changes():
+    """A policy switch invalidates the forecast, even within the same step.
+
+    The cache keys on (session_id, step) alone, and the forecast's baseline is
+    whatever drives the session (`_rollout_baseline`). Switching policy without
+    stepping would otherwise serve a prediction made under the old one — the
+    same reason `_invalidate_scenario_forecasts` exists for the scenario cache.
+    Override changes deliberately do *not* invalidate it: the predicted course
+    ignores operator overrides by design.
+    """
+    from app.core.contention_cache import contention_cache
+
+    sid = _make_simple_session(num_agents=1)
+    client.get(f"/session/{sid}/hmi/contentions")
+    assert any(k[0] == sid for k in contention_cache._cache)
+
+    r = client.post(f"/session/{sid}/policy", json={"policy": "deadlock_avoidance"})
+    assert r.status_code == 200, r.text
+    assert not any(k[0] == sid for k in contention_cache._cache)
