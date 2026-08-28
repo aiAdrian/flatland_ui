@@ -121,6 +121,17 @@ function weightOf(train: string): number {
 }
 
 /**
+ * Public accessor for a train's dispatch weight — how much of the network's
+ * delay hangs off letting this train go first. Long-distance services
+ * (IC/ICE/TGV) outrank regional (RE/RB) and suburban (S-Bahn). Authored, not
+ * measured (§8). Exported so the live-conflict package builder can rank the
+ * same way the seeded Action A does, without duplicating the table.
+ */
+export function trainWeight(train: string): number {
+  return weightOf(train);
+}
+
+/**
  * Positional score: a train's weight counts for more the earlier it is dispatched.
  * Highest for weight-descending order, lowest for weight-ascending order — so a
  * modification that pushes a heavy train back reads as a loss, which is the whole

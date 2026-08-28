@@ -116,7 +116,7 @@ Decision-Support framing is mode-dependent (Assessment ↔ Recommendation ↔ su
 | Predicted traction energy per order (modelled, mock) | ✓ | |
 | Real re-solve of a human priority order (PP/CBS, `flatland-blackbox`) | | ✓ flagged |
 | Measured energy KPI (backend folds energy into delay today) | | ✓ flagged |
-| Packages derived from live conflicts instead of fixtures | | ✓ flagged |
+| Packages derived from live conflicts instead of fixtures | ✓ | |
 | `Apply` actually committing the order to the planner | | ✓ flagged |
 | Decision-log entry per applied/modified package | | ✓ flagged (store's `_appendDecision` is private; no public seam yet) |
 
@@ -175,6 +175,38 @@ trustable), verifiable by reset → re-apply the same edit.
 - The seeded orders (§ brief) are authored, not measured. If this widget is used
   in a study before the real solver lands, the numbers must be described to
   participants as illustrative.
+- **Stufe 1 (landed 2026-08-27): packages now come from live conflicts, figures
+  still from the deterministic model.** The backend runs a no-override forecast
+  branch (`TrajectoryBranchRunner.run_branch(overrides={})`) and returns the
+  multi-agent contentions ahead at `GET /{session_id}/hmi/contentions`; the
+  panel builds its three packages from the most-urgent group's handles via
+  `buildPackages`. `dataSource` stays `'mock'` because the impact figures are
+  still modelled — only the package *contents* (which trains, in which order)
+  became real. Three design decisions worth recording:
+  - **Path-overlap contenders, not adjacency.** The conflict detector's
+    `_detect_blocked` was a stub (`pass`); filling it with position-adjacency
+    blockers was insufficient for the PF–CH case, where the three trains freeze
+    ~25 cells apart on a shared single-track segment and never become
+    face-to-face within the forecast horizon. A blocked event's `agents` is
+    therefore the stopped train plus every on-map train whose remaining
+    shortest path (distance-map gradient) shares a cell with its — the
+    contention set, not just the train in the next cell. This is detection,
+    not a solver (no scheduling/optimisation); the real PP/CBS re-solve stays
+    flagged. Trade-off: on large nets path-overlap is broad (many trains share
+    a mainline), so a queue group can name 15 trains — see the cap below.
+  - **Group by shared handle, not by position.** The brief said "merge
+    conflicts that share a position"; with multi-agent events at different
+    positions that would emit duplicate groups, so the endpoint merges by
+    handle-connected-components (union-find) — the correct generalisation of
+    the brief's intent (one group per contention).
+  - **Presentation cap to 4 trains.** A broad contention group (15 trains on
+    the Guided-Demo net) would break the panel and is not the interaction the
+    widget supports. The frontend caps the most-urgent group to the 4
+    most-delayed trains — real handles from the contention, no phantoms
+    introduced by the cap. PF–CH (3 trains) is under the cap and unaffected.
+    Open: a tighter contention notion (same-cell-same-time rather than
+    any-path-overlap) would make the cap unnecessary — deferred to Stufe 2
+    alongside the real solver, which produces the contention set directly.
 - Trains are fixture ids (`IC_703`, `ICE_42`, …). They are **bound** onto the
   session's handles in `ALL_TRAINS` order purely so the overlay can point at
   something — the binding is an alias ("IC_703 is train 0"), not a claim that the
@@ -216,3 +248,18 @@ trustable), verifiable by reset → re-apply the same edit.
   parameter, surfaced wherever a forecast figure is: either pinned repo-wide, or
   per scenario and then stated on the panel. Deciding it is a prerequisite for
   using any two of these surfaces together in a study, not a polish item.
+- **`tests/test_conflict_detector.py` does not specify the detector, and looked
+  like it did.** Found 2026-08-27 while briefing the live-conflicts work: all six
+  `_detect_*` methods in `ConflictDetectionCallbacks` were empty `pass` stubs
+  ("filled in Part 2/3"), so `get_conflicts()` always returned `[]` — yet the test
+  file reported green. Verified by running it: `test_blocked_threshold_emits_event`
+  *skipped*, and its skip message blamed Flatland ("agents may not be in STOPPED
+  state under STOP_MOVING in this seed") rather than the missing implementation;
+  `test_blocked_emitted_only_once_per_streak` and
+  `test_agent_done_emitted_once_per_agent` *passed vacuously*, because "at most one
+  event" is trivially true of zero events. The stubs were filled by the
+  live-conflicts task above, but the test file's shape outlives that fix: it asserts
+  structure (`info["consecutive_stops"]`, one event per streak) and never that an
+  event is produced at all. Anything built on `get_conflicts()` needs its own
+  assertions that a known contention actually emits — and a skip whose message
+  names an external cause deserves suspicion before it is believed.

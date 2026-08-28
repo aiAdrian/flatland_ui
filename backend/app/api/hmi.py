@@ -134,6 +134,146 @@ def get_impact(session_id: str):
         return []
 
 
+# ── contentions (live conflict forecast for Combined Actions) ──────
+
+
+# Only the multi-agent kinds a coordinated action answers: a blocked queue,
+# a face-to-face swap, or a deadlock cycle. Single-train events (malfunction,
+# agent_done, overdue_arrival) are served by /hmi/impact and the notifications
+# feed, not here.
+_CONTENTION_KINDS = ("blocked", "swap_attempt", "deadlock_cycle")
+
+# Forecast lookahead for the no-override branch. Modest, so one call stays
+# cheap; the runner exits early when all agents are done anyway.
+_CONTENTION_MAX_STEPS = 50
+
+
+def _group_contentions(conflicts) -> list[dict]:
+    """Merge forecast conflicts into contention groups.
+
+    A group is the connected component of conflicts that share at least one
+    contending handle: one stalled queue produces several `blocked` events
+    (one per stopped train), each naming the whole contender set, and they
+    must collapse into a single group the widget builds one package set from.
+
+    This generalises the brief's "merge conflicts that share a position" —
+    with path-overlap contenders the events sit at *different* positions but
+    name the *same* trains, so position-merging would emit duplicate groups.
+    Handle-merging is the correct generalisation and is what the brief's
+    intent (one group per contention) amounts to here.
+
+    Returns groups sorted most-urgent first (lowest step, then lowest handle).
+    """
+    parent: dict[int, int] = {}
+
+    def find(x: int) -> int:
+        parent.setdefault(x, x)
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    groups: dict[int, list] = {}
+    for c in conflicts:
+        if c.kind not in _CONTENTION_KINDS:
+            continue
+        agents = [int(h) for h in c.agents]
+        if len(agents) < 2:
+            continue  # a single stopped train is a delay, not a contention
+        for h in agents:
+            union(agents[0], h)
+        root = find(agents[0])
+        groups.setdefault(root, []).append(c)
+
+    out: list[dict] = []
+    for cs in groups.values():
+        handles = sorted({int(h) for c in cs for h in c.agents})
+        earliest = min(cs, key=lambda c: c.step)
+        pos = earliest.position
+        out.append({
+            "step": int(earliest.step),
+            "position": [int(pos[0]), int(pos[1])] if pos is not None else None,
+            "kind": earliest.kind,
+            "handles": handles,
+        })
+    out.sort(key=lambda g: (g["step"], g["handles"][0] if g["handles"] else 0))
+    return out
+
+
+@router.get("/{session_id}/hmi/contentions")
+def get_contentions(session_id: str):
+    """The train-contentions ahead, for the Combined Actions panel to build
+    its packages from.
+
+    Runs a no-override forecast branch (the predicted course of the network
+    from the current step) and returns the multi-agent conflicts it hits,
+    grouped into contention groups most-urgent first, plus the **forecast
+    budget** the panel states on screen:
+
+        {"horizonSteps": 50, "groups": [
+            {"step": 14, "position": [2, 96], "kind": "blocked", "handles": [0, 1, 2]}
+        ]}
+
+    `horizonSteps` is the compute budget the forecast ran with — how far
+    `run_branch` looked ahead. It is *not* a reliability statement (the
+    strategy-forecast panel's load-shrinking `horizonMinutes` is that); the two
+    are deliberately different things (spec §8). The frontend renders it in
+    minutes via the shared `MINUTES_PER_STEP` convention so the panel says how
+    far ahead it looked in the operator's unit.
+
+    Empty groups — not an error — when the network has no contentions ahead,
+    and on any forecast failure (a forecast must never break the panel).
+    `horizonSteps` is returned even then, so the panel can state its lookahead
+    regardless of whether this step found a contention. Memoised per
+    (session_id, current_step) so repeated polls within one step are free.
+    """
+    from app.core.contention_cache import contention_cache
+    from app.core.scenario_runner import TrajectoryBranchRunner
+
+    def _empty() -> dict:
+        return {"horizonSteps": _CONTENTION_MAX_STEPS, "groups": []}
+
+    sess = session_manager.get(session_id)
+    if not sess:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    env = getattr(sess, "env", None)
+    if env is None:
+        return _empty()
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    cached = contention_cache.get(session_id, elapsed)
+    if cached is not None:
+        return cached
+
+    try:
+        # Baseline = what actually drives the session (Director plan replay
+        # for goal_directed sessions — see _rollout_baseline). The forecast
+        # is the predicted course under that policy, overrides ignored by
+        # design (a coordinated action answers an upcoming contention, not a
+        # past operator stop).
+        enabled = set(getattr(sess, "enabled_scenario_policies", set(_ALL_POLICIES.keys())))
+        enabled = {pid for pid in enabled if pid in _ALL_POLICIES}
+        if not enabled:
+            enabled = {"deadlock_avoidance"}
+        _, baseline_factory = _rollout_baseline(sess, enabled)
+
+        runner = TrajectoryBranchRunner(env, baseline_factory)
+        result = runner.run_branch(overrides={}, max_steps=_CONTENTION_MAX_STEPS)
+        groups = _group_contentions(result.conflicts)
+    except Exception as e:
+        _perf_log.warning("Contentions forecast failed for %s: %r", session_id, e)
+        return _empty()
+
+    payload = {"horizonSteps": _CONTENTION_MAX_STEPS, "groups": groups}
+    contention_cache.put(session_id, elapsed, payload)
+    return payload
+
+
 # ── scenarios (real, with mock fallback) ───────────────────────────
 
 

@@ -196,6 +196,37 @@ export interface ImpactItem {
   severity: 'high' | 'medium';
 }
 
+/** One contention group ahead in the forecast, for the Combined Actions panel.
+ *  A coordinated action answers one such group — the trains contending for the
+ *  same resource — so the panel builds its packages from `handles`. */
+export interface ContentionGroup {
+  /** Forecast step the contention is first expected to engage. */
+  step: number;
+  /** A representative cell (the earliest conflict's position), or null. */
+  position: [number, number] | null;
+  /** The multi-agent conflict kind: blocked queue, face-to-face swap, or
+   *  deadlock cycle. */
+  kind: 'blocked' | 'swap_attempt' | 'deadlock_cycle';
+  /** Every contending train handle — every chip on every package resolves to
+   *  one of these, never a phantom. */
+  handles: number[];
+}
+
+/** Response of `GET /hmi/contentions`: the contention groups plus the
+ *  forecast budget the panel states on screen.
+ *
+ *  `horizonSteps` is a **compute budget** — how far the forecast branch
+ *  looked ahead — not a reliability statement. The strategy-forecast panel's
+ *  `horizonMinutes` (which shrinks with load) is the reliability statement;
+ *  the two are deliberately different (spec §8). The panel renders this budget
+ *  in minutes via the shared `MINUTES_PER_STEP` convention. */
+export interface ContentionsResponse {
+  /** How far `run_branch` looked ahead, in simulation steps. */
+  horizonSteps: number;
+  /** Contention groups, most-urgent first. Empty when the network runs to plan. */
+  groups: ContentionGroup[];
+}
+
 export type AppEvent =
   | { type: 'SIMULATION_TIME_CHANGED'; time: number }
   | { type: 'FOCUS_INFRASTRUCTURE_ELEMENT'; kind: 'switch' | 'signal' | 'train'; id: string }

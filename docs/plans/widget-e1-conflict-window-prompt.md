@@ -208,7 +208,11 @@ the open question in §8. Do not build a configuration system for it.
 1. **Additive proven, not assumed:** the first Combined Actions variant renders
    the same packages with the same figures before and after this change, and its
    tests pass unmodified.
-2. On preset `pf-ch-wn-wal-conflict`, a contention group comes back with a
+2. On preset **`pf-ch-corridor-stops`** — the corridor whose trains call at
+   intermediate stations, added 2026-08-27; the other PF–CH presets run
+   origin→destination only, so their `slack` has no scheduled stop to be
+   measured against and the criterion would pass vacuously — a contention
+   group comes back with a
    `baselineOrder` that is a permutation of its `handles`, and per-train
    `entryDelay` / `headway` / `slack` that are either numbers or explicit `null`
    with a reason — no silent zeros.

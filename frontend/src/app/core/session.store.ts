@@ -18,6 +18,8 @@ import {
 import type { ActionOrigin } from './dispatch/train-action.service';
 import {
   AppNotification,
+  ContentionGroup,
+  ContentionsResponse,
   ImpactItem,
   InteractionMode,
   KpiPriorities,
@@ -1056,6 +1058,19 @@ export class SessionStore {
   readonly recommendations = signal<Recommendation[]>([]);
   /** Phase-1 impact analysis: trains affected by a malfunction. */
   readonly impact = signal<ImpactItem[]>([]);
+
+  /** Live conflict forecast for the Combined Actions panel (widget E1): the
+   *  multi-agent contentions ahead, most-urgent first. Empty when the network
+   *  runs to plan — the panel keeps its empty state rather than synthesising a
+   *  package. Refreshed alongside the other HMI forecasts. */
+  readonly contentions = signal<ContentionGroup[]>([]);
+
+  /** The forecast budget the contentions endpoint ran with, in simulation steps
+   *  — how far it looked ahead. A **compute budget**, not a reliability statement
+   *  (the strategy-forecast panel's load-shrinking `horizonMinutes` is that;
+   *  spec §8). The Combined Actions panel states this in minutes via the shared
+   *  `MINUTES_PER_STEP` convention. */
+  readonly contentionHorizonSteps = signal<number>(0);
   readonly focusedElement = signal<{ kind: 'train' | 'switch' | 'signal'; id: string } | null>(null);
 
   constructor() {
@@ -1295,6 +1310,8 @@ export class SessionStore {
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
     this.impact.set([]);
+    this.contentions.set([]);
+    this.contentionHorizonSteps.set(0);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
     const payload: any = {};
@@ -1492,6 +1509,8 @@ export class SessionStore {
     this.selectedHandle.set(null);
     this._resetTrajectories();
     this.impact.set([]);
+    this.contentions.set([]);
+    this.contentionHorizonSteps.set(0);
     this.clearDecisionLog();
     this.scenarios.set([]);
     this.recommendations.set([]);
@@ -1530,6 +1549,8 @@ export class SessionStore {
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
     this.impact.set([]);
+    this.contentions.set([]);
+    this.contentionHorizonSteps.set(0);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
     this.api.reset(s.id).subscribe({
@@ -1798,6 +1819,13 @@ export class SessionStore {
     });
     this.api.getImpact(s.id).subscribe({
       next: (items) => this.impact.set(items),
+      error: () => {},
+    });
+    this.api.getContentions(s.id).subscribe({
+      next: (resp) => {
+        this.contentions.set(resp.groups);
+        this.contentionHorizonSteps.set(resp.horizonSteps);
+      },
       error: () => {},
     });
   }

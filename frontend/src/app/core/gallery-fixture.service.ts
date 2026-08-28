@@ -11,6 +11,7 @@ import {
 import { ActionInt, AgentDTO, SessionInfo, SessionState } from './models';
 import {
   AppNotification,
+  ContentionGroup,
   ImpactItem,
   ImpactOption,
   InteractionMode,
@@ -72,6 +73,8 @@ export class GalleryFixtureService {
     this.store.recommendations.set(this._recommendations);
     this.store.notifications.set(this._notifications);
     this.store.impact.set(this._impact);
+    this.store.contentions.set(this._contentions);
+    this.store.contentionHorizonSteps.set(this._contentionHorizonSteps);
     this.store.decisionLog.set(this._decisionLog);
     this.store.coLearningFeedback.set(this._coLearningFeedback);
 
@@ -95,6 +98,8 @@ export class GalleryFixtureService {
     this.store.recommendations.set([]);
     this.store.notifications.set([]);
     this.store.impact.set([]);
+    this.store.contentions.set([]);
+    this.store.contentionHorizonSteps.set(0);
     this.store.decisionLog.set([]);
     this.store.coLearningFeedback.set([]);
     // Removes only the in-memory 'once' fixture records; real persisted
@@ -383,6 +388,28 @@ export class GalleryFixtureService {
         severity: 'medium',
       },
     ];
+  }
+
+  /** One contention group for the Combined Actions panel: the same trains the
+   *  impact fixture reports as blocked (0 and 2, both by 1) contending for the
+   *  merge at [2, 5] — so the gallery's packages name trains the rest of the
+   *  gallery already talks about. Mock data, like every value in this bundle. */
+  private get _contentions(): ContentionGroup[] {
+    return [
+      {
+        step: 28,
+        position: [2, 5],
+        kind: 'blocked',
+        handles: [0, 1, 2],
+      },
+    ];
+  }
+
+  /** Forecast budget the gallery panel states — 50 steps = 50 min under the
+   *  shared `MINUTES_PER_STEP` convention. Matches the backend's
+   *  `_CONTENTION_MAX_STEPS`; mock, like the rest of this bundle. */
+  private get _contentionHorizonSteps(): number {
+    return 50;
   }
 
   private get _decisionLog(): DecisionLogEntry[] {
