@@ -4,6 +4,7 @@ import { ActionPackage, PackageContext, buildPackages } from '../../core/combine
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { predictImpact } from '../../core/combined-actions/impact-prediction';
 import { perTrainDeltaMin, MINUTES_PER_STEP } from '../../core/combined-actions/combined-actions-preview';
+import { plannedTransfers, transferOutcome } from '../../core/combined-actions/connections';
 import { ActionCardComponent, ActionFraming, ActivePreview } from './components/action-card/action-card.component';
 import { TradeoffPlotComponent, TradeoffPoint } from './components/tradeoff-plot/tradeoff-plot.component';
 
@@ -103,20 +104,22 @@ export class CombinedActionsComponent implements OnDestroy {
       const ai = pts.find((p) => p.origin === 'ai' && p.packageId === variant.packageId);
       if (ai) {
         const min = variant.delayReductionMin - ai.delayReductionMin;
-        const kwh = variant.energyKwh - ai.energyKwh;
+        const kept = variant.connectionsKept - ai.connectionsKept;
         const delay = min === 0 ? 'same delay' : `${Math.abs(min)} min ${min > 0 ? 'more' : 'less'} saved`;
-        const energy = kwh === 0 ? 'same energy' : `${Math.abs(kwh)} kWh ${kwh > 0 ? 'more' : 'less'}`;
-        return `${variant.label}: ${delay}, ${energy}`;
+        const conn = kept === 0
+          ? 'same transfers'
+          : `${Math.abs(kept)} transfer${Math.abs(kept) === 1 ? '' : 's'} ${kept > 0 ? 'more' : 'fewer'} kept`;
+        return `${variant.label}: ${delay}, ${conn}`;
       }
     }
 
     const fastest = pts.reduce((a, b) => (b.delayReductionMin > a.delayReductionMin ? b : a));
-    const cheapest = pts.reduce((a, b) => (b.energyKwh < a.energyKwh ? b : a));
+    const cheapest = pts.reduce((a, b) => (b.connectionsKept > a.connectionsKept ? b : a));
     // When one version wins on both axes there is no trade-off to summarise —
     // naming it twice read as a bug rather than as "this one simply leads".
     return fastest.label === cheapest.label
       ? `${fastest.label} leads on both`
-      : `${fastest.label} saves most · ${cheapest.label} costs least`;
+      : `${fastest.label} saves most · ${cheapest.label} keeps most transfers`;
   });
 
   ngOnDestroy(): void {
@@ -235,6 +238,27 @@ export class CombinedActionsComponent implements OnDestroy {
    */
   readonly handleByTrain = computed<Record<string, number>>(() => this.identity.handleByName());
 
+  /** The session's planned transfers, derived from its own timetable.
+   *  Recomputed only when the agent set changes — the stops are static. */
+  private readonly transfers = computed(() => plannedTransfers(this.store.agents()));
+
+  /**
+   * What one dispatch order does to the transfers among the trains it names.
+   *
+   * The order is over service names; transfers are over handles, because the
+   * names are an authored alias and nothing downstream may key on them.
+   */
+  readonly transfersFor = (
+    order: readonly string[],
+  ): { connectionsKept: number; connectionsTotal: number } => {
+    const byName = this.handleByTrain();
+    const handles = order
+      .map((train) => byName[train])
+      .filter((handle): handle is number => handle != null);
+    const outcome = transferOutcome(handles, this.transfers());
+    return { connectionsKept: outcome.kept, connectionsTotal: outcome.total };
+  };
+
   /**
    * Is anything actually wrong?
    *
@@ -290,7 +314,7 @@ export class CombinedActionsComponent implements OnDestroy {
   /** The full provenance wording, shown on hover over the one-line note. */
   readonly provenanceDetail = computed(() =>
     this.bound()
-      ? 'The trains and the contention are real — derived from this session\'s live conflict forecast. Delay and energy figures come from a deterministic model, not from the simulation. Point at an action to see it in the map and the ZWL.'
+      ? 'The trains and the contention are real — derived from this session\'s live conflict forecast, and the transfers from its own timetable. The delay figures come from a deterministic model, not from the simulation. Point at an action to see it in the map and the ZWL.'
       : 'No session contentions to build actions from yet. The panel shows packages once the forecast flags a contention ahead.',
   );
 
@@ -299,7 +323,7 @@ export class CombinedActionsComponent implements OnDestroy {
   }
 
   /**
-   * Every version on every card, as points on the energy ↔ delay plane.
+   * Every version on every card, as points on the transfers ↔ delay plane.
    *
    * The plot is the answer to "which of these is actually better?" once a
    * variant exists: a variant that shaves minutes by holding an ICE back moves
@@ -321,7 +345,7 @@ export class CombinedActionsComponent implements OnDestroy {
         // AI proposal, and waiting for its first emit left every dot dimmed.
         active: !active[pkg.id]?.modified,
         delayReductionMin: ai.delayReductionMin,
-        energyKwh: ai.energyKwh,
+        ...this.transfersFor(pkg.aiOrder),
       });
 
       const current = active[pkg.id];
@@ -335,7 +359,7 @@ export class CombinedActionsComponent implements OnDestroy {
           recommended: false,
           active: true,
           delayReductionMin: variant.delayReductionMin,
-          energyKwh: variant.energyKwh,
+          ...this.transfersFor(current.order),
         });
       }
     }

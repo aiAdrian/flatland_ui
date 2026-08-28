@@ -1,6 +1,6 @@
 <figure class="tp">
   <figcaption class="tp__caption">
-    <span class="tp__title">Energy vs. delay</span>
+    <span class="tp__title">Transfers vs. delay</span>
     <span class="tp__legend">
       <span class="tp__key tp__key--ai"></span>AI
       <span class="tp__key tp__key--human"></span>you
@@ -11,7 +11,7 @@
     class="tp__svg"
     [attr.viewBox]="'0 0 ' + width + ' ' + height"
     role="img"
-    aria-label="Predicted traction energy against predicted delay reduction, one dot per action version"
+    aria-label="Planned transfers broken against predicted delay reduction, one dot per action version"
   >
     <defs>
       <marker id="tp-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
@@ -37,7 +37,7 @@
     <text class="tp__tick" [attr.x]="box().left" [attr.y]="height - 18" text-anchor="start">{{ axisLabels().delayLow }}</text>
     <text class="tp__tick" [attr.x]="box().right" [attr.y]="height - 18" text-anchor="end">{{ axisLabels().delayHigh }}</text>
 
-    <text class="tp__axis-name" x="2" y="12" text-anchor="start">↑ cheaper</text>
+    <text class="tp__axis-name" x="2" y="12" text-anchor="start">↑ transfers kept</text>
     <text class="tp__axis-name" [attr.x]="box().right" [attr.y]="height - 4" text-anchor="end">more delay saved →</text>
 
     <!-- The trade the dispatcher made, as a move on the plane. -->
@@ -55,7 +55,7 @@
             [attr.x]="a.labelX"
             [attr.y]="a.labelY"
             text-anchor="middle"
-          >{{ a.deltaMin > 0 ? '+' : '' }}{{ a.deltaMin }}′ / {{ a.deltaKwh > 0 ? '+' : '' }}{{ a.deltaKwh }} kWh</text>
+          >{{ a.deltaMin > 0 ? '+' : '' }}{{ a.deltaMin }}′ / {{ a.deltaBroken > 0 ? '+' : '' }}{{ a.deltaBroken }} transfers</text>
         }
       </g>
     }

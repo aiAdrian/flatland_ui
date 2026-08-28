@@ -68,6 +68,14 @@ export class ActionCardComponent implements OnInit, OnDestroy {
    */
   @Input() expanded = true;
 
+  /** How many planned transfers an order keeps, of the ones it can affect.
+   *  Passed in rather than computed here: the transfers come from the
+   *  session's timetable, which is the panel's business, not the card's. */
+  @Input() transfersOf: (order: readonly string[]) => {
+    connectionsKept: number;
+    connectionsTotal: number;
+  } = () => ({ connectionsKept: 0, connectionsTotal: 0 });
+
   /** Raised whenever the version on screen changes, so the panel can push the
    *  consequence overlay to the map and the Marey. */
   @Output() activeChanged = new EventEmitter<ActivePreview>();
@@ -97,6 +105,17 @@ export class ActionCardComponent implements OnInit, OnDestroy {
 
   readonly aiVersion = computed<ActionVersion | null>(
     () => this.versions().find((v) => v.id === 'ai') ?? null,
+  );
+
+
+  /** Transfers kept by the version the card is showing, and by the AI's — the
+   *  second axis, read off the same order the figures above describe. */
+  readonly activeTransfers = computed(() =>
+    this.transfersOf(this.active()?.order ?? []),
+  );
+
+  readonly aiTransfers = computed(() =>
+    this.transfersOf(this.aiVersion()?.order ?? []),
   );
 
   readonly variants = computed(() => this.versions().filter((v) => v.origin === 'human'));

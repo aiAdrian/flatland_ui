@@ -13,10 +13,12 @@
 
   @if (prediction) {
     <div class="im__secondary">
-      <span class="im__energy" title="Predicted traction energy — the second axis of the trade-off">
-        {{ prediction.energyKwh }} kWh
-      </span>
-      <span class="im__dot" aria-hidden="true">·</span>
+      @if (transfersTotal > 0) {
+        <span class="im__energy" title="Planned transfers this order keeps — the second axis of the trade-off">
+          {{ transfersKept }}/{{ transfersTotal }} transfers
+        </span>
+        <span class="im__dot" aria-hidden="true">·</span>
+      }
       <span class="im__conf" [attr.data-conf]="prediction.confidence">
         {{ confidenceLabel[prediction.confidence] }}
       </span>
@@ -30,9 +32,11 @@
       <span class="im__compare-ai">AI −{{ aiBaseline.delayReductionMin }}′</span>
       <span class="im__dot" aria-hidden="true">→</span>
       <span class="im__compare-now">you −{{ prediction.delayReductionMin }}′</span>
-      <span class="im__compare-energy">
-        ({{ prediction.energyKwh - aiBaseline.energyKwh > 0 ? '+' : '' }}{{ prediction.energyKwh - aiBaseline.energyKwh }} kWh)
-      </span>
+      @if (transfersTotal > 0 && aiTransfersKept !== null) {
+        <span class="im__compare-energy">
+          ({{ transfersKept - aiTransfersKept > 0 ? '+' : '' }}{{ transfersKept - aiTransfersKept }} transfers)
+        </span>
+      }
     </div>
   }
 </div>

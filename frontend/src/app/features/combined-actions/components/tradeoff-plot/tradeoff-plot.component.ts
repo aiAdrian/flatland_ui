@@ -1,6 +1,6 @@
 import { Component, Input, computed, signal } from '@angular/core';
 
-/** One action version on the energy ↔ delay plane. */
+/** One action version on the transfers ↔ delay plane. */
 export interface TradeoffPoint {
   id: string;
   packageId: string;
@@ -11,7 +11,15 @@ export interface TradeoffPoint {
   /** This is the version its card is currently showing. */
   active: boolean;
   delayReductionMin: number;
-  energyKwh: number;
+  /** Planned transfers this order keeps, of the ones it can affect at all. */
+  connectionsKept: number;
+  connectionsTotal: number;
+}
+
+/** Broken transfers — the "lower is better" quantity the vertical axis plots,
+ *  so the geometry stays the one the axes promise: up is better. */
+function broken(p: { connectionsKept: number; connectionsTotal: number }): number {
+  return p.connectionsTotal - p.connectionsKept;
 }
 
 interface PlottedPoint extends TradeoffPoint {
@@ -27,7 +35,8 @@ interface TradeArrow {
   x2: number;
   y2: number;
   deltaMin: number;
-  deltaKwh: number;
+  /** Transfers the variant breaks beyond the AI's order (negative = saves). */
+  deltaBroken: number;
   /** The variant is better on both axes — rare, and worth saying. */
   dominates: boolean;
   /** Where the inline label sits, clamped inside the plot box. */
@@ -86,7 +95,7 @@ export class TradeoffPlotComponent {
   readonly bounds = computed(() => {
     const pts = this._points();
     const delays = pts.map((p) => p.delayReductionMin);
-    const energies = pts.map((p) => p.energyKwh);
+    const energies = pts.map(broken);
     return {
       dMin: Math.min(...delays),
       dMax: Math.max(...delays),
@@ -113,9 +122,10 @@ export class TradeoffPlotComponent {
     return pts.map((p) => ({
       ...p,
       x: this.pad.left + sx(p.delayReductionMin) * innerW,
-      // SVG y grows downward, so mapping energy straight onto it puts the
-      // cheapest option at the top — the "up is better" reading the axes promise.
-      y: this.pad.top + sy(p.energyKwh) * innerH,
+      // SVG y grows downward, so mapping *broken* transfers straight onto it
+      // puts the order that keeps the most at the top — the "up is better"
+      // reading the axes promise.
+      y: this.pad.top + sy(broken(p)) * innerH,
     }));
   });
 
@@ -146,9 +156,9 @@ export class TradeoffPlotComponent {
         x2: human.x,
         y2: human.y,
         deltaMin: human.delayReductionMin - ai.delayReductionMin,
-        deltaKwh: human.energyKwh - ai.energyKwh,
+        deltaBroken: broken(human) - broken(ai),
         dominates:
-          human.delayReductionMin >= ai.delayReductionMin && human.energyKwh <= ai.energyKwh,
+          human.delayReductionMin >= ai.delayReductionMin && broken(human) <= broken(ai),
         labelX: Math.min(
           Math.max((ai.x + human.x) / 2, this.pad.left + 26),
           this.width - this.pad.right - 26,
@@ -182,13 +192,13 @@ export class TradeoffPlotComponent {
   readonly axisLabels = computed(() => {
     const { dMin, dMax, eMin, eMax } = this.bounds();
     return {
-      // The energy axis runs cheapest-at-the-top, so its low number belongs at
-      // the top. Spelled with the unit at both ends, because a bare "244" above
-      // a bare "302" looks like an axis drawn upside down.
+      // The transfers axis plots *broken* ones, so the smallest number sits at
+      // the top. Spelled with the noun at both ends, because a bare "0" above a
+      // bare "3" looks like an axis drawn upside down.
       delayLow: `−${dMin} min`,
       delayHigh: `−${dMax} min`,
-      energyLow: `${eMin} kWh`,
-      energyHigh: `${eMax} kWh`,
+      energyLow: eMin === 1 ? '1 broken' : `${eMin} broken`,
+      energyHigh: eMax === 1 ? '1 broken' : `${eMax} broken`,
       flatDelay: dMin === dMax,
       flatEnergy: eMin === eMax,
     };
@@ -205,7 +215,7 @@ export class TradeoffPlotComponent {
   }
 
   valueLabel(p: PlottedPoint): string {
-    return `−${p.delayReductionMin}′ · ${p.energyKwh}`;
+    return `−${p.delayReductionMin}′ · ${p.connectionsKept}/${p.connectionsTotal}`;
   }
 
   /** Keep the label inside the box: a dot near the right edge labels leftwards. */
@@ -234,7 +244,7 @@ export class TradeoffPlotComponent {
   readonly readout = computed<string>(() => {
     const point = this.hoveredPoint();
     if (point) {
-      return `${point.label} · ${point.origin === 'ai' ? 'AI proposal' : 'your variant'} · −${point.delayReductionMin} min · ${point.energyKwh} kWh`;
+      return `${point.label} · ${point.origin === 'ai' ? 'AI proposal' : 'your variant'} · −${point.delayReductionMin} min · ${point.connectionsKept} of ${point.connectionsTotal} transfers kept`;
     }
     const arrow = this.arrows()[0];
     if (arrow) {
@@ -244,11 +254,12 @@ export class TradeoffPlotComponent {
         arrow.deltaMin === 0
           ? 'the same delay saved'
           : `${Math.abs(arrow.deltaMin)} min ${arrow.deltaMin > 0 ? 'more' : 'less'} delay saved`;
-      const energy =
-        arrow.deltaKwh === 0
-          ? 'the same energy'
-          : `${Math.abs(arrow.deltaKwh)} kWh ${arrow.deltaKwh > 0 ? 'more' : 'less'} energy`;
-      return `Your variant of ${arrow.packageId}: ${delay}, ${energy}.`;
+      const n = Math.abs(arrow.deltaBroken);
+      const transfers =
+        arrow.deltaBroken === 0
+          ? 'the same transfers kept'
+          : `${n} transfer${n === 1 ? '' : 's'} ${arrow.deltaBroken > 0 ? 'fewer' : 'more'} kept`;
+      return `Your variant of ${arrow.packageId}: ${delay}, ${transfers}.`;
     }
     return 'Point at a dot for its figures.';
   });

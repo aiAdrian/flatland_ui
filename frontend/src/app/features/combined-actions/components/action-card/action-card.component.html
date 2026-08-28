@@ -64,6 +64,9 @@
     [updating]="active()?.updating ?? false"
     [modified]="modified()"
     [delta]="active()?.delta ?? null"
+    [transfersKept]="activeTransfers().connectionsKept"
+    [transfersTotal]="activeTransfers().connectionsTotal"
+    [aiTransfersKept]="aiTransfers().connectionsKept"
   ></app-impact-metrics>
 
   @if (expanded) {
@@ -85,7 +88,9 @@
             <span class="ac__version-name">{{ v.origin === 'ai' ? 'AI' : v.label }}</span>
             @if (v.prediction) {
               <span class="ac__version-fig">−{{ v.prediction.delayReductionMin }}′</span>
-              <span class="ac__version-fig ac__version-fig--energy">{{ v.prediction.energyKwh }}&#8202;kWh</span>
+              @if (transfersOf(v.order).connectionsTotal > 0) {
+                <span class="ac__version-fig ac__version-fig--energy">{{ transfersOf(v.order).connectionsKept }}/{{ transfersOf(v.order).connectionsTotal }}</span>
+              }
             }
           </button>
           @if (v.origin === 'human' && editable) {

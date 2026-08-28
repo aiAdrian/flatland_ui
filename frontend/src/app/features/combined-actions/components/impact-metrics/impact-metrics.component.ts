@@ -33,6 +33,16 @@ export class ImpactMetricsComponent {
   /** Brief before → after readout; null once it has faded. */
   @Input() delta: ImpactDelta | null = null;
 
+  /** Planned transfers the shown order keeps, of the ones it can affect.
+   *  `total` 0 means the scenario has no transfers among these trains — the
+   *  figure is then hidden rather than shown as a meaningless 0/0. */
+  @Input() transfersKept = 0;
+
+  @Input() transfersTotal = 0;
+
+  /** The AI order's kept count, for the comparison line once modified. */
+  @Input() aiTransfersKept: number | null = null;
+
   readonly confidenceLabel: Record<ImpactConfidence, string> = {
     high: 'High',
     medium: 'Medium',

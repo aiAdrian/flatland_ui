@@ -13,11 +13,11 @@
       type="button"
       class="ca__plot-toggle"
       [attr.aria-expanded]="plotOpen()"
-      [attr.title]="plotOpen() ? 'Hide the energy/delay chart' : 'Show the energy/delay chart'"
+      [attr.title]="plotOpen() ? 'Hide the transfers/delay chart' : 'Show the transfers/delay chart'"
       (click)="togglePlot()"
     >
       <span class="ca__plot-chevron" [class.is-open]="plotOpen()" aria-hidden="true">›</span>
-      <span class="ca__plot-title">Energy vs. delay</span>
+      <span class="ca__plot-title">Transfers vs. delay</span>
     </button>
   </header>
 
@@ -40,6 +40,7 @@
       <app-action-card
         [class.is-previewed]="previewedPackage() === pkg.id"
         [pkg]="pkg"
+        [transfersOf]="transfersFor"
         [framing]="modeBehavior().framing"
         [editable]="modeBehavior().editable"
         [expanded]="expandedPackage() === pkg.id"
