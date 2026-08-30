@@ -620,6 +620,81 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     minHeight: 160,
   },
   {
+    type: 'combined-actions',
+    catalogId: 'E1',
+    title: 'Combined Actions',
+    dataSource: 'mock',
+    kind: 'decision-support',
+    granularity: 'overview-detail',
+    status: 'first-cut',
+    description: 'AI-proposed multi-train dispatch orders; drag to fork a variant, see delay, energy, map and ZWL.',
+    promise: 'Fork your own variant of a coordinated AI action and see what it costs — in minutes, in energy, and in the map and the ZWL.',
+    grounding:
+      'T3.4 / `AI4REALNET/Tokener`: the unit of interaction is a coordinated *priority order* over the trains contending for one resource, not a per-train command — which is what the Hybrid (CBS+PP) approach negotiates. Expected-outcome-per-alternative framing follows T2.3 (`T2.3_explaining_action_alternatives`), and the AI ↔ human colour split follows the A3S/TraceRL convention (human = blue, AI = orange). ⚠ The prediction itself is a deterministic **mock** — the reuse target for the real one is the CBS/PP solver in `AI4REALNET/flatland-blackbox`, behind the `ImpactPredictor` seam (spec §8).',
+    availableModes: 'all',
+    perMode: {
+      recommendation:
+        'Recommendation framing: the AI\'s pick is badged "Recommended by AI" and ranked first, with confidence. Dragging a train forks a **variant** beside it — both keep their delay and energy figures, the moved trains carry ▲/▼ markers, and the card asks which version is kept. "Recommended by AI" survives, but the variant never reads as the AI\'s recommendation.',
+      'co-learning':
+        'Assessment framing: A/B/C neutral, no badge and no ranking. The fork → re-predict loop is the point — the operator builds their own variant and reads the consequence, with AI vs current always shown once modified, on both the delay and the energy axis.',
+      director:
+        'Suppressed to read-only supervision. Dispatch-altitude decision support belongs to the AI in Director (the human\'s lever is the objective, in `strategy-options`), so the executing package is marked "AI executing", chips are not draggable and Apply/Reset are hidden. Pointing at a card still previews its consequence in the map and the ZWL — supervising means seeing what the AI is doing.',
+    },
+    writes: 'view',
+    defaultZone: 'right',
+    minHeight: 420,
+    spec: 'docs/plans/widget-e1-combined-actions.md',
+  },
+  {
+    type: 'combined-actions-package',
+    catalogId: 'E1b',
+    title: 'Combined Actions (package variant)',
+    dataSource: 'mock',
+    kind: 'decision-support',
+    granularity: 'overview-detail',
+    status: 'first-cut',
+    description: 'The second E1 variant: one AI package the dispatcher reorders and confirms, with a problem overview beside it.',
+    promise: 'Read what is wrong, reorder the one coordinated action that answers it, and confirm — with the indirect cost to the trains nobody instructed made visible.',
+    grounding:
+      'Same T3.4 / `AI4REALNET/Tokener` unit of interaction as E1 — a coordinated priority order — but a different interface answer to it: one package instead of three, preceded by a problem statement. Its simulation is a single-server queue over a conflict window (`core/combined-actions-package/simulation.ts`): the controlled trains are re-slotted into the positions the timetable gave them, so reordering two of them changes how long an *uninstructed* train waits. ⚠ Both the conflict window and the queue are a stand-in for Flatland, not a solve.',
+    availableModes: 'all',
+    perMode: {
+      recommendation:
+        'The AI proposes one package; the operator reorders it and confirms. The single option is the point of the variant — it asks whether one well-explained action beats three to choose between.',
+      'co-learning':
+        'Same surface, read as an object to reason about: the queue model makes the indirect effect on uncontrolled trains explicit, which is the thing a dispatcher learns and a single delay number hides.',
+      director:
+        'Supervisory read-only, like E1: the package the AI executes is shown, not editable.',
+    },
+    writes: 'view',
+    defaultZone: 'right',
+    minHeight: 420,
+    spec: 'docs/plans/widget-e1-combined-actions.md',
+  },
+  {
+    type: 'problem-overview',
+    catalogId: 'E1c',
+    title: 'Problem Overview',
+    dataSource: 'mock',
+    kind: 'context',
+    granularity: 'overview',
+    status: 'first-cut',
+    description: 'What is wrong, stated before any action is offered — the left half of the package variant.',
+    promise: 'Say what the conflict is and whom it costs, before proposing anything about it.',
+    grounding:
+      'Reading order is the argument: problem on the left, network in the middle, action on the right, so the dispatcher reads from what is wrong to what to do about it rather than meeting options first. Companion to `combined-actions-package`; its conflict window is the same fixture.',
+    availableModes: 'all',
+    perMode: {
+      recommendation: 'States the conflict the recommended package answers.',
+      'co-learning': 'Same statement, no framing of any option as preferred.',
+      director: 'The conflict the AI is currently resolving, read-only.',
+    },
+    writes: 'view',
+    defaultZone: 'left',
+    minHeight: 200,
+    spec: 'docs/plans/widget-e1-combined-actions.md',
+  },
+  {
     type: 'strategy-options',
     title: 'Strategy Options (A/B/C)',
     dataSource: 'simulation',

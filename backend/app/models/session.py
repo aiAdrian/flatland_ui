@@ -26,6 +26,9 @@ class SessionCreateRequest(BaseModel):
     # Load a prebuilt scenario preset (e.g. an ECML 2026 scene). When set, the
     # env is loaded from file and all generation params above are ignored.
     scenario_preset_id: str | None = None
+    # Scripted disturbances to apply, by id. Only valid together with a preset
+    # that ships them; any subset may be chosen, including none.
+    disturbance_ids: list[str] | None = None
 
 
 class SessionInfo(BaseModel):
@@ -35,6 +38,11 @@ class SessionInfo(BaseModel):
     num_agents: int
     infrastructure_scene_id: str | None = None
     scenario_preset_id: str | None = None
+    # True when the scenario shipped a plan, in which case `active_policy` is
+    # the plan policy: the trains follow the plan from the first step.
+    has_plan: bool = False
+    active_policy: str | None = None
+    disturbance_ids: list[str] = Field(default_factory=list)
 
 
 class StepRequest(BaseModel):

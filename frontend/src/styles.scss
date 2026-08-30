@@ -199,6 +199,17 @@ body {
   --app-whatif-human: var(--sbb-color-blue,   #0079c7);
   --app-whatif-ai:    var(--sbb-color-orange, #ffaa00);
 }
+
+/* Train service category (Combined Actions chips, widget E1). Trains in an
+   action package are fixture ids, not Flatland handles, so AgentColorService
+   does not apply — a chip is typed by the service it belongs to instead.
+   Neutral greys deliberately: the card's colour budget belongs to the AI ↔
+   human distinction above, not to the train list. */
+:root {
+  --app-train-category-long-distance: var(--sbb-color-charcoal, #212121);
+  --app-train-category-regional:      var(--sbb-color-granite,  #686868);
+  --app-train-category-suburban:      var(--sbb-color-graphite, #a8a8a8);
+}
 /* app interaction color concept overrides - end */
 
 

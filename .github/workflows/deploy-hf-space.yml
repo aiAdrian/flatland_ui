@@ -58,6 +58,15 @@ jobs:
           set -eu
           # The image copies backend/app and the Angular build only, so none of
           # this ever reaches the container — it would just bloat the Space repo.
+          # Stamp the build so the running Space can say which commit it is.
+          # This must happen here: the image copies frontend/ and backend/app
+          # only, so `.git` never reaches the Docker build and nothing inside it
+          # can work out its own version. The frontend serves public/ at the
+          # web root, and BuildInfoService reads /build-info.json.
+          printf '{\n  "commit": "%s",\n  "branch": "%s",\n  "builtAt": "%s"\n}\n' \
+            "${GITHUB_SHA:0:7}" "${GITHUB_REF_NAME}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > frontend/public/build-info.json
+          echo "stamped: $(cat frontend/public/build-info.json)"
           rm -rf docs/media backend/models .pytest_cache.zip .github
           cp deploy/hf/Dockerfile Dockerfile
           cat deploy/hf/README-header.md README.md > README.hf

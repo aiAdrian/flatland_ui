@@ -391,7 +391,7 @@
                 (focus)="refreshRuntimeLayouts()"
                 (change)="setRuntimeLayout($any($event.target).value)">
                 @for (layout of runtimeLayoutOptions(); track layout.id) {
-                  <option [value]="layout.id">
+                  <option [value]="layout.id" [attr.title]="layout.purpose || null">
                     {{ layout.name }}{{ layoutKindSuffix(layout.kind) }}
                   </option>
                 }
@@ -419,6 +419,37 @@
                 }
               </select>
             </label>
+
+            @if (selectedScenarioPreset(); as preset) {
+              @if (preset.has_plan) {
+                <p class="welcome-plan-note">
+                  <strong>Plan</strong> — this scenario ships a premade plan.
+                  The trains follow it exactly from the first step; anything
+                  you override leaves the plan and is driven by the AI instead.
+                </p>
+              }
+              @if (selectedPresetDisturbances().length) {
+                <fieldset class="welcome-disturbances">
+                  <legend>Disturbances</legend>
+                  <p class="welcome-disturbances-hint">
+                    Scripted events that hit at fixed steps. Pick any
+                    combination — none is the undisturbed reference run.
+                  </p>
+                  @for (disturbance of selectedPresetDisturbances(); track disturbance.id) {
+                    <label class="welcome-disturbance"
+                           [class.is-active]="isDisturbanceSelected(disturbance.id)">
+                      <input type="checkbox"
+                             [checked]="isDisturbanceSelected(disturbance.id)"
+                             (change)="toggleDisturbance(disturbance.id)">
+                      <span class="welcome-disturbance-text">
+                        <span class="welcome-disturbance-name">{{ disturbance.name }}</span>
+                        <span class="welcome-disturbance-desc">{{ disturbance.description }}</span>
+                      </span>
+                    </label>
+                  }
+                </fieldset>
+              }
+            }
 
             <sbb-button size="l" (click)="onWelcomeNewSession()">
               + New Session
@@ -833,6 +864,12 @@
     </div>
   
     <div class="footer-right">
+      <!-- Which build is on screen. `dev` = served locally; a sha + timestamp
+           means this is the deployed Space image. Without it "did the deploy
+           land?" can only be answered by guessing at the UI. -->
+      @if (buildInfo.label(); as build) {
+        <span class="footer-build" [attr.title]="buildInfo.detail()">{{ build }}</span>
+      }
       @if (store.session()) {
         <span class="footer-session-id">
           Session: {{ store.session()?.id }}

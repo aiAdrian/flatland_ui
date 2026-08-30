@@ -1,6 +1,12 @@
 # Cities = Stations — surfacing Flatland's cities as named stations
 
-> **Status:** Draft for feedback (no implementation yet)
+> **Status (re-checked 2026-08-19): superseded in part.** Stations exist in the
+> app — `StationRef` in `frontend/src/app/core/models.ts` feeds the map station
+> layer and the timetable tile. But they are derived from the **trains' origins
+> and targets**, not from the generator's per-city data, so this plan's actual
+> proposal (surface `sparse_rail_generator`'s city structure, platforms, a `city`
+> role in the visual-encoding registry) is still open. Read the sections below as
+> "what the station concept could still become", not as "stations do not exist".
 > **Context:** Flatland's `sparse_rail_generator` builds the map around
 > **cities** — every train starts and ends in one, rail-pairs within a city are
 > roughly platforms. Today cities are only generation *parameters* (max count,

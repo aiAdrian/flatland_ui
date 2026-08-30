@@ -14,10 +14,13 @@ import {
   DecisionOwner,
   DecisionValueAxis,
   actionLabelFor,
+  CoordinatedDecision,
 } from './decision-log';
 import type { ActionOrigin } from './dispatch/train-action.service';
 import {
   AppNotification,
+  ContentionGroup,
+  ContentionsResponse,
   ImpactItem,
   InteractionMode,
   KpiPriorities,
@@ -37,6 +40,7 @@ import {
   strategyLabelForAction,
 } from './learning-store.service';
 import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState, StationRef } from './models';
+import { CombinedActionPreview } from './combined-actions/combined-actions-preview';
 
 /**
  * One human intervention captured while in Co-Learning mode (WP 3.3).
@@ -133,6 +137,36 @@ export class SessionStore {
     branch: WhatIfTrajById;
     handles: number[];
   } | null>(null);
+
+  /**
+   * Combined Actions (widget E1) consequence overlay: the action version the
+   * operator is currently looking at, expressed per *train handle* so the map
+   * and the Marey can draw it.
+   *
+   * Reordering a dispatch priority list changes timing, not topology — so the
+   * Marey shifts the affected trains' future lines along the time axis, and the
+   * map marks which trains the action moves and in what order they are
+   * released. Set by the Combined Actions panel; cleared when it is destroyed,
+   * the same discipline as `previewScenarioId` and `whatIfPreview`.
+   *
+   * ⚠ The figures behind it are the widget's deterministic **mock** predictor,
+   * not simulation output — see docs/plans/widget-e1-combined-actions.md §8.
+   */
+  readonly combinedActionPreview = signal<CombinedActionPreview | null>(null);
+
+  /** Trains an action package is currently holding the operator's attention on.
+   *
+   *  The package variant of Combined Actions marks *which* trains an action
+   *  takes hold of rather than a full consequence preview: its conflict window
+   *  is a fixture, so drawing a rerouted path would be a claim it cannot make.
+   *  Kept beside `combinedActionPreview` rather than folded into it — the two
+   *  variants say different things, and collapsing them would force one to
+   *  pretend to the other's precision. */
+  readonly combinedActionHandles = signal<ReadonlySet<number>>(new Set());
+
+  setCombinedActionPreview(preview: CombinedActionPreview | null): void {
+    this.combinedActionPreview.set(preview);
+  }
 
   /** Director plan map overlay: the committed plan's per-train cell
    *  paths (planned entry step per cell, so the map clips to the
@@ -1035,6 +1069,19 @@ export class SessionStore {
   readonly recommendations = signal<Recommendation[]>([]);
   /** Phase-1 impact analysis: trains affected by a malfunction. */
   readonly impact = signal<ImpactItem[]>([]);
+
+  /** Live conflict forecast for the Combined Actions panel (widget E1): the
+   *  multi-agent contentions ahead, most-urgent first. Empty when the network
+   *  runs to plan — the panel keeps its empty state rather than synthesising a
+   *  package. Refreshed alongside the other HMI forecasts. */
+  readonly contentions = signal<ContentionGroup[]>([]);
+
+  /** The forecast budget the contentions endpoint ran with, in simulation steps
+   *  — how far it looked ahead. A **compute budget**, not a reliability statement
+   *  (the strategy-forecast panel's load-shrinking `horizonMinutes` is that;
+   *  spec §8). The Combined Actions panel states this in minutes via the shared
+   *  `MINUTES_PER_STEP` convention. */
+  readonly contentionHorizonSteps = signal<number>(0);
   readonly focusedElement = signal<{ kind: 'train' | 'switch' | 'signal'; id: string } | null>(null);
 
   constructor() {
@@ -1264,7 +1311,7 @@ export class SessionStore {
     run();
   }
 
-  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown; scenarioPresetId?: string } = {}) {
+  newSession(opts: { width?: number; height?: number; agents?: number; maxSteps?: number; seed?: number; maxNumCities?: number; maxRailsBetweenCities?: number; maxRailPairsInCity?: number; latestDepartureMax?: number; speedProfile?: string; lineLength?: number; malfunctionRate?: number; malfunctionMinDuration?: number; malfunctionMaxDuration?: number; scenarioPolicyIds?: string[]; policyControlIds?: string[]; infrastructureScene?: unknown; scenarioPresetId?: string; disturbanceIds?: string[] } = {}) {
     this.loading.set(true);
     this.error.set(null);
     this.message.set(null);
@@ -1274,6 +1321,8 @@ export class SessionStore {
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
     this.impact.set([]);
+    this.contentions.set([]);
+    this.contentionHorizonSteps.set(0);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
     const payload: any = {};
@@ -1295,6 +1344,7 @@ export class SessionStore {
     if (opts.policyControlIds != null) payload.enabled_policy_ids = opts.policyControlIds;
     if (opts.infrastructureScene != null) payload.infrastructure_scene = opts.infrastructureScene;
     if (opts.scenarioPresetId != null) payload.scenario_preset_id = opts.scenarioPresetId;
+    if (opts.disturbanceIds?.length) payload.disturbance_ids = opts.disturbanceIds;
     const requestedScene = payload.infrastructure_scene as { id?: string; name?: string; cells?: unknown[]; agents?: unknown[] } | undefined;
     this.message.set(opts.scenarioPresetId
       ? `Loading prebuilt scenario: ${opts.scenarioPresetId}`
@@ -1304,8 +1354,12 @@ export class SessionStore {
     this.api.createSession(payload).subscribe({
       next: (s) => {
         this.session.set(s);
+        const disturbed = s.disturbance_ids?.length
+          ? ` · ${s.disturbance_ids.length} disturbance${s.disturbance_ids.length > 1 ? 's' : ''}`
+          : '';
         this.message.set(s.scenario_preset_id
           ? `Loaded scenario preset: ${s.scenario_preset_id} · ${s.width} × ${s.height} · ${s.num_agents} trains`
+            + (s.has_plan ? ' · running the premade plan' : '') + disturbed
           : s.infrastructure_scene_id
           ? `Loaded infrastructure scene: ${s.infrastructure_scene_id}`
           : 'Loaded random infrastructure');
@@ -1315,11 +1369,25 @@ export class SessionStore {
         if (opts.policyControlIds != null) {
           this.setEnabledControlPolicyIds(opts.policyControlIds);
         }
-        // A session born while Director mode is active runs under the
-        // Director's planner from its first step — same coupling as
-        // switching into the mode with a session already open.
-        if (this.interactionMode() === 'director'
+        // A planned scenario chooses its own policy: selecting it means "run
+        // this plan", so the backend already put the session on the plan
+        // policy and the signal only has to follow. Nothing to POST back.
+        // The plan policy is hidden in the global /policies listing (it is
+        // meaningless without a plan), so it also has to be added to the
+        // session's control policies — otherwise the toolbar dropdown would
+        // fall back to showing the first entry and claim the wrong driver.
+        if (s.has_plan && s.active_policy) {
+          const policy = s.active_policy as PolicyName;
+          if (!this.enabledControlPolicyIds().includes(policy)) {
+            this.setEnabledControlPolicyIds([policy, ...this.enabledControlPolicyIds()]);
+          }
+          this.setActivePolicy(policy);
+        } else if (this.interactionMode() === 'director'
             && this.activePolicy() !== 'goal_directed') {
+          // A session born while Director mode is active runs under the
+          // Director's planner from its first step — same coupling as
+          // switching into the mode with a session already open. A planned
+          // scenario is exempt: its plan is the thing under supervision.
           this._policyBeforeDirector = this.activePolicy();
           this._applySessionPolicy('goal_directed');
         }
@@ -1452,6 +1520,8 @@ export class SessionStore {
     this.selectedHandle.set(null);
     this._resetTrajectories();
     this.impact.set([]);
+    this.contentions.set([]);
+    this.contentionHorizonSteps.set(0);
     this.clearDecisionLog();
     this.scenarios.set([]);
     this.recommendations.set([]);
@@ -1490,6 +1560,8 @@ export class SessionStore {
     this.pendingRationale.set(null);
     this.pendingStrategyReflection.set(null);
     this.impact.set([]);
+    this.contentions.set([]);
+    this.contentionHorizonSteps.set(0);
     this.clearDecisionLog();
     this.reflectionRequested.set(false);
     this.api.reset(s.id).subscribe({
@@ -1686,6 +1758,39 @@ export class SessionStore {
    *  rest of the network keeps running, until the human decides. Unlike
    *  setOverride this is NOT logged as a human intervention — it's the safe
    *  default that creates the decision moment, not the human's choice. */
+  /**
+   * Record a coordinated multi-train action — the public seam the Combined
+   * Actions surfaces write through.
+   *
+   * `_appendDecision` stays private: every other decision in the log comes from
+   * a store-owned choke-point (setOverride / clearOverride / systemHold), and
+   * opening the raw append to components would let any surface write any shape.
+   * This seam takes the coordinated shape and fills the schema fields itself,
+   * so the two variants cannot drift apart in how they record the same kind of
+   * decision.
+   *
+   * `handle: -1` follows the convention `action: 'strategy'` set: not about one
+   * train, and the schema is not made to pretend otherwise.
+   */
+  recordCoordinatedAction(decision: CoordinatedDecision, decisionTimeMs: number | null = null): number {
+    const modified =
+      decision.appliedOrder.length !== decision.aiOrder.length ||
+      decision.appliedOrder.some((train, i) => train !== decision.aiOrder[i]);
+    return this._appendDecision({
+      t: Date.now(),
+      simStep: this.elapsedSteps(),
+      mode: this.interactionMode(),
+      handle: -1,
+      accountableOwner: 'human',
+      // The two values the schema reserved for accept-vs-override and never
+      // wired: taking the AI's order is an acceptance, changing it is not.
+      action: modified ? 'override' : 'accept',
+      aiSuggestion: decision.label,
+      decisionTimeMs,
+      coordinated: decision,
+    });
+  }
+
   systemHold(handle: number) {
     const s = this.session();
     if (!s) return;
@@ -1758,6 +1863,13 @@ export class SessionStore {
     });
     this.api.getImpact(s.id).subscribe({
       next: (items) => this.impact.set(items),
+      error: () => {},
+    });
+    this.api.getContentions(s.id).subscribe({
+      next: (resp) => {
+        this.contentions.set(resp.groups);
+        this.contentionHorizonSteps.set(resp.horizonSteps);
+      },
       error: () => {},
     });
   }

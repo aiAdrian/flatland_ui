@@ -91,6 +91,22 @@
          cannot express — the forecast needs its four time columns, the tiles
          need to sit above the map). Mapped here so the Widget Gallery can
          preview them live instead of falling through to the placeholder. -->
+    @case ('combined-actions') {
+      <app-combined-actions [embedded]="true"></app-combined-actions>
+    }
+
+    <!-- The second Combined Actions variant, kept beside the first rather than
+         instead of it: comparing interface variants is what this playground is
+         for, and two variants of one widget are two panel types, never a fourth
+         interaction mode. -->
+    @case ('combined-actions-package') {
+      <app-combined-actions-package></app-combined-actions-package>
+    }
+
+    @case ('problem-overview') {
+      <app-problem-overview></app-problem-overview>
+    }
+
     @case ('strategy-options') {
       <app-strategy-options></app-strategy-options>
     }

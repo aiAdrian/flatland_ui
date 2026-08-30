@@ -2,6 +2,7 @@ import {
   Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, viewChild, HostListener, AfterViewInit, OnDestroy
 } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { RailCellHoverService } from '../../services/rail-cell-hover.service';
@@ -100,6 +101,9 @@ interface DirectorPlanLine {
 })
 export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   store = inject(SessionStore);
+  /** Shared train naming (core/train-identity.service.ts), so the map speaks the
+   *  same vocabulary as the timetable, the ZWL and the action packages. */
+  readonly identity = inject(TrainIdentityService);
   private agentColors = inject(AgentColorService);
   /** Acting goes through the dispatch seam, never straight to the store. */
   private trainActions = inject(TrainActionService);
@@ -1646,6 +1650,34 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
 
   isNotificationHovered(handle: number): boolean {
     return this.store.notificationHoverHandles().has(handle);
+  }
+
+  // ── Combined Actions (widget E1) consequence overlay ─────────────────────
+  // A dispatch priority order changes *timing*, not topology, so the map shows
+  // the half of the consequence that is topological: which trains the action
+  // moves, and in what order they are released. Drawing a reroute here would be
+  // a lie — the time shift is the Marey's job.
+
+  /** 1-based dispatch rank of this train in the previewed action, or null. */
+  combinedActionRank(handle: number): number | null {
+    return this.store.combinedActionPreview()?.rankByHandle[handle] ?? null;
+  }
+
+  /** Predicted delay change for this train under the previewed action, minutes. */
+  combinedActionDelta(handle: number): number | null {
+    const delta = this.store.combinedActionPreview()?.deltaMinByHandle[handle];
+    return delta === undefined ? null : delta;
+  }
+
+  /** The service name the action card shows for this train. */
+  combinedActionTrain(handle: number): string | null {
+    return this.store.combinedActionPreview()?.trainByHandle[handle] ?? null;
+  }
+
+  combinedActionDeltaLabel(handle: number): string {
+    const delta = this.combinedActionDelta(handle);
+    if (delta === null || delta === 0) return '';
+    return `${delta > 0 ? '+' : ''}${delta}`;
   }
 
   agentTarget(a: AgentDTO): [number, number] | null {

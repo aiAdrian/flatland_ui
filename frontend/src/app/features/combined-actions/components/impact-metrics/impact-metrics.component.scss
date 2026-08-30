@@ -1,0 +1,115 @@
+:host {
+  display: block;
+}
+
+.im {
+  /* One row, not a stack: in a 24 % column the panel has to fit its height
+     budget, and the headline plus its qualifiers are short enough to sit on a
+     single line. Wraps on its own if a translation makes them longer. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 1px;
+  min-width: 0;
+}
+
+.im__primary,
+.im__secondary {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.im__compare {
+  flex: 1 1 100%;
+}
+
+.im__primary {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 20px;
+}
+
+.im__value {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--app-positive);
+  font-variant-numeric: tabular-nums;
+}
+
+.im__unit {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+/* Deliberately quiet: the message is "the system re-evaluated", not "look at
+   this number changing". */
+.im__delta {
+  margin-left: 2px;
+  padding: 0 4px;
+  border-radius: 2px;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-granite);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  animation: im-delta-in 160ms ease-out;
+}
+
+.im__updating {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--sbb-color-granite);
+  line-height: 20px;
+}
+
+.im__secondary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.im__conf[data-conf='high']   { color: var(--app-reliability-high); font-weight: 600; }
+.im__conf[data-conf='medium'] { color: var(--sbb-color-granite); font-weight: 600; }
+.im__conf[data-conf='low']    { color: var(--app-reliability-low); font-weight: 600; }
+
+.im__dot {
+  color: var(--sbb-color-graphite);
+}
+
+.im__compare {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.im__compare-ai  { color: var(--app-whatif-ai); font-weight: 600; }
+.im__compare-now { color: var(--app-whatif-human); font-weight: 600; }
+
+@keyframes im-delta-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .im__delta { animation: none; }
+}
+
+.im__energy {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Energy is the axis that usually moves the *wrong* way when delay improves, so
+   it is coloured by direction rather than by whose change it was. */
+.im__compare-energy {
+  color: var(--sbb-color-granite);
+  font-weight: 600;
+}

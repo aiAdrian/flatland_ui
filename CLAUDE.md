@@ -149,14 +149,25 @@ around them stays ours.
   for theme-aware values. New colours → add a token, don't inline. This keeps a
   future **dark mode** (Lyne `.sbb-dark` / `color-scheme`) a config flip instead of
   a repo-wide rewrite. Agent colours stay in `AgentColorService`, not SCSS. The
-  ~1085 existing hardcoded colours are legacy debt — don't add to them; migrate
+  ~1270 existing hardcoded colours are legacy debt — don't add to them; migrate
   opportunistically when you touch a file. Full frontend/Lyne rules:
   `docs/reference/frontend-lyne-conventions.md` (also mirrored for other AI tools
   in `AGENTS.md` and `.github/copilot-instructions.md`).
 - Keep existing tests green (`backend/tests/`); add coverage for new backend gating.
 
-## Not yet available
-Deliverables **D3.1** (control taxonomy / augment human decision-making) and
-**D3.2** (beta software / agent-as-a-service KPI+event monitoring) would sharpen
-the Director and goal-achievement design. They're public on ai4realnet.eu; pull
-them in if available.
+## Consortium deliverables — D3.1 and D3.2 are public (checked 2026-08-19)
+
+Both are downloadable from https://ai4realnet.eu/deliverables/ (status: draft,
+pending approval). Read them before designing Director or logging work:
+
+- **D3.1** (TU Delft, 136 pp.) — §7 is the official **Director System**: the
+  operator issues high-level *directives* executed by **interpretable
+  primitives** derived from Hierarchical Task Analysis (Dettling et al. 2026),
+  with a worked disruption-management example ("search suitable trains for
+  rerouting" → identify / filter by capacity / filter direct-to-destination →
+  ranked shortlist). §3 covers A3S + TraceRL and their "structured audit trail
+  of operator decisions, AI recommendations and uncertainty estimates". The
+  norm for logging is stated outright: trustworthy autonomy requires
+  "structured, traceable decision records".
+- **D3.2** (93 pp., slide deck) — documents the WP3 code per task with repo
+  links; A3S is the named home for "auditing, logging and what-if analysis".

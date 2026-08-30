@@ -1,0 +1,152 @@
+:host {
+  display: block;
+}
+
+.tp {
+  margin: 0;
+  padding: 6px 8px 4px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 3px;
+  background: var(--sbb-color-white);
+}
+
+.tp__caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tp__title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sbb-color-granite);
+}
+
+.tp__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  color: var(--sbb-color-granite);
+}
+
+.tp__key {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 4px;
+}
+
+.tp__key--ai { background: var(--app-whatif-ai); }
+.tp__key--human { background: var(--app-whatif-human); }
+
+.tp__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tp__axis {
+  stroke: var(--sbb-color-graphite);
+  stroke-width: 1;
+}
+
+.tp__grid {
+  stroke: var(--sbb-color-cloud);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.tp__tick {
+  fill: var(--sbb-color-granite);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tp__axis-name {
+  fill: var(--sbb-color-graphite);
+  font-size: 8px;
+}
+
+/* The arrow is the headline of this chart: it says which way the dispatcher's
+   change moved the option, so it is drawn in the human colour and above the
+   axes but below the dots. */
+.tp__arrow {
+  stroke: var(--app-whatif-human);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 2;
+  fill: none;
+}
+
+.tp__arrow-head { fill: var(--app-whatif-human); }
+
+.tp__trade-label {
+  fill: var(--app-whatif-human);
+  font-size: 8.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: var(--sbb-color-white);
+  stroke-width: 3px;
+}
+
+/* A variant that wins on both axes is the one case where overriding the AI is
+   free — worth marking, and rare enough not to clutter. */
+.tp__trade.is-dominating .tp__arrow,
+.tp__trade.is-dominating .tp__arrow-head { stroke: var(--app-positive); fill: var(--app-positive); }
+.tp__trade.is-dominating .tp__trade-label { fill: var(--app-positive); }
+
+.tp__point { cursor: default; }
+
+/* The A3S/TraceRL split again: AI-generated versions orange, the dispatcher's
+   own blue — the same code the chips and the card border use. */
+.tp__point[data-origin='ai'] .tp__dot { fill: var(--app-whatif-ai); }
+.tp__point[data-origin='human'] .tp__dot { fill: var(--app-whatif-human); }
+
+.tp__dot {
+  stroke: var(--sbb-color-white);
+  stroke-width: 1.5;
+  transition: r 120ms ease;
+}
+
+.tp__point:not(.is-active) .tp__dot { opacity: 0.4; }
+
+.tp__ring {
+  fill: none;
+  stroke: var(--app-whatif-ai);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.tp__mark {
+  fill: var(--sbb-color-white);
+  font-size: 8.5px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Figures next to the version each card is showing, so the ordinary case reads
+   without hovering anything. */
+.tp__value {
+  fill: var(--sbb-color-granite);
+  font-size: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: var(--sbb-color-white);
+  stroke-width: 2.5px;
+  pointer-events: none;
+}
+
+.tp__readout {
+  margin: 1px 0 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sbb-color-granite);
+  font-variant-numeric: tabular-nums;
+  min-height: 13px;
+}

@@ -1,0 +1,142 @@
+:host {
+  display: block;
+}
+
+.po {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-left: 4px solid var(--app-severity-error);
+  border-radius: 4px;
+  background: light-dark(var(--sbb-color-white), var(--sbb-color-charcoal));
+}
+
+.po-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.po-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--app-severity-error);
+  color: var(--sbb-color-white);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.po-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.po-where {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+}
+
+.po-why,
+.po-worst {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--sbb-color-granite);
+}
+
+.po-worst strong {
+  color: var(--sbb-color-charcoal);
+}
+
+.po-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 3px 0;
+}
+
+.po-kpi {
+  display: flex;
+  flex-direction: column;
+}
+
+.po-kpi__value {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-severity-error);
+}
+
+.po-kpi__label {
+  font-size: 10px;
+  color: var(--sbb-color-granite);
+}
+
+.po-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.po-caption {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sbb-color-granite);
+  padding-bottom: 2px;
+}
+
+.po-table th,
+.po-table td {
+  padding: 2px 4px;
+  text-align: right;
+  color: var(--sbb-color-charcoal);
+}
+
+.po-table thead th {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sbb-color-granite);
+  border-bottom: 1px solid var(--sbb-color-cloud);
+}
+
+.po-table th:nth-child(1),
+.po-table td:nth-child(1),
+.po-table th:nth-child(2),
+.po-table td:nth-child(2) {
+  text-align: left;
+}
+
+.po-train {
+  font-weight: 600;
+}
+
+.po-service {
+  display: block;
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--sbb-color-granite);
+}
+
+.po-delay.is-late {
+  font-weight: 700;
+  color: var(--app-severity-warn);
+}
+
+/* The train the conflict is really about. */
+.po-table tr.is-worst .po-delay {
+  color: var(--app-severity-error);
+}

@@ -13,7 +13,8 @@ from app.core.ws_manager import ws_manager
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
 from app.core.marey_history import capture_marey_history_snapshot, reset_marey_history
-from app.core.scenario_presets import get_preset, list_presets
+from app.core.disturbances import apply_due_disturbances
+from app.core.scenario_presets import get_preset, list_presets, select_disturbances
 from app.models.session import (
     SessionCreateRequest,
     SessionInfo,
@@ -21,7 +22,12 @@ from app.models.session import (
 )
 from app.models.agent import ActionRequest
 from app.policies.override_policy import OverridePolicy
-from app.policies.registry import create_runtime_policy, scenario_policy_factories, policy_specs
+from app.policies.registry import (
+    PLAN_POLICY_ID,
+    create_runtime_policy,
+    policy_specs,
+    scenario_policy_factories,
+)
 
 _perf_log = logging.getLogger("flatland.perf")
 _perf_log.setLevel(logging.INFO)
@@ -171,22 +177,30 @@ def create_session(req: SessionCreateRequest):
         # UI gets a clean 400 rather than a 500 from the loader.
         try:
             get_preset(scenario_preset_id)
+            disturbances = select_disturbances(scenario_preset_id, req.disturbance_ids)
         except (KeyError, FileNotFoundError) as e:
             raise HTTPException(400, str(e))
-        _perf_log.info("[INFRA] create requested mode=preset id=%s", scenario_preset_id)
+        _perf_log.info(
+            "[INFRA] create requested mode=preset id=%s disturbances=%s",
+            scenario_preset_id,
+            ",".join(d["id"] for d in disturbances) or "-",
+        )
         session = session_manager.create(
             seed=req.seed,
             enabled_policy_ids=req.enabled_policy_ids,
             enabled_scenario_policy_ids=req.enabled_scenario_policy_ids,
             scenario_preset_id=scenario_preset_id,
+            disturbances=disturbances,
         )
         _perf_log.info(
-            "[INFRA] create built session=%s mode=preset id=%s env=%sx%s agents=%s",
+            "[INFRA] create built session=%s mode=preset id=%s env=%sx%s agents=%s plan=%s policy=%s",
             session.id,
             scenario_preset_id,
             session.env.width,
             session.env.height,
             len(session.env.agents),
+            "yes" if session.trainrun_plan else "no",
+            session.policy,
         )
         return SessionInfo(
             id=session.id,
@@ -194,6 +208,19 @@ def create_session(req: SessionCreateRequest):
             height=session.env.height,
             num_agents=len(session.env.agents),
             scenario_preset_id=scenario_preset_id,
+            # Set for scene presets, which keep their scene on the session.
+            infrastructure_scene_id=getattr(session, "infrastructure_scene_id", None),
+            has_plan=bool(session.trainrun_plan),
+            active_policy=session.policy,
+            disturbance_ids=[d["id"] for d in disturbances],
+        )
+
+    if req.disturbance_ids:
+        # Disturbances are shipped by a scenario preset, so asking for one
+        # without a preset can only be a mistake — and silently ignoring it
+        # would produce a run that looks disturbed but is not.
+        raise HTTPException(
+            400, "disturbance_ids requires scenario_preset_id (disturbances ship with a scenario)."
         )
 
     infrastructure_scene = req.infrastructure_scene or None
@@ -281,6 +308,7 @@ def create_session(req: SessionCreateRequest):
         height=session.env.height,
         num_agents=len(session.env.agents),
         infrastructure_scene_id=getattr(session, "infrastructure_scene_id", None),
+        active_policy=session.policy,
     )
 
 
@@ -365,6 +393,9 @@ async def step(session_id: str, req: StepRequest):
         policy.end_step()
         session.last_observations = next_obs
         session.last_info = info
+        # Scripted disturbances fire against the state the step just produced,
+        # so a delay injected at step N is visible from step N onwards.
+        apply_due_disturbances(session_id, session, env)
         # Capture exact executed state for Marey history.
         _capture_marey_history_snapshot(session)
         n_done_steps += 1
@@ -456,6 +487,10 @@ def delete_session(session_id: str):
     override_manager.clear_all(session_id)
     notification_manager.clear_session(session_id)
     _STRATEGY_CACHE.pop(session_id, None)
+    # Its own put() only drops stale *steps* of the same session, so without
+    # this a deleted session's last forecast stayed for the process's life.
+    from app.core.contention_cache import contention_cache
+    contention_cache.clear_session(session_id)
     return {"deleted": session_id}
 
 
@@ -493,6 +528,16 @@ def _invalidate_scenario_forecasts(session_id: str) -> None:
     try:
         from app.core.scenario_cache import scenario_cache
         scenario_cache.clear_session(session_id)
+    except Exception:
+        pass
+    # The contention forecast keys on (session_id, step) alone, so it survives
+    # a policy switch that happens *within* a step — and its baseline is that
+    # very policy (`_rollout_baseline`). Override changes deliberately do not
+    # invalidate it (the predicted course ignores overrides by design), but a
+    # change to what drives the session must.
+    try:
+        from app.core.contention_cache import contention_cache
+        contention_cache.clear_session(session_id)
     except Exception:
         pass
     # Same reasoning for the strategy answers: they compare each focus against
@@ -1232,6 +1277,12 @@ def get_scenario_policies(session_id: str):
 
     scenario_available = set(scenario_policy_factories().keys())
     policy_available = {spec.id for spec in policy_specs(include_hidden=True) if spec.show_in_ui}
+    # The plan policy is hidden globally — it means nothing without a plan —
+    # but it is a real choice for a session that has one, and the toolbar
+    # builds its dropdown from this list. Leaving it out made the dropdown
+    # fall back to the first entry and name the wrong driver.
+    if getattr(session, "trainrun_plan", None):
+        policy_available.add(PLAN_POLICY_ID)
 
     scenario_enabled = getattr(session, "enabled_scenario_policies", scenario_available)
     policy_enabled = getattr(session, "enabled_policy_ids", policy_available)

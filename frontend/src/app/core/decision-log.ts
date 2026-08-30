@@ -40,6 +40,79 @@ export type DecisionAction =
  *  import-free. */
 export type DecisionValueAxis = 'punctuality' | 'throughput' | 'stability' | 'connection';
 
+/**
+ * A coordinated multi-train action, as the log records it.
+ *
+ * The entry schema is per-train (`handle`), and a combined action is not: it is
+ * an *order* over several trains. Rather than emit one entry per train — which
+ * would record the parts and lose the coordination, the one thing the operator
+ * actually decided — a coordinated action is one entry with `handle: -1`, the
+ * convention `action: 'strategy'` already uses for decisions that are not about
+ * a single train.
+ *
+ * Both orders are kept, never just the applied one. The whole point of the
+ * Combined Actions surfaces is the distinction between what the AI proposed and
+ * what the operator made of it; a log that stores only the outcome cannot
+ * answer "did they take the AI's answer or their own?", which is the question
+ * (Q3, accountability) the log exists for. `action` says which: `'accept'` when
+ * the applied order is the AI's, `'override'` when it is not — the two values
+ * the schema reserved for exactly this and never wired.
+ */
+export type CoordinatedVariant =
+  /** Widget E1: three packages to compare, one editable in place. */
+  | 'packages'
+  /** Widget E1b: one package to reorder and confirm. */
+  | 'package';
+
+/**
+ * Predicted figures for one order.
+ *
+ * A shared core plus what each variant actually measures. Forcing both into one
+ * vocabulary would mean inventing a number for whichever surface does not have
+ * it — so the fields a variant does not compute are simply absent, and a reader
+ * can tell "not measured here" from "measured as zero".
+ */
+export interface CoordinatedImpact {
+  /** Minutes of delay the order is predicted to save. */
+  delayReductionMin: number | null;
+  /** E1: planned transfers this order keeps, of the ones it can affect. */
+  transfersKept?: number | null;
+  transfersTotal?: number | null;
+  /** E1b: trains the re-slotting moves that the order never dispatched — the
+   *  indirect cost its queue model exists to make visible. */
+  affectedTrains?: number | null;
+}
+
+export interface CoordinatedDecision {
+  /** Which surface produced this. The two variants are never on screen at once
+   *  (they are separate layout presets), so entries cannot interleave within a
+   *  session — but a study comparing the surfaces has to be able to tell the
+   *  records apart afterwards. */
+  variant: CoordinatedVariant;
+  /** The package as the operator saw it named ('Action A'). */
+  label: string;
+  /** The AI's proposed order, in service names. */
+  aiOrder: readonly string[];
+  /** The order that was applied. Equal to `aiOrder` on an accept. */
+  appliedOrder: readonly string[];
+  /** The same order in train handles. The service names are an authored alias
+   *  (`SERVICE_ROSTER`); the handles are what the session actually contains, so
+   *  a record that outlives the alias still points at real trains. */
+  handles: readonly number[];
+  aiImpact: CoordinatedImpact;
+  appliedImpact: CoordinatedImpact;
+  /**
+   * Whether the order reached the planner.
+   *
+   * `false` for both variants today: Apply sets a confirmation and controls no
+   * train (spec §4, "`Apply` actually committing the order to the planner" is
+   * still flagged). Recorded explicitly rather than left to be assumed, because
+   * a decision record that reads as executed when nothing moved is worse than
+   * no record — it is the one failure mode an audit trail cannot survive.
+   */
+  committed: boolean;
+}
+
 export interface DecisionLogEntry {
   /** Monotonic sequence number within the session (1-based). */
   seq: number;
@@ -87,6 +160,9 @@ export interface DecisionLogEntry {
   /** Human-readable summary of what the choice gave up, for the reflection card
    *  and the learning record ("−31 Pünktlichkeit"). */
   tradedAway?: string;
+  /** Present on coordinated multi-train actions; see `CoordinatedDecision`.
+   *  Absent on every per-train entry, so existing readers are untouched. */
+  coordinated?: CoordinatedDecision;
 }
 
 /** Rolling cap on the in-memory log (newest kept). */

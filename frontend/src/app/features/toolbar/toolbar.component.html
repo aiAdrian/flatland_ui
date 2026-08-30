@@ -47,12 +47,18 @@
       <sbb-divider orientation="vertical"></sbb-divider>
 
       <span class="label">Policy</span>
+      <!-- `[selected]` per option rather than `[value]` on the select: the
+           option list can grow after the value is bound (a planned scenario
+           adds its plan policy once the session exists), and the browser
+           resets selectedIndex when options re-render, which left the
+           dropdown naming a policy that was not driving. -->
       <select
         class="policy-select"
-        [value]="policy()"
         (change)="onPolicyChange($event)">
         @for (p of selectablePolicies(); track p.id) {
-          <option [value]="p.id" [title]="p.description">{{ p.label }}</option>
+          <option [value]="p.id" [title]="p.description" [selected]="p.id === policy()">
+            {{ p.label }}
+          </option>
         }
       </select>
     }

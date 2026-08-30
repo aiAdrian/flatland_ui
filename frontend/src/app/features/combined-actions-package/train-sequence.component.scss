@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+.ts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.ts.is-disabled .ts-slot {
+  cursor: default;
+}
+
+.ts-slot {
+  /* The insertion marker is a border on the slot, so no element has to be
+     injected into the list while dragging. */
+  border-left: 2px solid transparent;
+  border-radius: 2px;
+  padding-left: 2px;
+}
+
+.ts-slot:focus-visible {
+  outline: 2px solid var(--sbb-color-charcoal);
+  outline-offset: 1px;
+}
+
+.ts-slot.is-target {
+  border-left-color: var(--sbb-color-charcoal);
+}
+
+.ts-slot--end {
+  /* Only wide enough to be a target; invisible until it is one. */
+  width: 10px;
+  align-self: stretch;
+  min-height: 22px;
+}
+
+.ts-arrow {
+  color: var(--sbb-color-granite);
+  font-size: 11px;
+  padding: 0 1px;
+  user-select: none;
+}

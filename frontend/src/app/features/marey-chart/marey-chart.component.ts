@@ -3,6 +3,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
+import { deltaSteps } from '../../core/combined-actions/combined-actions-preview';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { ApiService } from '../../core/api.service';
 import { RailTile, NextDecision, DecisionOption, AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
@@ -46,6 +48,16 @@ interface DecisionGlyph {
   options: DecisionPill[];
   /** SWITCH or MERGING — controls marker style. */
   cellKind: 'switch' | 'merge';
+}
+
+/** One agent's future line as an action package would shift it in time. */
+interface ConsequenceLine {
+  handle: number;
+  color: string;
+  /** The shifted future path. */
+  d: string;
+  /** Minutes the package gains (negative) or costs (positive) this train. */
+  deltaMin: number;
 }
 
 interface AgentLine {
@@ -107,6 +119,10 @@ export class MareyChartComponent implements AfterViewInit {
   private readonly colors = inject(AgentColorService);
   /** Acting goes through the dispatch seam, never straight to the store. */
   private readonly trainActions = inject(TrainActionService);
+
+  /** Shared train naming (core/train-identity.service.ts), so a line reads as
+   *  the same train as the timetable row and the action package. */
+  readonly identity = inject(TrainIdentityService);
   private readonly railHover = inject(RailCellHoverService);
   // ── decision-pill click ─────────────────────────────────────────
   // The toggle rule used to be copied here from left-sidebar; it now lives once
@@ -1390,6 +1406,68 @@ export class MareyChartComponent implements AfterViewInit {
     lines.sort((a, b) => Number(a.isActive) - Number(b.isActive));
     return lines;
   });
+
+  /**
+   * Combined Actions (widget E1) consequence overlay.
+   *
+   * A dispatch priority order does not reroute anybody — it decides who is
+   * released first, so its consequence is a shift along the *time* axis. Each
+   * affected train's future line is redrawn at `step + delta`, which is exactly
+   * what the operator wants to see in a time-distance diagram: their reorder
+   * pulling one line earlier and pushing another later.
+   *
+   * Drawn from the same deterministic mock as the panel's figures — the ghost
+   * is dashed and labelled so it can never be mistaken for the forecast.
+   */
+  readonly consequenceLines = computed<ConsequenceLine[]>(() => {
+    const preview = this.store.combinedActionPreview();
+    const idx = this.pathIndex();
+    const tr = this.mergedTrajectories();
+    if (!preview || idx.size === 0) return [];
+
+    const now = this.elapsed();
+    const out: ConsequenceLine[] = [];
+
+    for (const [handleStr, traj] of Object.entries(tr)) {
+      const handle = Number(handleStr);
+      const deltaMin = preview.deltaMinByHandle[handle];
+      if (deltaMin === undefined || deltaMin === 0) continue;
+
+      const shift = deltaSteps(deltaMin);
+      const pts: { x: number; y: number }[] = [];
+      let prevXIdx = 0;
+
+      for (const p of traj) {
+        const candidates = idx.get(`${p.row},${p.col}`);
+        if (!candidates || candidates.length === 0) continue;
+
+        let xIdx = candidates[0];
+        let bestDist = Math.abs(xIdx - prevXIdx);
+        for (const c of candidates) {
+          const d = Math.abs(c - prevXIdx);
+          if (d < bestDist) { bestDist = d; xIdx = c; }
+        }
+        prevXIdx = xIdx;
+
+        for (const t of this.mareyRenderTimesForPoint(p, now)) {
+          // Only the future moves: what already ran cannot be re-dispatched.
+          if (t < now) continue;
+          const shifted = Math.max(now, t + shift);
+          const sx = this.axesSwapped() ? this.timeCoord(shifted) : this.pathCoord(xIdx);
+          const sy = this.axesSwapped() ? this.pathCoord(xIdx) : this.timeCoord(shifted);
+          pts.push({ x: sx, y: sy });
+        }
+      }
+
+      if (pts.length > 1) {
+        out.push({ handle, color: this.colors.getColorSolid(handle), d: this.toPathD(pts), deltaMin });
+      }
+    }
+    return out;
+  });
+
+  /** Label for the consequence overlay's legend. */
+  readonly consequenceLabel = computed(() => this.store.combinedActionPreview()?.label ?? '');
 
   /** Agent labels at the START of each line, side determined by motion direction. */
   readonly agentLabels = computed<AgentLabel[]>(() => {

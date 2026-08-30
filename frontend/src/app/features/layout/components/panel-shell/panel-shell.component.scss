@@ -100,6 +100,17 @@
   overflow: auto;
 }
 
+/* Panels that own a whole column get the column, not half the viewport.
+   `50vh` is the right budget for panels stacked two or three to a column — it
+   stops any one of them eating the screen. A panel that is alone in its column
+   has no neighbour to protect, and the cap only turned its content into a
+   scrollbar: Combined Actions came to 514 px against a 480 px cap at 960 px
+   window height, so the operator scrolled inside a column that had room to
+   spare. */
+:host([data-panel-type='combined-actions']) .layout-panel-shell__body--scroll {
+  max-height: min(80vh, 42rem);
+}
+
 /* Important: only hide bodies of real expansion panels.
    Never use .layout-panel-shell:not([expanded]) globally, because canvas
    shells are divs without an expanded attribute. */

@@ -24,7 +24,7 @@ verify the captured shape looks right for a couple of seed/config combos, no
 schema commitment yet.
 - **Entry point:** `backend/app/core/env_factory.py:174-185` (the
   `sparse_rail_generator` call site)
-- **Source:** [cities-stations-plan.md](cities-stations-plan.md) §2, §4 P1
+- **Source:** [cities-stations-plan.md](../plans/cities-stations-plan.md) §2, §4 P1
 - **Size:** S (~1 day)
 
 ### R2 — Greedy what-if recommender
@@ -35,7 +35,7 @@ change needed.
 - **Entry point:** `backend/app/core/recommenders/` (new file
   `greedy_whatif.py`, same registration pattern as
   `Phase1ProximityRecommender`)
-- **Source:** [recommender-roadmap.md](recommender-roadmap.md) "Planned" item 1
+- **Source:** [recommender-roadmap.md](../plans/recommender-roadmap.md) "Planned" item 1
 - **Size:** M
 
 ### R3 — PP-replan recommender
@@ -48,7 +48,7 @@ write PP/CBS logic from scratch. Watch for the Flatland version mismatch
 (4.0.3 vs 4.2.6) noted in the cbs-pp-planner-integration context.
 - **Entry point:** `backend/app/core/recommenders/pp_replan.py` (new); possibly
   a dedicated PP-planner building block
-- **Source:** [recommender-roadmap.md](recommender-roadmap.md) "Planned" item 2
+- **Source:** [recommender-roadmap.md](../plans/recommender-roadmap.md) "Planned" item 2
 - **Size:** M–L
 
 ### R4 — Widget B1: what-if branch compare
@@ -60,7 +60,7 @@ target: [`agent-as-a-service-trace-rl`](https://github.com/AI4REALNET/agent-as-a
 - **Entry point:** widget registration seams (`panel-plugin-host.component.ts`,
   designer palette); backend needs an alternative-route computation (partly
   depends on R3)
-- **Source:** Widget B1 in [widget-catalog.md](widget-catalog.md)
+- **Source:** Widget B1 in [widget-catalog.md](../plans/widget-catalog.md)
 - **Size:** M–L
 - **Depends on:** R3 (for a real alternative path, not a placeholder)
 
@@ -71,7 +71,7 @@ Biggest chunk, most directly in the colleagues' RL wheelhouse, but data-hungry
 and multi-week — treat as an optional stretch goal, not a first task.
 - **Entry point:** `backend/app/policies/` (new policy implementation, same
   interface as the heuristics)
-- **Source:** [recommender-roadmap.md](recommender-roadmap.md) "RL wave"
+- **Source:** [recommender-roadmap.md](../plans/recommender-roadmap.md) "RL wave"
 - **Size:** L
 
 **Dependency note:** R4 needs R3 as its real data source for alternative
@@ -105,26 +105,26 @@ option (expected delays / follow-on conflicts).
 ### A4 — Dual-path what-if visualisation
 Old (blue, human-influenced) vs. new (yellow, AI-simulated) path + KPI delta
 on map/Marey. Same reuse target as R4.
-- **Source:** [recommender-roadmap.md](recommender-roadmap.md) item 4 / Widget B1
-  in [widget-catalog.md](widget-catalog.md)
+- **Source:** [recommender-roadmap.md](../plans/recommender-roadmap.md) item 4 / Widget B1
+  in [widget-catalog.md](../plans/widget-catalog.md)
 - **Size:** M–L
 
 ### A5 — Guaranteed decision moment
 Today it's not reliably reproducible whether a real conflict occurs during the
 guided demo. Recommended fix: scripted events.
-- **Source:** [recommendation-reliability.md](recommendation-reliability.md) Variant B
+- **Source:** [recommendation-reliability.md](../plans/recommendation-reliability.md) Variant B
 - **Size:** M
 
 ### A6 — Trade-off frontier / scenario small-multiples
 Evaluative-AI decision support: show several options with trade-offs
 side-by-side instead of just a ranking.
-- **Source:** Widget C1 in [widget-catalog.md](widget-catalog.md)
+- **Source:** Widget C1 in [widget-catalog.md](../plans/widget-catalog.md)
 - **Size:** M
 
 ### A7 — Autonomy dial / allocation panel
 Make visible and adjustable how much autonomy the AI currently has (Director
 altitudes) — groundwork for "adjustable autonomy".
-- **Source:** Widget D1 in [widget-catalog.md](widget-catalog.md); §4.1 in
+- **Source:** Widget D1 in [widget-catalog.md](../plans/widget-catalog.md); §4.1 in
   [interaction-modes-brief.md](../reference/interaction-modes-brief.md)
 - **Size:** M
 
@@ -142,7 +142,7 @@ for the custom scenario builder.
 ### B2 — Matched scenario difficulty (Latin square)
 Parallel, equally-hard scenarios per condition so no participant sees the same
 scenario 3×. Confound control for the study.
-- **Source:** [scenario-variants.md](scenario-variants.md)
+- **Source:** [scenario-variants.md](../plans/scenario-variants.md)
 - **Size:** M
 
 ### B3 — Invented place/train names
@@ -155,7 +155,7 @@ of the scenario builder.
 Currently localStorage only, no export/persistence; the "Log Daten" column in
 the storyboard is still empty. Needs an event schema + ICAP engagement tagging
 per frame.
-- **Source:** [interaction-logging-plan.md](interaction-logging-plan.md)
+- **Source:** [interaction-logging-plan.md](../plans/interaction-logging-plan.md)
 - **Size:** M–L
 
 ### B5 — Deterministic malfunction injection
@@ -179,7 +179,7 @@ Backend model that (a) estimates reward weights from overrides/accept-reject →
 feeds KPI/scoring, (b) proposes autonomy / `optionPresentation` from trust
 history. No heavy RL needed — light methods (Bayesian update, bandit
 heuristic) suffice.
-- **Source:** [co-learning-direction.md](co-learning-direction.md) "Suggested
+- **Source:** [co-learning-direction.md](../plans/co-learning-direction.md) "Suggested
   order" item 1
 - **Size:** M–L
 - **Do first:** C4 (consortium check)
@@ -201,7 +201,7 @@ Before building the operator model: review
 approach ("transparent adaptation through interaction") and
 [`AI4REALNET/T3.3-3.4-HMI`](https://github.com/AI4REALNET/T3.3-3.4-HMI) and
 align naming/semantics — "reuse, don't reinvent".
-- **Source:** [co-learning-direction.md](co-learning-direction.md)
+- **Source:** [co-learning-direction.md](../plans/co-learning-direction.md)
 - **Size:** S (research, before C1)
 
 ### C5 — ICAP level tagging per frame

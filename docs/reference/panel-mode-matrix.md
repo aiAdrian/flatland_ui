@@ -35,6 +35,7 @@ Legend: **●** available · **○** not shown · **◐** available but secondar
 | `whatif-compare` | ● | ● | ● read-only (no Commit) |
 | `risk-uncertainty` | ● | ● | ● read-only |
 | `decision-log` | ● | ● | ● |
+| `combined-actions` | ● | ● | ● read-only (no reorder / Apply) |
 | `scenario` | ○ | ● neutral compare surface | ○ |
 | `agents` (`agents-list`) | ● | ● | ○ |
 | `agents-table` | ● | ● | ○ |
@@ -101,6 +102,30 @@ render identically everywhere.
   (right pane, under the neutral Scenario panel) as the §3.3 dual-path
   centrepiece; available in every mode via the designer palette / gallery.
   (spec: `docs/plans/widget-b1-whatif-compare.md`)
+
+### `combined-actions` (Widget E1 — Decision Support)
+- **Recommendation** — *Recommendation framing*: the AI's package is badged
+  **"Recommended by AI"** and ranked first, with confidence. Reordering it adds
+  **"Human modified"** and the comparison line `AI −14 min · Current −9 min`; the
+  badge is kept (the AI did pick this package) but the sequence no longer reads
+  as the AI's recommendation.
+- **Co-Learning** — *Assessment framing*: A/B/C neutral, **no badge, no ranking**.
+  The edit → re-predict loop is the point — the operator forms their own priority
+  order and reads the consequence, with AI vs current always shown once modified.
+- **Director** — **suppressed to read-only supervision**. Dispatch-altitude
+  decision support belongs to the AI here (the human's lever is the *objective*,
+  in `strategy-options`), so the executing package is marked **"AI executing"**,
+  chips are not draggable and Reset/Apply are hidden.
+- Availability is **all modes** (omitted from `PANEL_MODE_AVAILABILITY` = 'all');
+  the mode branch lives in the component's `modeBehavior` computed.
+- **Cross-view consequence (all modes).** Pointing at a card publishes
+  `SessionStore.combinedActionPreview`: the **track map** marks the action's
+  trains with their dispatch rank and per-train minutes, the **Marey / ZWL**
+  shifts their future lines along the time axis. A priority order changes timing,
+  not topology — hence the split, and hence no reroute overlay.
+- ⚠ Predictions (delay *and* energy) are a deterministic **mock**
+  (`dataSource: 'mock'`) — spec
+  [`widget-e1-combined-actions.md`](../plans/widget-e1-combined-actions.md) §8.
 
 ### `risk-uncertainty` (Widget A1 — Trust)
 - **Recommendation** — reliability shown **with** the ranked recommendation:

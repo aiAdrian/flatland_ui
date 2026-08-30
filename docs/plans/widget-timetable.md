@@ -1,5 +1,8 @@
 # Widget spec — Timetable (Fahrplan)
 
+> **Status (2026-08-19): shipped.** `features/timetable/` exists and the
+> catalog entry `timetable` is `shipped`. Kept as the spec of record.
+
 > Dated spec, 2026-07-12. A tabular departure/arrival board: one row per train,
 > from-stop → to-stop keyed to the **same station labels as the map stations
 > layer**, plus scheduled departure/arrival and current delay. Complements the

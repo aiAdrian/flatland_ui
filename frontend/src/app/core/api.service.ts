@@ -13,7 +13,7 @@ import {
   SessionState,
   StepResponse,
 } from './models';
-import { AppNotification, ImpactItem, KpiPriorities, Recommendation, ScenarioOption, WhatIfResult } from './events/event-types';
+import { AppNotification, ContentionGroup, ContentionsResponse, ImpactItem, KpiPriorities, Recommendation, ScenarioOption, WhatIfResult } from './events/event-types';
 
 /** Build the KPI query params for the scenario/recommendation endpoints. */
 function kpiParams(kpi?: KpiPriorities): { [k: string]: string } {
@@ -369,6 +369,14 @@ export class ApiService {
 
   getImpact(id: string) {
     return this.http.get<ImpactItem[]>(`${API_BASE}/session/${id}/hmi/impact`);
+  }
+
+  /** Live conflict forecast for the Combined Actions panel (widget E1):
+   *  the multi-agent contentions ahead, grouped, most-urgent first, plus the
+   *  forecast budget (`horizonSteps`) the panel states on screen. Empty groups
+   *  when the network runs to plan — the panel keeps its empty state. */
+  getContentions(id: string) {
+    return this.http.get<ContentionsResponse>(`${API_BASE}/session/${id}/hmi/contentions`);
   }
 
   getHmiBundle(id: string) {

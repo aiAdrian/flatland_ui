@@ -31,7 +31,7 @@ import { DemoCompleteComponent } from './features/demo-complete/demo-complete.co
 import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
-import { ScenarioPreset } from './core/models';
+import { ScenarioDisturbance, ScenarioPreset } from './core/models';
 import { SessionStore } from './core/session.store';
 
 /** The exact options object accepted by SessionStore.newSession — so the
@@ -56,12 +56,15 @@ import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algori
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 import { LAYOUT_PRESETS } from './core/layout/layout-presets';
+import { BuildInfoService } from './core/build-info.service';
 type RuntimeLayoutOption = {
   id: string;
   name: string;
   /** `preset` = shipped with the repo (core/layout/layout-presets.ts) and
    *  therefore reviewable; `user` = saved in this browser only. */
   kind: 'system' | 'preset' | 'user';
+  /** Preset only: one sentence on what the layout is for. */
+  purpose?: string;
   design?: any;
 };
 
@@ -169,6 +172,10 @@ export class AppComponent implements OnInit {
   }
 
   store = inject(SessionStore);
+
+  /** Build stamp for the footer — see BuildInfoService. */
+
+  readonly buildInfo = inject(BuildInfoService);
   private api = inject(ApiService);
   private infrastructureStorage = inject(InfrastructureSceneStorageService);
 
@@ -187,6 +194,21 @@ export class AppComponent implements OnInit {
    *  Infrastructure picker. Selecting one loads the env from file (network +
    *  traffic + goals baked in), bypassing the generator and scene builder. */
   readonly scenarioPresets = signal<ScenarioPreset[]>([]);
+  /** Scripted disturbances ticked in the welcome picker, by id. Any subset of
+   *  the selected scenario's own disturbances — none of them is the control
+   *  condition. Reset whenever the Infrastructure choice changes, because the
+   *  ids belong to one scenario. */
+  readonly selectedDisturbanceIds = signal<ReadonlySet<string>>(new Set());
+
+  /** The currently selected scenario preset, or null for a scene / random. */
+  readonly selectedScenarioPreset = computed<ScenarioPreset | null>(() =>
+    this.scenarioPresets().find((p) => p.id === this.selectedRuntimeInfrastructureId()) ?? null,
+  );
+
+  /** Disturbances offered by the selected scenario; empty when it ships none. */
+  readonly selectedPresetDisturbances = computed<ScenarioDisturbance[]>(
+    () => this.selectedScenarioPreset()?.disturbances ?? [],
+  );
 
   private designerSessionRequested = false;
 
@@ -733,6 +755,20 @@ export class AppComponent implements OnInit {
 
   setSelectedRuntimeInfrastructure(id: string): void {
     this.selectedRuntimeInfrastructureId.set(id || 'random');
+    // Disturbance ids belong to one scenario, so carrying a tick across a
+    // change of Infrastructure would silently request a condition that the
+    // new scenario does not have.
+    this.selectedDisturbanceIds.set(new Set());
+  }
+
+  isDisturbanceSelected(id: string): boolean {
+    return this.selectedDisturbanceIds().has(id);
+  }
+
+  toggleDisturbance(id: string): void {
+    const next = new Set(this.selectedDisturbanceIds());
+    if (!next.delete(id)) next.add(id);
+    this.selectedDisturbanceIds.set(next);
   }
 
   onWelcomeNewSession(): void {
@@ -802,13 +838,18 @@ export class AppComponent implements OnInit {
     };
   }
 
+
   /** Session-creation opts for a prebuilt scenario preset (e.g. an ECML 2026
    *  scene). Grid, traffic, goals and disruptions come from the file, so none of
-   *  the generator fields are sent — only the preset id and the chosen AI
-   *  policies (which are orthogonal to the map). */
+   *  the generator fields are sent — only the preset id, the ticked
+   *  disturbances, and the chosen AI policies (which are orthogonal to the
+   *  map). A plan, if the scenario ships one, needs nothing here: it travels
+   *  with the scenario and the backend puts the session on it. */
   private presetSessionOpts(scenarioPresetId: string): NewSessionOpts {
+    const offered = new Set(this.selectedPresetDisturbances().map((d) => d.id));
     return {
       scenarioPresetId,
+      disturbanceIds: [...this.selectedDisturbanceIds()].filter((id) => offered.has(id)),
       scenarioPolicyIds: this.welcomeScenarioPolicyIds(),
       policyControlIds: this.welcomeControlPolicyIds(),
     };
@@ -1083,6 +1124,7 @@ export class AppComponent implements OnInit {
         id: preset.id,
         name: preset.name,
         kind: 'preset',
+        purpose: preset.purpose,
         design: { id: preset.id, name: preset.name, layout: preset.layout },
       });
     }

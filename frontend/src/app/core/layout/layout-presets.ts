@@ -240,7 +240,194 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
   },
 };
 
+/**
+ * Combined Actions — demo (widget E1, docs/plans/widget-e1-combined-actions.md).
+ *
+ * The situation and the timetable on the left, the network and the ZWL big in
+ * the middle, and the coordinated actions down the right — next to the two views
+ * they change. Point at an action and the map marks who is released in what
+ * order while the ZWL shifts their lines in time.
+ *
+ * The centre is `view-tabs` rather than a bare map on purpose: an action's
+ * *timing* consequence is only visible in the ZWL, its *ordering* consequence
+ * only on the map, and neither alone answers the question.
+ *
+ * The right column is 32 %, not the 26 % it started at: below that the train
+ * sequence gets under ~200 px, four chips wrap onto a second line, and the panel
+ * can no longer fit its column without scrolling.
+ */
+const COMBINED_ACTIONS_DEMO: LayoutPreset = {
+  id: 'preset-combined-actions-demo',
+  name: 'Combined Actions · Demo',
+  purpose: 'Lage und Fahrplan links, Netz/ZWL gross in der Mitte, rechts die kombinierten Aktionen zum Umsortieren.',
+  layout: {
+    columns: [
+      {
+        id: 'preset-ca-context',
+        rowId: 'preset-ca-row',
+        name: 'Lage',
+        // Left and right are deliberately equal: they carry the same weight in
+        // the task (what is going on ↔ what to do about it), and an asymmetric
+        // pair read as an accident rather than as a hierarchy.
+        width: 24,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-ca-situation',
+            type: 'situation-summary',
+            title: 'Situation Summary',
+            expanded: true,
+            collapsible: true,
+            minHeight: 110,
+          },
+          {
+            id: 'preset-ca-notifications',
+            type: 'notifications',
+            title: 'Notifications',
+            expanded: true,
+            collapsible: true,
+            minHeight: 140,
+          },
+        ],
+      },
+      {
+        id: 'preset-ca-network',
+        rowId: 'preset-ca-row',
+        name: 'Netz & ZWL',
+        // The centre is the widest thing on the screen by a clear margin: the
+        // Streckenspiegel and the ZWL are what the operator actually reads, and
+        // at 44 % both were cramped.
+        width: 52,
+        role: 'main',
+        panels: [
+          {
+            id: 'preset-ca-views',
+            type: 'view-tabs',
+            title: 'Streckenspiegel & ZWL',
+            expanded: true,
+            collapsible: false,
+            minHeight: 520,
+            settings: { tabs: ['flatland-map', 'marey'] },
+          },
+          {
+            // Context, not events: the timetable says what each train is
+            // *supposed* to do, which is the frame you read the network view
+            // against — so it belongs under it, not in the event column.
+            id: 'preset-ca-timetable',
+            type: 'timetable',
+            title: 'Fahrplan',
+            expanded: true,
+            collapsible: true,
+            minHeight: 180,
+          },
+        ],
+      },
+      {
+        id: 'preset-ca-actions',
+        rowId: 'preset-ca-row',
+        name: 'Kombinierte Aktionen',
+        width: 24,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-ca-combined',
+            type: 'combined-actions',
+            title: 'Combined Actions',
+            expanded: true,
+            collapsible: true,
+            minHeight: 420,
+          },
+        ],
+      },
+    ],
+  },
+};
+
+/**
+ * Combined Actions · Package variant — the second answer to the same problem.
+ *
+ * Roman's variant is not a different *mode*, it is a different interface to the
+ * same decision, so it gets a layout rather than a fourth `InteractionMode`.
+ * The reading order is its argument: what is wrong on the left, the network in
+ * the middle, the one action that answers it on the right — the dispatcher
+ * reads left to right, from problem to remedy, instead of meeting three options
+ * before knowing what they are for.
+ *
+ * The left column is wider than the demo preset's 24 %: the problem overview is
+ * prose-shaped, and below ~28 % its sentences wrapped every three words.
+ */
+const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
+  id: 'preset-combined-actions-package',
+  name: 'Combined Actions · Package variant',
+  purpose: 'Problem links, Netz/ZWL in der Mitte, rechts ein einzelnes Aktionspaket zum Umsortieren und Bestätigen.',
+  layout: {
+    columns: [
+      {
+        id: 'preset-cap-problem',
+        rowId: 'preset-cap-row',
+        name: 'Problem',
+        width: 28,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-cap-overview',
+            type: 'problem-overview',
+            title: 'Problem Overview',
+            expanded: true,
+            collapsible: true,
+            minHeight: 200,
+          },
+          {
+            id: 'preset-cap-situation',
+            type: 'situation-summary',
+            title: 'Situation Summary',
+            expanded: true,
+            collapsible: true,
+            minHeight: 110,
+          },
+        ],
+      },
+      {
+        id: 'preset-cap-network',
+        rowId: 'preset-cap-row',
+        name: 'Netz & ZWL',
+        width: 44,
+        role: 'main',
+        panels: [
+          {
+            id: 'preset-cap-views',
+            type: 'view-tabs',
+            title: 'Streckenspiegel & ZWL',
+            expanded: true,
+            collapsible: true,
+            minHeight: 320,
+          },
+        ],
+      },
+      {
+        id: 'preset-cap-action',
+        rowId: 'preset-cap-row',
+        name: 'Aktion',
+        width: 28,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-cap-package',
+            type: 'combined-actions-package',
+            title: 'Combined Actions',
+            expanded: true,
+            collapsible: true,
+            minHeight: 420,
+          },
+        ],
+      },
+    ],
+  },
+};
+
 export const LAYOUT_PRESETS: readonly LayoutPreset[] = [
   COLEARNING_STUDY2,
   RECOMMENDATION_STUDY2,
+  COMBINED_ACTIONS_DEMO,
+  COMBINED_ACTIONS_PACKAGE,
 ];

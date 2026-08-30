@@ -1,0 +1,42 @@
+<div class="im" [class.im--updating]="updating">
+  <div class="im__primary" aria-live="polite">
+    @if (updating) {
+      <span class="im__updating">Updating prediction…</span>
+    } @else if (prediction) {
+      <span class="im__value">↓ {{ prediction.delayReductionMin }} min</span>
+      <span class="im__unit">delay</span>
+      @if (delta) {
+        <span class="im__delta">{{ delta.from }} → {{ delta.to }} min</span>
+      }
+    }
+  </div>
+
+  @if (prediction) {
+    <div class="im__secondary">
+      @if (transfersTotal > 0) {
+        <span class="im__energy" title="Planned transfers this order keeps — the second axis of the trade-off">
+          {{ transfersKept }}/{{ transfersTotal }} transfers
+        </span>
+        <span class="im__dot" aria-hidden="true">·</span>
+      }
+      <span class="im__conf" [attr.data-conf]="prediction.confidence">
+        {{ confidenceLabel[prediction.confidence] }}
+      </span>
+    </div>
+  }
+
+  <!-- Only once modified: before that it would restate the same number as the
+       primary readout. Kept to one line — the card has no room for a third. -->
+  @if (modified && aiBaseline && prediction && !updating) {
+    <div class="im__compare">
+      <span class="im__compare-ai">AI −{{ aiBaseline.delayReductionMin }}′</span>
+      <span class="im__dot" aria-hidden="true">→</span>
+      <span class="im__compare-now">you −{{ prediction.delayReductionMin }}′</span>
+      @if (transfersTotal > 0 && aiTransfersKept !== null) {
+        <span class="im__compare-energy">
+          ({{ transfersKept - aiTransfersKept > 0 ? '+' : '' }}{{ transfersKept - aiTransfersKept }} transfers)
+        </span>
+      }
+    </div>
+  }
+</div>
