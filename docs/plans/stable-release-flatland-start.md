@@ -1,21 +1,45 @@
 # Stable release — starting point at `flatland-association`
 
-> Proposal for a `main`-bound release cut from `explore_db`, ahead of moving
-> this repository to the `flatland-association` GitHub org so collaboration
-> can begin there. Grounded in a full diff/build/test pass on 2026-08-29
-> (`git diff --stat origin/main...explore_db`, `ng build --configuration
-> production`, `pytest`), not estimation. Status: **proposed** — the "keep as
-> a separate branch" decision below is made; the branch itself is not yet cut.
+> Proposal for a lean, curated starting point ahead of moving this repository
+> to the `flatland-association` GitHub org. Grounded in a full diff/build/test
+> pass on 2026-08-29 (`git diff --stat origin/main...explore_db`, `ng build
+> --configuration production`, `pytest`), not estimation. Status: **overtaken
+> in part — see §0.1** — `main` and `explore_db` merged (unreduced) while this
+> was in progress; the reduction itself has not happened yet.
 
 ---
 
 ## 0. The decision
 
-Don't fast-forward `explore_db` into `main`. Cut a **`release/…`** branch from
-`explore_db`, do the reduction and the blocker fixes on it, merge *that* into
-`main`. `explore_db` keeps running unchanged (E1 variants, the HF Space
-mirror) — the release branch's diff against it doubles as the changelog of
-what a stable start deliberately leaves out.
+Don't fast-forward `explore_db` into `main` *unreduced*. Cut a
+**`release/…`** branch, do the reduction and the blocker fixes on it, merge
+*that* into `main`. `explore_db` keeps running unchanged (E1 variants, the HF
+Space mirror) — the release branch's diff against it doubles as the changelog
+of what a stable start deliberately leaves out.
+
+### 0.1 What actually happened since (2026-08-30 → 2026-09-03)
+
+The recommendation above was overtaken before it could be acted on:
+**[PR #46](https://github.com/aiAdrian/flatland_ui/pull/46) merged `explore_db`
+into `main` on 2026-08-30, unreduced.** `origin/main` and `origin/explore_db`
+are now the same commit (`622e118`) — confirmed by `git diff origin/main
+explore_db` returning empty. Everything §1 proposed dropping (the
+personally-bound HF workflow, the duplicated scene JSONs, `PLAYGROUND.md`'s
+fork framing, the `docs/reading`/`delegation`/`archive` question) is on `main`
+now, not held back on a side branch.
+
+The four completed blockers (§3) were done on a separate **`enabler`** branch,
+cut from `explore_db` *before* the PR #46 merge and pushed to `origin/enabler`
+(commit `7b3b12a`). It has since diverged from `main`/`explore_db` — both sides
+share `bc1ff50` as the last common ancestor, `main` gained only the (content-
+empty) merge commit, `enabler` gained the blocker fixes. Checked with
+`git merge-tree`: merging `enabler` into `main` today produces **no
+conflicts** in any of the six changed files.
+
+**So the reduction proposed in §1 still has not happened** — it now has to
+target `main` directly (or a branch cut from it) rather than protecting a
+clean `main` from an unreduced merge. The plan below is otherwise unchanged
+and still the intended shape of a stable start.
 
 Earlier framing considered removing **E1 (Combined Actions)** as part of the
 reduction. Measurement overturned that: E1 hangs off six files outside its own
@@ -50,11 +74,12 @@ all three variants (see above).
 
 ---
 
-## 2. Verified baseline (2026-08-29)
+## 2. Verified baseline (2026-08-29, superseded by §0.1 on 2026-08-30)
 
-- `explore_db` is **48 commits ahead of `origin/main`**, `main` is a strict
-  ancestor → fast-forward is mechanically possible, just not what §0
-  recommends.
+- `explore_db` was **48 commits ahead of `origin/main`**, `main` a strict
+  ancestor → mechanically fast-forwardable, which is exactly what happened
+  three days later via PR #46 (§0.1) — before the reduction below was acted
+  on.
 - `ng build --configuration production`: **green**. 3 warnings (unused
   `LayoutViewTogglePanelComponent` import, a redundant `??` in
   `survey.component.html`, initial bundle 1.71 MB vs. 1.20 MB budget).
@@ -74,8 +99,9 @@ all three variants (see above).
 
 ## 3. Blockers — status
 
-Six blockers were identified; **four are done**, uncommitted on `explore_db`
-as of 2026-08-29 (deliberately not merged yet — see §5):
+Six blockers were identified; **four are done** and pushed on
+[`origin/enabler`](https://github.com/aiAdrian/flatland_ui/tree/enabler)
+(commit `7b3b12a`), not yet merged into `main` — see §0.1 and §5:
 
 1. ✅ **README clone command was dead** — pointed at
    `-b experiment/vibecoding-playground https://github.com/danib8005/…`
@@ -135,9 +161,10 @@ publishing, not a default:
 ## 5. Next steps
 
 1. Decide §4.
-2. Commit the §3 fixes (currently uncommitted on `explore_db`) — separately
-   from the reduction, so they're easy to cherry-pick either way.
-3. Cut `release/…` from `explore_db`, apply §1's drops there.
+2. Merge `enabler` into `main` (or open a PR for it) — confirmed conflict-free
+   against the current `main` tip (§0.1). This lands blockers #1/#3/#5/#6.
+3. Cut `release/…` from `main` (now that it carries the `enabler` fixes),
+   apply §1's drops there.
 4. Build the CI workflow (§3.2) on the release branch, so `main` gets it from
    day one.
 5. Resolve §3.4 (licence) with the Flatland team before pushing history —
