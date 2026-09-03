@@ -23,3 +23,10 @@ node_modules/
 /backend/data/
 # Local test browser for `ng test` (CHROME_BIN), ~150 MB.
 /frontend/chrome-headless-shell/
+
+# macOS/Cloud-Sync-Duplikate ("foo 2.ts" neben "foo.ts"). Sie entstehen, wenn
+# zwei Rechner dieselbe Datei gleichzeitig schreiben, sind immer ein veralteter
+# Schnappschuss der danebenliegenden Datei, und haben `git status` regelmässig
+# so vollgeschrieben, dass echte Änderungen darin untergingen.
+* 2.*
+* 2

@@ -52,9 +52,9 @@ Zeilen, plus Widgets. Die interessant klingenden Module sind **leere Hüllen**:
 alternate track", „Apply speed reduction", …). Der Director-Modus ist laut README
 ausdrücklich WIP. **Es gibt dort keine Algorithmen zu holen.**
 
-Beide Repos bestehen aus je einem einzigen „Initial commit" von **Julia
-Stadelmann (`julia.stadelmann@fhnw.ch`), 26.03.2026** — gesquashte Code-Dumps.
-Autorschaft innerhalb der Dateien ist damit nicht rekonstruierbar.
+Beide Repos bestehen aus je einem einzigen **„Initial commit" vom 26.03.2026**
+(FHNW) — gesquashte Code-Dumps. Autorschaft innerhalb der Dateien ist damit
+nicht rekonstruierbar.
 
 ### Was dort trotzdem etwas taugt: die Interaktionsstruktur
 

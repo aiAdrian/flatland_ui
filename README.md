@@ -8,11 +8,11 @@ The frontend follows the official [SBB Design System](https://digital.sbb.ch/en/
 
 > Guided demo walkthrough. For the full-quality clip see [guided-demo.mp4](docs/media/guided-demo.mp4).
 
-> **Playground branch (`experiment/vibecoding-playground`):** this fork makes the
-> three AI4REALNET collaboration modes behaviourally distinct (Recommendation /
-> Co-Learning / Director), adds a guided demo flow, a live impact panel, a wired
-> KPI filter, and a post-session survey. See **[PLAYGROUND.md](PLAYGROUND.md)**
-> for a review-friendly summary of what changed and why.
+> **What this codebase adds:** the three AI4REALNET collaboration modes made
+> behaviourally distinct (Recommendation / Co-Learning / Director), a guided demo
+> flow, a live impact panel, a wired KPI filter, and a post-session survey. See
+> **[PLAYGROUND.md](PLAYGROUND.md)** for a feature-by-feature summary of what
+> changed and why.
 
 ## Video gallery - current version 08.07.2026
 
@@ -36,7 +36,7 @@ The frontend follows the official [SBB Design System](https://digital.sbb.ch/en/
 Requires **Python 3.12+** and **Node.js 20+ / npm 10+**. Use **two terminals**.
 
 ```bash
-git clone -b experiment/vibecoding-playground https://github.com/danib8005/flatland_ui.git
+git clone https://github.com/aiAdrian/flatland_ui.git
 cd flatland_ui
 ```
 
@@ -49,6 +49,21 @@ source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
+
+> **Director mode needs one more dependency.** `requirements.txt` deliberately
+> leaves out **PyTorch**, so the common case installs fast. Without it the app
+> runs and the Director still plans — but on the model-free fallback: the A/B/C
+> strategy tiles come back without a forecast, and the plan source reads
+> `avoidance (no models)` instead of `search`. Nothing errors, so the
+> degradation is easy to miss. For the full Director, install the dev set
+> instead:
+>
+> ```bash
+> pip install -r requirements-dev.txt   # adds torch, plus pytest/ruff
+> ```
+>
+> The same set is what [`backend/tests/`](backend/tests) needs to run green.
+> Details and the model files involved: [START-HERE.md](START-HERE.md).
 
 **Terminal 2 — frontend (port 4200):**
 

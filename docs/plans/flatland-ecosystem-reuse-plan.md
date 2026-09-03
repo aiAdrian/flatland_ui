@@ -42,8 +42,8 @@ Three findings drive the whole plan:
 | `T3.4-with-HMI` — `src/` (PPO/IMPALA stack) | Leave unless we pursue RL agents. |
 | `T3.3-3.4-HMI` | **Take interaction structure only.** No algorithms — the interesting modules are stubs (`InteractionTracker`, `ControllerRef`, `SolutionTranslator` all `pass`). Director mode is WIP; we are ahead. |
 
-Both are a single squashed "Initial commit" (Julia Stadelmann, FHNW,
-2026-03-26) and pin `flatland-rl==4.2.2`.
+Both are a single squashed "Initial commit" (FHNW, 2026-03-26) and pin
+`flatland-rl==4.2.2`.
 
 ### AI4REALNET org — the rest (43 repos, surveyed 2026-08-16)
 

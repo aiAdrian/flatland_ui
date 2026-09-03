@@ -1,15 +1,14 @@
 # Playground — what's new in this branch
 
-> Branch: `experiment/vibecoding-playground` (fork `danib8005/flatland_ui`).
-> This document summarises the changes made on top of `upstream/aiAdrian` so the
-> work is easy to review and selectively adopt. Nothing here changes the backend
-> contract — all features are frontend-first unless noted.
+> This document summarises the human-AI teaming work built on top of the
+> original dispatcher, so it is easy to review and selectively adopt. Nothing
+> here changes the backend contract — all features are frontend-first unless
+> noted.
 
-To see the raw diff against the original:
+To see the raw diff of the development branch against the released one:
 
 ```bash
-git fetch upstream
-git diff upstream/main...experiment/vibecoding-playground
+git diff main...explore_db
 ```
 
 ---
