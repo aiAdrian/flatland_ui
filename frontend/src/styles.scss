@@ -18,11 +18,14 @@
    ist beides untragbar: fremde Schriftlizenz plus ein externer Request auf
    Server, die uns nicht gehoeren.
 
-   Ersatz: IBM Plex Sans, SIL OFL 1.1, fuer technische/industrielle UIs
-   entworfen. Selbst gehostet ueber @fontsource-variable (aus node_modules
-   gebundelt, KEIN CDN - die App bleibt offline-faehig). Eine variable Achse
-   100-700 statt drei statischen Schnitten; ~46 KB (latin), latin-ext und
-   weitere Subsets nur bei Bedarf via unicode-range.
+   Ersatz: Inter, SIL OFL 1.1, fuer Bildschirm-UIs entworfen - hohe x-Hoehe,
+   unterscheidbare Glyphen (1/l/I, 0/O), damit Zug-IDs und Zeiten in dichten
+   Tabellen eindeutig bleiben. Selbst gehostet ueber @fontsource-variable (aus
+   node_modules gebundelt, KEIN CDN - die App bleibt offline-faehig). Eine
+   variable Achse 100-900 statt statischer Schnitte; ~48 KB (latin), latin-ext
+   und weitere Subsets nur bei Bedarf via unicode-range. Ziffern sind
+   proportional; wo Zahlen spaltenweise fluchten muessen, setzt die Komponente
+   `font-variant-numeric: tabular-nums`.
 
    Warum ein Token-Override reicht: die App schreibt nirgends literal
    `font-family: SBB`, sondern bezieht die Schrift ausschliesslich ueber
@@ -32,12 +35,12 @@
 
    Schrift wechseln = diese zwei Imports + der Wert in --sbb-typo-font-family.
    ==================================================================== */
-@import "@fontsource-variable/ibm-plex-sans/wght.css";
-@import "@fontsource-variable/ibm-plex-sans/wght-italic.css";
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource-variable/inter/wght-italic.css";
 
 :root {
-  --sbb-typo-font-family: "IBM Plex Sans Variable", "IBM Plex Sans",
-    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --sbb-typo-font-family: "Inter Variable", "Inter", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
 }
 
 /* Override falls Lyne automatisch dark-mode-Variablen setzt */

@@ -136,7 +136,7 @@ becomes cheap only once B exists.**
 
 | File | Change |
 |---|---|
-| `frontend/package.json` | `@fontsource-variable/ibm-plex-sans ^5.3.0` |
+| `frontend/package.json` | `@fontsource-variable/inter ^5.3.0` |
 | `frontend/src/styles.scss` | Fontsource imports; `--sbb-typo-font-family` override; removed the stale proprietary `"Helvetica Now Text"` fallback |
 | `frontend/postcss-drop-sbb-fonts.cjs` | Removes `@font-face` rules whose `src` points at `cdn.app.sbb.ch` |
 | `frontend/.postcssrc.json` | Registers that plugin |
@@ -150,22 +150,28 @@ SBB `woff2`. The PostCSS plugin is the second line: it removes the now-dead
 rules so the URLs do not sit in the shipped artefact, and so a Lyne upgrade
 cannot reintroduce them.
 
-### Why IBM Plex Sans
+### Why Inter (since 2026-09-03; IBM Plex Sans before that)
 
-SIL OFL 1.1, designed for technical and industrial interfaces, strong figures
-for dense tables. Self-hosted from `node_modules` via `@fontsource-variable`
-— **no CDN**, the app stays offline-capable. One variable axis 100–700
-(~46 KB latin) replaces three static cuts, so the 124 places using
-`font-weight: 600` render as real SemiBold instead of a synthesised bold.
-Further subsets (latin-ext, Greek, Cyrillic) are present and fetched only on
-demand via `unicode-range` — relevant if the planned language switch goes
-beyond DE/EN.
+SIL OFL 1.1, drawn for screen UIs: a large x-height and disambiguated glyphs
+(`1`/`l`/`I`, `0`/`O`) — the property that matters when a dispatcher reads
+train IDs and times off a dense table at a glance. Self-hosted from
+`node_modules` via `@fontsource-variable` — **no CDN**, the app stays
+offline-capable. One variable axis 100–900 (~48 KB latin) replaces static
+cuts, so the 124 places using `font-weight: 600` render as real SemiBold
+instead of a synthesised bold. Further subsets (latin-ext, Greek, Cyrillic)
+are present and fetched only on demand via `unicode-range` — relevant if the
+planned language switch goes beyond DE/EN.
 
-Honest caveat: "IBM" formally trades one company name for another. The
-difference is substantive — SBB Web is proprietary and *is* SBB's identity,
-Plex is released under OFL for anyone. **Source Sans 3** and **Public Sans**
-are neutral-named alternatives, both available as `@fontsource-variable`
-packages.
+Two caveats worth naming:
+
+- **Figures are proportional by default.** IBM Plex Sans led with tabular
+  figures; Inter does not. Where numbers have to line up in columns, the
+  component sets `font-variant-numeric: tabular-nums` (Inter ships the
+  tabular set, it is just not the default).
+- **The name is neutral**, which is why the swap happened — "IBM" formally
+  traded one company name for another, even though the licence difference was
+  substantive. **Source Sans 3** and **Public Sans** remain equivalent
+  neutral-named options, both `@fontsource-variable` packages.
 
 ### Verification
 
@@ -173,8 +179,8 @@ A full page load produces **zero requests to external hosts**; the only font
 requests are the two self-hosted files:
 
 ```
-GET /media/ibm-plex-sans-latin-wght-normal.woff2  → 200
-GET /media/ibm-plex-sans-latin-wght-italic.woff2  → 200
+GET /media/inter-latin-wght-normal.woff2  → 200
+GET /media/inter-latin-wght-italic.woff2  → 200
 ```
 
 ```bash

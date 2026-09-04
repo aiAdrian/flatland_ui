@@ -6,7 +6,7 @@
  * Teil des MIT-lizenzierten Pakets — sie ist die proprietaere Hausschrift der
  * SBB und wird zur Laufzeit von deren Servern nachgeladen.
  *
- * styles.scss ueberschreibt bereits --sbb-typo-font-family auf IBM Plex Sans
+ * styles.scss ueberschreibt bereits --sbb-typo-font-family auf Inter
  * (SIL OFL, selbst gehostet), womit die Regeln tot sind: ein Browser laedt eine
  * Schrift nur, wenn etwas sie matcht. Fuer eine Open-Source-Freigabe (OpenRail)
  * reicht "tot" aber nicht — die URLs stuenden weiterhin sichtbar im
