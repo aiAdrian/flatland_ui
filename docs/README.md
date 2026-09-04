@@ -37,10 +37,12 @@ The authoritative specs and guides for how the app works today.
 Designs and roadmaps not yet (fully) built. Each carries its own status line.
 
 **Study, data & process**
+- [stable-release-flatland-start.md](plans/stable-release-flatland-start.md) — proposal for a reduced `main`-bound release ahead of the move to `flatland-association`: what to drop, blocker status, one open question
 - [interaction-logging-plan.md](plans/interaction-logging-plan.md) — study data capture: one self-describing record per session (header + decisions + context + survey), so modes/designs can be compared
 - [flatland-43-upgrade.md](plans/flatland-43-upgrade.md) — measured 4.2.6 → 4.3.0 trial: 5 real failures, a 5-line shim, and the seed-stability blocker
 - [docs-maintenance-2026-08.md](plans/docs-maintenance-2026-08.md) — audit 2026-08-19: plan currency, doc overlaps, and where AI4REALNET stands on logging
 - [scenario-variants.md](plans/scenario-variants.md) — controlled study vs. dynamic "simulated wild"; variant axes
+- [scenario-infrastructure-gallery.md](plans/scenario-infrastructure-gallery.md) — four layers (Netz · Betriebsprogramm · Störungslage · Szenario), what each must describe, and a `/scenarios` gallery over them
 - [scripted-events-plan.md](plans/scripted-events-plan.md) — deterministic scenario events for User Study 2
 - [recommendation-reliability.md](plans/recommendation-reliability.md) — guaranteeing a decision moment (variants A–D)
 - [ecml2026-flatland-env.md](plans/ecml2026-flatland-env.md) — reuse the ECML 2026 challenge topology & scenarios (to be discussed)
@@ -65,6 +67,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 - [widget-variants-versioning.md](plans/widget-variants-versioning.md) — multiple selectable variants per widget role; keeping v1 alongside v2
 
 **Layout & app shell**
+- [mode-layouts-three-zones.md](plans/mode-layouts-three-zones.md) — the layout contract: left/centre identical in every mode, only the right column varies (+ the sampled event budget)
 - [mode-scoped-layouts-plan.md](plans/mode-scoped-layouts-plan.md) — *which* layout renders per interaction mode (availability landed, resolver open)
 - [layout-grid-model-plan.md](plans/layout-grid-model-plan.md) — *what a layout can say*: grid areas instead of pixel columns
 - [center-view-tabs.md](plans/center-view-tabs.md) — one tabbed centre surface instead of stacked panels
