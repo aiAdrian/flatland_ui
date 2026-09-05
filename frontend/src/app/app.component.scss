@@ -66,6 +66,15 @@
   font-weight: 600;
 }
 
+/* @defer @loading placeholder for the four top-level areas (Layout Designer,
+ * Infrastructure Builder, Widgets Gallery, Algorithm Gallery) — brief, since
+ * each is already on its own page (a full navigation, not an SPA route), so
+ * this is only visible for the moment its lazy chunk takes to fetch. */
+.area-loading {
+  padding: 32px;
+  color: var(--sbb-color-granite, #686868);
+}
+
 .three-col {
   display: grid;
   grid-template-columns: 280px 1fr 320px;
