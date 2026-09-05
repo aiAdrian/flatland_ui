@@ -33,7 +33,9 @@ The frontend follows the official [SBB Design System](https://digital.sbb.ch/en/
 
 ## Quick start
 
-Requires **Python 3.12+** and **Node.js 20+ / npm 10+**. Use **two terminals**.
+Requires **Python 3.12+** and **Node.js 22.22.3+ / npm 10+** (Angular CLI 22's
+actual minimum — see the [Dockerfile](Dockerfile), which learned this the hard
+way). Use **two terminals**.
 
 ```bash
 git clone https://github.com/aiAdrian/flatland_ui.git

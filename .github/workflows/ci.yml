@@ -1,0 +1,66 @@
+# Build/test gate for main and for external PRs — until now the only
+# workflow in this repo was the Hugging Face Space mirror, so a broken
+# build or a failing test could reach main unnoticed (see
+# docs/plans/stable-release-flatland-start.md, blocker #2).
+#
+# Frontend and backend are independent jobs: either can fail without
+# blocking the other's result from showing up in the PR checks.
+#
+# Deliberately out of scope for now: `ruff check` on the backend (1628
+# pre-existing findings — a real cleanup, not a five-minute gate) and
+# `ng test` (Karma needs a real/headless Chrome; the frontend job below
+# only builds). Both are candidates for a later, separate workflow change.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Angular CLI 22 needs >=22.22.3 (see Dockerfile) — the README's
+          # "Node.js 20+" undersells this; using the real minimum here so a
+          # regression in that requirement shows up as a CI failure, not a
+          # surprise for whoever reads the README next.
+          node-version: '22.22.3'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npx ng build --configuration production
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        # requirements-dev.txt pulls in requirements.txt (flatland-rl, fastapi,
+        # ...) plus pytest and torch — torch is what makes the Director's
+        # `search` plan source and the goal_based_policies tests collectable.
+        run: pip install -r requirements-dev.txt
+
+      - name: Test
+        working-directory: backend
+        run: pytest -q
