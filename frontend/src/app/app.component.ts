@@ -42,6 +42,7 @@ import { InfrastructureScene, InfrastructureSceneSummary } from './features/infr
 import { InfrastructureSceneStorageService } from './features/infrastructure-builder/services/infrastructure-scene-storage.service';
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
+import { ContributeComponent } from './features/contribute/contribute.component';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 import { LAYOUT_PRESETS } from './core/layout/layout-presets';
@@ -67,6 +68,7 @@ type RuntimeLayoutOption = {
     InfrastructureBuilderComponent,
     WidgetsGalleryComponent,
     AlgorithmsGalleryComponent,
+    ContributeComponent,
     ToolbarComponent,
     LayerVisibilityComponent,
     CoLearningReflectionComponent,
@@ -122,6 +124,14 @@ export class AppComponent implements OnInit {
       window.location.pathname === '/algorithms' ||
       window.location.hash === '#/algorithms' ||
       window.location.hash.endsWith('/algorithms')
+    );
+  }
+
+  get showContribute(): boolean {
+    return (
+      window.location.pathname === '/contribute' ||
+      window.location.hash === '#/contribute' ||
+      window.location.hash.endsWith('/contribute')
     );
   }
 

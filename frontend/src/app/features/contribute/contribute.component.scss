@@ -1,0 +1,114 @@
+/* Contribute — a third instance of the widgets-gallery/algorithms-gallery
+ * full-page shell (frontend-lyne-conventions.md §1/§2 token discipline:
+ * secondary text is `granite`, never `graphite`). Duplicated on purpose, same
+ * as those two: a catalog should be recognisable as one, and the intro/lead
+ * rules are copied verbatim from algorithms-gallery.component.scss.
+ */
+
+:host {
+  display: block;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--sbb-color-milk);
+  color: var(--sbb-color-charcoal);
+  font-family: var(--sbb-typo-font-family);
+}
+
+.gallery {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--sbb-spacing-fixed-5x) var(--sbb-spacing-fixed-5x) 64px;
+}
+
+.gallery__intro {
+  padding-bottom: var(--sbb-spacing-fixed-3x);
+  border-bottom: 1px solid var(--sbb-color-cloud);
+
+  h1 {
+    margin: 0 0 5px;
+    font-size: 24px;
+  }
+}
+
+.gallery__lead {
+  margin: 0;
+  max-width: 720px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sbb-color-granite);
+}
+
+.gallery__footer {
+  margin-top: var(--sbb-spacing-fixed-4x);
+  padding-top: var(--sbb-spacing-fixed-3x);
+  border-top: 1px solid var(--sbb-color-cloud);
+  font-size: 13px;
+  color: var(--sbb-color-granite);
+
+  a { color: var(--sbb-color-charcoal); }
+}
+
+.areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--sbb-spacing-fixed-4x);
+  margin-top: var(--sbb-spacing-fixed-4x);
+}
+
+.area {
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: var(--sbb-border-radius-4x, 8px);
+  padding: var(--sbb-spacing-fixed-3x);
+  background: var(--sbb-color-white);
+}
+
+.area__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sbb-spacing-fixed-2x);
+
+  h2 { margin: 0; font-size: 16px; }
+}
+
+.area__badge {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--sbb-border-radius-infinity, 999px);
+  white-space: nowrap;
+}
+
+.area__badge--browser {
+  color: var(--sbb-color-green, #00973b);
+  background: color-mix(in srgb, var(--sbb-color-green, #00973b) 12%, transparent);
+}
+
+.area__badge--dev {
+  color: var(--sbb-color-granite);
+  background: var(--sbb-color-milk);
+}
+
+.area__summary {
+  margin: var(--sbb-spacing-fixed-2x) 0 var(--sbb-spacing-fixed-2x);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--sbb-color-charcoal);
+}
+
+.area__links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  a {
+    font-size: 13px;
+    color: var(--sbb-color-blue, #0079c7);
+  }
+}

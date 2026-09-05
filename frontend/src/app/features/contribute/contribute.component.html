@@ -1,0 +1,50 @@
+<app-config-shell active="contribute"></app-config-shell>
+
+<div class="gallery">
+  <div class="gallery__intro">
+    <sbb-title level="1" visual-level="2">Contribute</sbb-title>
+    <p class="gallery__lead">
+      Flatland Dispatcher is a playground for human-AI teaming in railway
+      dispatching — a human dispatcher and an AI agent co-operating on the
+      <a href="https://www.flatland-association.org/projects" target="_blank" rel="noopener">Flatland</a>
+      simulation, across three collaboration modes. It moves forward the same
+      way any of it got built: a widget, a scenario, a piece of infrastructure,
+      a layout, an algorithm, or a survey question at a time. Pick a lane
+      below — each links straight to its real starting point, not a copy of it.
+    </p>
+  </div>
+
+  <section class="areas">
+    @for (area of areas; track area.id) {
+      <article class="area">
+        <div class="area__head">
+          <sbb-title level="2" visual-level="4">{{ area.title }}</sbb-title>
+          @if (area.setup === 'in-browser') {
+            <span class="area__badge area__badge--browser">In-browser, no setup</span>
+          } @else {
+            <span class="area__badge area__badge--dev">Needs a dev environment</span>
+          }
+        </div>
+        <p class="area__summary">{{ area.summary }}</p>
+        <ul class="area__links">
+          @for (link of area.links; track link.href) {
+            <li>
+              @if (link.href.startsWith('/')) {
+                <a [href]="link.href">{{ link.label }}</a>
+              } @else {
+                <a [href]="link.href" target="_blank" rel="noopener">{{ link.label }}</a>
+              }
+            </li>
+          }
+        </ul>
+      </article>
+    }
+  </section>
+
+  <p class="gallery__footer">
+    More entry points land here as they're written. Full documentation index:
+    <a href="https://github.com/aiAdrian/flatland_ui/blob/main/docs/README.md" target="_blank" rel="noopener">docs/README.md</a>
+    · project overview:
+    <a href="https://github.com/aiAdrian/flatland_ui/blob/main/README.md" target="_blank" rel="noopener">README.md</a>.
+  </p>
+</div>

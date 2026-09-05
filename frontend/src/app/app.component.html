@@ -27,6 +27,12 @@
   } @loading {
     <p class="area-loading">Loading Layout Designer…</p>
   }
+} @else if (showContribute) {
+  @defer (when showContribute) {
+    <app-contribute></app-contribute>
+  } @loading {
+    <p class="area-loading">Loading Contribute…</p>
+  }
 } @else {
   <app-config-shell active="dispatcher">
     @if (store.session()) {
