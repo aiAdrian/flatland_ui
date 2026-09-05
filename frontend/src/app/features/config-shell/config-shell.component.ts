@@ -16,9 +16,9 @@ interface AreaLink {
 
 const AREA_LINKS: AreaLink[] = [
   { id: 'dispatcher', label: 'Dispatcher', href: '/', icon: 'train-small' },
-  { id: 'designer', label: 'Layout Designer', href: '/designer', icon: 'grid-small' },
-  { id: 'infrastructure-builder', label: 'Infrastructure Builder', href: '/infrastructure-builder', icon: 'map-small' },
-  { id: 'widgets', label: 'Widgets Gallery', href: '/widgets', icon: 'apps-small' },
+  { id: 'designer', label: 'Layout Designer', href: '/designer', icon: 'four-squares-small' },
+  { id: 'infrastructure-builder', label: 'Infrastructure Builder', href: '/infrastructure-builder', icon: 'network-small' },
+  { id: 'widgets', label: 'Widgets Gallery', href: '/widgets', icon: 'nine-squares-small' },
   { id: 'algorithms', label: 'Algorithm Gallery', href: '/algorithms', icon: 'circle-information-small' },
 ];
 
