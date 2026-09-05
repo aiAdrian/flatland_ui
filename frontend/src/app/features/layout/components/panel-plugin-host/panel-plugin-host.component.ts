@@ -32,7 +32,6 @@ import { ProblemOverviewComponent } from '../../../combined-actions-package/prob
 import { AgentInspectorComponent } from '../../../agent-inspector/agent-inspector.component';
 import { GoalAchievementPanelComponent } from '../../../../shared/layout/panels/goal-achievement-panel/goal-achievement-panel.component';
 import { LayoutViewToggleService } from '../../../../core/layout-view-toggle.service';
-import { LayoutViewTogglePanelComponent } from '../../../../shared/layout/panels/layout-view-toggle-panel/layout-view-toggle-panel.component';
 import { LayerVisibilityComponent } from '../../../layer-visibility/layer-visibility.component';
 import { ToolbarComponent } from '../../../toolbar/toolbar.component';
 import { ViewToggleComponent } from '../../../view-toggle/view-toggle.component';
@@ -46,8 +45,7 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
   imports: [
     ViewToggleComponent,ToolbarComponent,
     LayerVisibilityComponent,
-    LayoutViewTogglePanelComponent,
-    GoalAchievementPanelComponent, 
+    GoalAchievementPanelComponent,
     AgentInspectorComponent,
     NotificationsPanelComponent,
     AgentsPanelComponent,
