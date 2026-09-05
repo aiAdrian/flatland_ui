@@ -2,19 +2,9 @@ import '@sbb-esta/lyne-elements/toggle-check.js';
 import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { ToolbarComponent } from './features/toolbar/toolbar.component';
-import { AgentInspectorComponent } from './features/agent-inspector/agent-inspector.component';
-import { AgentsPanelComponent } from './features/agents-panel/agents-panel.component';
 import { ViewToggleComponent } from './features/view-toggle/view-toggle.component';
-import { TrackLayoutComponent } from './features/track-layout/track-layout.component';
-import { GraphicTimetableComponent } from './features/graphic-timetable/graphic-timetable.component';
 import { LayerVisibilityComponent } from './features/layer-visibility/layer-visibility.component';
-import { NotificationsPanelComponent } from './features/notifications-panel/notifications-panel.component';
-import { ScenarioPanelComponent } from './features/scenario-panel/scenario-panel.component';
-import { KpiFilterComponent } from './features/kpi-filter/kpi-filter.component';
-import { DirectorWeightsComponent } from './features/director-weights/director-weights.component';
-import { RecommendationsPanelComponent } from './features/recommendations-panel/recommendations-panel.component';
 import { CoLearningReflectionComponent } from './features/co-learning-reflection/co-learning-reflection.component';
-import { SituationSummaryComponent } from './features/situation-summary/situation-summary.component';
 import { GoalAchievementComponent } from './features/goal-achievement/goal-achievement.component';
 import { StrategyForecastComponent } from './features/strategy-forecast/strategy-forecast.component';
 import { StrategyOptionsComponent } from './features/strategy-options/strategy-options.component';
@@ -25,7 +15,6 @@ import { ShiftReviewComponent } from './features/shift-review/shift-review.compo
 import { LearningRecordsComponent } from './features/learning-records/learning-records.component';
 import { DirectorDirectiveComponent } from './features/director-directive/director-directive.component';
 import { SurveyComponent } from './features/survey/survey.component';
-import { ImpactPanelComponent } from './features/impact-panel/impact-panel.component';
 import { ModeIntroComponent } from './features/mode-intro/mode-intro.component';
 import { DemoCompleteComponent } from './features/demo-complete/demo-complete.component';
 import { HelpAboutComponent } from './features/help-about/help-about.component';
@@ -79,16 +68,8 @@ type RuntimeLayoutOption = {
     WidgetsGalleryComponent,
     AlgorithmsGalleryComponent,
     ToolbarComponent,
-    TrackLayoutComponent,
-    GraphicTimetableComponent,
     LayerVisibilityComponent,
-    NotificationsPanelComponent,
-    ScenarioPanelComponent,
-    KpiFilterComponent,
-    DirectorWeightsComponent,
-    RecommendationsPanelComponent,
     CoLearningReflectionComponent,
-    SituationSummaryComponent,
     GoalAchievementComponent,
     StrategyForecastComponent,
     StrategyOptionsComponent,
@@ -99,9 +80,6 @@ type RuntimeLayoutOption = {
     LearningRecordsComponent,
     DirectorDirectiveComponent,
     SurveyComponent,
-    ImpactPanelComponent,
-    AgentInspectorComponent,
-    AgentsPanelComponent,
     ViewToggleComponent,
     ModeIntroComponent,
     DemoCompleteComponent,

@@ -17,16 +17,3 @@
   color: var(--sbb-color-granite, #686868);
   margin-right: 8px;
 }
-
-sbb-tag {
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s;
-
-  &.active-tag {
-    --sbb-tag-background-color: var(--sbb-color-charcoal, #212121);
-    --sbb-tag-color: white;
-    background: var(--sbb-color-charcoal, #212121) !important;
-    color: white !important;
-  }
-}
