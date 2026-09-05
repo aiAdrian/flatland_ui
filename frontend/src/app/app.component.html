@@ -1,16 +1,32 @@
 @if (showWidgetsGallery) {
-  <app-widgets-gallery></app-widgets-gallery>
+  @defer (when showWidgetsGallery) {
+    <app-widgets-gallery></app-widgets-gallery>
+  } @loading {
+    <p class="area-loading">Loading Widgets Gallery…</p>
+  }
 } @else if (showAlgorithmsGallery) {
-  <app-algorithms-gallery></app-algorithms-gallery>
+  @defer (when showAlgorithmsGallery) {
+    <app-algorithms-gallery></app-algorithms-gallery>
+  } @loading {
+    <p class="area-loading">Loading Algorithm Gallery…</p>
+  }
 } @else if (showInfrastructureBuilder) {
-  <app-infrastructure-builder
-    [sessionGridWidth]="newWidth()"
-    [sessionGridHeight]="newHeight()"
-    (openSettingsRequested)="openSettings()"
-    (newSessionRequested)="onInfrastructureBuilderSession($event)">
-  </app-infrastructure-builder>
+  @defer (when showInfrastructureBuilder) {
+    <app-infrastructure-builder
+      [sessionGridWidth]="newWidth()"
+      [sessionGridHeight]="newHeight()"
+      (openSettingsRequested)="openSettings()"
+      (newSessionRequested)="onInfrastructureBuilderSession($event)">
+    </app-infrastructure-builder>
+  } @loading {
+    <p class="area-loading">Loading Infrastructure Builder…</p>
+  }
 } @else if (showLayoutDesigner) {
-  <app-layout-designer></app-layout-designer>
+  @defer (when showLayoutDesigner) {
+    <app-layout-designer></app-layout-designer>
+  } @loading {
+    <p class="area-loading">Loading Layout Designer…</p>
+  }
 } @else {
   <app-config-shell active="dispatcher">
     @if (store.session()) {
