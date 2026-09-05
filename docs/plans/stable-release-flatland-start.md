@@ -64,7 +64,7 @@ infrastructure**, not application code.
 | Drop | Size | Why | Stays on |
 |---|---:|---|---|
 | `.github/workflows/deploy-hf-space.yml` + `deploy/hf/` + `docs/deploy-hugging-face-space.md` | 3 files | `if: github.actor == 'danib8005'`, default Space `danib8005/…` — personally bound, dead/confusing code in an org repo | `explore_db` |
-| `docs/infrastructure_builder/scenes/*.scene.json` | 724 KB, 3 files | byte-identical duplicates of `backend/app/fixtures/pf_ch/*.scene.json` (verified `diff -q`) | nowhere — pure duplication |
+| ~~`docs/infrastructure_builder/scenes/*.scene.json`~~ | 724 KB, 3 files | byte-identical duplicates of `backend/app/fixtures/pf_ch/*.scene.json` (verified `diff -q`); zero references anywhere except this table | **done** (2026-09-05) — removed directly on `main`, ahead of the rest of this reduction |
 | `PLAYGROUND.md` | 1 file | describes a diff against an `upstream/experiment/vibecoding-playground` relationship that won't exist after the move | `explore_db` (already partly de-staled, see §3) |
 | `docs/reading/`, `docs/delegation/`, `docs/archive/` | 240 KB, 17 files | internal workshop/review notes and AI-delegation prompts — **open question, see §4**, not yet decided | `explore_db` |
 

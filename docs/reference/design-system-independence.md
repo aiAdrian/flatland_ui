@@ -68,11 +68,12 @@ Shallower than expected.
 The expansion-panel trio alone is **55 %** of all usage. Practically speaking
 there is *one* component that would be expensive to replace, plus buttons.
 
-> **Note:** `sbb-tag` is registered in `frontend/src/main.ts:12` but appears in
-> **zero** templates. The `sbb-tag { … }` rules in
-> `toolbar.component.scss` and `view-toggle.component.scss` target nothing —
-> `view-toggle` actually uses `sbb-checkbox-group`. Dead code worth removing,
-> or worth adopting deliberately (see the Widget Gallery proposal).
+> **Update, 2026-09-05:** `sbb-tag` was adopted deliberately — it's now the
+> facet-chip vocabulary in the Widgets and Algorithm Galleries (22 uses across
+> both templates). The dead `sbb-tag { … }` rules this note used to flag in
+> `toolbar.component.scss` and `view-toggle.component.scss` (which never had
+> any `sbb-tag` element to style — `view-toggle` actually uses
+> `sbb-checkbox-group`) have since been removed.
 
 ### 2b. Tokens — 1255 references, but only 35 distinct
 
