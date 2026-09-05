@@ -1,6 +1,6 @@
 <div class="builder">
   <app-config-shell active="infrastructure-builder">
-    <sbb-menu-button configActions icon-name="gear-small" (click)="openSettingsRequested.emit()">Session Settings…</sbb-menu-button>
+    <sbb-menu-button configActions icon-name="gears-small" (click)="openSettingsRequested.emit()">Session Settings…</sbb-menu-button>
     <sbb-menu-button configActions icon-name="plus-small" (click)="openInfrastructureStartChoice()">New infrastructure session</sbb-menu-button>
     <sbb-menu-button configActions icon-name="play-small" (click)="runCurrentScene()">Run current infrastructure</sbb-menu-button>
     <sbb-menu-button configActions (click)="useSessionGrid()">Use session grid {{ sessionGridWidth }} × {{ sessionGridHeight }}</sbb-menu-button>
