@@ -99,9 +99,9 @@ all three variants (see above).
 
 ## 3. Blockers — status
 
-Six blockers were identified; **four are done** and pushed on
-[`origin/enabler`](https://github.com/aiAdrian/flatland_ui/tree/enabler)
-(commit `7b3b12a`), not yet merged into `main` — see §0.1 and §5:
+Six blockers were identified; **five are done and merged into `main`**
+(#1/#3/#5/#6 via [PR #47](https://github.com/aiAdrian/flatland_ui/pull/47),
+#2 as a follow-up commit) — see §0.1 and §5:
 
 1. ✅ **README clone command was dead** — pointed at
    `-b experiment/vibecoding-playground https://github.com/danib8005/…`
@@ -109,10 +109,13 @@ Six blockers were identified; **four are done** and pushed on
    `git clone https://github.com/aiAdrian/flatland_ui.git`; stale
    "Playground branch" callout in `README.md` and the `PLAYGROUND.md` header
    de-staled to match.
-2. ⬜ **No CI** — only the HF-deploy workflow exists (and it's dropped in §1).
-   No build/test gate for `main` or for external PRs. Proposed:
-   `ng build --configuration production` + `pytest` (with
-   `requirements-dev.txt`) on push/PR. **Not started.**
+2. ✅ **No CI** — fixed via `.github/workflows/ci.yml` (2026-09-05): two
+   independent jobs, `ng build --configuration production` and `pytest` (with
+   `requirements-dev.txt`), on push/PR to `main`. Deliberately left out:
+   `ruff check` (1628 pre-existing findings — its own cleanup, not a gate to
+   turn on blind) and `ng test` (needs a real/headless Chrome, not just a
+   build). Along the way, fixed `README.md`'s "Node.js 20+" — Angular CLI 22
+   actually needs ≥22.22.3 (the Dockerfile already knew this).
 3. ✅ **torch gap in the quick start** — `requirements.txt` deliberately omits
    PyTorch; without it the Director silently degrades to the model-free
    fallback (`avoidance (no models)` instead of `search`, A/B/C strategy tiles
@@ -134,8 +137,8 @@ Six blockers were identified; **four are done** and pushed on
    commented `.gitignore` rule (`* 2.*`) so they stop reappearing in
    `git status`.
 
-Not yet touched: **#2 (CI)** and **#4 (licence)** — #4 needs the user's call
-with the Flatland team, #2 is the next concrete step.
+Not yet touched: **#4 (licence)** — needs the user's call with the Flatland
+team; nothing here can settle it.
 
 ---
 
@@ -160,14 +163,20 @@ publishing, not a default:
 
 ## 5. Next steps
 
+~~Merge `enabler` into `main`~~ (done, PR #47) and ~~build the CI
+workflow~~ (done, §3.2) both landed directly on `main` rather than on a
+separate `release/…` branch — by the time either happened, PR #46 had
+already merged `explore_db` into `main` unreduced (§0.1), so there was no
+clean `main` left to protect with a side branch. The remaining §1 drops are
+being applied the same way, one at a time, as they get decided or verified
+(the scene JSON duplicates are done; the HF workflow and `PLAYGROUND.md`
+are not yet).
+
 1. Decide §4.
-2. Merge `enabler` into `main` (or open a PR for it) — confirmed conflict-free
-   against the current `main` tip (§0.1). This lands blockers #1/#3/#5/#6.
-3. Cut `release/…` from `main` (now that it carries the `enabler` fixes),
-   apply §1's drops there.
-4. Build the CI workflow (§3.2) on the release branch, so `main` gets it from
-   day one.
-5. Resolve §3.4 (licence) with the Flatland team before pushing history —
+2. Apply the rest of §1's drops directly on `main` (HF workflow,
+   `PLAYGROUND.md`, and `docs/reading`/`delegation`/`archive` once §4 is
+   decided).
+3. Resolve §3.4 (licence) with the Flatland team before pushing history —
    `docs/reading/2026-08-16-flatland-oekosystem-recherche.md`'s email address
    is still present in three commits of the existing history
    (`259d10c`, `9292d08`, `da1e5d2`); decide whether the move carries full
