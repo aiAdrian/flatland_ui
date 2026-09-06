@@ -80,6 +80,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 ## reading/ — dated research notes
 External research, read once and recorded so it need not be repeated.
 
+- [2026-09-06-workshop-vision-whiteboard.md](reading/2026-09-06-workshop-vision-whiteboard.md) — Workshop-Brainstorming: Lacking/Achieved, die Spannung monolithisch ↔ modular, und was davon offen ist (DE)
 - [2026-08-23-co-study4grid-uebernahme.md](reading/2026-08-23-co-study4grid-uebernahme.md) — full read of RTE's Co-Study4Grid: which interaction patterns and CI gates we could adopt for Co-Learning and this HMI, ranked (DE)
 - [2026-08-24-dispatcher-review-study2.md](reading/2026-08-24-dispatcher-review-study2.md) — Disponenten-Review des Co-Learning-Aufbaus für User Study 2; enthält die offene VMax-Frage (DE)
 - [2026-08-22-hmi-review-workshop.md](reading/2026-08-22-hmi-review-workshop.md) — HMI review of the Recommendation & Co-Learning screens: feedback, what was fixed, what stays open (DE)
