@@ -207,6 +207,40 @@ so "decide right, see centre" replaces "decide above, see below". If the vertica
 tiles turn out to read badly, the fallback is a wider right column in Director
 only (32 %) — a layout constant, not a structural exception.
 
+### 5.4 The guided demo's copy is part of the layout
+
+The guided demo tells the operator where to look *before* each mode starts, and
+that copy is data, not prose in a component: `MODE_INTROS`
+([mode-intro-configs.ts](../../frontend/src/app/core/demo/mode-intro-configs.ts))
+carries a `focusView` field per mode, grounded — its own comment says so — in
+[center-view-tabs.md](center-view-tabs.md). Change the layouts without changing
+it and the demo actively misdirects.
+
+What breaks when §3–§5 land:
+
+| Line | Today | After |
+|------|-------|-------|
+| Director `focusView` | *"The Goal Achievement dashboard"* | the ZWL; Goal Achievement is a **status readout on the left**, not the place to look |
+| Director `watchFor` | *"A live 'Goal Achievement' panel once it's running"* | left-column status + the A/B/C tiles on the right |
+| Recommendation `watchFor` | *"a recommendation card on the right"* | still true — plus the reliability strip inside it (§5.1) |
+| Co-Learning `watchFor` | *"'Reflect now' becomes available"* | it is a **segment with a badge**, not a link (§5.2) |
+
+And one line is **already wrong today**, independent of this plan: both
+Recommendation and Co-Learning promise *"Adjust KPI priorities"*, but `kpi-filter`
+is offered in no mode (`'kpi-filter': []`) and `kpiPriorities` sits at its
+defaults. The demo has been promising a lever that is not on screen.
+
+So the intro copy is an acceptance criterion of P2/P3, not a follow-up: **every
+`focusView` / `watchFor` / `whatYouCanControl` line must name something the mode
+actually shows.** Cheapest guard is a test that asserts each `whatYouCanControl`
+entry maps to a panel type available in that mode — the availability map is
+already data, so the check is a lookup, not a fixture.
+
+The same applies to `DemoCompleteComponent`, whose copy is hardcoded in its
+template rather than in a config; it is the one screen in the demo flow with no
+data seam. Moving it to a config beside `MODE_INTROS` is S and makes the whole
+guided flow reviewable in one file.
+
 ---
 
 ## 6. Widget work
@@ -226,6 +260,7 @@ only (32 %) — a layout constant, not a structural exception.
 | `whatif-compare` (B1) | **free exploration**: branch from any train/step, hold and compare several branches (the TraceRL branching-tree pattern) | M–L |
 | **Autonomy dial / allocation** | **new** — `planned` in the catalog; the adjustable-autonomy lever D3.1 §7 asks for, and the thing that makes Director more than "the AI runs, you watch" | M |
 | `marey` (ZWL) | B2: conflict ribbons + plan-vs-actual. The largest single lever for Director supervision | L |
+| `mode-intro` / `demo-complete` | intro copy follows the new layouts (§5.4) + a test that every promised lever exists in that mode; `demo-complete` copy into a config | S |
 
 Effort scale per [widget-catalog.md](widget-catalog.md): S ≤150k tokens/≤1 day ·
 M 150–400k/1–3 days · L >400k/3–5+ days.
@@ -317,7 +352,9 @@ the formats are compatible by construction.
   behaviour.
 - **P2 — read-only left zone** (the `readonly` flag + the three widgets), and the
   moves that need no new code: `ai-activity` left, `goal-achievement` re-enabled,
-  Fahrplan tab, Director default tab.
+  Fahrplan tab, Director default tab. Ships with the corrected guided-demo copy
+  (§5.4) — a mode whose intro screen points at a panel that moved is worse than
+  the old layout.
 - **P3 — `decision-tabs`** + the Co-Learning segments; `strategy-options` vertical.
 - **P4 — event budget** (backend, testable on its own, independent of P0–P3).
 - **P5 — the development items:** B1 free exploration, autonomy dial, reflection
