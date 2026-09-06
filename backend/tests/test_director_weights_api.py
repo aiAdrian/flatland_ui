@@ -87,6 +87,12 @@ def test_stepping_with_the_planner_fills_the_scorecard_and_sliders_replan():
     env = session_manager.get(sid).env
     job = _replan_state(env).get("job")
     if job is not None:
+        # A real `Thread.join()`, not a sleep-and-poll loop: `join()` blocks
+        # by releasing the GIL, so the background thread actually gets
+        # scheduled while we wait. A tight poll loop without a yield between
+        # requests holds the GIL across them instead and can starve the
+        # replan thread indefinitely, however long the loop's own deadline
+        # is — worth knowing if this ever gets rewritten back into a loop.
         job["thread"].join(timeout=120)
         assert not job["thread"].is_alive(), (
             "director replan thread did not finish within 120s")
