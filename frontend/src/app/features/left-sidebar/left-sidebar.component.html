@@ -1,13 +1,13 @@
 <div class="sidebar-content">
   @if (store.session(); as s) {
 @if (!store.state()) {
-<h3 class="section-title">Agents</h3>
+<sbb-title level="3" visual-level="5" class="section-title">Agents</sbb-title>
 <div class="empty-mini">waiting for state...</div>
 }
 @if (store.state()) {
-<h3 class="section-title">
+<sbb-title level="3" visual-level="5" class="section-title">
         Agents ({{ activeCount() }} / {{ totalCount() }})
-      </h3>
+      </sbb-title>
 
       <!-- HMI review: "Alle Züge oder nur die mit Konflikt?" -->
       <div class="agent-filter">

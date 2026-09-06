@@ -107,7 +107,7 @@
 
   <main class="designer__body">
     <aside class="palette">
-      <h2>Widgets</h2>
+      <sbb-title level="2" visual-level="4">Widgets</sbb-title>
       <p>Drag widgets into the layout.</p>
 
       <div
@@ -126,7 +126,7 @@
     </aside>
       <section class="preview" (click)="selectDesign()">
         <div class="preview__head">
-          <h2>Layout Preview</h2>
+          <sbb-title level="2" visual-level="4">Layout Preview</sbb-title>
           <span>{{ layoutRowCount }} rows × {{ maxColumnsPerRow }} columns · {{ design.scale * 100 | number:'1.0-0' }}%</span>
         </div>
 
@@ -262,12 +262,12 @@
       </section>
 
       <aside class="settings">
-      <h2>Settings</h2>
+      <sbb-title level="2" visual-level="4">Settings</sbb-title>
       <p class="settings__hint">Press Delete to remove the red selected item. Ctrl+Z undoes the last layout change. Drag a panel outside the canvas and release to delete it. Ctrl+Z restores it.</p>
 
       <ng-container [ngSwitch]="selection.kind">
         <section *ngSwitchCase="'design'">
-          <h3>Layout</h3>
+          <sbb-title level="3" visual-level="5">Layout</sbb-title>
 
           <p class="inspector-hint">Name, session and scale are set in the bar above. Select a row, column or panel to edit its details here.</p>
 
@@ -276,7 +276,7 @@
 
         <ng-container *ngSwitchCase="'column'">
           <section *ngIf="selectedColumn as column">
-            <h3>Column</h3>
+            <sbb-title level="3" visual-level="5">Column</sbb-title>
 
           <label>
             Name
@@ -303,7 +303,7 @@
 
         <ng-container *ngSwitchCase="'panel'">
           <section *ngIf="selectedPanel as panel">
-            <h3>Panel</h3>
+            <sbb-title level="3" visual-level="5">Panel</sbb-title>
 
           <label>
             Title
@@ -318,7 +318,7 @@
 
           @if (panel.type === 'toggle-view') {
             <div class="settings__group settings__group--toggle-view">
-              <h4>Toggle View</h4>
+              <sbb-title level="4" visual-level="6">Toggle View</sbb-title>
 
               <label>
                 Split direction
@@ -339,7 +339,7 @@
 
           @if (panel.type === 'view-tabs') {
             <div class="settings__group settings__group--view-tabs">
-              <h4>View Tabs</h4>
+              <sbb-title level="4" visual-level="6">View Tabs</sbb-title>
               <p class="settings__hint">Choose which views appear as tabs (order follows the list).</p>
               @for (v of availableViewTabs; track v.type) {
                 <label class="checkbox">
