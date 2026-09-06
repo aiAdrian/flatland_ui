@@ -2,7 +2,11 @@
 
 > **Status:** trial run 2026-08-20, **not applied**. The repo stays pinned to
 > `flatland-rl==4.2.6`. Every number below was measured on this machine
-> (macOS arm64, Python 3.14, `backend/.venv`), not estimated.
+> (macOS arm64, Python 3.14, `backend/.venv`), not estimated. **Re-checked
+> 2026-09-06 against the live upstream repo (§10)** — 4.3.0 is still latest,
+> `stations_links`'s actual API is now documented (§10a), and a conflicting
+> effort estimate in another doc is flagged (§10d) — read that before trusting
+> either doc's number.
 >
 > **Verdict:** the code migration is about a day. The blocker is not code — it is
 > that **seeded worlds change**, which is a study-planning decision (§4).
@@ -180,3 +184,114 @@ Not nothing — this is why the question is worth revisiting:
 4. Fix the eval-set selection (§5).
 5. Check `Dockerfile` / CI for the build toolchain (§7).
 6. Only then consider adopting `stations_links` (§8), which is its own piece of work.
+
+---
+
+## 10. Update, 2026-09-06 — `stations_links` API confirmed, roadmap checked, one doc conflict flagged
+
+Re-verified against the live GitHub repo (code, changelog, milestones), not
+just PyPI metadata. **4.3.0 is still latest** (checked `pypi.org/pypi/flatland-rl/json`
+today — no 4.3.1/4.4.0 shipped since this doc's 2026-08-20 trial).
+
+### 10a. `stations_links.py`, in full (`flatland/envs/stations_links.py`)
+
+```python
+@dataclass(frozen=True)
+class Pin:
+    name: str          # A.N.0, A.N.1, ...
+    node: IntVector2D
+
+@dataclass(frozen=True)
+class Gate:
+    name: str          # A.N, A.S, ...
+    pins: Dict[int, Pin]
+
+@dataclass(frozen=True)
+class StoppingPoint:
+    name: str          # A.0, A.1, ...
+    node: IntVector2D
+
+@dataclass(frozen=True)
+class Station:
+    name: str          # A, B, ..., Z, AA, AB, ... (Excel-column scheme)
+    gates: Dict[str, Gate]           # N, E, S, W
+    stopping_points: List[StoppingPoint]
+    edges: List[IntVector2D]
+
+@dataclass(frozen=True)
+class Fibre:
+    edges: List[IntVector2D]
+    from_pin: str      # A.N.0, A.N.1, ...
+    to_pin: str
+
+@dataclass(frozen=True)
+class Link:
+    from_gate: str     # A.N, A.S, ...
+    to_gate: str
+    fibres: List[Fibre]
+
+@dataclass(frozen=True)
+class StationsLinks:
+    stations: Dict[str, Station]
+    links: List[Link]
+```
+
+**`Station.name` is not a human-assignable name** — it's an auto-generated,
+stable graph identifier (letters, overflowing to `AA`, `AB`, … per the "fix
+city naming overflow" 4.3.0 commit). Don't read adopting this as solving
+station *naming* for our HMI — it solves *capture/persistence* of the
+city/platform grouping. See [`cities-stations-plan.md`](cities-stations-plan.md)
+§5 for the actual naming question, which this data model does not answer.
+
+### 10b. Wiring, confirmed by reading `rail_env.py` and `persistence.py`
+
+- `RailEnv.stations_links` is a new attribute, default `None`
+  (`rail_env.py:184,313`), populated from `optionals['stations_links']`
+  (`rail_env.py:861-862`) when the rail generator provides it —
+  `sparse_rail_generator` always does (`rail_generators.py`: builds it via
+  `_extract_stations_links`, returned in `optionals`). **Additive, not
+  breaking** — an env just gets a new attribute; nothing reads it unless we
+  write code that does.
+- `RailEnvPersister` now **round-trips `stations_links`**:
+  `persistence.py:325-326` (load: `env.stations_links = env_dict["stations_links"]`)
+  and `persistence.py:398-399` (save: `if hasattr(env, "stations_links")`).
+  This directly matters for `backend/app/core/station_aware_env.py`'s own
+  fork-survival hack (SHA-256 grid fingerprinting, because pre-4.3
+  `RailEnvPersister` dropped the hints on `save`→`load_new`) — **post-upgrade,
+  that fingerprint registry is likely redundant** for anything migrated to
+  `stations_links`. Don't port it into a `stations_links`-based rewrite
+  without checking first.
+
+### 10c. Roadmap checked — no station-naming work planned upstream
+
+Searched all 6 open milestones via the GitHub API (not just skimmed the milestones
+page): `4.4.0` (Core generalizations for graph representation — 2 issues
+closed, 3 open: none about naming), `4.X Cleanup` (12 open, bugfixes/modularization),
+`4.Y Observations` (3 open), `4.Z Persistence` (1 open: `#129` "State/configuration
+refactoring" — not naming), `4.4.1` (2 open: `#424` "Add event-generator",
+`#348` a `DistanceMap`/`DefaultRewards` question re: intermediate stops —
+neither about naming), `4.***` "Human Interaction - IAI" (3 open: `#333`
+"Implement InteractiveAI Suggestions Protocol API", `#235` "Simulation Stepper
+aka. Trajectory API", `#176` "InteractiveAI Unit and Integration Test" — their
+own director/negotiation-protocol work, tangential to our
+`director-directive`/Tokener interest per CLAUDE.md, but not station-naming
+either). **No open issue anywhere mentions custom/human-readable station
+names.** Treat the letter-naming scheme in §10a as upstream's intended
+end-state, not a placeholder they'll improve later.
+
+### 10d. Doc conflict to resolve before anyone acts on this
+
+[`flatland-ecosystem-reuse-plan.md`](flatland-ecosystem-reuse-plan.md) §W8
+("`flatland-rl` 4.2.6 → 4.3.0") estimates **"Effort: S (bump) + M
+(verification)"** and states "Removed APIs (`RailEnv.record_timestep`,
+`_apply_timetable_to_agents`) — verified unused by us" **without mentioning**
+this doc's §2/§3 finding that `EnvAgent` lost `position`/`target`/
+`initial_position`/`initial_direction` entirely (~120 call sites, 165 test
+failures without the shim). That doc was written 2026-08-16 per CLAUDE.md;
+this doc's trial (§1-§7) ran an actual `pip install flatland-rl==4.3.0` +
+full test suite on 2026-08-20 and is the more authoritative source for
+migration cost — **but the two haven't been reconciled.** Whoever picks this
+up: re-run this doc's §1 trial once more before planning (four days short of
+three weeks have passed; confirm nothing upstream changed), then correct or
+annotate `flatland-ecosystem-reuse-plan.md` §W8's effort estimate to match
+§2/§3 here rather than trusting either doc blindly.

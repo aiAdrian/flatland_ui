@@ -26,7 +26,7 @@ The authoritative specs and guides for how the app works today.
 - [visual-concept.md](reference/visual-concept.md) — canonical names for surfaces & the three zones
 - [frontend-lyne-conventions.md](reference/frontend-lyne-conventions.md) — Angular/Lyne rules, incl. the no-hardcoded-colours gate
 - [colour-usage-audit.md](reference/colour-usage-audit.md) — colour concepts grouped into semantic families; consistency, collisions, global-config readiness
-- [design-system-independence.md](reference/design-system-independence.md) — how deeply Lyne is coupled (measured), what blocks an open-source release, and the 2026-08-23 decision (font decoupled, adapter layer next)
+- [design-system.md](reference/design-system.md) — widget-vs-widget and widget-vs-convention Lyne consistency audit (2026-09-05), how deeply Lyne is coupled (measured), what blocks an open-source release, and the 2026-08-23 independence decision (font decoupled, adapter layer next)
 - [data-provenance.md](reference/data-provenance.md) — real simulation vs mock vs derived per widget/endpoint; why **Demo ≠ Mock**
 - [component-shell-plugin-api.md](reference/component-shell-plugin-api.md) — panel shell / plugin API
 - [wp4-validation-alignment.md](reference/wp4-validation-alignment.md) — **don't forget:** WP4's Validation Campaign Hub (FAB) + Railway KPI catalog — re-check at real WP 4.3 requirements
