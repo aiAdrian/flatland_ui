@@ -63,6 +63,22 @@ for Recommendation / Co-Learning).
 3. **Impact panel: up to 3 ranked intervention options** + mode-aware apply
    (recommendation = highlighted + apply; co-learning = neutral / inspect;
    director = overview).
+   **Same-platform precedent (checked 2026-09-06):**
+   `IRT-SystemX/InteractiveAI` `main`, `backend/recommendation-service/resources/Railway/`
+   (`manager.py` + `sncf_recommender.py`) already separates "candidate options
+   with KPIs" from "how to present them for a mode" into four named, swappable
+   functions over the same option list: `SNCF_RECO3` (best-first, one flagged
+   `best`), `SNCF_risk` (all options sorted by one KPI, **no** best flag — our
+   co-learning shape), `SNCF_deontic` (threshold-filter then sort — a primitive
+   director-style filter), `SNCF_risk_tie_break` (primary KPI, secondary breaks
+   ties). Options themselves are a static hand-authored catalog (no simulation,
+   no computed KPIs) — nothing to reuse there, our real Flatland-derived
+   `DecisionOption`s are already ahead of it. The transferable bit is the
+   **shape**: a small `select_for_mode(options, mode, kpi_key)`-style function
+   sitting after option generation, so `recommendation_generator.py` doesn't
+   have to know about modes and the frontend doesn't have to re-derive
+   "neutral vs ranked" from raw data. Not an AI4REALNET repo, so not a "must
+   reuse" per CLAUDE.md — just a structural nudge worth stealing.
 4. **Dual-path what-if visualisation (§3.3)**: on reroute, show **both** paths on
    the map/Marey — old/current (blue = human-influenced) vs new/rerouted
    (yellow = AI-simulated) — with a KPI delta. Needs the backend to compute the

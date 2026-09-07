@@ -613,7 +613,7 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     perMode: {
       recommendation: 'One plan plus the AI\'s proposed action as the ghost: the contended resource and window are named.',
       'co-learning': 'Two plans of different authorship — human-influenced blue, AI-simulated yellow (B1 convention), neither marked better.',
-      director: 'Primary mode: running plan vs previewed objective, unchanged occupancy grey and changed accented. Evidence for the A/B/C decision, not the decision.',
+      director: 'Primary mode: baseline (doing nothing) plus the three focuses, each drawn against the baseline ghost. Evidence for the A/B/C decision, not the decision.',
     },
     defaultZone: 'center',
     minHeight: 300,

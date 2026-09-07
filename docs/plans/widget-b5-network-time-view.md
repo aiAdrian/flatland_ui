@@ -50,12 +50,15 @@ Differentiation from what exists (checked against `widget-catalog.ts`):
 Offered in **all three modes**; the *framing* differs, and so does the colour
 convention, which matters because the repo already has one.
 
-- **Director (WP 3.4) — the primary mode.** Both plans are the AI's: the running
-  plan and the previewed one under a candidate objective. Encoding is therefore
-  **neutral by identity and loud by change**: unchanged occupancy grey, changed
-  occupancy accented, the other plan's position as a dashed ghost. This is the
-  evidence surface for the A/B/C strategy decision — it does not carry the
-  decision itself (`strategy-options` does).
+- **Director (WP 3.4) — the primary mode.** Four selectable plan states, not
+  two: the **baseline** plus the three focuses the mode actually offers
+  (`STRATEGY_COPY` — *Verspätung minimieren* · *Anschlüsse halten* ·
+  *Stabilität maximieren*). Every plan is the AI's, so the encoding is **neutral
+  by identity and loud by change**: unchanged occupancy grey, occupancy this
+  focus moved accented, and **the baseline always as the dashed ghost**. Reading
+  stays two-at-a-time — the selected focus against doing nothing — even though
+  four states are selectable. This is the evidence surface for the A/B/C
+  decision; it does not carry the decision (`strategy-options` does).
 - **Recommendation (WP 3.1).** One plan plus the AI's proposed action: the ghost
   is *what the recommendation would do*. The contended resource and the window
   are named, so accepting or overriding has a visible consequence.
@@ -65,6 +68,44 @@ convention, which matters because the repo already has one.
   from CLAUDE.md and widget B1). Neutral: neither plan is marked better.
 
 Read-only in every mode (`writes: 'view'` — hover and selection only).
+
+### 3b · The baseline is not optional
+
+"Doing nothing" — every train follows its line, nobody intervenes — is a plan
+state like the other three, and it is the reference the other three are drawn
+against. The argument for it is not symmetry; it is already measured in this
+repo. The Director acceptance sweep (12 scenarios, seed 42, every row verified by
+a full episode — [director-mode.md](../reference/director-mode.md) §8):
+
+| weights | mean delay | arrived rate | mean kept ratio |
+| --- | --- | --- | --- |
+| **lines (baseline)** | 62.9 | 0.50 | **0.753** |
+| punctuality (1,0,0) | **55.7** | 0.58 | 0.601 |
+| connections (0,1,0) | 70.6 | 0.50 | 0.736 |
+| stability (0,0,1) | 60.1 | 0.50 | 0.660 |
+
+**The connections focus keeps fewer connections than doing nothing** — 0.736
+against 0.753 — and pays 15 delay for it. Punctuality and stability do win on
+their own axis; that one does not. `director-strategy-copy.ts` already says so in
+a code comment, and the B tile is deliberately worded as an intent rather than a
+promise because of it.
+
+Without a baseline state, that is invisible in the HMI: three focuses shown only
+against each other always look like three working levers. With it, the operator
+can see a directive that changes a lot and improves nothing. This is exactly the
+calibrated-trust question (**Q2**) — and it makes the widget an instrument for
+catching our *own* over-claiming, not only the operator's over-trust.
+
+The baseline here is the same object the scenario gallery wants per Setup
+([scenario-infrastructure-gallery.md](scenario-infrastructure-gallery.md) §6):
+one recorded no-intervention run. One definition, two consumers — do not grow a
+second one.
+
+**What this widget must not become.** Four states are selectable, but only two
+are ever drawn: the selected one and the ghost. Showing all four at once is a
+different widget — the trade-off frontier / small-multiples (**C1** in the
+catalog). Keep that boundary; a four-plan overlay is unreadable and would
+duplicate C1 badly.
 
 ## 4 · System interaction
 
@@ -135,27 +176,30 @@ Netz metadata. Nothing here needs a new algorithm; it needs a vocabulary.
 
 ## 6 · Acceptance scenario
 
-Olten, the window from step 100 to 580 (the real fixture data, §9.2).
+Olten, the window from step 100 to 620 (the real fixture data, §9.2).
 
-1. The operator is in Director. The running plan is under focus **A · minimise
-   delay**. The row **Süd-Ost 59/13–14** shows a red band at steps 385–395: train
-   h11 is leaving southbound while h15 is entering from the south, on a
-   capacity-1 approach.
-2. They preview focus **C · stability**. Three bars move: h15's approach slot
-   shifts from 385–440 to 425–480, its platform call at Gleis 37/13 from 445–475
-   to 485–515, and its onward eastbound slot from 540–560 to 560–580. The red band
-   is gone.
-3. The price is in the same picture, not in a separate KPI panel: h15's eastbound
-   slot now ends *after* its arrival window of 560.
-4. They commit focus C, or reject it because that window matters.
+1. The operator is in Director, on **Nichtstun (Referenz)**. The row
+   **Süd-Ost 59/13–14** carries a red band at steps 385–395: h11 is leaving
+   southbound while h15 is entering from the south, on a capacity-1 approach.
+   Nobody has intervened; this is what the shift costs if they do not.
+2. **Verspätung minimieren** — three bars move, all h15's: it enters 10 steps
+   later, calls at Gleis 37/13 ten steps later, leaves eastbound ten steps later.
+   Band gone, every arrival window still held.
+3. **Anschlüsse halten** — five bars move: h15 as above, plus h13 waiting at
+   Gleis 37/11 for the transfer and leaving eastbound at 480. Band gone, the
+   transfer kept — and h13 now misses its own arrival window of 460.
+4. **Stabilität maximieren** — three bars move: h15 waits 40 steps at the south
+   portal for the largest margin at the approach, and its eastbound slot lands
+   after its window of 560.
 
-**Measurable success criterion:** shown the two focuses, an operator names (a) the
-resource that stopped being contended and (b) the train that pays for it, without
-opening another panel. Target ≥ 80 % correct on both parts across participants —
-the honest test of whether "how do my inputs take effect" is answered by the
-picture. Ties to **Q1** (behaviourally distinct modes: Director's supervision has
-its own instrument) and **Q2** (calibrated trust: the cost of the AI's plan is
-visible, not asserted).
+The operator commits one, having seen what each costs *relative to not acting*.
+
+**Measurable success criterion:** shown the baseline and the three focuses, an
+operator names (a) the resource that stopped being contended and (b) the train
+that pays, for each focus, without opening another panel. Target ≥ 80 % correct
+on both parts. Ties to **Q1** (Director's supervision gets an instrument of its
+own) and **Q2** (the cost of a directive is visible against doing nothing, not
+asserted).
 
 ## 7 · Effort & changes
 
@@ -212,16 +256,20 @@ version of the same question using data that already exists.
 
 Resources are the stations and the single-track sections along the line; the same
 view degenerates gracefully to what a ZWL would show, because a corridor's
-resources happen to be linearly ordered.
+resources happen to be linearly ordered. Occupancy windows of RE4820, the train
+every focus moves:
 
-| Resource | Cap. | Focus A · minimise delay | Focus C · stability |
-|---|:--:|---|---|
-| Einspur WN–WAL | 1 | IR2401 18–34, RE4820 30–46 → **overlap 30–34** | RE4820 shifted to 50–66 |
-| Bf Walenstadt | 2 | RE4820 22–30 | RE4820 22–**50** (holds) |
-| Tunnel Murg | 1 | RE4820 48–60 | 68–80 |
-| Bf Sargans | 3 | RE4820 62–74 | 82–94 |
+| Resource | Cap. | Nichtstun | Verspätung min. | Anschlüsse | Stabilität |
+|---|:--:|---|---|---|---|
+| Einspur WN–WAL | 1 | 30–46 → **Konflikt 30–34** | 36–52 | 40–56 | 50–66 |
+| Bf Walenstadt | 2 | 22–30 | 22–30 | 22–**40** | 22–**50** |
+| Tunnel Murg | 1 | 48–60 | 54–66 | 58–70 | 68–80 |
+| Bf Sargans | 3 | 62–74 | 68–80 | 72–84 | 82–94 |
+| Bf Bad Ragaz | 2 | 78–88 | 84–94 | 88–98 | 98–108 |
 
-One objective change, one conflict removed, one train ~20 steps later. Illustrative
+Four bars move under punctuality, five under the other two. The trade the
+operator reads: 6 steps later and the conflict is gone, 10 later and the transfer
+with S12 holds, 20 later and the approach has its largest margin. Illustrative
 numbers, not from a fixture.
 
 ### 9.2 Olten (the case that motivates the widget)
@@ -233,7 +281,8 @@ the portals are row 0 cols 23–24 (north), row 59 cols 4–5 and 13–14 (south
 south-east), col 34 (east), col 0 (west).
 
 The 14 trains departing between steps 60 and 420 — real handles and real
-scheduled times:
+scheduled times (the view's window runs to 620 so the stability variant's
+eastbound slot still fits):
 
 | Handle | Start | `earliest_departure` | Call (row 37) | Target | `latest_arrival` |
 |---|---|--:|---|---|--:|

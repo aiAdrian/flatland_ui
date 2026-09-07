@@ -93,50 +93,70 @@
 const LEGEND =
   '<div class="legend">' +
   '<span class="sw" style="background:var(--bar-same)"></span> unverändert &nbsp; ' +
-  '<span class="sw" style="background:var(--bar-changed)"></span> durch dieses Ziel verschoben &nbsp; ' +
-  '<span class="sw" style="border:1px dashed var(--muted)"></span> Lage im anderen Plan &nbsp; ' +
+  ' &nbsp; ' +
   '<span class="sw" style="background:var(--conflict-bg)"></span> Kapazität überschritten</div>';
+
+const PLANS = [
+  { k:'base',        label:'Nichtstun (Referenz)' },
+  { k:'punctuality', label:'Verspätung minimieren' },
+  { k:'connections', label:'Anschlüsse halten' },
+  { k:'stability',   label:'Stabilität maximieren' }
+];
 
 const EX1 = {
   t0: 0, t1: 140, tick: 20,
-  labels: { a: 'Fokus A · Verspätung minimieren', c: 'Fokus C · Stabilität' },
   read: {
-    a: '<span style="color:var(--conflict-ink)">1 Konflikt</span> · Einspur WN–WAL, Schritt 30–34 · nichts wartet, RE4820 fährt durch',
-    c: '5 Balken verschoben · RE4820 wartet in Walenstadt · <span style="color:var(--ok-ink)">kein Konflikt</span>, dafür Ankunft rund 20 Schritte später'
+    base: '<span style="color:var(--conflict-ink)">1 Konflikt</span> · Einspur WN–WAL, Schritt 30–34 — niemand greift ein',
+    punctuality: '{n} Balken verschoben · RE4820 fährt 6 Schritte später · <span style="color:var(--ok-ink)">kein Konflikt</span>, kleinste Verspätung',
+    connections: '{n} Balken verschoben · RE4820 wartet in Walenstadt auf S12 · <span style="color:var(--ok-ink)">kein Konflikt</span>, dafür 10 Schritte später am Ziel',
+    stability: '{n} Balken verschoben · RE4820 wartet 20 Schritte · <span style="color:var(--ok-ink)">kein Konflikt</span>, grösster Abstand an der Einspur, dafür 20 Schritte später'
   },
   res: [
-    { n: 'Bf Ziegelbrücke', cap: 3, tr: [ {t:'IR2401',a:[4,14]}, {t:'S12',a:[8,20]} ] },
-    { n: 'Einspur WN–WAL', cap: 1, tr: [ {t:'IR2401',a:[18,34]}, {t:'RE4820',a:[30,46],c:[50,66]} ] },
-    { n: 'Bf Walenstadt', cap: 2, tr: [ {t:'RE4820',a:[22,30],c:[22,50]}, {t:'S12',a:[26,36]} ] },
-    { n: 'Tunnel Murg', cap: 1, tr: [ {t:'IR2401',a:[36,48]}, {t:'RE4820',a:[48,60],c:[68,80]} ] },
-    { n: 'Bf Sargans', cap: 3, tr: [ {t:'IR2401',a:[52,62]}, {t:'RE4820',a:[62,74],c:[82,94]}, {t:'IC5',a:[70,80]} ] },
-    { n: 'Weiche Sargans Ost', cap: 1, tr: [ {t:'IR2401',a:[60,64]}, {t:'IC5',a:[78,82]} ] },
-    { n: 'Bf Bad Ragaz', cap: 2, tr: [ {t:'IC5',a:[84,96]}, {t:'RE4820',a:[78,88],c:[98,108]} ] }
+    { n:'Bf Ziegelbrücke', cap:3, tr:[ {t:'IR2401',base:[4,14]}, {t:'S12',base:[8,20]} ] },
+    { n:'Einspur WN–WAL', cap:1, tr:[ {t:'IR2401',base:[18,34]},
+        {t:'RE4820',base:[30,46],punctuality:[36,52],connections:[40,56],stability:[50,66]} ] },
+    { n:'Bf Walenstadt', cap:2, tr:[
+        {t:'RE4820',base:[22,30],connections:[22,40],stability:[22,50]}, {t:'S12',base:[26,36]} ] },
+    { n:'Tunnel Murg', cap:1, tr:[ {t:'IR2401',base:[36,48]},
+        {t:'RE4820',base:[48,60],punctuality:[54,66],connections:[58,70],stability:[68,80]} ] },
+    { n:'Bf Sargans', cap:3, tr:[ {t:'IR2401',base:[52,62]},
+        {t:'RE4820',base:[62,74],punctuality:[68,80],connections:[72,84],stability:[82,94]}, {t:'IC5',base:[70,80]} ] },
+    { n:'Weiche Sargans Ost', cap:1, tr:[ {t:'IR2401',base:[60,64]}, {t:'IC5',base:[78,82]} ] },
+    { n:'Bf Bad Ragaz', cap:2, tr:[ {t:'IC5',base:[84,96]},
+        {t:'RE4820',base:[78,88],punctuality:[84,94],connections:[88,98],stability:[98,108]} ] }
   ]
 };
 
 const EX2 = {
-  t0: 100, t1: 580, tick: 60,
-  labels: { a: 'Fokus A · Verspätung minimieren', c: 'Fokus C · Stabilität' },
+  t0: 100, t1: 620, tick: 60,
   read: {
-    a: '<span style="color:var(--conflict-ink)">1 Konflikt</span> · Süd-Ost 59/13–14, Schritt 385–395: h11 fährt aus, h15 fährt ein · h15 hält seine Zeiten',
-    c: '3 Balken verschoben · h15 wartet 40 Schritte · <span style="color:var(--ok-ink)">kein Konflikt</span> — dafür erreicht h15 sein Ankunftsfenster Ost (560) nicht mehr'
+    base: '<span style="color:var(--conflict-ink)">1 Konflikt</span> · Süd-Ost 59/13–14, Schritt 385–395: h11 fährt aus, h15 fährt ein — niemand greift ein',
+    punctuality: '{n} Balken verschoben · h15 fährt 10 Schritte später · <span style="color:var(--ok-ink)">kein Konflikt</span>, alle Ankunftsfenster gehalten',
+    connections: '{n} Balken verschoben · h13 wartet in Olten auf Umsteigende aus h15 · <span style="color:var(--ok-ink)">kein Konflikt</span>, dafür verpasst h13 sein Fenster Ost (460)',
+    stability: '{n} Balken verschoben · h15 wartet 40 Schritte am Südportal · <span style="color:var(--ok-ink)">kein Konflikt</span>, grösster Abstand an der Einfahrt, dafür verpasst h15 sein Fenster Ost (560)'
   },
   res: [
-    { g: 'Bahnhof Olten' },
-    { n: 'Gleis 37/7', cap: 1, tr: [ {t:'h8',a:[205,235]}, {t:'h16',a:[465,495]} ] },
-    { n: 'Gleis 37/9', cap: 1, tr: [ {t:'h14',a:[385,415]}, {t:'h17',a:[465,495]} ] },
-    { n: 'Gleis 37/11', cap: 1, tr: [ {t:'h13',a:[385,415]} ] },
-    { n: 'Gleis 37/13', cap: 1, tr: [ {t:'h5',a:[100,130]}, {t:'h10',a:[225,255]}, {t:'h15',a:[445,475],c:[485,515]} ] },
-    { n: 'Gleis 37/14', cap: 1, tr: [ {t:'h9',a:[225,255]} ] },
-    { n: 'Gleis 37/15', cap: 1, tr: [ {t:'h6',a:[105,135]}, {t:'h7',a:[185,215]}, {t:'h12',a:[325,355]} ] },
-    { n: 'Gleis 37/16', cap: 1, tr: [ {t:'h11',a:[305,335]} ] },
-    { g: 'Zulaufstrecken' },
-    { n: 'Nord 0/23–24', cap: 2, tr: [ {t:'h7',a:[100,118]}, {t:'h49',a:[280,298]}, {t:'h9',a:[300,320]}, {t:'h12',a:[420,440]} ] },
-    { n: 'Süd-West 59/4–5', cap: 1, tr: [ {t:'h5',a:[130,160]}, {t:'h13',a:[340,370]} ] },
-    { n: 'Süd-Ost 59/13–14', cap: 1, tr: [ {t:'h6',a:[130,160]}, {t:'h10',a:[270,300]}, {t:'h11',a:[340,395]}, {t:'h15',a:[385,440],c:[425,480]} ] },
-    { n: 'Ost 34', cap: 2, tr: [ {t:'h10',a:[140,158]}, {t:'h14',a:[300,318]}, {t:'h49',a:[305,323]}, {t:'h17',a:[400,418]}, {t:'h13',a:[440,460]}, {t:'h15',a:[540,560],c:[560,580]} ] },
-    { n: 'West 0/49', cap: 1, tr: [ {t:'h8',a:[280,300]}, {t:'h16',a:[360,380]} ] }
+    { g:'Bahnhof Olten' },
+    { n:'Gleis 37/7', cap:1, tr:[ {t:'h8',base:[205,235]}, {t:'h16',base:[465,495]} ] },
+    { n:'Gleis 37/9', cap:1, tr:[ {t:'h14',base:[385,415]}, {t:'h17',base:[465,495]} ] },
+    { n:'Gleis 37/11', cap:1, tr:[ {t:'h13',base:[385,415],connections:[385,455]} ] },
+    { n:'Gleis 37/13', cap:1, tr:[ {t:'h5',base:[100,130]}, {t:'h10',base:[225,255]},
+        {t:'h15',base:[445,475],punctuality:[455,485],connections:[455,485],stability:[485,515]} ] },
+    { n:'Gleis 37/14', cap:1, tr:[ {t:'h9',base:[225,255]} ] },
+    { n:'Gleis 37/15', cap:1, tr:[ {t:'h6',base:[105,135]}, {t:'h7',base:[185,215]}, {t:'h12',base:[325,355]} ] },
+    { n:'Gleis 37/16', cap:1, tr:[ {t:'h11',base:[305,335]} ] },
+    { g:'Zulaufstrecken' },
+    { n:'Nord 0/23–24', cap:2, tr:[ {t:'h7',base:[100,118]}, {t:'h49',base:[280,298]},
+        {t:'h9',base:[300,320]}, {t:'h12',base:[420,440]} ] },
+    { n:'Süd-West 59/4–5', cap:1, tr:[ {t:'h5',base:[130,160]}, {t:'h13',base:[340,370]} ] },
+    { n:'Süd-Ost 59/13–14', cap:1, tr:[ {t:'h6',base:[130,160]}, {t:'h10',base:[270,300]},
+        {t:'h11',base:[340,395]},
+        {t:'h15',base:[385,440],punctuality:[395,450],connections:[395,450],stability:[425,480]} ] },
+    { n:'Ost 34', cap:2, tr:[ {t:'h10',base:[140,158]}, {t:'h14',base:[300,318]}, {t:'h49',base:[305,323]},
+        {t:'h17',base:[400,418]},
+        {t:'h13',base:[440,460],connections:[480,500]},
+        {t:'h15',base:[540,560],punctuality:[550,570],connections:[550,570],stability:[580,600]} ] },
+    { n:'West 0/49', cap:1, tr:[ {t:'h8',base:[280,300]}, {t:'h16',base:[360,380]} ] }
   ]
 };
 
@@ -162,11 +182,13 @@ const LANE = 23;
 function build(hostId, cfg) {
   const host = document.getElementById(hostId);
   host.innerHTML =
-    '<div><button class="on" data-f="a">' + cfg.labels.a + '</button>' +
-    '<button data-f="c">' + cfg.labels.c + '</button></div>' +
+    '<div>' + PLANS.map((p, i) =>
+      '<button class="' + (i === 0 ? 'on base' : '') + '" data-k="' + p.k + '">' + p.label + '</button>'
+    ).join('') + '</div>' +
     '<div class="read"></div>' +
     '<div class="grid"><div></div><div class="axis"></div></div>' +
     '<div class="grid body"></div>' + LEGEND;
+
   const pct = v => ((v - cfg.t0) / (cfg.t1 - cfg.t0) * 100) + '%';
   const axis = host.querySelector('.axis');
   for (let s = cfg.t0; s <= cfg.t1; s += cfg.tick) {
@@ -175,6 +197,7 @@ function build(hostId, cfg) {
     d.textContent = s;
     axis.appendChild(d);
   }
+
   function overflow(list, cap) {
     const out = []; let cur = null;
     for (let s = cfg.t0; s <= cfg.t1; s++) {
@@ -185,9 +208,11 @@ function build(hostId, cfg) {
     if (cur) out.push(cur);
     return out;
   }
-  function render(f) {
+
+  function render(k) {
     const body = host.querySelector('.body');
     body.innerHTML = '';
+    let moved = 0;
     cfg.res.forEach(r => {
       if (r.g) {
         const h = document.createElement('div'); h.className = 'grp'; h.textContent = r.g;
@@ -195,21 +220,24 @@ function build(hostId, cfg) {
         return;
       }
       const wins = r.tr.map(x => {
-        const w = (f === 'c' && x.c) ? x.c : x.a;
-        const o = x.c ? (f === 'c' ? x.a : x.c) : null;
-        return { t: x.t, w: w, o: o };
+        const w = x[k] || x.base;
+        const changed = k !== 'base' && !!x[k];
+        return { t: x.t, w: w, base: x.base, changed: changed };
       }).sort((p, q) => p.w[0] - q.w[0]);
+
       const lanes = [];
       wins.forEach(b => {
         let i = lanes.findIndex(end => end <= b.w[0]);
         if (i < 0) { i = lanes.length; lanes.push(0); }
         lanes[i] = b.w[1]; b.lane = i;
       });
+
       const confs = overflow(wins.map(x => x.w), r.cap);
       const lbl = document.createElement('div');
       lbl.className = 'lbl';
       lbl.innerHTML = r.n + '<div style="font-size:11px">Kap. ' + r.cap +
         (confs.length ? ' · <span style="color:var(--conflict-ink)">Konflikt</span>' : '') + '</div>';
+
       const row = document.createElement('div');
       row.className = 'row';
       row.style.height = (Math.max(1, lanes.length) * LANE + 7) + 'px';
@@ -218,38 +246,41 @@ function build(hostId, cfg) {
         d.className = 'conf'; d.style.left = pct(c[0]); d.style.width = pct(c[1] - c[0]);
         row.appendChild(d);
       });
+
       wins.forEach(b => {
-        const changed = !!b.o && f === 'c';
+        if (b.changed) moved++;
         const el = document.createElement('div');
         el.className = 'bar';
         el.style.left = pct(b.w[0]);
         el.style.width = pct(b.w[1] - b.w[0]);
         el.style.top = (b.lane * LANE + 4) + 'px';
-        el.style.background = changed ? 'var(--bar-changed)' : 'var(--bar-same)';
-        el.style.color = changed ? 'var(--bar-changed-ink)' : 'var(--ink)';
+        el.style.background = b.changed ? 'var(--bar-changed)' : 'var(--bar-same)';
+        el.style.color = b.changed ? 'var(--bar-changed-ink)' : 'var(--ink)';
         if ((b.w[1] - b.w[0]) / (cfg.t1 - cfg.t0) > 0.055) el.textContent = b.t;
         el.title = b.t + ' · Schritt ' + b.w[0] + '–' + b.w[1];
         row.appendChild(el);
-        if (changed) {
+        if (b.changed) {
           const g = document.createElement('div');
           g.className = 'ghost';
-          g.style.left = pct(b.o[0]); g.style.width = pct(b.o[1] - b.o[0]);
+          g.style.left = pct(b.base[0]); g.style.width = pct(b.base[1] - b.base[0]);
           g.style.top = (b.lane * LANE + 19) + 'px';
+          g.title = 'Nichtstun: Schritt ' + b.base[0] + '–' + b.base[1];
           row.appendChild(g);
         }
       });
       body.appendChild(lbl); body.appendChild(row);
     });
-    host.querySelector('.read').innerHTML = cfg.read[f];
+    host.querySelector('.read').innerHTML = cfg.read[k].replace('{n}', moved);
   }
+
   host.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
       host.querySelectorAll('button').forEach(b => b.classList.remove('on'));
       btn.classList.add('on');
-      render(btn.dataset.f);
+      render(btn.dataset.k);
     });
   });
-  render('a');
+  render('base');
 }
 
 build('ex1', EX1);
