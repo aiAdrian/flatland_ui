@@ -63,6 +63,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 - [widget-b1-whatif-compare.md](plans/widget-b1-whatif-compare.md) — spec: What-if Compare, "my solution vs. AI" (first cut built)
 - [widget-b3-network-correlation-graph.md](plans/widget-b3-network-correlation-graph.md) — spec: network correlation graph (planned)
 - [widget-linkmap-zwl.md](plans/widget-linkmap-zwl.md) — spec: Link Map / ZWL port from the sibling HMI (planned)
+- [widget-b5-network-time-view.md](plans/widget-b5-network-time-view.md) — spec: Netz-Zeitansicht — resources × time, the network-scale answer where a ZWL needs a line (planned)
 - [widget-timetable.md](plans/widget-timetable.md) — spec: Timetable / Fahrplan (shipped)
 - [widget-variants-versioning.md](plans/widget-variants-versioning.md) — multiple selectable variants per widget role; keeping v1 alongside v2
 
