@@ -182,7 +182,7 @@ Genuinely open:
 
 - [interaction-framework.md](interaction-framework.md) §2 (kind), §3 (allocation), §4 (Human-in-Control)
 - [interaction-modes-brief.md](interaction-modes-brief.md) — authoritative mode spec
-- [design-system-independence.md](design-system-independence.md) — same document shape, but a decision rather than a discussion
+- [design-system.md](design-system.md) — same document shape, but a decision rather than a discussion
 - `frontend/src/app/core/widgets/widget-mode-axes.ts` — the seam in code
 
 **References.** Sheridan, T. B., & Verplank, W. L. (1978). *Human and Computer
