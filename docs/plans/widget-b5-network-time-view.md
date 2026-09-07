@@ -204,6 +204,10 @@ version of the same question using data that already exists.
 
 ## 9 · Worked examples
 
+> **Interactive:** [`docs/widget-b5-network-time-view-mockup.html`](../widget-b5-network-time-view-mockup.html)
+> renders both examples with a focus toggle — open it in a browser, no build step.
+> The tables below are the same data, so the spec stays readable on its own.
+
 ### 9.1 Corridor (the simple case)
 
 Resources are the stations and the single-track sections along the line; the same
