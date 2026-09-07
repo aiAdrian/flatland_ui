@@ -71,22 +71,41 @@ def test_stepping_with_the_planner_fills_the_scorecard_and_sliders_replan():
     # Mid-episode the committed plan keeps driving until the re-plan.
     assert client.get(f"/session/{sid}/director").json()["plan"] is not None
 
-    # The dirty flag starts a *background* re-plan on the next step; keep
-    # stepping until its result lands (applied re-anchored to the live
-    # state — the plan keeps driving meanwhile).
-    import time
+    # The dirty flag starts a *background* re-plan on the next step. Wait for
+    # the actual thread instead of a fixed wall-clock poll budget: a 15s
+    # deadline flaked repeatedly on a loaded CI runner (the backend suite's
+    # heavy PyTorch training tests share the same process/CPU — see
+    # aiAdrian/flatland_ui#53, runs 33985963779) even though the job itself
+    # always finishes, just not always within 15s of real time.
+    r = client.post(f"/session/{sid}/step", json={
+        "n_steps": 1, "policy": "goal_directed"})
+    assert r.status_code == 200, r.text
 
-    deadline = time.time() + 15
-    replans: list = []
-    while time.time() < deadline and not replans:
-        r = client.post(f"/session/{sid}/step", json={
-            "n_steps": 1, "policy": "goal_directed"})
-        assert r.status_code == 200, r.text
-        plan = client.get(f"/session/{sid}/director").json()["plan"]
-        replans = (plan or {}).get("replans") or []
-        time.sleep(0.02)
+    from app.core.session_manager import session_manager
+    from app.policies.goal_directed_policy import _replan_state
+
+    env = session_manager.get(sid).env
+    job = _replan_state(env).get("job")
+    if job is not None:
+        # A real `Thread.join()`, not a sleep-and-poll loop: `join()` blocks
+        # by releasing the GIL, so the background thread actually gets
+        # scheduled while we wait. A tight poll loop without a yield between
+        # requests holds the GIL across them instead and can starve the
+        # replan thread indefinitely, however long the loop's own deadline
+        # is — worth knowing if this ever gets rewritten back into a loop.
+        job["thread"].join(timeout=120)
+        assert not job["thread"].is_alive(), (
+            "director replan thread did not finish within 120s")
+
+    # One more step lets `_maybe_replan` pick up the finished job and apply
+    # it (re-anchored to the live state).
+    r = client.post(f"/session/{sid}/step", json={
+        "n_steps": 1, "policy": "goal_directed"})
+    assert r.status_code == 200, r.text
+    plan = client.get(f"/session/{sid}/director").json()["plan"]
     assert plan is not None
     assert plan["weights"] == [0.0, 0.0, 1.0]
+    replans = (plan or {}).get("replans") or []
     assert replans and replans[-1]["reason"] == "weights change"
 
 
