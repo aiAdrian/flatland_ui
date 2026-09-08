@@ -182,6 +182,15 @@ export class PanelPluginHostComponent implements OnInit, OnDestroy {
 
   @Input({ required: true }) panel!: PanelInstance;
 
+  /** Guide-Mode zone rule: the left column is status and events — it may be
+   *  read and navigated, never acted from. Panels that carry dispatch controls
+   *  ask for this and render them as read-only. The action itself is not lost:
+   *  it lives in the Agent Inspector on the right and on the map overlay.
+   *  See docs/plans/mode-layouts-three-zones.md §1/§3. */
+  get zoneViewOnly(): boolean {
+    return this.panel?.zone === 'left';
+  }
+
   @HostBinding('attr.data-panel-type')
   get hostPanelType(): string | null {
     return this.panel?.type ?? null;

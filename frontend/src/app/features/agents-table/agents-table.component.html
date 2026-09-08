@@ -106,6 +106,20 @@
                     <span class="muted">—</span>
                   } @else {
                     @for (opt of row.options; track opt.action) {
+                      @if (viewOnly) {
+                        <!-- Left column: the AI's starred recommendation and the
+                             operator's own marking are situation, so they stay;
+                             only the dispatching is gone. -->
+                        <span
+                          class="action-btn action-btn--view"
+                          [class.is-mine]="opt.isMine"
+                          [class.is-ai]="opt.isAiRecommended"
+                          [title]="opt.isMine
+                            ? 'Dein gesetzter Eingriff'
+                            : (opt.isAiRecommended ? 'Empfehlung der KI für diesen Zug' : '')">
+                          {{ opt.label }}@if (opt.isAiRecommended) {<span class="ai-star" aria-label="Empfehlung der KI"> ★</span>}
+                        </span>
+                      } @else {
                       <button
                         type="button"
                         class="action-btn"
@@ -119,6 +133,7 @@
                         (click)="onAction(row.handle, opt.action)">
                         {{ opt.label }}@if (opt.isAiRecommended) {<span class="ai-star" aria-label="Empfehlung der KI"> ★</span>}
                       </button>
+                      }
                     }
                   }
                 </td>

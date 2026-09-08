@@ -91,6 +91,16 @@ Two things fall out of this that are worth having on their own:
 
 ### Enforcing read-only
 
+> **First slice landed 2026-09-08 ("Guide Mode light").** `panel-plugin-host`
+> derives `zoneViewOnly` from `panel.zone === 'left'` and passes it to the two
+> widgets that carry dispatch controls (`agents` → `left-sidebar`,
+> `agents-table`). The roster still reports what the train faces ("Next:
+> SWITCH") and still selects, it just no longer sets the override; the table
+> keeps the AI star and the operator's own marking as labels. Deliberately *not*
+> in this slice: moving any panel, Director's missing left column, and the
+> notifications dismiss (§10.1 is still open). No layout changed, so nothing
+> here needed the resolver.
+
 Derive it from the zone rather than writing it into each widget:
 `panel.zone === 'left'` ⇒ the host passes `readonly` to the widget. `PanelInstance`
 already carries `zone`

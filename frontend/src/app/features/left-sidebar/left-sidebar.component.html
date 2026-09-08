@@ -93,6 +93,15 @@
               }
 
               @if (a.next_decision; as nd) {
+                @if (viewOnly) {
+                  <!-- Left column = status, no dispatch. What the train faces
+                       stays visible; setting the override moved to the Agent
+                       Inspector on the right, where the zone rule puts it. -->
+                  <div class="agent-actions agent-actions--view">
+                    <span class="actions-label">Next: {{ nd.cell_type }}</span>
+                    <span class="actions-hint">Eingriff im Agent Inspector rechts</span>
+                  </div>
+                } @else {
                 <div class="agent-actions" (click)="$event.stopPropagation()">
                   <span class="actions-label">Next: {{ nd.cell_type }}</span>
                   <div class="action-buttons">
@@ -116,6 +125,7 @@
                     <span class="actions-hint">rot = dein gesetzter Eingriff · nochmal klicken hebt ihn auf</span>
                   }
                 </div>
+                }
               }
             </div>
           }

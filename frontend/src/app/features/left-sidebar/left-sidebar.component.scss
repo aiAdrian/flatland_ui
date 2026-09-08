@@ -610,3 +610,12 @@
     font-weight: 600;
   }
 }
+
+/* Zone rule (Guide Mode): the left column reports, it does not dispatch.
+   Same block as the acting variant so the row keeps its rhythm — only the
+   buttons are gone and a pointer to where the action lives takes their place. */
+.agent-actions--view {
+  .actions-hint {
+    font-style: italic;
+  }
+}

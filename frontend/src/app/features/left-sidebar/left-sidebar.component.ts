@@ -2,6 +2,7 @@ import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   computed,
+  Input,
   inject,
   signal,
 } from '@angular/core';
@@ -22,6 +23,12 @@ type AgentGroup = 'MOVING' | 'WAITING' | 'DONE';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class LeftSidebarComponent {
+  /** Zone rule (Guide Mode): shown in the left column, so the roster reports
+   *  the situation and lets you select a train, but sets no override. The
+   *  action moved to the Agent Inspector on the right, not away.
+   *  docs/plans/mode-layouts-three-zones.md §1. */
+  @Input() viewOnly = false;
+
   store = inject(SessionStore);
   private agentColors = inject(AgentColorService);
   /** Acting on a train goes through the dispatch seam, never straight to the
