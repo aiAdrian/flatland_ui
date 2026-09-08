@@ -109,26 +109,82 @@ mode, via `settings.tabs: ['flatland-map', 'marey', 'timetable']`. The container
 is registry-driven and already does this; what is missing is the configuration in
 the mode layouts.
 
-### Does that make sense for Director? Yes — with a different default tab
+### Does that make sense for Director? Yes — but not with the ZWL as default
 
-The Director does not ask "which train, where", it asks **"does the plan hold?"**
-That is a question about time, not about place: plan-vs-actual divergence is
-legible on the ZWL and nearly illegible on a map with 52 trains. So the same
-three tabs, a different entry point:
+**Corrected 2026-09-07 (danib).** An earlier draft made the ZWL Director's
+default view, arguing that plan-vs-actual is a time question. The objection that
+overturned it: **a ZWL shows one line section, and Director supervises a whole
+network.** The reason is structural, not a matter of taste — the Marey's y-axis
+is a *linearisation* of cells (`backend/app/core/marey_topology.py`), so it
+presumes that a line exists. On the PF–CH corridor (191×9) that holds; on Olten
+(35×60, a station area, 52 trains) the axis is a fiction. The ZWL is a corridor
+instrument, not a network instrument, and it stays an available tab rather than
+the default.
 
 | Mode | Default tab | Why |
 |------|-------------|-----|
 | Recommendation | Streckenplan | resolve a conflict spatially, where it happens |
 | Co-Learning | Streckenplan | "my plan (blue) vs AI plan (yellow)" is drawn on the map |
-| **Director** | **ZWL** | plan↔actual is a time axis; the map is too dense at scale |
+| **Director** | **Streckenplan** | the whole network at once; the ZWL presumes a corridor |
 
 `MODE_DEFAULT_VIEW` ([view-tabs.component.ts:14-18](../../frontend/src/app/features/view-tabs/view-tabs.component.ts))
-already encodes exactly this table — its Director entry becomes `'marey'` now
-that `goal-achievement` moves left. The mode-switch reset of the active tab stays
-as is.
+loses its Director special case (`'goal-achievement'` → `'flatland-map'`, same as
+the other two) — see the deeper correction below.
+
+### But the map alone does not answer Director's question either
+
+Director's input is an *objective* — minimise delay ↔ hold connections ↔ maximise
+stability. What an objective changes is mostly **order and timing**: who waits,
+who goes first, which transfer survives. On a map a waiting train looks almost
+like a running one. The map answers *where* and *which route*; it does not answer
+*what did my input do*.
+
+The material for that answer already exists and is currently discarded. Every
+Director preview returns `DirectorDivergence`
+([api.service.ts:259-265](../../frontend/src/app/core/api.service.ts)):
+
+```ts
+reroutes: { handle → { branch: {row, col, step}, points: [...] } }
+holds:    [ { handle, row, col, steps } ]
+```
+
+Per train: from which point it drives differently, or how long it waits. Today
+that is compressed into a one-line badge over the map ("3 Zug/Züge fahren anders,
+1 wartet"). So the centre gains two things, neither of them a new computation:
+
+1. **A "Was ändert sich" companion** beside the map — the affected trains, sorted
+   by magnitude, each row naming its change (*Route ab Zbf* / *wartet 6
+   Schritte*). Pointing at a row draws that train's route on the map; the
+   mechanism exists (`directorHoverHandle`, deliberately one at a time). It is a
+   **companion, not a tab**: tabs are mutually exclusive, and here cause (map) and
+   effect (list) must be readable at the same time. Whether it ships as a new
+   panel type or as the Director variant of `impact` is an implementation choice —
+   note that `impact` is conflict-shaped today, while this is plan-vs-plan.
+2. **A Δ column in the Fahrplan** against the running plan (`+3'`, `−7'`, order
+   swap). The timetable's columns today are Train/From/To/Via/Dep/Arr/Now/Status —
+   the timing consequence of an objective appears in none of them.
 
 The map keeps the Director look-ahead overlay (`directorPreviewPaths`): it is
 supervisory evidence, not a lever.
+
+### The deeper correction: the default view belongs to the scenario, not the mode
+
+The ZWL is right for a corridor and wrong for a station area — that is a property
+of the **network**, not of the interaction mode. Hardcoding a default per mode is
+therefore the wrong seam. The default view belongs to the **Setup**
+([scenario-infrastructure-gallery.md](scenario-infrastructure-gallery.md) §4.4),
+with `MODE_DEFAULT_VIEW` as the fallback when a Setup names none.
+
+This also settles §10.4 below (should the Fahrplan filter default differ per
+mode?) the same way: data on the Setup, not a branch on the mode. It keeps §1's
+"identical centre" intact — the centre is identical *per scenario*, which is what
+a study compares within.
+
+**Later, not now:** the honest network-scale answer to the question the ZWL
+answers for a corridor is a different view — rows = the contended resources
+(stations, single-track sections), x = time, cell = occupancy. That would show
+"my stability objective spread the load". New work, L; the two items above use
+data that already exists and come first.
 
 ---
 
@@ -207,6 +263,40 @@ so "decide right, see centre" replaces "decide above, see below". If the vertica
 tiles turn out to read badly, the fallback is a wider right column in Director
 only (32 %) — a layout constant, not a structural exception.
 
+### 5.4 The guided demo's copy is part of the layout
+
+The guided demo tells the operator where to look *before* each mode starts, and
+that copy is data, not prose in a component: `MODE_INTROS`
+([mode-intro-configs.ts](../../frontend/src/app/core/demo/mode-intro-configs.ts))
+carries a `focusView` field per mode, grounded — its own comment says so — in
+[center-view-tabs.md](center-view-tabs.md). Change the layouts without changing
+it and the demo actively misdirects.
+
+What breaks when §3–§5 land:
+
+| Line | Today | After |
+|------|-------|-------|
+| Director `focusView` | *"The Goal Achievement dashboard"* | the Streckenplan plus the "Was ändert sich" companion; Goal Achievement is a **status readout on the left**, not the place to look |
+| Director `watchFor` | *"A live 'Goal Achievement' panel once it's running"* | left-column status + the A/B/C tiles on the right |
+| Recommendation `watchFor` | *"a recommendation card on the right"* | still true — plus the reliability strip inside it (§5.1) |
+| Co-Learning `watchFor` | *"'Reflect now' becomes available"* | it is a **segment with a badge**, not a link (§5.2) |
+
+And one line is **already wrong today**, independent of this plan: both
+Recommendation and Co-Learning promise *"Adjust KPI priorities"*, but `kpi-filter`
+is offered in no mode (`'kpi-filter': []`) and `kpiPriorities` sits at its
+defaults. The demo has been promising a lever that is not on screen.
+
+So the intro copy is an acceptance criterion of P2/P3, not a follow-up: **every
+`focusView` / `watchFor` / `whatYouCanControl` line must name something the mode
+actually shows.** Cheapest guard is a test that asserts each `whatYouCanControl`
+entry maps to a panel type available in that mode — the availability map is
+already data, so the check is a lookup, not a fixture.
+
+The same applies to `DemoCompleteComponent`, whose copy is hardcoded in its
+template rather than in a config; it is the one screen in the demo flow with no
+data seam. Moving it to a config beside `MODE_INTROS` is S and makes the whole
+guided flow reviewable in one file.
+
 ---
 
 ## 6. Widget work
@@ -221,11 +311,14 @@ only (32 %) — a layout constant, not a structural exception.
 | `view-tabs` | Fahrplan tab in all mode layouts; Director default `marey` | S |
 | **`decision-tabs`** | **new** — right-column segment container; registry-driven like `view-tabs` | S |
 | `timetable` | filter "affected / delayed only" — 52 trains (Olten) are unreadable otherwise | S–M |
+| **"Was ändert sich" companion** | **new** — renders `DirectorDivergence` beside the map, hover-linked (§4); today a one-line badge | S–M |
+| `timetable` Δ column | delta against the running plan (`+3'`, order swap) — the timing side of a Director objective | S |
 | `strategy-options` | vertical tile layout for a sidebar column | S–M |
 | `co-learning-reflection` | **collect**: one reflection artefact per run + JSON export, so reflections are study data and not just UI state | M |
 | `whatif-compare` (B1) | **free exploration**: branch from any train/step, hold and compare several branches (the TraceRL branching-tree pattern) | M–L |
 | **Autonomy dial / allocation** | **new** — `planned` in the catalog; the adjustable-autonomy lever D3.1 §7 asks for, and the thing that makes Director more than "the AI runs, you watch" | M |
 | `marey` (ZWL) | B2: conflict ribbons + plan-vs-actual. The largest single lever for Director supervision | L |
+| `mode-intro` / `demo-complete` | intro copy follows the new layouts (§5.4) + a test that every promised lever exists in that mode; `demo-complete` copy into a config | S |
 
 Effort scale per [widget-catalog.md](widget-catalog.md): S ≤150k tokens/≤1 day ·
 M 150–400k/1–3 days · L >400k/3–5+ days.
@@ -317,7 +410,9 @@ the formats are compatible by construction.
   behaviour.
 - **P2 — read-only left zone** (the `readonly` flag + the three widgets), and the
   moves that need no new code: `ai-activity` left, `goal-achievement` re-enabled,
-  Fahrplan tab, Director default tab.
+  Fahrplan tab, Director default tab. Ships with the corrected guided-demo copy
+  (§5.4) — a mode whose intro screen points at a panel that moved is worse than
+  the old layout.
 - **P3 — `decision-tabs`** + the Co-Learning segments; `strategy-options` vertical.
 - **P4 — event budget** (backend, testable on its own, independent of P0–P3).
 - **P5 — the development items:** B1 free exploration, autonomy dial, reflection

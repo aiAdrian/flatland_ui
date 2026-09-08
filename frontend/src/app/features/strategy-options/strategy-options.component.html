@@ -91,7 +91,7 @@
 
         <div class="so-tile__head">
           <span class="so-ident">{{ tile.ident }}</span>
-          <h4 class="so-tile__title" [attr.title]="tile.copy.goal">{{ tile.copy.title }}</h4>
+          <sbb-title level="4" visual-level="6" class="so-tile__title" [attr.title]="tile.copy.goal">{{ tile.copy.title }}</sbb-title>
           @if (tile.isActive) {
             <span class="so-badge">Aktiv</span>
           }

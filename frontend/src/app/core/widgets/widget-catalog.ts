@@ -596,6 +596,29 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     minHeight: 260,
     spec: 'docs/plans/widget-b3-network-correlation-graph.md',
   },
+  {
+    catalogId: 'B5',
+    type: '',
+    title: 'Netz-Zeitansicht (Network Time View)',
+    dataSource: 'simulation',
+    kind: 'prediction',
+    granularity: 'overview-detail',
+    writes: 'view',
+    status: 'planned',
+    description: 'Rows are contended resources, x is time, bars are occupancy — plan vs previewed plan.',
+    promise: 'Read whether the plan fits through the bottlenecks, and see what your objective changed and cost.',
+    grounding:
+      'Railway Belegungs-/Sperrzeitendarstellung (blocking-time theory, UIC 406) at resource granularity — the time-distance ZWL\'s sibling, without its precondition that a line exists.',
+    availableModes: 'all',
+    perMode: {
+      recommendation: 'One plan plus the AI\'s proposed action as the ghost: the contended resource and window are named.',
+      'co-learning': 'Two plans of different authorship — human-influenced blue, AI-simulated yellow (B1 convention), neither marked better.',
+      director: 'Primary mode: baseline (doing nothing) plus the three focuses, each drawn against the baseline ghost. Evidence for the A/B/C decision, not the decision.',
+    },
+    defaultZone: 'center',
+    minHeight: 300,
+    spec: 'docs/plans/widget-b5-network-time-view.md',
+  },
 
   // ── Decision Support ─────────────────────────────────────────────────────
   {

@@ -37,7 +37,7 @@
                (mouseleave)="store.previewScenarioId.set(null)">
 
             <div class="card-header">
-              <h4 class="title">{{ s.title }}</h4>
+              <sbb-title level="4" visual-level="6" class="title">{{ s.title }}</sbb-title>
               @if (showRecommendedFraming()) {
                 @if (s.isRecommended && !s.isBaseline) {
                   <span class="badge recommended">Recommended</span>

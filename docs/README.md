@@ -63,6 +63,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 - [widget-b1-whatif-compare.md](plans/widget-b1-whatif-compare.md) — spec: What-if Compare, "my solution vs. AI" (first cut built)
 - [widget-b3-network-correlation-graph.md](plans/widget-b3-network-correlation-graph.md) — spec: network correlation graph (planned)
 - [widget-linkmap-zwl.md](plans/widget-linkmap-zwl.md) — spec: Link Map / ZWL port from the sibling HMI (planned)
+- [widget-b5-network-time-view.md](plans/widget-b5-network-time-view.md) — spec: Netz-Zeitansicht — resources × time, the network-scale answer where a ZWL needs a line (planned)
 - [widget-timetable.md](plans/widget-timetable.md) — spec: Timetable / Fahrplan (shipped)
 - [widget-variants-versioning.md](plans/widget-variants-versioning.md) — multiple selectable variants per widget role; keeping v1 alongside v2
 
@@ -80,6 +81,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 ## reading/ — dated research notes
 External research, read once and recorded so it need not be repeated.
 
+- [2026-09-06-workshop-vision-whiteboard.md](reading/2026-09-06-workshop-vision-whiteboard.md) — Workshop-Brainstorming: Lacking/Achieved, die Spannung monolithisch ↔ modular, und was davon offen ist (DE)
 - [2026-08-23-co-study4grid-uebernahme.md](reading/2026-08-23-co-study4grid-uebernahme.md) — full read of RTE's Co-Study4Grid: which interaction patterns and CI gates we could adopt for Co-Learning and this HMI, ranked (DE)
 - [2026-08-24-dispatcher-review-study2.md](reading/2026-08-24-dispatcher-review-study2.md) — Disponenten-Review des Co-Learning-Aufbaus für User Study 2; enthält die offene VMax-Frage (DE)
 - [2026-08-22-hmi-review-workshop.md](reading/2026-08-22-hmi-review-workshop.md) — HMI review of the Recommendation & Co-Learning screens: feedback, what was fixed, what stays open (DE)

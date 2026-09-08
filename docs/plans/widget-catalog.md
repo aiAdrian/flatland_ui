@@ -128,6 +128,30 @@ to §3.3 (see marey-rethink note).
   be worth a glance for how it renders the Flatland network/schedule, but it is
   not a Marey-style time-distance view — this stays a from-scratch UI build.
 
+### B5. Netz-Zeitansicht (Network Time View) — [DB]+control-room practice
+`kind` **Prediction** · overview→detail · type `network-time-view`. Rows are the
+network's **contended resources** (platform tracks, single-track sections,
+approaches), x is time, bars are occupancy; the running plan and a previewed one
+are shown together, so an objective change reads as bars moving and a capacity
+band disappearing.
+- **Status:** spec written, not built —
+  [widget-b5-network-time-view.md](widget-b5-network-time-view.md).
+- **Why it is not B2 or B4:** both put *distance along a line* on the y-axis, so
+  they presume a line exists. True for the PF–CH corridor, a fiction for Olten
+  (60×35, 518 track cells, 52 trains, no corridor). Rows of resources need no
+  geometry, so the same view serves both — and its height is set by the
+  infrastructure, not the traffic.
+- **Effort:** L, decomposing into view (M) + resource registry as Netz metadata
+  (S–M) + occupancy derivation (M).
+- **Cheap finding in the spec:** the row set can largely be *derived* — Olten's
+  52 agents carry 24 distinct waypoint cells, which are exactly the
+  infrastructure the timetable cares about. Only capacities and the sections
+  nobody calls at have to be declared.
+- **Contributes:** Q1 (Director gets a supervision instrument of its own), Q2
+  (the cost of the AI's plan is shown, not asserted).
+- **Grounding:** railway Belegungs-/Sperrzeitendarstellung (blocking-time theory,
+  UIC 406) at resource granularity — control-room practice, not an invented form.
+
 ## C. Decision support (Evaluative AI)
 
 ### B3. Network correlation graph — [DB]

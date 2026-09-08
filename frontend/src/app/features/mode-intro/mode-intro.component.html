@@ -3,26 +3,26 @@
     <span class="intro-step">Mode {{ store.demoStepIndex() + 1 }} of {{ totalModes }}</span>
 
     <span class="intro-wp">{{ intro().wp }}</span>
-    <h2 class="intro-title">{{ intro().title }}</h2>
+    <sbb-title level="2" visual-level="3" class="intro-title">{{ intro().title }}</sbb-title>
     <p class="intro-tagline">{{ intro().tagline }}</p>
 
     <div class="intro-section">
-      <h3>What happens</h3>
+      <sbb-title level="3" visual-level="5">What happens</sbb-title>
       <p>{{ intro().whatHappens }}</p>
     </div>
 
     <div class="intro-section">
-      <h3>Where to look</h3>
+      <sbb-title level="3" visual-level="5">Where to look</sbb-title>
       <p>{{ intro().focusView }}</p>
     </div>
 
     <div class="intro-section">
-      <h3>Your role</h3>
+      <sbb-title level="3" visual-level="5">Your role</sbb-title>
       <p>{{ intro().yourRole }}</p>
     </div>
 
     <div class="intro-section">
-      <h3>What you can control</h3>
+      <sbb-title level="3" visual-level="5">What you can control</sbb-title>
       <ul>
         @for (item of intro().whatYouCanControl; track item) {
           <li>{{ item }}</li>
@@ -31,7 +31,7 @@
     </div>
 
     <div class="intro-section">
-      <h3>What to watch for</h3>
+      <sbb-title level="3" visual-level="5">What to watch for</sbb-title>
       <ul>
         @for (item of intro().watchFor; track item) {
           <li>{{ item }}</li>
@@ -40,7 +40,7 @@
     </div>
 
     <div class="intro-section intro-goal">
-      <h3>Goal</h3>
+      <sbb-title level="3" visual-level="5">Goal</sbb-title>
       <p>{{ intro().goal }}</p>
     </div>
 
