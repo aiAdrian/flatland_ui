@@ -39,6 +39,19 @@ export interface LayoutPresetColumn {
   /** Percent of the row. */
   width: number;
   role: 'sidebar' | 'main' | 'custom';
+  /**
+   * Which zone of the three-zone contract this column is
+   * (docs/plans/mode-layouts-three-zones.md §1). Declared, not guessed: `role`
+   * cannot carry it, because left and right are both `'sidebar'`, and the
+   * name-sniffing fallback in `AppComponent.toRuntimeZone()` reads a column
+   * called "Entscheidung" as `left`. Without this field a zone-derived rule —
+   * the read-only left column — is simply inert in a preset, since the panel
+   * objects a design renders carry no zone at all.
+   *
+   * Optional for backwards compatibility with designs saved before it existed;
+   * absent falls back to the sniffing path.
+   */
+  zone?: 'left' | 'center' | 'right';
   panels: LayoutPresetPanel[];
 }
 
@@ -68,6 +81,7 @@ const COLEARNING_STUDY2: LayoutPreset = {
     columns: [
       {
         id: 'preset-s2-left',
+        zone: 'left',
         rowId: 'preset-s2-row',
         name: 'Lage',
         width: 22,
@@ -101,6 +115,7 @@ const COLEARNING_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-s2-center',
+        zone: 'center',
         rowId: 'preset-s2-row',
         name: 'Netz',
         width: 50,
@@ -121,6 +136,7 @@ const COLEARNING_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-s2-right',
+        zone: 'right',
         rowId: 'preset-s2-row',
         name: 'Entscheidung',
         width: 28,
@@ -170,6 +186,7 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
     columns: [
       {
         id: 'preset-r2-left',
+        zone: 'left',
         rowId: 'preset-r2-row',
         name: 'Lage',
         width: 22,
@@ -203,6 +220,7 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-r2-center',
+        zone: 'center',
         rowId: 'preset-r2-row',
         name: 'Netz',
         width: 50,
@@ -221,6 +239,7 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-r2-right',
+        zone: 'right',
         rowId: 'preset-r2-row',
         name: 'Entscheidung',
         width: 28,
@@ -264,6 +283,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
     columns: [
       {
         id: 'preset-ca-context',
+        zone: 'left',
         rowId: 'preset-ca-row',
         name: 'Lage',
         // Left and right are deliberately equal: they carry the same weight in
@@ -292,6 +312,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
       },
       {
         id: 'preset-ca-network',
+        zone: 'center',
         rowId: 'preset-ca-row',
         name: 'Netz & ZWL',
         // The centre is the widest thing on the screen by a clear margin: the
@@ -324,6 +345,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
       },
       {
         id: 'preset-ca-actions',
+        zone: 'right',
         rowId: 'preset-ca-row',
         name: 'Kombinierte Aktionen',
         width: 24,
@@ -364,6 +386,7 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
     columns: [
       {
         id: 'preset-cap-problem',
+        zone: 'left',
         rowId: 'preset-cap-row',
         name: 'Problem',
         width: 28,
@@ -389,6 +412,7 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
       },
       {
         id: 'preset-cap-network',
+        zone: 'center',
         rowId: 'preset-cap-row',
         name: 'Netz & ZWL',
         width: 44,
@@ -406,6 +430,7 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
       },
       {
         id: 'preset-cap-action',
+        zone: 'right',
         rowId: 'preset-cap-row',
         name: 'Aktion',
         width: 28,

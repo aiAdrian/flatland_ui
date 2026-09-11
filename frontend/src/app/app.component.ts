@@ -1239,6 +1239,36 @@ export class AppComponent implements OnInit {
     } as PanelInstance;
   }
 
+  /**
+   * The panel a designed layout renders, carrying the zone of the column it
+   * sits in. A design's panel objects have no `zone` of their own, so any
+   * zone-derived rule — the read-only left column of the three-zone contract —
+   * was inert on this path (docs/plans/mode-layouts-three-zones.md §2/§3).
+   *
+   * Resolution order: the column's declared `zone`, else the legacy
+   * name-sniffing in `toRuntimeZone()` for designs saved before the field
+   * existed.
+   *
+   * Cached per column+panel so the binding keeps a stable object reference
+   * across change detection; a fresh literal each cycle would make every panel
+   * look changed on every tick.
+   */
+  private readonly _zonedPanels = new Map<string, any>();
+
+  runtimeZonedPanel(column: any, panel: any): any {
+    const key = `${column?.id ?? '?'}/${panel?.id ?? '?'}`;
+    const zone = column?.zone ?? this.toRuntimeZone(column);
+    const cached = this._zonedPanels.get(key);
+
+    if (cached && cached.__source === panel && cached.zone === zone) {
+      return cached;
+    }
+
+    const zoned = { ...panel, zone, __source: panel };
+    this._zonedPanels.set(key, zoned);
+    return zoned;
+  }
+
   private toRuntimeZone(column: any): 'left' | 'center' | 'right' {
     const role = String(column?.role || column?.name || '').toLowerCase();
 
