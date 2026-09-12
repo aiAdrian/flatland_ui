@@ -31,13 +31,23 @@ Two facts in the current implementation force the design:
    generically through `panel-shell`. Only the hardcoded `@else` (`three-col`)
    branch contains the mode-specific surfaces — reflection in the centre
    (`isCoLearning`), the goal dashboard (`aiInControl`), recommendations gating
-   (`optionPresentation`). So the moment a designer layout is active, **none of
-   the mode-specific behaviour renders**, and reflection isn't even placeable
-   (`co-learning-reflection` is missing from the designer palette /
-   `panel-plugin-host`).
+   (`optionPresentation`).
 
-**Consequence:** designer layouts and mode behaviour are mutually exclusive
-today. The strategy must reconcile them.
+   > **Re-checked 2026-09-12 — this point has aged, in our favour.** Two of its
+   > claims are no longer true. `co-learning-reflection` **is** placeable: it has
+   > a `@case` in `panel-plugin-host` and an entry in the designer palette. And
+   > "none of the mode-specific behaviour renders" overstates it: the Director
+   > bar renders in *both* branches (it is chrome, not a panel), the shift screen
+   > renders outside them on purpose, and `strategy-options`,
+   > `strategy-forecast`, `strategy-reflection`, `ai-activity` and
+   > `goal-achievement` are all panel types a design can place.
+   >
+   > What survives, and is still the reason for this plan: a design cannot
+   > express *where* those surfaces go — the A/B/C tiles wide above the map — and
+   > it cannot **vary its panels per mode**. One design serves one arrangement.
+
+**Consequence:** a designer layout cannot follow the mode today. The strategy
+must reconcile them.
 
 ---
 
@@ -80,6 +90,29 @@ resolveLayout(mode, activeSetId):
   3. the explicitly selected single design (today's behaviour)  ← manual pick
   4. hardcoded system layout (three-col, carries mode logic)    ← always safe
 ```
+
+> **Measured 2026-09-12, in the running app.** The resolver's central worry —
+> that swapping the layout mid-session is disruptive — does not hold. Switching
+> five times between the hardcoded layout and the "Guide Mode · Light" preset,
+> with a live session and eight trains:
+>
+> | | |
+> |---|---|
+> | Session id, interaction mode, agent data | survive every switch |
+> | Re-render | **15 ms** one way, **9 ms** back |
+> | Extra backend requests across 5 switches | **0** |
+> | JS errors | **0** |
+>
+> Panels read from the store's signals, so re-mounting costs no refetch. That
+> removes the main risk from P1.
+>
+> **Two things this did not measure.** The test preset carries cheap panels; a
+> Director layout carries the strategy tiles, whose plans "cost ~20 s to
+> compute" — the reason `app.component.html` *hides rather than destroys* them
+> for the shift screen. A mode switch that tears them down may pay that cost,
+> and that is the one thing to check before committing. And component-local view
+> state — map pan/zoom, the active centre tab — is not covered: the data
+> survives, the viewing position may not.
 
 - **Partial adoption works:** design only the Director layout, everything else
   falls through to the system default.
