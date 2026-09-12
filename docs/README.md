@@ -42,7 +42,7 @@ Designs and roadmaps not yet (fully) built. Each carries its own status line.
 - [flatland-43-upgrade.md](plans/flatland-43-upgrade.md) — measured 4.2.6 → 4.3.0 trial: 5 real failures, a 5-line shim, and the seed-stability blocker
 - [docs-maintenance-2026-08.md](plans/docs-maintenance-2026-08.md) — audit 2026-08-19: plan currency, doc overlaps, and where AI4REALNET stands on logging
 - [scenario-variants.md](plans/scenario-variants.md) — controlled study vs. dynamic "simulated wild"; variant axes
-- [scenario-infrastructure-gallery.md](plans/scenario-infrastructure-gallery.md) — four layers (Netz · Betriebsprogramm · Störungslage · Szenario), what each must describe, and a `/scenarios` gallery over them
+- [scenario-infrastructure-gallery.md](plans/scenario-infrastructure-gallery.md) — the entity model: Network · Traffic · Scenario · Layout · Mode · Setup · Tour · Experiment, what each must describe, a `/scenarios` gallery over them, and the start screen as its front door
 - [scripted-events-plan.md](plans/scripted-events-plan.md) — deterministic scenario events for User Study 2
 - [recommendation-reliability.md](plans/recommendation-reliability.md) — guaranteeing a decision moment (variants A–D)
 - [ecml2026-flatland-env.md](plans/ecml2026-flatland-env.md) — reuse the ECML 2026 challenge topology & scenarios (to be discussed)
