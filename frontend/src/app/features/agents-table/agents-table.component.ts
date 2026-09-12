@@ -69,6 +69,10 @@ export interface TrainRow {
 })
 export class AgentsTableComponent {
   @Input() embedded = false;
+  /** Zone rule (Guide Mode): in the left column the options are shown as
+   *  labels, keeping the AI star and the operator's own marking, but they
+   *  do not dispatch. docs/plans/mode-layouts-three-zones.md §1. */
+  @Input() viewOnly = false;
 
   @HostBinding('class.embedded')
   get embeddedClass(): boolean {

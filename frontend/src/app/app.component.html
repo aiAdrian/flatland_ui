@@ -146,7 +146,7 @@
                   @if (isToggleCompositeRuntimePanel(panel)) {
                     <app-panel-plugin-host
                       class="runtime-toggle-composite"
-                      [panel]="panel"
+                      [panel]="runtimeZonedPanel(column, panel)"
                       [attr.data-panel-type]="panel.type"
                       [attr.data-panel-zone]="runtimePanelZone(column)"
                       [attr.data-panel-row]="row.id"
@@ -154,7 +154,7 @@
                     </app-panel-plugin-host>
                   } @else {
                     <app-panel-shell
-                      [panel]="panel"
+                      [panel]="runtimeZonedPanel(column, panel)"
                       [attr.data-panel-type]="panel.type"
                       [attr.data-panel-zone]="runtimePanelZone(column)"
                       [attr.data-panel-row]="row.id"

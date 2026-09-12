@@ -39,6 +39,19 @@ export interface LayoutPresetColumn {
   /** Percent of the row. */
   width: number;
   role: 'sidebar' | 'main' | 'custom';
+  /**
+   * Which zone of the three-zone contract this column is
+   * (docs/plans/mode-layouts-three-zones.md §1). Declared, not guessed: `role`
+   * cannot carry it, because left and right are both `'sidebar'`, and the
+   * name-sniffing fallback in `AppComponent.toRuntimeZone()` reads a column
+   * called "Entscheidung" as `left`. Without this field a zone-derived rule —
+   * the read-only left column — is simply inert in a preset, since the panel
+   * objects a design renders carry no zone at all.
+   *
+   * Optional for backwards compatibility with designs saved before it existed;
+   * absent falls back to the sniffing path.
+   */
+  zone?: 'left' | 'center' | 'right';
   panels: LayoutPresetPanel[];
 }
 
@@ -68,6 +81,7 @@ const COLEARNING_STUDY2: LayoutPreset = {
     columns: [
       {
         id: 'preset-s2-left',
+        zone: 'left',
         rowId: 'preset-s2-row',
         name: 'Lage',
         width: 22,
@@ -101,6 +115,7 @@ const COLEARNING_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-s2-center',
+        zone: 'center',
         rowId: 'preset-s2-row',
         name: 'Netz',
         width: 50,
@@ -121,6 +136,7 @@ const COLEARNING_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-s2-right',
+        zone: 'right',
         rowId: 'preset-s2-row',
         name: 'Entscheidung',
         width: 28,
@@ -170,6 +186,7 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
     columns: [
       {
         id: 'preset-r2-left',
+        zone: 'left',
         rowId: 'preset-r2-row',
         name: 'Lage',
         width: 22,
@@ -203,6 +220,7 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-r2-center',
+        zone: 'center',
         rowId: 'preset-r2-row',
         name: 'Netz',
         width: 50,
@@ -221,6 +239,7 @@ const RECOMMENDATION_STUDY2: LayoutPreset = {
       },
       {
         id: 'preset-r2-right',
+        zone: 'right',
         rowId: 'preset-r2-row',
         name: 'Entscheidung',
         width: 28,
@@ -264,6 +283,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
     columns: [
       {
         id: 'preset-ca-context',
+        zone: 'left',
         rowId: 'preset-ca-row',
         name: 'Lage',
         // Left and right are deliberately equal: they carry the same weight in
@@ -292,6 +312,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
       },
       {
         id: 'preset-ca-network',
+        zone: 'center',
         rowId: 'preset-ca-row',
         name: 'Netz & ZWL',
         // The centre is the widest thing on the screen by a clear margin: the
@@ -324,6 +345,7 @@ const COMBINED_ACTIONS_DEMO: LayoutPreset = {
       },
       {
         id: 'preset-ca-actions',
+        zone: 'right',
         rowId: 'preset-ca-row',
         name: 'Kombinierte Aktionen',
         width: 24,
@@ -364,6 +386,7 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
     columns: [
       {
         id: 'preset-cap-problem',
+        zone: 'left',
         rowId: 'preset-cap-row',
         name: 'Problem',
         width: 28,
@@ -389,6 +412,7 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
       },
       {
         id: 'preset-cap-network',
+        zone: 'center',
         rowId: 'preset-cap-row',
         name: 'Netz & ZWL',
         width: 44,
@@ -406,6 +430,7 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
       },
       {
         id: 'preset-cap-action',
+        zone: 'right',
         rowId: 'preset-cap-row',
         name: 'Aktion',
         width: 28,
@@ -425,7 +450,149 @@ const COMBINED_ACTIONS_PACKAGE: LayoutPreset = {
   },
 };
 
+/**
+ * Guide Mode — the layout line, as a collection you can switch between.
+ *
+ * The three-zone contract (docs/plans/mode-layouts-three-zones.md) arrives in
+ * generations, and comparing them is the point: a study or a demo should be able
+ * to put the original next to what we changed, not just assert an improvement.
+ *
+ * - **V1 — the original** is *not* in this list, deliberately. It is the
+ *   hardcoded `three-col` default ("Default Layout ✓ hardcoded" in the session
+ *   dialog), and only it carries the per-mode right column, the reflection slot
+ *   and the Director surfaces, because those live in `AppComponent`'s template
+ *   rather than in any design. Re-creating it here would look identical and
+ *   quietly lose the mode behaviour — the bypass this file's header warns about.
+ * - **V2 — Guide Mode · Light** is below: the contract as far as it goes without
+ *   any new widget. Left is status and events and, since P0, is read-only by
+ *   zone; the centre is the three situation views as tabs; the right is one
+ *   decision column.
+ * - **V3 — the target** needs widgets that do not exist yet (`decision-tabs`,
+ *   the "Was ändert sich" companion, the Fahrplan Δ column) and the mode-scoped
+ *   resolver, so that a per-mode right column stops being a naming convention.
+ *   It goes here when those land; until then this comment is the placeholder,
+ *   not a broken preset.
+ *
+ * **Why this one is mode-neutral.** Every panel it names is available in all
+ * three modes. That is a constraint, not a preference: the saved-layout path
+ * does not consult `panel-mode-availability`, so a preset naming
+ * `recommendations` would surface it in Co-Learning and Director too. The
+ * mode-specific right column is exactly what V3 needs the resolver for.
+ */
+const GUIDE_MODE_LIGHT: LayoutPreset = {
+  id: 'preset-guide-mode-light',
+  name: 'Guide Mode · Light',
+  purpose: 'Drei Zonen: links Status ohne Aktionen, Mitte Streckenplan/ZWL/Fahrplan, rechts die Entscheidungsspalte.',
+  layout: {
+    columns: [
+      {
+        id: 'preset-gml-left',
+        zone: 'left',
+        rowId: 'preset-gml-row',
+        name: 'Lage',
+        width: 22,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-gml-situation',
+            type: 'situation-summary',
+            title: 'Situation',
+            expanded: true,
+            collapsible: true,
+            minHeight: 120,
+          },
+          {
+            id: 'preset-gml-notifications',
+            type: 'notifications',
+            title: 'Ereignisse',
+            expanded: true,
+            collapsible: true,
+            minHeight: 160,
+          },
+          {
+            // Renders read-only here: the zone rule strips the dispatch buttons
+            // and points at the Agent Inspector on the right. Selecting a train
+            // still works — view yes, act no.
+            id: 'preset-gml-trains',
+            type: 'agents',
+            title: 'Züge',
+            expanded: true,
+            collapsible: true,
+            minHeight: 200,
+          },
+        ],
+      },
+      {
+        id: 'preset-gml-center',
+        zone: 'center',
+        rowId: 'preset-gml-row',
+        name: 'Netz',
+        width: 52,
+        role: 'main',
+        panels: [
+          {
+            // The three situation views as one tabbed surface: where the trains
+            // are, how the plan runs over time, and what the plan says.
+            id: 'preset-gml-views',
+            type: 'view-tabs',
+            title: 'Streckenplan · ZWL · Fahrplan',
+            expanded: true,
+            collapsible: false,
+            minHeight: 520,
+            settings: { tabs: ['flatland-map', 'marey', 'timetable'] },
+          },
+        ],
+      },
+      {
+        id: 'preset-gml-right',
+        zone: 'right',
+        rowId: 'preset-gml-row',
+        name: 'Entscheidung',
+        width: 26,
+        role: 'sidebar',
+        panels: [
+          {
+            id: 'preset-gml-impact',
+            type: 'impact',
+            title: 'Folgen',
+            expanded: true,
+            collapsible: true,
+            minHeight: 180,
+          },
+          {
+            id: 'preset-gml-whatif',
+            type: 'whatif-compare',
+            title: 'What-if Compare',
+            expanded: true,
+            collapsible: true,
+            minHeight: 240,
+          },
+          {
+            // The action the left column gave up. Without it the zone rule would
+            // take a capability away instead of moving it.
+            id: 'preset-gml-inspector',
+            type: 'agent-inspector',
+            title: 'Zug-Detail',
+            expanded: true,
+            collapsible: true,
+            minHeight: 200,
+          },
+          {
+            id: 'preset-gml-log',
+            type: 'decision-log',
+            title: 'Entscheidungsprotokoll',
+            expanded: false,
+            collapsible: true,
+            minHeight: 160,
+          },
+        ],
+      },
+    ],
+  },
+};
+
 export const LAYOUT_PRESETS: readonly LayoutPreset[] = [
+  GUIDE_MODE_LIGHT,
   COLEARNING_STUDY2,
   RECOMMENDATION_STUDY2,
   COMBINED_ACTIONS_DEMO,
