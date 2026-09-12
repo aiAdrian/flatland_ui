@@ -30,11 +30,30 @@ vocabulary, and it is a prerequisite, not a nicety:
 | Term (UI, German) | Code | Means |
 |---|---|---|
 | **Netz** | `network` | Topology only: grid, cells, switches, stations |
-| **Betriebsprogramm** | `traffic` | Which trains run where, when, with which calls |
-| **Störungslage** | `disruption` | What interferes: scripted, sampled, or random |
-| **Szenario** | `setup` | The composition — the thing you actually launch |
+| **Programm** | `traffic` | Betriebsprogramm — which trains run where, when, with which calls |
+| **Szenario** | `disruption` | What interferes: scripted, sampled, or random |
+| **Layout** | `layout` | Which panels the operator sees, in which zone |
+| **Modus** | `mode` | Recommendation / Co-Learning / Director |
+| **Aufbau** | `setup` | The composition — the thing you actually launch |
+| **Tour** | `tour` | A guided sequence of modes over one Aufbau |
 | Strategien | *(keep `scenario` panel type)* | The policy-compare surface, **retitled** |
 | Betriebsszenario (D4.1) | `operational_scenario` | The consortium's UC1.R-* catalogue |
+
+> **Corrected 2026-09-12 (danib).** An earlier draft of this table reserved
+> **Szenario** for the composition and called the disruption layer
+> *Störungslage*. Reversed, for two reasons. *Störungsszenario* is what the
+> domain already calls a set of things going wrong, and it is the word danib
+> reached for unprompted when listing the layers — a vocabulary nobody has to be
+> taught beats one that is merely consistent. And a composition is better named
+> for what it is: an **Aufbau**, the thing you set up before a run. The cost is
+> that `scenario_preset_id` in the API now names an *Aufbau*, not a Szenario;
+> that rename is P2 work, not a reason to keep the worse word.
+>
+> **The code key stays `disruption`,** not `scenario`, even though the UI word is
+> Szenario — otherwise `scenario` would be a panel type *and* an entity key at
+> once, which is the collision this whole section exists to remove. German label
+> ≠ code key is already the pattern here: the policy panel keeps `type:
+> 'scenario'` while its label becomes "Strategien".
 
 **Do not rename the `scenario` panel type.** It is wired through
 `panel-plugin-host`, the availability map, the widget catalog and saved layouts;
@@ -43,7 +62,7 @@ changes ("Strategien"), plus a comment saying why the key differs from the label
 
 ---
 
-## 2. Four layers, not two
+## 2. Seven entities in four levels, not two
 
 The separation already exists in the backend — half-built and undocumented.
 `disturbances.py` states it outright in its module docstring: a disturbance file
@@ -51,18 +70,32 @@ is *"the third layer of a premade setup, on top of the scene (what the network
 and the missions are) and the plan (what every train is supposed to do)"*. And
 `_PRESETS` entries already carry `path` + `plan` + `disturbances` + `session`.
 
-| Layer | Fixes | Today |
-|-------|-------|-------|
-| **Netz** | topology, stations, capacity | ✓ scene JSON · pickled env · generated (seed + params) |
-| **Betriebsprogramm** | trains, relations, departures, calls | ⚠️ **lives inside the Netz** (`scene.agents`) or in the `plan` file |
-| **Störungslage** | what goes wrong, when, to whom | ✓ `fixtures/*/disturbances/` + `malfunction_rate` (+ the event budget, planned) |
-| **Szenario (Setup)** | the composition + algorithm + pacing + layout + modes | ✗ exists only as prose in `_PRESETS` comments |
+But three layers were never the whole model. What the operator sees (Layout),
+how they work (Modus) and how a first-time visitor is walked through it (Tour)
+are entities too — each is data somewhere in the repo already, each is currently
+hardcoded or half-expressed, and each is something a person picks on the start
+screen. Written out, the model has four levels:
+
+| Level | Entity | Fixes | Today |
+|---|---|---|---|
+| **Welt** | **Netz** | topology, stations, capacity | ✓ scene JSON · pickled env · generated |
+| | **Programm** | trains, relations, departures, calls | ⚠️ **lives inside the Netz** (`scene.agents`) or in the `plan` |
+| | **Szenario** | what goes wrong, when, to whom | ✓ `fixtures/*/disturbances/` + `malfunction_rate` (+ the event budget, planned) |
+| **Lauf** | **Aufbau** | the world composition + algorithm + pacing + seeds + baseline | ✗ exists only as prose in `_PRESETS` comments |
+| **Sitzung** | **Layout** | which panels, in which zone | ◐ `layout-presets.ts` — real data, but not in this catalog |
+| | **Modus** | who decides: Rec / Co-L / Director | ✓ `InteractionMode`, chosen *after* the start |
+| **Führung** | **Tour** | a sequence of modes over one Aufbau, with intros and surveys | ✗ hardcoded in three places |
+
+Each level consumes the one above it: an Aufbau names a Netz, a Programm and a
+Szenario; a Tour names an Aufbau plus a Layout and a sequence of Modi. That is
+also the order in which a person decides — and the reason the start screen
+currently confuses (§11).
 
 What the frontend shows of this: **one dropdown**, labelled Infrastructure,
 mixing generated env, saved scenes and presets, with disturbance checkboxes
 appearing underneath when the chosen entry happens to ship them
 ([app.component.html:401-460](../../frontend/src/app/app.component.html)). The
-four layers are invisible, so "same infrastructure, different result" is not a
+layers are invisible, so "same infrastructure, different result" is not a
 statement anyone can make precisely.
 
 ---
@@ -128,7 +161,7 @@ available at all**, so the only realistic action is hold
 without an alternative route reduces Recommendation mode to a yes/no question —
 that belongs on the card in large type, not in a footnote in another document.
 
-### 4.2 Betriebsprogramm
+### 4.2 Programm (Betriebsprogramm)
 
 | Field | Why |
 |---|---|
@@ -146,7 +179,7 @@ that belongs on the card in large type, not in a footnote in another document.
 pairs meeting at a station, `planned_connections` finds nothing, and every
 connection-based measure is flat — half of E1's trade-off axes have no data.
 
-### 4.3 Störungslage
+### 4.3 Szenario (was dazwischenkommt)
 
 | Field | Why |
 |---|---|
@@ -160,7 +193,7 @@ connection-based measure is flat — half of E1's trade-off axes have no data.
 The control condition exists today only as "tick nothing", which makes it
 invisible and unnameable in an analysis. It gets a card.
 
-### 4.4 Szenario (Setup)
+### 4.4 Aufbau (die Komposition)
 
 | Field | Why |
 |---|---|
@@ -186,6 +219,56 @@ The last two are what make the gallery worth opening.
   states a situation. See §6.
 
 ---
+
+### 4.5 Layout
+
+Already real data — `core/layout/layout-presets.ts`, four presets plus
+"Guide Mode · Light", each with a one-sentence `purpose` and, since 2026-09-11,
+a declared `zone` per column. It belongs in this catalog because a person picks
+it on the start screen next to the world layers, and because the same
+fixture-vs-localStorage split applies (§7).
+
+| Field | Why |
+|---|---|
+| `id`, `name`, `purpose` | identity + the sentence that says what it is for — **already written, today only visible as a hover tooltip** |
+| `columns[].zone` | left / center / right — the three-zone contract |
+| `panels[].type` | which widgets, in which order |
+| `modes` | which Modi it suits — see the caveat below |
+| `origin` | `fixture` (in the repo) · `local` (this browser only) |
+| `preview` | a thumbnail; a layout is chosen by how it looks |
+
+**The caveat that shapes everything else.** The saved-layout path does not
+consult `panel-mode-availability`, so a preset naming `recommendations` surfaces
+it in Co-Learning and Director too. Until the mode-scoped resolver exists
+([mode-layouts-three-zones.md](mode-layouts-three-zones.md) P1), `modes` is a
+label, not a gate — which is why "Guide Mode · Light" is deliberately
+mode-neutral.
+
+### 4.6 Tour
+
+The guided walk. Today it is hardcoded in three unconnected places:
+`SessionStore.demoSequence` (the three modes), `MODE_INTROS`
+([core/demo/mode-intro-configs.ts](../../frontend/src/app/core/demo/mode-intro-configs.ts),
+already data-driven and calling itself "the seam a future Experiment Designer
+would write to"), and `guidedDemoEnvOpts()` (seed 42). The "▶ Director Demo"
+button is a fourth: a degenerate tour with one mode and no survey, added as a
+stopgap.
+
+| Field | Why |
+|---|---|
+| `id`, `name`, `description` | identity; the description is what the start screen shows |
+| `modes` | the sequence — `['recommendation','co-learning','director']` today, `['director']` for the Director demo |
+| `setupId` | which Aufbau it runs on |
+| `layoutId` | which Layout it runs in — this is what makes "the same tour in the old and the new layout" a choice rather than a code change |
+| `intros` | per-mode intro copy (today `MODE_INTROS`) |
+| `surveyAfterEachMode` | the study instrument, on or off |
+| `eventSeedPerMode` | **whether the Szenario is re-drawn per mode.** Decided 2026-09-02: yes, same budget, different seed, order counterbalanced — otherwise a participant meets the same incident three times and mode 3 measures recall ([mode-layouts-three-zones.md](mode-layouts-three-zones.md) §7). The Tour is where that policy belongs, because it is the only entity that knows there *is* a sequence |
+| `expectedMinutes` | what a facilitator has to budget |
+
+Making this an entity is what turns the start screen's first card into a real
+choice: **Original** (today's tour in the hardcoded layout), **Guide Mode Light**
+(the same tour in the new zone layout), later the target version — and the
+Director demo stops needing a button of its own.
 
 ## 5. Composition is constrained, not free
 
@@ -308,3 +391,62 @@ wait until a second traffic variation is actually needed.
 4. **How much of the D4.1 catalogue do we instantiate?** Seven operational
    scenarios exist; we have material for perhaps two. Naming the gap in the
    gallery is more useful than quietly covering one.
+
+---
+
+## 11. The start screen is this model's front door
+
+Where a person first meets the model — and today it shows the model upside down.
+Four dials (Layout, Infrastructure, disturbances, grid) come first, three start
+buttons come last, and six lines of prose explain how the buttons differ. The
+intent is the *first* question, not the last. Three further problems, all
+symptoms of the same thing:
+
+- **Settings that do nothing stay visible.** Pick a preset and the backend
+  ignores width, height and train count entirely ("when set, the env is loaded
+  from file and all generation params above are ignored", `models/session.py`) —
+  the fields remain, and remain editable.
+- **"Infrastructure" is one word for four entities** (§2). The start screen is
+  where that conflation first hits a person.
+- **The Modus does not appear at all.** The central axis of the playground is
+  chosen *after* starting, from the header.
+
+### The three doors, and the entity each one picks
+
+The cards are the model's four levels, entered at three depths:
+
+| Card | Picks | Level | For whom |
+|---|---|---|---|
+| **Einführung** | a **Tour** | Führung | first contact, the December webinar |
+| **Eigener Aufbau** | Netz · Programm · Szenario · Layout (· Modus) | Welt + Sitzung | us, Adrian, colleagues |
+| **Experimente** | a saved, named **Aufbau** | Lauf | study facilitation |
+
+**On the middle card's name** (open in the conversation of 2026-09-12):
+`Eigener Aufbau` is the recommendation, because it names the entity the person
+produces — and it makes the relationship to the third card legible: the middle
+door *composes* an Aufbau, the right-hand door *consumes* one that was saved and
+named. That also gives the middle card its missing action: **"als Aufbau
+speichern"**, which is the same promote-to-fixture move as §7 and the bridge
+from ad-hoc to citable.
+
+`Standard` would be actively misleading — this is the path with the *most*
+decisions, not the default one. `Konfiguration` is accurate and cold, and says
+what the software does rather than what the person does.
+
+### Two rules that follow from the model
+
+1. **Show only the entities the chosen door needs.** The grid fields belong to
+   exactly one case — "Eigener Aufbau" with a generated Netz — and nowhere else.
+2. **End with one sentence, not a start button alone.** *"Du startest: Olten,
+   52 Züge, Szenario 'Südeinfahrt', Layout Guide Mode Light, Modus
+   Recommendation."* Naming the resolved composition before the run is the most
+   direct answer to "how does a person know what they can choose": they see the
+   result of choosing, before committing to it.
+
+A small thing with leverage: every Layout preset already carries a `purpose`
+sentence, and every Szenario a `description`. Both are rendered today only as a
+hover tooltip. The descriptions exist — they are simply invisible.
+
+**Open:** which door matters for the December webinar? If it is *Einführung*,
+the Tour entity (§4.6) is the first thing to build and the other two cards can
+stay as they are for now.
