@@ -60,13 +60,21 @@ export const TOURS: Tour[] = [
     description:
       'Recommendation and Co-Learning in the three-zone layout: left reports, centre shows the network, right decides. Same environment as the original tour, so the layout is the only difference.',
     modes: ['recommendation', 'co-learning'],
-    // Deliberately without Director. A preset layout renders through the generic
-    // panel grid, and the Director surfaces — the directive bar, the A/B/C tiles
-    // above the map, the forecast's four columns, the shift-review takeover —
-    // live only in the hardcoded layout (docs/plans/layout-grid-model-plan.md
-    // §2b). A third leg here would show a degraded Director and teach the wrong
-    // thing about the mode. It returns once the mode-scoped resolver lands
-    // (docs/plans/mode-layouts-three-zones.md P1).
+    // Deliberately without Director — but not because a design *cannot* show
+    // Director. Checked 2026-09-12: the strategy tiles, forecast, reflection,
+    // AI-activity feed and goal-achievement are all panel types in
+    // panel-plugin-host, the directive bar renders in both layout branches, and
+    // the shift screen sits outside them. (An older claim in
+    // layout-grid-model-plan.md §2b said otherwise; the code moved past it.)
+    //
+    // The reason is *this* layout: "Guide Mode · Light" is mode-neutral by
+    // construction — it names only panels offered in all three modes — so a
+    // Director leg would run in the Recommendation/Co-Learning decision column
+    // and show none of Director's own surfaces. One design cannot swap its right
+    // column per mode until the mode-scoped resolver lands
+    // (docs/plans/mode-layouts-three-zones.md P1). Until then a Director tour
+    // either uses the hardcoded layout, as the other two do, or waits for a
+    // Director-shaped preset of its own.
     layout: 'preset-guide-mode-light',
     infrastructureId: 'guided-demo',
     surveyAfterEachMode: true,
