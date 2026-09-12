@@ -108,7 +108,7 @@
 
   
     @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending()) && !demoComplete()) {
-  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()"></app-toolbar>
+  <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" [demoSurvey]="store.demoSurveyEnabled()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()"></app-toolbar>
 }
 
   @if (store.session()) {
@@ -476,22 +476,37 @@
             <sbb-button size="l" (click)="onWelcomeNewSession()">
               + New Session
             </sbb-button>
-            <sbb-secondary-button size="l" (click)="startDemoSession()">
-              ▶ Guided Demo
-            </sbb-secondary-button>
-            <sbb-secondary-button size="l" (click)="startDirectorSession()"
-                                   title="Jumps straight into Director — strategy tiles, forecast, AI-activity feed — skipping the Recommendation/Co-Learning walk.">
-              ▶ Director Demo
-            </sbb-secondary-button>
           </div>
-          <p class="welcome-demo-hint">
-            Guided Demo: solve one conflict in all three modes (Recommendation →
-            Co-Learning → Director) with a short survey after each. The environment
-            follows the <strong>Layout</strong> + <strong>Infrastructure</strong>
-            above — “Guided Demo Environment” is the tuned, reproducible seed-42 env.
-            <strong>Director Demo</strong> starts the same environment straight in
-            Director mode — no walk, no survey — for showing that screen on its own.
-          </p>
+
+          <!-- Guided tour: the one entry point that needs no other choice.
+               A tour pins its modes, its layout, its environment and whether the
+               survey runs, so the settings above do not apply to it — which is
+               why it sits in a block of its own rather than next to them.
+               docs/plans/scenario-infrastructure-gallery.md §4.6/§11. -->
+          <section class="welcome-tour">
+            <h3 class="welcome-tour-title">Guided tour</h3>
+            <label class="welcome-layout-choice">
+              <span>Tour</span>
+              <select
+                [value]="selectedTourId()"
+                (change)="setSelectedTour($any($event.target).value)">
+                @for (tour of tours; track tour.id) {
+                  <option [value]="tour.id">{{ tour.name }}</option>
+                }
+              </select>
+            </label>
+            <p class="welcome-tour-desc">{{ selectedTour().description }}</p>
+            <p class="welcome-tour-meta">
+              {{ selectedTour().modes.length }}
+              {{ selectedTour().modes.length === 1 ? 'mode' : 'modes' }}
+              · ~{{ selectedTour().expectedMinutes }} min
+              · {{ selectedTour().surveyAfterEachMode ? 'with survey' : 'no survey' }}
+              — the tour sets its own layout and environment.
+            </p>
+            <sbb-button size="l" (click)="startTour()">
+              ▶ Start tour
+            </sbb-button>
+          </section>
 
           <div class="welcome-inputs">
             <span class="welcome-grid-label">Grid:</span>
@@ -853,7 +868,7 @@
       @if (store.session()) {
         @if (store.demoActive()) {
           <span class="footer-demo-progress" title="Guided demo progress">
-            Guided demo · mode {{ store.demoStepIndex() + 1 }}/3 · <strong>{{ currentModeLabel() }}</strong>
+            {{ activeTourName() }} · mode {{ store.demoStepIndex() + 1 }}/{{ store.demoSequence().length }} · <strong>{{ currentModeLabel() }}</strong>
           </span>
         }
         <span>Step: <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>

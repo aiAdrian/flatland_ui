@@ -1716,3 +1716,36 @@
   opacity: 0.8;
   cursor: default;
 }
+
+/* Guided tour block on the welcome screen. Set apart from the settings above
+   because a tour pins everything it needs — the Layout and Infrastructure
+   pickers do not apply to it (plan §11: show only what the chosen door needs). */
+.welcome-tour {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--sbb-color-cloud);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.welcome-tour-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.welcome-tour-desc {
+  margin: 0;
+  max-width: 34rem;
+  text-align: center;
+}
+
+.welcome-tour-meta {
+  margin: 0 0 0.5rem;
+  max-width: 34rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--sbb-color-granite);
+}

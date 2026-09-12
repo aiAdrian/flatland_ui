@@ -848,24 +848,35 @@ export class SessionStore {
    */
   // ── Guided demo flow (sequential modes on the SAME environment) ──────
   readonly demoActive = signal(false);
-  readonly demoSequence: InteractionMode[] = ['recommendation', 'co-learning', 'director'];
+  /** The running tour's mode sequence. A signal, not a constant: which modes a
+   *  guided run walks through is a property of the chosen Tour
+   *  (core/demo/tours.ts), not of the store. Defaults to the original
+   *  three-mode walk so anything starting a demo without naming a tour behaves
+   *  as before. */
+  readonly demoSequence = signal<InteractionMode[]>(['recommendation', 'co-learning', 'director']);
+  /** Whether each leg of the running tour ends with the survey. */
+  readonly demoSurveyEnabled = signal(true);
   readonly demoStepIndex = signal(0);
   /** Current demo phase (mode) or null when no demo is running. */
   readonly demoPhase = computed<InteractionMode | null>(() =>
-    this.demoActive() ? this.demoSequence[this.demoStepIndex()] : null,
+    this.demoActive() ? this.demoSequence()[this.demoStepIndex()] : null,
   );
-  readonly demoIsLast = computed(() => this.demoStepIndex() >= this.demoSequence.length - 1);
+  readonly demoIsLast = computed(() => this.demoStepIndex() >= this.demoSequence().length - 1);
 
   /** True while the intro/explainer screen for the current demo mode is showing,
    *  before the human has chosen to start that mode's scenario. */
   readonly demoIntroPending = signal(false);
 
-  /** Begin the guided demo at the first mode (caller creates the session). */
-  startDemo(): void {
+  /** Begin a guided tour at its first mode (caller creates the session).
+   *  Pass the tour's sequence and survey setting; omitting them keeps the
+   *  original three-mode walk. */
+  startDemo(modes?: InteractionMode[], surveyAfterEachMode = true): void {
+    if (modes?.length) this.demoSequence.set([...modes]);
+    this.demoSurveyEnabled.set(surveyAfterEachMode);
     this.demoStepIndex.set(0);
     this.demoActive.set(true);
     this.demoIntroPending.set(true);
-    this.setInteractionMode(this.demoSequence[0]);
+    this.setInteractionMode(this.demoSequence()[0]);
   }
 
   /** Advance to the next demo mode; returns false when the demo is finished. */
@@ -876,7 +887,7 @@ export class SessionStore {
     }
     this.demoStepIndex.update((i) => i + 1);
     this.demoIntroPending.set(true);
-    this.setInteractionMode(this.demoSequence[this.demoStepIndex()]);
+    this.setInteractionMode(this.demoSequence()[this.demoStepIndex()]);
     return true;
   }
 
