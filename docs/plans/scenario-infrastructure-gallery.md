@@ -27,20 +27,26 @@ The word is already load-bearing in three unrelated places:
 A gallery called "Scenarios" that does not settle this is unusable. Proposed
 vocabulary, and it is a prerequisite, not a nicety:
 
-| Term (UI, German) | Code | Means |
-|---|---|---|
-| **Netz** | `network` | Topology only: grid, cells, switches, stations |
-| **Programm** | `traffic` | Betriebsprogramm — which trains run where, when, with which calls |
-| **Szenario** | `disruption` | What interferes: scripted, sampled, or random |
-| **Layout** | `layout` | Which panels the operator sees, in which zone |
-| **Modus** | `mode` | Recommendation / Co-Learning / Director |
-| **Aufbau** | `setup` | The composition — the thing you actually launch |
-| **Tour** | `tour` | A guided sequence of modes over one Aufbau |
-| Strategien | *(keep `scenario` panel type)* | The policy-compare surface, **retitled** |
-| Betriebsszenario (D4.1) | `operational_scenario` | The consortium's UC1.R-* catalogue |
+| Term (UI) | Code | German | Means |
+|---|---|---|---|
+| **Network** | `network` | Netz | Topology only: grid, cells, switches, stations |
+| **Traffic** | `traffic` | Betriebsprogramm | Which trains run where, when, with which calls |
+| **Scenario** | `disruption` | Störungsszenario | What interferes: scripted, sampled, or random |
+| **Layout** | `layout` | Layout | Which panels the operator sees, in which zone |
+| **Mode** | `mode` | Modus | Recommendation / Co-Learning / Director |
+| **Setup** | `setup` | Aufbau | The composition — the thing you actually launch |
+| **Tour** | `tour` | Tour | A guided sequence of modes over one Setup, to *teach* |
+| **Experiment** | `experiment` | Experiment | The same shape, to *measure* — §4.7 |
+| Strategies | *(keep `scenario` panel type)* | Strategien | The policy-compare surface, **retitled** |
+| Operational scenario (D4.1) | `operational_scenario` | — | The consortium's UC1.R-* catalogue |
+
+**English is the source language**, per
+[i18n-strategy.md](i18n-strategy.md): "keys and base copy are authored in
+English […] German is added as a translation". The German column is the
+translation, not a second vocabulary.
 
 > **Corrected 2026-09-12 (danib).** An earlier draft of this table reserved
-> **Szenario** for the composition and called the disruption layer
+> **Scenario** for the composition and called the disruption layer
 > *Störungslage*. Reversed, for two reasons. *Störungsszenario* is what the
 > domain already calls a set of things going wrong, and it is the word danib
 > reached for unprompted when listing the layers — a vocabulary nobody has to be
@@ -62,7 +68,7 @@ changes ("Strategien"), plus a comment saying why the key differs from the label
 
 ---
 
-## 2. Seven entities in four levels, not two
+## 2. Eight entities in four levels, not two
 
 The separation already exists in the backend — half-built and undocumented.
 `disturbances.py` states it outright in its module docstring: a disturbance file
@@ -71,23 +77,23 @@ and the missions are) and the plan (what every train is supposed to do)"*. And
 `_PRESETS` entries already carry `path` + `plan` + `disturbances` + `session`.
 
 But three layers were never the whole model. What the operator sees (Layout),
-how they work (Modus) and how a first-time visitor is walked through it (Tour)
-are entities too — each is data somewhere in the repo already, each is currently
+how they work (Mode) and how a person is walked through it (Tour, or an
+Experiment — §4.7) are entities too — each is data somewhere in the repo already, each is currently
 hardcoded or half-expressed, and each is something a person picks on the start
 screen. Written out, the model has four levels:
 
 | Level | Entity | Fixes | Today |
 |---|---|---|---|
-| **Welt** | **Netz** | topology, stations, capacity | ✓ scene JSON · pickled env · generated |
-| | **Programm** | trains, relations, departures, calls | ⚠️ **lives inside the Netz** (`scene.agents`) or in the `plan` |
-| | **Szenario** | what goes wrong, when, to whom | ✓ `fixtures/*/disturbances/` + `malfunction_rate` (+ the event budget, planned) |
-| **Lauf** | **Aufbau** | the world composition + algorithm + pacing + seeds + baseline | ✗ exists only as prose in `_PRESETS` comments |
-| **Sitzung** | **Layout** | which panels, in which zone | ◐ `layout-presets.ts` — real data, but not in this catalog |
-| | **Modus** | who decides: Rec / Co-L / Director | ✓ `InteractionMode`, chosen *after* the start |
-| **Führung** | **Tour** | a sequence of modes over one Aufbau, with intros and surveys | ✗ hardcoded in three places |
+| **World** | **Network** | topology, stations, capacity | ✓ scene JSON · pickled env · generated |
+| | **Traffic** | trains, relations, departures, calls | ⚠️ **lives inside the Network** (`scene.agents`) or in the `plan` |
+| | **Scenario** | what goes wrong, when, to whom | ✓ `fixtures/*/disturbances/` + `malfunction_rate` (+ the event budget, planned) |
+| **Run** | **Setup** | the world composition + algorithm + pacing + seeds + baseline | ✗ exists only as prose in `_PRESETS` comments |
+| **Session** | **Layout** | which panels, in which zone | ◐ `layout-presets.ts` — real data, but not in this catalog |
+| | **Mode** | who decides: Rec / Co-L / Director | ✓ `InteractionMode`, chosen *after* the start |
+| **Guidance** | **Tour** / **Experiment** | a sequence of modes over one Setup — to teach, or to measure (§4.7) | ✗ Tour hardcoded in three places; Experiment does not exist |
 
-Each level consumes the one above it: an Aufbau names a Netz, a Programm and a
-Szenario; a Tour names an Aufbau plus a Layout and a sequence of Modi. That is
+Each level consumes the one above it: a Setup names a Network, a Traffic and a
+Scenario; a Tour names a Setup plus a Layout and a sequence of Modes. That is
 also the order in which a person decides — and the reason the start screen
 currently confuses (§11).
 
@@ -100,7 +106,7 @@ statement anyone can make precisely.
 
 ---
 
-## 3. The real work: splitting Netz from Betriebsprogramm
+## 3. The real work: splitting Network from Traffic
 
 `InfrastructureScene` carries `agents` with start and target
 ([scene.model.ts:14-28](../../frontend/src/app/features/infrastructure-builder/models/scene.model.ts)),
@@ -123,13 +129,13 @@ interface InfrastructureScene {
 }
 ```
 
-- A Netz with no `trafficId` behaves exactly as today — its `agents` *are* its
+- A Network with no `trafficId` behaves exactly as today — its `agents` *are* its
   Betriebsprogramm, and the catalog shows it as "traffic: eigenes (n Züge)".
-- A Netz with `trafficId` resolves the traffic from the traffic library, and the
+- A Network with `trafficId` resolves the traffic from the traffic library, and the
   session builder uses that instead. One resolution point
   (`count_routable_agents` / the scene→env adapter), not a scattered change.
-- Extracting the two PF–CH corridor variants into one Netz + two
-  Betriebsprogramme is then a fixture change, and it is the acceptance test for
+- Extracting the two PF–CH corridor variants into one Network + two
+  Traffic entries is then a fixture change, and it is the acceptance test for
   the split.
 
 ---
@@ -140,7 +146,7 @@ Modelled on `WidgetMeta`: a machine-readable registry, a narrative doc, and an
 in-app gallery rendering the registry. That pattern works; do not invent a second
 one.
 
-### 4.1 Netz
+### 4.1 Network
 
 | Field | Why it is on the card |
 |---|---|
@@ -161,11 +167,11 @@ available at all**, so the only realistic action is hold
 without an alternative route reduces Recommendation mode to a yes/no question —
 that belongs on the card in large type, not in a footnote in another document.
 
-### 4.2 Programm (Betriebsprogramm)
+### 4.2 Traffic (Betriebsprogramm)
 
 | Field | Why |
 |---|---|
-| `id`, `name`, `networkIds` | identity + which Netze it fits |
+| `id`, `name`, `networkIds` | identity + which Networks it fits |
 | `trains` | count, categories/roles (cargo · regional · IR) |
 | `relations` | origin → destination per train |
 | `departureSpread` | `latest_departure_max`; 0 means "all on the map from step 1" |
@@ -179,7 +185,7 @@ that belongs on the card in large type, not in a footnote in another document.
 pairs meeting at a station, `planned_connections` finds nothing, and every
 connection-based measure is flat — half of E1's trade-off axes have no data.
 
-### 4.3 Szenario (was dazwischenkommt)
+### 4.3 Scenario (what interferes)
 
 | Field | Why |
 |---|---|
@@ -193,7 +199,7 @@ connection-based measure is flat — half of E1's trade-off axes have no data.
 The control condition exists today only as "tick nothing", which makes it
 invisible and unnameable in an analysis. It gets a card.
 
-### 4.4 Aufbau (die Komposition)
+### 4.4 Setup (the composition)
 
 | Field | Why |
 |---|---|
@@ -258,7 +264,7 @@ stopgap.
 |---|---|
 | `id`, `name`, `description` | identity; the description is what the start screen shows |
 | `modes` | the sequence — `['recommendation','co-learning','director']` today, `['director']` for the Director demo |
-| `setupId` | which Aufbau it runs on |
+| `setupId` | which Setup it runs on |
 | `layoutId` | which Layout it runs in — this is what makes "the same tour in the old and the new layout" a choice rather than a code change |
 | `intros` | per-mode intro copy (today `MODE_INTROS`) |
 | `surveyAfterEachMode` | the study instrument, on or off |
@@ -269,6 +275,52 @@ Making this an entity is what turns the start screen's first card into a real
 choice: **Original** (today's tour in the hardcoded layout), **Guide Mode Light**
 (the same tour in the new zone layout), later the target version — and the
 Director demo stops needing a button of its own.
+
+### 4.7 Experiment — and why it is not a bigger Tour
+
+A Tour and an Experiment have the same *shape*: a sequence of Modes over one
+Setup. They are still two entities, because what they optimise for pulls in
+opposite directions.
+
+| | **Tour** | **Experiment** |
+|---|---|---|
+| Optimises for | **understanding** | **measurement** |
+| Audience | first-time visitor, webinar, a colleague | a participant, facilitated |
+| Order of modes | fixed, for narrative — contrast is the point | **assigned** per participant (Latin square) |
+| Explanation | as much as helps; intro screens may differ per mode | uniform for everyone, or it becomes a variable |
+| Repeating it | fine, encouraged | **contamination** — the second run measures recall |
+| Data captured | incidental | **the entire point**: decisions, timings, survey, seeds |
+| Who chooses | the person at the screen | the facilitator; the participant is handed a session |
+| Succeeds when | the person can say how the modes differ | the data is analysable and citable |
+
+**Why not one entity with a `study: true` flag.** The fields that differ are
+exactly the ones that must not be optional-and-forgotten. With a flag, someone
+runs a study with an un-counterbalanced order, no participant id and unpinned
+seeds, and nothing objects. Model it as a discriminated union instead — one
+shared shell, two variants — so the compiler asks for what a study needs:
+
+```ts
+type GuidedRun =
+  | { kind: 'tour';       id; name; description; setupId; layoutId;
+      modes; intros; expectedMinutes }
+  | { kind: 'experiment'; id; name; setupId; layoutId;
+      modeAssignment;      // per participant, not a fixed list
+      participantId;
+      capture;             // decision log, survey, timings — declared, not implied
+      seeds;               // pinned; eventSeedPerMode from §7 of the layout plan
+      conditionOf }        // which study, which arm
+```
+
+**The consequence for the start screen** (§11): these are not two doors of equal
+weight. A Tour is pressed by the person in front of the screen. An Experiment is
+*prepared* by a facilitator and *handed* to a participant, who should not be
+choosing anything — which is why the third card is the facilitator's door, not
+the participant's.
+
+**Where the Tour ends and the Experiment begins is also where the survey
+changes meaning.** `features/survey/` exists and adapts to the mode already; in
+a Tour it is a demo prop, in an Experiment it is an instrument, and the same
+component serving both is fine only as long as the *entity* says which it is.
 
 ## 5. Composition is constrained, not free
 
@@ -348,8 +400,8 @@ silently is a Setup nobody can cite in a paper.
   This alone answers "which variable did I change?".
 - **P2 — Setups as first-class entries.** The composition layer over the existing
   presets, `operationalScenario` mapping, welcome dialog reads the catalog.
-- **P3 — the Netz/Traffic split** (§3), with the two PF–CH corridor variants
-  collapsing into one Netz + two Betriebsprogramme as the acceptance test.
+- **P3 — the Network/Traffic split** (§3), with the two PF–CH corridor variants
+  collapsing into one Network + two Traffic entries as the acceptance test.
 - **P4 — baselines** (§6) + the generating script.
 - **P5 — promote-to-fixture** for locally built scenes.
 
@@ -382,9 +434,9 @@ wait until a second traffic variation is actually needed.
    derived (from the topology: does an alternative route exist between any
    conflict pair?) is harder but cannot go stale. Draft: declare now, derive
    later and diff the two.
-2. **Where does the generated random environment fit?** It is a Netz with no
+2. **Where does the generated random environment fit?** It is a Network with no
    file — a *recipe* (seed + params) rather than an artefact. Either a
-   `kind: 'generated'` Netz whose "file" is its parameter set, or a fourth origin.
+   `kind: 'generated'` Network whose "file" is its parameter set, or a fourth origin.
 3. **Does a Setup pin the interaction mode, or list compatible modes?** Pinning
    makes a study condition one selectable entry; listing keeps the mode
    comparison inside one Setup — which the mode-layouts plan assumes.
@@ -417,26 +469,26 @@ The cards are the model's four levels, entered at three depths:
 
 | Card | Picks | Level | For whom |
 |---|---|---|---|
-| **Einführung** | a **Tour** | Führung | first contact, the December webinar |
-| **Eigener Aufbau** | Netz · Programm · Szenario · Layout (· Modus) | Welt + Sitzung | us, Adrian, colleagues |
-| **Experimente** | a saved, named **Aufbau** | Lauf | study facilitation |
+| **Introduction** | a **Tour** | Guidance | first contact, the December webinar |
+| **Build your own** | Network · Traffic · Scenario · Layout (· Mode) | World + Session | us, Adrian, colleagues |
+| **Experiments** | a prepared **Experiment** over a saved Setup | Run | study facilitation |
 
-**On the middle card's name** (open in the conversation of 2026-09-12):
-`Eigener Aufbau` is the recommendation, because it names the entity the person
-produces — and it makes the relationship to the third card legible: the middle
-door *composes* an Aufbau, the right-hand door *consumes* one that was saved and
-named. That also gives the middle card its missing action: **"als Aufbau
-speichern"**, which is the same promote-to-fixture move as §7 and the bridge
-from ad-hoc to citable.
+**On the middle card's name** (danib, 2026-09-12: "Standard? Konfiguration?").
+Recommendation: **Build your own** — it names what the person does, and it makes
+the relation to the third card legible: the middle door *composes* a Setup, the
+right-hand door *runs* one that was saved and named. That also supplies the
+middle card's missing action: **"Save as setup"**, the same promote-to-fixture
+move as §7 and the bridge from ad-hoc to citable. `Custom setup` is the
+acceptable alternative.
 
 `Standard` would be actively misleading — this is the path with the *most*
-decisions, not the default one. `Konfiguration` is accurate and cold, and says
+decisions, not the default one. `Configuration` is accurate and cold, and says
 what the software does rather than what the person does.
 
 ### Two rules that follow from the model
 
 1. **Show only the entities the chosen door needs.** The grid fields belong to
-   exactly one case — "Eigener Aufbau" with a generated Netz — and nowhere else.
+   exactly one case — "Build your own" with a generated Network — and nowhere else.
 2. **End with one sentence, not a start button alone.** *"Du startest: Olten,
    52 Züge, Szenario 'Südeinfahrt', Layout Guide Mode Light, Modus
    Recommendation."* Naming the resolved composition before the run is the most
