@@ -43,6 +43,7 @@ import { InfrastructureSceneStorageService } from './features/infrastructure-bui
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
 import { ContributeComponent } from './features/contribute/contribute.component';
+import { TOURS, Tour, tourById } from './core/demo/tours';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 import { LAYOUT_PRESETS } from './core/layout/layout-presets';
@@ -496,6 +497,47 @@ export class AppComponent implements OnInit {
     this.store.startDemo();
   }
 
+  // ── Tours (core/demo/tours.ts) ───────────────────────────────────────────
+  readonly tours = TOURS;
+  readonly selectedTourId = signal<string>(TOURS[0].id);
+  readonly selectedTour = computed<Tour>(() => tourById(this.selectedTourId()) ?? TOURS[0]);
+
+  /** The running tour's name for the footer; falls back to the generic label
+   *  when a demo was started without naming a tour. */
+  readonly activeTourName = computed(() => this.selectedTour()?.name ?? 'Guided demo');
+
+  setSelectedTour(id: string): void {
+    this.selectedTourId.set(id);
+  }
+
+  /**
+   * Start the selected tour. A tour pins everything — modes, layout,
+   * environment, survey — so this is the one entry point on the start screen
+   * that needs no other choice from the person (plan §4.6/§11).
+   *
+   * Order matters: the layout and the mode are set *before* the session is
+   * created, because `newSession` reads the mode to pick the goal_directed
+   * policy from step one, and because a Director leg has to be in the hardcoded
+   * layout to show its own surfaces at all.
+   */
+  startTour(): void {
+    const tour = this.selectedTour();
+
+    this.setRuntimeLayout(
+      tour.layout === 'system' ? this.systemRuntimeLayoutId : tour.layout,
+    );
+    this.setSelectedRuntimeInfrastructure(tour.infrastructureId);
+
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+
+    this.store.stopDemo();
+    this.demoComplete.set(false);
+    this.store.setInteractionMode(tour.modes[0]);
+    this.createSession(opts);
+    this.store.startDemo(tour.modes, tour.surveyAfterEachMode);
+  }
+
   /** Direct entry into the Director screen — Roman's & Gereon's design
    *  (strategy tiles, forecast, AI-activity feed, reflection, shift review),
    *  the one that's been live since `director-strategies-shift-review` /
@@ -519,9 +561,17 @@ export class AppComponent implements OnInit {
     this.createSession(opts);
   }
 
-  /** Finish the current demo mode → open its survey (advance happens on close). */
+  /** Finish the current tour leg. With the survey on, opening it advances on
+   *  close; a tour that runs without one (the Director-only tour) has to
+   *  advance here instead, or "Finish mode" would do nothing. */
   finishDemoMode() {
-    this.openSurvey();
+    if (this.store.demoSurveyEnabled()) {
+      this.openSurvey();
+      return;
+    }
+    if (!this.store.advanceDemo()) {
+      this.demoComplete.set(true);
+    }
   }
 
   exitDemo() {

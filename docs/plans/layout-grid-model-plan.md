@@ -78,11 +78,24 @@ let the layout state it directly."
 
 `@if (useSavedRuntimeLayout())` in `app.component.html` does render designer
 layouts, rows and all. But it is an either/or with the hardcoded `@else`
-(`.three-col`) branch, and every mode-specific surface — the Director bar, the
-strategy tiles, the forecast, the shift screen — lives only in the `@else`.
-Activating a saved design therefore loses all Director behaviour. This is the
-same finding as `mode-scoped-layouts-plan.md` §1.2; recorded here because it
-sets the sequencing in §5.
+(`.three-col`) branch, and the *arrangement* of every mode-specific surface
+lives only in the `@else`.
+
+> **Corrected 2026-09-12.** This paragraph used to end "activating a saved
+> design therefore loses all Director behaviour". That is no longer true, and
+> repeating it led to a wrong justification elsewhere. Re-checked against the
+> code: `strategy-options`, `strategy-forecast`, `strategy-reflection`,
+> `ai-activity`, `goal-achievement` and `shift-review` are all `@case` entries in
+> `panel-plugin-host`, so a design can place them; the **Director bar renders in
+> both branches** (it is chrome, not a panel — see the comment at its call site);
+> and the **shift screen renders outside the layout branch** on purpose, "so a
+> designed layout can reach it as well".
+>
+> What a design still cannot do is the thing this plan is actually about:
+> express *where* those surfaces go — the A/B/C tiles wide above the map, the
+> forecast beneath it — and **vary them per mode**, which needs the resolver in
+> `mode-scoped-layouts-plan.md` P1. So the sequencing in §5 stands; the reason
+> is placement and mode-scoping, not availability.
 
 ---
 
