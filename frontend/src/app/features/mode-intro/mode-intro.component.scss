@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   background: var(--sbb-color-milk, #f6f6f6);
-  padding: 32px;
+  padding: 24px;
   overflow-y: auto;
 }
 
@@ -18,13 +18,33 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 40px 48px;
+  padding: 20px 36px 24px;
   background: var(--sbb-color-white, #fff);
   border: 1px solid var(--sbb-color-cloud, #d2d2d2);
   border-radius: 4px;
-  max-width: 560px;
+  max-width: 1040px;
+  width: 100%;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
+
+/* Two columns where the window allows it, one where it does not. The card used
+   to be a single 560px column whose six sections made it 1285px tall — taller
+   than the viewport, so the intro screen scrolled while most of the width sat
+   unused. */
+.intro-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  column-gap: 32px;
+  row-gap: 2px;
+  align-items: start;
+  margin-top: 4px;
+}
+
+/* The goal flows into the grid like the others rather than spanning the row.
+   Spanning read better, but it cost a row of its own while the last cell sat
+   empty, and the card then ran past the viewport — which is the thing this
+   change exists to fix. It is still last, and still the only one with a filled
+   background, so it keeps its weight without its own row. */
 
 .intro-step {
   align-self: flex-start;
@@ -98,5 +118,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 12px;
+  /* 12px here put the longest of the three intros (Co-Learning) a few pixels
+     past the viewport, which brings back the scrollbar this change removed. */
+  margin-top: 4px;
 }

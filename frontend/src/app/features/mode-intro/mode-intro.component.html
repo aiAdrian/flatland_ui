@@ -6,6 +6,12 @@
     <sbb-title level="2" visual-level="3" class="intro-title">{{ intro().title }}</sbb-title>
     <p class="intro-tagline">{{ intro().tagline }}</p>
 
+    <!-- The six blocks read as a grid, not a column. Stacked at 560px the card
+         was 1285px tall and the screen scrolled, so the operator met the mode
+         through a scrollbar — on a 1440px window that was two thirds of the
+         width left empty. Two columns where there is room; one where there is
+         not (auto-fit). -->
+    <div class="intro-body">
     <div class="intro-section">
       <sbb-title level="3" visual-level="5">What happens</sbb-title>
       <p>{{ intro().whatHappens }}</p>
@@ -42,6 +48,7 @@
     <div class="intro-section intro-goal">
       <sbb-title level="3" visual-level="5">Goal</sbb-title>
       <p>{{ intro().goal }}</p>
+    </div>
     </div>
 
     <div class="intro-actions">

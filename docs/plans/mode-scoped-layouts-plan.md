@@ -217,6 +217,32 @@ screens (mode-intro, demo-complete) simply cheaper than building content-widgets
 + a session-less host for a two-screen use case? Revisit once P1–P3 above are
 built and the designer's widget vocabulary has grown for other reasons anyway.
 
+> **Updated 2026-09-13 — the arithmetic behind that question has moved.** It was
+> posed as "a two-screen use case", and that was fair while there was exactly one
+> guided walk. Tours now exist as data (`core/demo/tours.ts`), and three ship
+> already. The screens are no longer two; they are **one intro per tour × mode**,
+> plus a completion screen per tour. Three tours with two or three modes each is
+> six intros today, and every new tour adds more.
+>
+> Two further pressures showed up in the same week, both pointing the same way:
+>
+> - **The copy has to track the layouts.** `MODE_INTROS` tells the operator where
+>   to look; when a layout moves a panel, the sentence is wrong, and nothing
+>   catches it. This is already live — the Director intro still names "the Goal
+>   Achievement dashboard", which moved (see
+>   [mode-layouts-three-zones.md](mode-layouts-three-zones.md) §5.4).
+> - **The screen needed hand-tuning to fit.** The intro card was a 560px column
+>   on a 1440px window and scrolled; fixing it meant editing component SCSS
+>   (`fix/mode-intro-width`, 2026-09-13). A facilitator composing a tour cannot
+>   do that, and should not have to.
+>
+> That does not settle it — a session-less host and content widgets are still the
+> two new primitives they always were. But the "only two screens" argument for
+> leaving it hand-authored no longer holds, and the honest middle step is
+> probably narrower than the full designer: make the *intro* a composable
+> content surface first, and leave `demo-complete` hand-authored until a second
+> reason appears.
+
 ---
 
 ## 10. Open questions (for feedback)
