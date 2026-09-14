@@ -1717,35 +1717,52 @@
   cursor: default;
 }
 
-/* Guided tour block on the welcome screen. Set apart from the settings above
-   because a tour pins everything it needs — the Layout and Infrastructure
-   pickers do not apply to it (plan §11: show only what the chosen door needs). */
-.welcome-tour {
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--sbb-color-cloud);
+/* Start screen: three doors in one Lyne Radio-Button-Group, each a
+   Selection-Expansion-Panel whose options open only when chosen, then a single
+   primary Start (Lyne: avoid several primary buttons per page). The card stays
+   centred; the doors read left-aligned, like a form. */
+.welcome-doors {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  gap: var(--sbb-spacing-fixed-3x);
+  width: min(100%, 620px);
+  text-align: left;
 }
 
-.welcome-tour-title {
+.welcome-door-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sbb-spacing-fixed-3x);
+}
+
+.welcome-door-content .welcome-layout-choice {
+  width: 100%;
+}
+
+.welcome-door-note {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  color: var(--sbb-color-granite);
+}
+
+.welcome-summary {
+  margin: 0;
+  max-width: 620px;
+  font-size: 0.875rem;
+  color: var(--sbb-color-iron);
+  text-align: center;
+}
+
+.welcome-start {
+  width: min(100%, 320px);
 }
 
 .welcome-tour-desc {
   margin: 0;
-  max-width: 34rem;
-  text-align: center;
 }
 
 .welcome-tour-meta {
-  margin: 0 0 0.5rem;
-  max-width: 34rem;
-  text-align: center;
+  margin: 0;
   font-size: 0.8125rem;
   color: var(--sbb-color-granite);
 }

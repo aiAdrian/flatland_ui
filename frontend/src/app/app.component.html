@@ -405,43 +405,182 @@
             and agentic AI can co-operate<br>
             on the Flatland railway simulation.
           </p>
-          <div class="welcome-actions">
-            <label class="welcome-layout-choice">
-              <span>Layout</span>
-              <select
-                [value]="selectedRuntimeLayoutId()"
-                (focus)="refreshRuntimeLayouts()"
-                (change)="setRuntimeLayout($any($event.target).value)">
-                @for (layout of runtimeLayoutOptions(); track layout.id) {
-                  <option [value]="layout.id" [attr.title]="layout.purpose || null">
-                    {{ layout.name }}{{ layoutKindSuffix(layout.kind) }}
-                  </option>
-                }
-              </select>
-            </label>
+          <!-- Three doors, one Start. SBB Lyne: "avoid several primary buttons on one
+               page" — the choice of *what* to start is a selection, not a second
+               button. Selection-Expansion-Panel is the documented pattern for a
+               radio panel whose sub-options appear only when it is chosen, and it
+               may only live inside a Radio-Button-Group.
+               docs/plans/scenario-infrastructure-gallery.md §11. -->
+          <sbb-radio-button-group
+            class="welcome-doors"
+            aria-label="How do you want to start?"
+            [value]="welcomeDoor()"
+            (change)="setWelcomeDoor($any($event.target).value)">
 
-            <label class="welcome-layout-choice">
-              <span>Infrastructure</span>
-              <select
-                [value]="selectedRuntimeInfrastructureId()"
-                (focus)="refreshRuntimeInfrastructures()"
-                (pointerdown)="refreshRuntimeInfrastructures()"
-                (change)="setSelectedRuntimeInfrastructure($any($event.target).value)">
-                <option value="guided-demo">Guided Demo Environment · fixed seed 42</option>
-                <option value="random">Random · default</option>
-                @for (preset of scenarioPresets(); track preset.id) {
-                  <option [value]="preset.id">
-                    {{ preset.name }} · {{ preset.width }} × {{ preset.height }} · {{ preset.agents }} trains
-                  </option>
-                }
-                @for (scene of runtimeInfrastructureScenes(); track scene.id) {
-                  <option [value]="scene.id">
-                    {{ scene.name }} · {{ scene.gridWidth }} × {{ scene.gridHeight }} · {{ scene.agentCount }} trains
-                  </option>
-                }
-              </select>
-            </label>
+            <sbb-selection-expansion-panel>
+              <sbb-radio-button-panel value="introduction">
+                Introduction
+                <span slot="subtext">A guided tour. Modes, layout and environment are set for you.</span>
+              </sbb-radio-button-panel>
+              <div slot="content" class="welcome-door-content">
+                <label class="welcome-layout-choice">
+                  <span>Tour</span>
+                  <select
+                    [value]="selectedTourId()"
+                    (change)="setSelectedTour($any($event.target).value)">
+                    @for (tour of tours; track tour.id) {
+                      <option [value]="tour.id">{{ tour.name }}</option>
+                    }
+                  </select>
+                </label>
+                <p class="welcome-tour-desc">{{ selectedTour().description }}</p>
+                <p class="welcome-tour-meta">
+                  {{ selectedTour().modes.length }}
+                  {{ selectedTour().modes.length === 1 ? 'mode' : 'modes' }}
+                  · ~{{ selectedTour().expectedMinutes }} min
+                  · {{ selectedTour().surveyAfterEachMode ? 'with survey' : 'no survey' }}
+                </p>
+              </div>
+            </sbb-selection-expansion-panel>
 
+            <sbb-selection-expansion-panel>
+              <sbb-radio-button-panel value="build">
+                Build your own
+                <span slot="subtext">Choose the network, scenario and layout yourself.</span>
+              </sbb-radio-button-panel>
+              <div slot="content" class="welcome-door-content">
+                <label class="welcome-layout-choice">
+                  <span>Layout</span>
+                  <select
+                    [value]="selectedRuntimeLayoutId()"
+                    (focus)="refreshRuntimeLayouts()"
+                    (change)="setRuntimeLayout($any($event.target).value)">
+                    @for (layout of runtimeLayoutOptions(); track layout.id) {
+                      <option [value]="layout.id" [attr.title]="layout.purpose || null">
+                        {{ layout.name }}{{ layoutKindSuffix(layout.kind) }}
+                      </option>
+                    }
+                  </select>
+                </label>
+
+                <label class="welcome-layout-choice">
+                  <span>Network</span>
+                  <select
+                    [value]="selectedRuntimeInfrastructureId()"
+                    (focus)="refreshRuntimeInfrastructures()"
+                    (pointerdown)="refreshRuntimeInfrastructures()"
+                    (change)="setSelectedRuntimeInfrastructure($any($event.target).value)">
+                    <option value="guided-demo">Guided Demo Environment · fixed seed 42</option>
+                    <option value="random">Random · default</option>
+                    @for (preset of scenarioPresets(); track preset.id) {
+                      <option [value]="preset.id">
+                        {{ preset.name }} · {{ preset.width }} × {{ preset.height }} · {{ preset.agents }} trains
+                      </option>
+                    }
+                    @for (scene of runtimeInfrastructureScenes(); track scene.id) {
+                      <option [value]="scene.id">
+                        {{ scene.name }} · {{ scene.gridWidth }} × {{ scene.gridHeight }} · {{ scene.agentCount }} trains
+                      </option>
+                    }
+                  </select>
+                </label>
+
+                <ng-container [ngTemplateOutlet]="welcomeScenario"></ng-container>
+
+                <!-- Grid size only means something for a generated network: every
+                     preset and saved scene brings its own and the backend ignores
+                     these fields for them (models/session.py). Shown in exactly
+                     that one case — plan §11, rule 1. -->
+                @if (selectedRuntimeInfrastructureId() === 'random') {
+                  <div class="welcome-inputs">
+                    <span class="welcome-grid-label">Grid:</span>
+                    <label class="welcome-input"
+                           title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 200.">
+                      <span>Width</span>
+                      <input type="number" min="25" max="100"
+                             [value]="newWidth()"
+                             (input)="setNewWidth(+$any($event.target).value)">
+                    </label>
+                    <label class="welcome-input"
+                           title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 150.">
+                      <span>Height</span>
+                      <input type="number" min="20" max="60"
+                             [value]="newHeight()"
+                             (input)="setNewHeight(+$any($event.target).value)">
+                    </label>
+                    <label class="welcome-input"
+                           title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 50.">
+                      <span># Agents</span>
+                      <input type="number" min="1" max="20"
+                             [value]="newAgents()"
+                             (input)="setNewAgents(+$any($event.target).value)">
+                    </label>
+                    <label class="welcome-input"
+                           title="Max simulation length. Higher = more thorough what-if forecasts but slower.">
+                      <span>Max Steps</span>
+                      <input type="number" min="100" max="3000" step="100"
+                             [value]="newMaxSteps()"
+                             (input)="newMaxSteps.set(+$any($event.target).value)">
+                    </label>
+                  </div>
+                  <p class="welcome-grid-hint">
+                    Capped for a smooth run on the hosted demo's free hardware — for a
+                    bigger grid or more trains, open <strong>Session Properties</strong>
+                    after starting a session (gear icon, <em>Basic</em> tab).
+                  </p>
+                }
+              </div>
+            </sbb-selection-expansion-panel>
+
+            <sbb-selection-expansion-panel>
+              <sbb-radio-button-panel value="experiments">
+                Experiments
+                <span slot="subtext">A prepared, reproducible condition: premade plan, chosen disturbances, study layout.</span>
+              </sbb-radio-button-panel>
+              <div slot="content" class="welcome-door-content">
+                <label class="welcome-layout-choice">
+                  <span>Condition</span>
+                  <select
+                    [value]="selectedStudyCondition().layoutId"
+                    (change)="setStudyCondition($any($event.target).value)">
+                    @for (condition of studyConditions; track condition.layoutId) {
+                      <option [value]="condition.layoutId">{{ condition.label }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="welcome-layout-choice">
+                  <span>Scenario</span>
+                  <select
+                    [value]="selectedExperimentScenarioId()"
+                    (change)="setExperimentScenario($any($event.target).value)">
+                    @for (preset of planScenarioPresets(); track preset.id) {
+                      <option [value]="preset.id">{{ preset.name }}</option>
+                    }
+                  </select>
+                </label>
+
+                <ng-container [ngTemplateOutlet]="welcomeScenario"></ng-container>
+
+                <p class="welcome-door-note">
+                  First cut. Only scenarios that ship a premade plan are offered, so
+                  a run is reproducible. Participant ids and counterbalanced mode
+                  order are not built yet — that is the Experiment entity in the plan.
+                </p>
+              </div>
+            </sbb-selection-expansion-panel>
+          </sbb-radio-button-group>
+
+          <p class="welcome-summary">{{ welcomeSummary() }}</p>
+
+          <sbb-button size="l" class="welcome-start" (click)="startFromWelcome()">
+            {{ welcomeStartLabel() }}
+          </sbb-button>
+
+          <!-- Plan note and disturbances belong to whichever scenario is chosen,
+               in either the Build or the Experiments door — one template, so the
+               two doors cannot drift apart. -->
+          <ng-template #welcomeScenario>
             @if (selectedScenarioPreset(); as preset) {
               @if (preset.has_plan) {
                 <p class="welcome-plan-note">
@@ -472,78 +611,7 @@
                 </fieldset>
               }
             }
-
-            <sbb-button size="l" (click)="onWelcomeNewSession()">
-              + New Session
-            </sbb-button>
-          </div>
-
-          <!-- Guided tour: the one entry point that needs no other choice.
-               A tour pins its modes, its layout, its environment and whether the
-               survey runs, so the settings above do not apply to it — which is
-               why it sits in a block of its own rather than next to them.
-               docs/plans/scenario-infrastructure-gallery.md §4.6/§11. -->
-          <section class="welcome-tour">
-            <h3 class="welcome-tour-title">Guided tour</h3>
-            <label class="welcome-layout-choice">
-              <span>Tour</span>
-              <select
-                [value]="selectedTourId()"
-                (change)="setSelectedTour($any($event.target).value)">
-                @for (tour of tours; track tour.id) {
-                  <option [value]="tour.id">{{ tour.name }}</option>
-                }
-              </select>
-            </label>
-            <p class="welcome-tour-desc">{{ selectedTour().description }}</p>
-            <p class="welcome-tour-meta">
-              {{ selectedTour().modes.length }}
-              {{ selectedTour().modes.length === 1 ? 'mode' : 'modes' }}
-              · ~{{ selectedTour().expectedMinutes }} min
-              · {{ selectedTour().surveyAfterEachMode ? 'with survey' : 'no survey' }}
-              — the tour sets its own layout and environment.
-            </p>
-            <sbb-button size="l" (click)="startTour()">
-              ▶ Start tour
-            </sbb-button>
-          </section>
-
-          <div class="welcome-inputs">
-            <span class="welcome-grid-label">Grid:</span>
-            <label class="welcome-input"
-                   title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 200.">
-              <span>Width</span>
-              <input type="number" min="25" max="100"
-                     [value]="newWidth()"
-                     (input)="setNewWidth(+$any($event.target).value)">
-            </label>
-            <label class="welcome-input"
-                   title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 150.">
-              <span>Height</span>
-              <input type="number" min="20" max="60"
-                     [value]="newHeight()"
-                     (input)="setNewHeight(+$any($event.target).value)">
-            </label>
-            <label class="welcome-input"
-                   title="Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to 50.">
-              <span># Agents</span>
-              <input type="number" min="1" max="20"
-                     [value]="newAgents()"
-                     (input)="setNewAgents(+$any($event.target).value)">
-            </label>
-            <label class="welcome-input"
-                   title="Max simulation length. Higher = more thorough what-if forecasts but slower.">
-              <span>Max Steps</span>
-              <input type="number" min="100" max="3000" step="100"
-                     [value]="newMaxSteps()"
-                     (input)="newMaxSteps.set(+$any($event.target).value)">
-            </label>
-          </div>
-          <p class="welcome-grid-hint">
-            Capped for a smooth run on the hosted demo's free hardware — for a
-            bigger grid or more trains, open <strong>Session Properties</strong>
-            after starting a session (gear icon, <em>Basic</em> tab).
-          </p>
+          </ng-template>
 
         </div>
     </main>
