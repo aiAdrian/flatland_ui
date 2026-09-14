@@ -561,6 +561,147 @@ export class AppComponent implements OnInit {
     this.createSession(opts);
   }
 
+  // ── Welcome: three doors, one Start (plan §11) ───────────────────────────
+  /**
+   * Which door is open on the start screen. SBB Lyne forbids several primary
+   * buttons on one page, so the three entry points are a selection and there is
+   * exactly one Start — whose meaning follows the selection.
+   */
+  readonly welcomeDoor = signal<'introduction' | 'build' | 'experiments'>('introduction');
+
+  private static readonly MODE_LABEL: Record<InteractionMode, string> = {
+    recommendation: 'Recommendation',
+    'co-learning': 'Co-Learning',
+    director: 'Director',
+  };
+
+  /**
+   * Experiment conditions available today: the two User Study 2 layouts, each
+   * bound to the mode it was designed for. A first cut of the Experiment entity
+   * (plan §4.7) — no participant id, no counterbalanced order yet.
+   */
+  readonly studyConditions: ReadonlyArray<{ layoutId: string; mode: InteractionMode; label: string }> = [
+    { layoutId: 'preset-recommendation-study2', mode: 'recommendation', label: 'Recommendation · User Study 2' },
+    { layoutId: 'preset-colearning-study2', mode: 'co-learning', label: 'Co-Learning · User Study 2' },
+  ];
+  private readonly _studyLayoutId = signal<string>('preset-recommendation-study2');
+  readonly selectedStudyCondition = computed(
+    () => this.studyConditions.find((c) => c.layoutId === this._studyLayoutId()) ?? this.studyConditions[0],
+  );
+
+  /** Only scenarios that ship a premade plan: that is what makes a run reproducible. */
+  readonly planScenarioPresets = computed(() =>
+    (this.scenarioPresets() as any[]).filter((preset) => preset?.has_plan),
+  );
+  private readonly _experimentScenarioId = signal<string>('');
+  readonly selectedExperimentScenarioId = computed(() => {
+    const plans = this.planScenarioPresets();
+    const chosen = this._experimentScenarioId();
+    return plans.some((preset) => preset.id === chosen) ? chosen : (plans[0]?.id ?? '');
+  });
+
+  setWelcomeDoor(door: string): void {
+    if (door !== 'introduction' && door !== 'build' && door !== 'experiments') return;
+    this.welcomeDoor.set(door);
+    // The disturbance checkboxes follow the selected scenario, and both the
+    // Build and the Experiments door read it — point it at the experiment's
+    // scenario when that door opens.
+    if (door === 'experiments') {
+      const id = this.selectedExperimentScenarioId();
+      if (id && this.selectedRuntimeInfrastructureId() !== id) {
+        this.setSelectedRuntimeInfrastructure(id);
+      }
+    }
+  }
+
+  setStudyCondition(layoutId: string): void {
+    this._studyLayoutId.set(layoutId);
+  }
+
+  setExperimentScenario(id: string): void {
+    this._experimentScenarioId.set(id);
+    this.setSelectedRuntimeInfrastructure(id);
+  }
+
+  /** The label of the one Start button, naming what it will start. */
+  readonly welcomeStartLabel = computed(() => {
+    switch (this.welcomeDoor()) {
+      case 'introduction': return 'Start tour';
+      case 'experiments': return 'Start experiment';
+      default: return 'Start session';
+    }
+  });
+
+  /**
+   * One sentence naming the resolved run before it starts (plan §11, rule 2):
+   * the person sees the result of their choices before committing to them.
+   */
+  readonly welcomeSummary = computed(() => {
+    const label = AppComponent.MODE_LABEL;
+    switch (this.welcomeDoor()) {
+      case 'introduction': {
+        const tour = this.selectedTour();
+        return `You start the tour “${tour.name}”: ${tour.modes.map((m) => label[m]).join(' → ')}, about ${tour.expectedMinutes} min.`;
+      }
+      case 'experiments': {
+        const condition = this.selectedStudyCondition();
+        const count = this.selectedDisturbanceIds().size;
+        const disturbances = count ? `${count} disturbance${count === 1 ? '' : 's'}` : 'no disturbances (reference run)';
+        return `You start ${condition.label} on ${this.welcomeNetworkLabel(this.selectedExperimentScenarioId())}, ${disturbances}.`;
+      }
+      default:
+        return `You start ${this.welcomeNetworkLabel(this.selectedRuntimeInfrastructureId())} in ${this.welcomeLayoutLabel(this.selectedRuntimeLayoutId())}, mode ${label[this.store.interactionMode()]}.`;
+    }
+  });
+
+  private welcomeNetworkLabel(id: string): string {
+    if (id === AppComponent.GUIDED_DEMO_INFRA_ID) return 'the Guided Demo Environment';
+    if (id === 'random') return `a random network (${this.newWidth()} × ${this.newHeight()}, ${this.newAgents()} trains)`;
+    const preset = (this.scenarioPresets() as any[]).find((p) => p?.id === id);
+    if (preset) return preset.name;
+    return this.runtimeInfrastructureScenes().find((scene) => scene.id === id)?.name ?? id;
+  }
+
+  private welcomeLayoutLabel(id: string): string {
+    if (!id || id === this.systemRuntimeLayoutId) return 'the default layout';
+    const name = this.runtimeLayoutOptions().find((layout) => layout.id === id)?.name;
+    return name ? `“${name}”` : 'the default layout';
+  }
+
+  /** The one Start: dispatches on the selected door. */
+  startFromWelcome(): void {
+    switch (this.welcomeDoor()) {
+      case 'introduction': this.startTour(); return;
+      case 'experiments': this.startExperiment(); return;
+      default: this.onWelcomeNewSession();
+    }
+  }
+
+  /**
+   * Start a prepared condition. Layout and mode are set before the session is
+   * created, for the same reason as a tour: `newSession` reads the mode.
+   */
+  startExperiment(): void {
+    const condition = this.selectedStudyCondition();
+    const scenarioId = this.selectedExperimentScenarioId();
+    if (!scenarioId) {
+      this.store.error.set('No scenario with a premade plan is available for an experiment.');
+      return;
+    }
+    this.setRuntimeLayout(condition.layoutId);
+    // Only switch when needed: switching clears the disturbance ticks, which
+    // are part of the condition the person just set up.
+    if (this.selectedRuntimeInfrastructureId() !== scenarioId) {
+      this.setSelectedRuntimeInfrastructure(scenarioId);
+    }
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+    this.store.stopDemo();
+    this.demoComplete.set(false);
+    this.store.setInteractionMode(condition.mode);
+    this.createSession(opts);
+  }
+
   /** Finish the current tour leg. With the survey on, opening it advances on
    *  close; a tour that runs without one (the Director-only tour) has to
    *  advance here instead, or "Finish mode" would do nothing. */

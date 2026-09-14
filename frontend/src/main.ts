@@ -20,6 +20,10 @@ import '@sbb-esta/lyne-elements/checkbox.js';
 import '@sbb-esta/lyne-elements/checkbox/checkbox-group.js';
 import '@sbb-esta/lyne-elements/radio-button.js';
 import '@sbb-esta/lyne-elements/radio-button/radio-button-group.js';
+// Start screen doors: a radio panel whose sub-options open when chosen
+// (Lyne Selection-Expansion-Panel, only valid inside a Radio-Button-Group).
+import '@sbb-esta/lyne-elements/radio-button/radio-button-panel.js';
+import '@sbb-esta/lyne-elements/selection-expansion-panel.js';
 
 import '@sbb-esta/lyne-elements/form-field.js';
 import '@sbb-esta/lyne-elements/expansion-panel.js';
