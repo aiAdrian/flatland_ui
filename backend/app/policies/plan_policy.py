@@ -269,4 +269,33 @@ def trainruns_from_env(env: RailEnv) -> Optional[TrainrunDict]:
     return getattr(env, "_trainrun_plan", None)
 
 
-__all__ = ["PlanPolicy", "trainruns_from_env"]
+def plan_branch_factory(env: RailEnv):
+    """Zero-arg policy factory (the `TrajectoryBranchRunner` contract) that
+    follows `env`'s plan on forked envs; None when `env` ships no plan.
+
+    Branch envs are persister clones and do not carry the stashed plan, so the
+    trainruns are read from the live env here and handed to every policy. Without
+    this a plan-driven session was forecast with deadlock avoidance, which routes
+    trains differently from the plan the session actually runs.
+    """
+    trainruns = trainruns_from_env(env)
+    if not trainruns:
+        return None
+
+    def factory() -> PlanPolicy:
+        return PlanPolicy(None, trainruns)
+
+    return factory
+
+
+def planned_arrival_steps(env: RailEnv) -> Dict[int, int]:
+    """Step at which each planned train is DONE when it runs to plan.
+
+    A trainrun's last waypoint is the target cell, entered at `scheduled_at`;
+    Flatland marks the train DONE one step later.
+    """
+    trainruns = trainruns_from_env(env) or {}
+    return {int(handle): int(run[-1].scheduled_at) + 1 for handle, run in trainruns.items() if run}
+
+
+__all__ = ["PlanPolicy", "plan_branch_factory", "planned_arrival_steps", "trainruns_from_env"]

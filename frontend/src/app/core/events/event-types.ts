@@ -146,6 +146,12 @@ export interface WhatIfTrainSide {
   arrived: boolean;
   delay: number;
   deadlocked: boolean;
+  /** Step the train arrives within the branch; null if it does not. */
+  arrival_step?: number | null;
+  /** Arrival step the scenario plan gives the train; null without a plan. */
+  planned_arrival?: number | null;
+  /** `arrival_step - planned_arrival`; null when either is missing. */
+  delay_vs_plan?: number | null;
 }
 export interface WhatIfTrainOutcome {
   handle: number;
@@ -176,6 +182,9 @@ export interface WhatIfResult {
   branch_trajectories?: WhatIfTrajById;
   /** Handles the override applies to (the affected trains to draw). */
   handles?: number[];
+  /** What the baseline follows: the scenario plan, a committed Director plan,
+   *  or a dispatching policy. */
+  baseline_source?: 'plan' | 'director' | 'policy';
 }
 
 /** One affected train from the Phase-1 impact analysis (malfunction fallout). */

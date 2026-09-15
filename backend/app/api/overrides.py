@@ -8,7 +8,8 @@ from app.core.session_manager import session_manager
 from app.core.scenario_cache import scenario_cache
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
-from app.policies.registry import scenario_policy_factories
+from app.policies.plan_policy import plan_branch_factory, planned_arrival_steps
+from app.policies.registry import PLAN_POLICY_ID, scenario_policy_factories
 
 router = APIRouter()
 
@@ -26,9 +27,9 @@ def _policy_factory_for_session(session):
     """The factory that reproduces what actually drives this session.
 
     A Director-driven session's what-if branches roll out the committed
-    Director plan (model-free replay), not a proxy policy. Fallback to
-    the scenario policies only when no plan is committed yet, and for
-    ordinary sessions."""
+    Director plan (model-free replay), and a plan-driven session's branches
+    follow its scenario plan — never a proxy policy. Fallback to the scenario
+    policies only when no such plan exists, and for ordinary sessions."""
     policy_id = getattr(session, "policy", None) or "deadlock_avoidance"
     if policy_id == "goal_directed":
         from app.policies.goal_directed_policy import director_replay_factory
@@ -36,7 +37,25 @@ def _policy_factory_for_session(session):
         factory = director_replay_factory(session.env)
         if factory is not None:
             return factory
+    if policy_id == PLAN_POLICY_ID:
+        factory = plan_branch_factory(session.env)
+        if factory is not None:
+            return factory
     return _policy_factory_for(policy_id)
+
+
+def _baseline_source(session) -> str:
+    """What the what-if baseline follows, so the HMI can name it honestly:
+    the scenario plan, a committed Director plan, or a dispatching policy."""
+    policy_id = getattr(session, "policy", None)
+    if policy_id == PLAN_POLICY_ID and plan_branch_factory(session.env) is not None:
+        return "plan"
+    if policy_id == "goal_directed":
+        from app.policies.goal_directed_policy import director_replay_factory
+
+        if director_replay_factory(session.env) is not None:
+            return "director"
+    return "policy"
 
 
 def _estimate_branch_kpis(env, policy_factory, overrides: dict, horizon: int) -> tuple[int, int]:
@@ -74,18 +93,25 @@ def _kpis_from_result(res) -> dict:
     }
 
 
-def _train_outcome(res, handle: int) -> dict:
+def _train_outcome(res, handle: int, planned_arrival: int | None = None) -> dict:
     """The overridden train's own fate on this branch: arrived / delay /
-    deadlocked. Falls back to all-zero if the handle is missing."""
+    deadlocked, plus when it arrives and how that compares to the plan.
+    Falls back to all-zero if the handle is missing."""
     o = res.agent_outcomes.get(int(handle)) or {
         "arrived": False,
         "deadlocked": False,
         "delay": 0,
     }
+    arrival = o.get("arrival_step")
     return {
         "arrived": bool(o.get("arrived", False)),
         "delay": int(o.get("delay", 0) or 0),
         "deadlocked": bool(o.get("deadlocked", False)),
+        "arrival_step": None if arrival is None else int(arrival),
+        "planned_arrival": planned_arrival,
+        "delay_vs_plan": (
+            None if arrival is None or planned_arrival is None else int(arrival) - int(planned_arrival)
+        ),
     }
 
 
@@ -98,10 +124,20 @@ def _branch_trajectories(res) -> dict:
     return _extract_trajectories(res.snapshots)
 
 
-def _whatif_summary(baseline: dict, branch: dict) -> str:
+def _whatif_summary(baseline: dict, branch: dict, train: dict | None = None) -> str:
     """Plain-language consequence of the human's proposed action vs. the
     current course (baseline). Mirrors the framing used in recommendations."""
     parts: list[str] = []
+
+    # The selected train's arrival first: two routes that both arrive inside a
+    # wide latest-arrival window differ only here.
+    if train:
+        before = train["baseline"].get("arrival_step")
+        after = train["branch"].get("arrival_step")
+        if before is not None and after is not None and before != after:
+            diff = after - before
+            unit = "step" if abs(diff) == 1 else "steps"
+            parts.append(f"arrives {abs(diff)} {unit} {'later' if diff > 0 else 'earlier'}")
 
     d_delay = branch["delay"] - baseline["delay"]
     if d_delay < 0:
@@ -240,13 +276,14 @@ def what_if_override(session_id: str, req: WhatIfRequest):
     # key — the UI sends exactly one). Primary content; system KPIs above are
     # the secondary "local action → global effect" context.
     affected_handles = [int(h) for h in req.overrides.keys()]
+    planned = planned_arrival_steps(env)
     train = None
     if affected_handles:
         h = affected_handles[0]
         train = {
             "handle": h,
-            "baseline": _train_outcome(baseline_res, h),
-            "branch": _train_outcome(branch_res, h),
+            "baseline": _train_outcome(baseline_res, h, planned.get(h)),
+            "branch": _train_outcome(branch_res, h, planned.get(h)),
         }
 
     # Per-agent trajectories for BOTH branches (baseline = AI, branch = human),
@@ -263,8 +300,9 @@ def what_if_override(session_id: str, req: WhatIfRequest):
             "deadlocks": branch["deadlocks"] - baseline["deadlocks"],
             "done": branch["done"] - baseline["done"],
         },
-        "summary": _whatif_summary(baseline, branch),
+        "summary": _whatif_summary(baseline, branch, train),
         "train": train,
+        "baseline_source": _baseline_source(session),
         "baseline_trajectories": baseline_traj,
         "branch_trajectories": branch_traj,
         "handles": affected_handles,

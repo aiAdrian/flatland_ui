@@ -160,6 +160,19 @@ export class WhatifCompareComponent implements OnDestroy {
 
   // ── Train-outcome presentation helpers (primary block) ────────────────
 
+  /** The baseline column's name: in a plan-driven session it is the timetable
+   *  plan running on, not an AI proposal. */
+  baselineLabel(r: WhatIfResult): string {
+    return r.baseline_source === 'plan' ? 'Timetable plan' : this.modeBehavior().aiLabel;
+  }
+
+  /** Arrival of My plan minus arrival of the baseline, when both arrive. */
+  arrivalDelta(t: WhatIfTrainOutcome): number | null {
+    const before = t.baseline.arrival_step;
+    const after = t.branch.arrival_step;
+    return before == null || after == null ? null : after - before;
+  }
+
   /** Signed delay delta of My plan vs AI plan for the selected train. */
   trainDelayDelta(t: WhatIfTrainOutcome): number {
     return t.branch.delay - t.baseline.delay;
