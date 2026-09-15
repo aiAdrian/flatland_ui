@@ -45,8 +45,13 @@ conceptualisation is not supported by the system (shown dashed on the closing pa
 - **German mode intro** for this tour (`ModeIntro.labels`/`note`, override via the
   briefing).
 - **Layout preset** `preset-colearning-interview`: situation / notifications /
-  trains left; Streckenspiegel · ZWL tabs centre (`minBodyHeight`) with the Fahrplan
-  open below them; Impact, What-if, Reflection right.
+  decision log left (it replaced the train list, which the Fahrplan already shows);
+  Streckenspiegel · ZWL tabs centre (`minBodyHeight`) with the Fahrplan open below
+  them; Impact, What-if, Reflection right.
+- **Reason dialog** (`reasonDialog`, on for the demo): after a decision the run pauses
+  and "Warum diese Entscheidung?" opens as a dialog (`features/tour-reason-dialog`),
+  resuming once answered or dismissed. Open question whether the interviews keep it;
+  switching the flag off leaves the question in the reflection panel only.
 - **One train name everywhere:** `TrainIdentityService` (IC_703, ICE_42, RE_18) is the
   name; the learning-record card, the impact, what-if, rationale and reflection panels
   and the sandbox texts (`{T<handle>}` placeholders) use it, the tour disturbance

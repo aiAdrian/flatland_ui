@@ -23,6 +23,7 @@ import { TourContextService } from './core/demo/tour-context.service';
 import { TourGuideService } from './core/demo/tour-guide.service';
 import { TourGuideComponent } from './features/tour-guide/tour-guide.component';
 import { TourDebriefComponent } from './features/tour-debrief/tour-debrief.component';
+import { TourReasonDialogComponent } from './features/tour-reason-dialog/tour-reason-dialog.component';
 import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
@@ -95,6 +96,7 @@ type RuntimeLayoutOption = {
     TourBriefingComponent,
     TourGuideComponent,
     TourDebriefComponent,
+    TourReasonDialogComponent,
     HelpAboutComponent,
     PanelShellComponent,
     ConfigShellComponent,

@@ -78,6 +78,8 @@ export interface TourBriefing {
   debrief?: boolean;
   /** Run the tour under a fresh operator id, so interviewees never inherit each other's preferences. */
   freshOperatorProfile?: boolean;
+  /** Pause after a decision and ask "why?" in a dialog instead of only in the reflection panel. */
+  reasonDialog?: boolean;
   /** Replaces the default intro of a mode while this tour runs. */
   modeIntros?: Partial<Record<InteractionMode, ModeIntro>>;
   /** Panel type → module name: these panels carry a "Co-Learning" badge. */
@@ -119,6 +121,9 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     mapFocusCols: [69, 126],
     debrief: true,
     freshOperatorProfile: true,
+    // For the demo: makes step 6 hard to miss. Switch off to keep the question in
+    // the reflection panel only, without pausing the run.
+    reasonDialog: true,
     // Steps 1-9 of the thesis' interaction flow (Table 2): operational loop 1-5,
     // learning loop 6-9, with shift summary and event simulation after the episode.
     guide: [

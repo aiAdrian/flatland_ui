@@ -18,6 +18,7 @@ export class TourContextService {
   readonly briefing = computed(() => (this.store.demoActive() ? this._briefing() : null));
   readonly mapFocusCols = computed(() => this.briefing()?.mapFocusCols ?? null);
   readonly hasDebrief = computed(() => !!this.briefing()?.debrief);
+  readonly reasonDialog = computed(() => !!this.briefing()?.reasonDialog);
 
   private readonly operatorModel = inject(OperatorModelService);
   private operatorIdBeforeTour: string | null = null;

@@ -613,7 +613,9 @@ const COLEARNING_INTERVIEW: LayoutPreset = {
         panels: [
           { id: 'preset-ci-situation', type: 'situation-summary', title: 'Situation Summary', expanded: true, collapsible: true, minHeight: 120 },
           { id: 'preset-ci-notifications', type: 'notifications', title: 'Notifications', expanded: true, collapsible: true, minHeight: 160 },
-          { id: 'preset-ci-trains', type: 'agents', title: 'Züge', expanded: true, collapsible: true, minHeight: 200 },
+          // Instead of the train list, which the Fahrplan already shows: every
+          // decision as it happens, the same entries the shift summary recounts.
+          { id: 'preset-ci-decisions', type: 'decision-log', title: 'Entscheidungsprotokoll', expanded: true, collapsible: true, minHeight: 200 },
         ],
       },
       {
