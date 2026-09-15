@@ -121,8 +121,8 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     mapFocusCols: [69, 126],
     debrief: true,
     freshOperatorProfile: true,
-    // For the demo: makes step 6 hard to miss. Switch off to keep the question in
-    // the reflection panel only, without pausing the run.
+    // For the demo: makes step 6 hard to miss. The interview layout has no
+    // reflection panel, so switching this off needs that panel back in the preset.
     reasonDialog: true,
     // Steps 1-9 of the thesis' interaction flow (Table 2): operational loop 1-5,
     // learning loop 6-9, with shift summary and event simulation after the episode.
@@ -166,9 +166,8 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         id: 'reflect',
         loop: 'learning',
         module: true,
-        panelType: 'co-learning-reflection',
         title: 'Reflexion',
-        hint: 'Neu: Die Reflexion fragt nach Ihrem Grund. Wählen Sie einen Grund, danach «Ja, als Regel» oder «Nur diesmal».',
+        hint: 'Neu: Nach Ihrer Entscheidung hält die Simulation an und fragt nach Ihrem Grund. Wählen Sie einen Grund, danach «Ja, als Regel» oder «Nur diesmal».',
       },
       {
         id: 'shift-summary',
@@ -190,15 +189,13 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         id: 'ai-learns',
         loop: 'learning',
         module: true,
-        panelType: 'co-learning-reflection',
         title: 'KI lernt',
-        hint: 'Neu: Die KI übernimmt bestätigte Gründe in ihr Modell. Sie sehen das als Lern-Karte in der Reflexion.',
+        hint: 'Neu: Die KI übernimmt bestätigte Gründe in ihr Modell. Nach der Schicht sehen Sie das als Lern-Karte.',
       },
     ],
     moduleBadges: {
       impact: 'Auswirkungsanalyse und Alternativen',
       'whatif-compare': 'Auswirkungsanalyse: Wirkung einer Aktion',
-      'co-learning-reflection': 'Reflexion und System-Co-Learning',
     },
     modeIntros: {
       'co-learning': {
@@ -216,7 +213,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           'Die Simulation starten, pausieren oder schrittweise laufen lassen',
           'Für einen betroffenen Zug eine Option wählen',
           'Mit «What-if» vorab vergleichen, was eine Aktion für den gewählten Zug bewirkt',
-          '«Reflect now» öffnen, wann immer Sie möchten',
+          'Nach einer Entscheidung den Grund angeben, als Regel oder nur für diesmal',
         ],
         watchFor: [
           'Panels mit dem Zeichen «Co-Learning» sind die neue Erweiterung. Alles andere steht für das heutige TMS.',
