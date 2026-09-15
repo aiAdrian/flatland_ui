@@ -215,6 +215,7 @@ class TrajectoryBranchRunner:
         max_steps: int = 50,
         blocked_threshold: int = 3,
         detect_deadlocks: bool = True,
+        release_at: Optional[Dict[int, int]] = None,
     ) -> BranchResult:
         """Fork the env, apply overrides, run forward, collect KPIs.
 
@@ -228,6 +229,10 @@ class TrajectoryBranchRunner:
           4. On termination (all done, or max_steps reached, or
              "Episode is done"), call detector.on_episode_end and
              assemble the BranchResult.
+
+        ``release_at`` maps a handle to the absolute step at which its
+        override is cleared — a hold with a known end ("hold until the
+        block clears"), which a sticky STOP alone cannot express.
         """
         from flatland.envs.step_utils.states import TrainState
 
@@ -259,6 +264,7 @@ class TrajectoryBranchRunner:
             steps_run = 0
             terminated_early = False
             arrival_steps: Dict[int, int] = {}
+            pending_release = {int(h): int(s) for h, s in (release_at or {}).items()}
             done_at_fork = {
                 int(a.handle) for a in env.agents
                 if getattr(a, "state", None) == TrainState.DONE
@@ -267,6 +273,12 @@ class TrajectoryBranchRunner:
                 if self._all_done(env):
                     terminated_early = True
                     break
+
+                now = int(getattr(env, "_elapsed_steps", 0) or 0)
+                for handle, step in list(pending_release.items()):
+                    if now >= step:
+                        override_manager.clear(session_id, handle)
+                        del pending_release[handle]
 
                 handles = env.get_agent_handles()
                 observations = {h: env for h in handles}  # FullEnv-style fallback

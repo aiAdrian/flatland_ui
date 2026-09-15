@@ -8,7 +8,8 @@ from app.core.session_manager import session_manager
 from app.core.scenario_cache import scenario_cache
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
-from app.policies.plan_policy import plan_branch_factory, planned_arrival_steps
+from app.planners.replan import replan_orders
+from app.policies.plan_policy import PlanPolicy, plan_branch_factory, planned_arrival_steps
 from app.policies.registry import PLAN_POLICY_ID, scenario_policy_factories
 
 router = APIRouter()
@@ -75,13 +76,13 @@ def _branch_kpis_full(env, policy_factory, overrides: dict, horizon: int) -> dic
     return _kpis_from_result(res)
 
 
-def _branch_run(env, policy_factory, overrides: dict, horizon: int):
+def _branch_run(env, policy_factory, overrides: dict, horizon: int, release_at: dict | None = None):
     """Run a what-if branch and return the full BranchResult (system KPIs
     + per-agent outcomes + snapshots for trajectory extraction)."""
     from app.core.scenario_runner import TrajectoryBranchRunner
 
     runner = TrajectoryBranchRunner(env, policy_factory)
-    return runner.run_branch(overrides=overrides, max_steps=horizon)
+    return runner.run_branch(overrides=overrides, max_steps=horizon, release_at=release_at)
 
 
 def _kpis_from_result(res) -> dict:
@@ -306,6 +307,154 @@ def what_if_override(session_id: str, req: WhatIfRequest):
         "baseline_trajectories": baseline_traj,
         "branch_trajectories": branch_traj,
         "handles": affected_handles,
+    }
+
+
+def _proposal_variant(vid: str, source: str, res, handle: int, planned: dict) -> dict:
+    return {
+        "id": vid,
+        "source": source,
+        "train": _train_outcome(res, handle, planned.get(handle)),
+        "system": _kpis_from_result(res),
+        "trajectories": _branch_trajectories(res),
+    }
+
+
+PROPOSAL_OPTIONS = ("hold", "hold_until_clear", "proceed", "reroute")
+_NOT_ARRIVED_PENALTY = 1000
+
+
+def _impact_item(env, handle: int) -> dict | None:
+    """The impact analysis' entry for `handle`, if the train is affected now."""
+    from app.core.recommenders.registry import active_recommender
+
+    for item in active_recommender().recommend(env):
+        if int(item.get("handle", -1)) == int(handle):
+            return item
+    return None
+
+
+def _course_score(res, planned: dict) -> int:
+    """Lower is better: summed arrival delay against the plan (raw arrival step
+    without a plan), and a heavy penalty per train that does not arrive."""
+    score = 0
+    for handle, outcome in res.agent_outcomes.items():
+        arrival = outcome.get("arrival_step")
+        if arrival is None:
+            if not outcome.get("arrived"):
+                score += _NOT_ARRIVED_PENALTY
+            continue
+        reference = planned.get(handle)
+        score += int(arrival) - int(reference) if reference is not None else int(arrival)
+    return score
+
+
+def _arrivals(res) -> dict:
+    return {h: o.get("arrival_step") for h, o in sorted(res.agent_outcomes.items())}
+
+
+def _human_course(env, handle: int, committed: dict, elapsed: int, action, option):
+    """Overrides and release steps for the operator's choice, and its label."""
+    overrides = dict(committed)
+    release: dict = {}
+    handle = int(handle)
+    if option is not None:
+        if option not in PROPOSAL_OPTIONS:
+            raise HTTPException(400, f"Invalid option {option!r}; one of {', '.join(PROPOSAL_OPTIONS)}")
+        if option == "proceed":
+            overrides.pop(handle, None)
+        elif option in ("hold", "hold_until_clear"):
+            overrides[handle] = 4
+            if option == "hold_until_clear":
+                item = _impact_item(env, handle)
+                clears = int(item["clears_in_steps"]) if item else 0
+                release[handle] = elapsed + max(1, clears)
+        else:  # reroute
+            item = _impact_item(env, handle)
+            if not item or item.get("reroute_action") is None:
+                raise HTTPException(409, f"No reroute is available for train {handle} now")
+            overrides[handle] = int(item["reroute_action"])
+        return overrides, release, option
+    overrides[handle] = int(action)
+    return overrides, release, f"action:{int(action)}"
+
+
+@router.get("/{session_id}/proposals")
+def get_proposals(
+    session_id: str,
+    handle: int,
+    action: int | None = None,
+    option: str | None = None,
+    alternatives: int = 3,
+):
+    """Plan / KI / Mensch for one train, each simulated to the same horizon.
+
+    - ``plan``: what drives the session now (its plan, a Director plan or a
+      policy) with the committed overrides — the course if nobody steps in.
+    - ``ai``: the best of the Prioritized Planning replans over different priority
+      orders (`app.planners.replan.replan_orders`), each followed by `PlanPolicy`
+      and ranked by delay against the plan; the next best come back as
+      ``ai_alternatives``. Each carries its ``priority`` order and ``score``.
+    - ``human``: the plan course with the operator's choice — an ``option``
+      (hold, hold_until_clear, proceed, reroute) or a raw ``action`` — when given.
+
+    Read-only, like the what-if. Plan: docs/plans/proposal-agents-roadmap.md (2a/2c).
+    """
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    env = session.env
+    if handle < 0 or handle >= len(env.agents):
+        raise HTTPException(404, f"Agent {handle} not found")
+    if action is not None and action not in (0, 1, 2, 3, 4):
+        raise HTTPException(400, f"Invalid action {action}")
+
+    elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
+    max_ep = int(getattr(env, "_max_episode_steps", 0) or 0)
+    horizon = min(max(50, max_ep - elapsed) if max_ep else 200, 250)
+    planned = planned_arrival_steps(env)
+    committed = dict(override_manager.get_all(session_id))
+    plan_factory = _policy_factory_for_session(session)
+
+    plan_res = _branch_run(env, plan_factory, committed, horizon)
+    variants = [_proposal_variant("plan", _baseline_source(session), plan_res, handle, planned)]
+    variants[0]["score"] = _course_score(plan_res, planned)
+
+    ranked = []
+    for order, trainruns in replan_orders(env):
+        res = _branch_run(env, lambda tr=trainruns: PlanPolicy(None, tr), {}, horizon)
+        ranked.append((_course_score(res, planned), list(order), res))
+    ranked.sort(key=lambda entry: entry[0])
+
+    ai_alternatives = []
+    for rank, (score, order, res) in enumerate(ranked[: max(1, int(alternatives))]):
+        variant = _proposal_variant("ai" if rank == 0 else f"ai-{rank + 1}", "pp_replan", res, handle, planned)
+        variant["priority"] = order
+        variant["score"] = score
+        if rank == 0:
+            variants.append(variant)
+        else:
+            ai_alternatives.append(variant)
+
+    if action is not None or option is not None:
+        overrides, release, choice = _human_course(env, handle, committed, elapsed, action, option)
+        human_res = _branch_run(env, plan_factory, overrides, horizon, release_at=release)
+        variant = _proposal_variant("human", "operator", human_res, handle, planned)
+        variant["choice"] = choice
+        variant["score"] = _course_score(human_res, planned)
+        variants.append(variant)
+
+    return {
+        "session_id": session_id,
+        "handle": int(handle),
+        "step": elapsed,
+        "horizon": horizon,
+        "ai_available": bool(ranked),
+        # The best replan keeps every arrival of the plan: the AI would not change course.
+        "ai_matches_plan": bool(ranked) and _arrivals(ranked[0][2]) == _arrivals(plan_res),
+        "variants": variants,
+        "ai_alternatives": ai_alternatives,
     }
 
 

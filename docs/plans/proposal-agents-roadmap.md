@@ -1,6 +1,6 @@
 # Plan — Proposal agents: a base algorithm with small agents on top
 
-> **Status:** stage 1 in progress · started 2026-09-15 · owner: Daniel Boos
+> **Status:** stage 1 done · stage 2a/2c backend built, 2b (widget) next · started 2026-09-15 · owner: Daniel Boos
 > **Related:** [colearning-monte-carlo-interviews-tour.md](colearning-monte-carlo-interviews-tour.md) ·
 > [widget-b1-whatif-compare.md](widget-b1-whatif-compare.md) ·
 > [recommender-roadmap.md](recommender-roadmap.md) ·
@@ -81,6 +81,67 @@ a different arrival step; backend tests cover the plan factory and the arrival s
   selecting the train in the scaled preview pane did not register.
 
 ### Stage 2 — A proposal seam with a planner behind it (≈ 3–5 days)
+
+**Design decisions (2026-09-15, after reading the sources).**
+- **Solver: vendor, don't install.** `flatland-blackbox` is MIT (© 2025 Marius
+  Captari, portions © 2019 Ashwin Bose). Its solvers need only `networkx`, but its
+  `utils.py` imports `flatland.graphs` at module load, which Flatland 4.2.6 no longer
+  has, and the package pins `flatland-rl==4.0.3` and pulls `torch`. So `solvers/pp.py`
+  and the pure graph helpers it uses are copied into `backend/app/planners/blackbox/`
+  with the licence notice, unchanged apart from imports; the blackbox PP tests come
+  along.
+- **Graph from the env: our own.** `T3.4-with-HMI`'s `state_extraction.py` does this
+  but the repo carries no licence, so it is a reference, not a source. Enumerating
+  Flatland transitions into a `(row, col, dir)` digraph is a few lines on our side.
+- **Follow a replan with `PlanPolicy`.** A PP result is `(node, time)` per train;
+  turned into a `TrainrunDict` it is exactly what `PlanPolicy` already executes. No
+  plan follower to port, and the branch runner then scores Plan and AI proposal with
+  the same figures as the human's choice (stage 1).
+- **Replanning mid-run.** Trains start from their current cell and direction at the
+  current step; arrived trains are left out; the malfunctioning train's cell is
+  reserved for its remaining down time before planning.
+- **Known limit:** PP routes straight to the target. The Walensee trains' intermediate
+  calls, if any, are not honoured by the replan in this first cut.
+
+**Sub-steps.**
+- **2a** Backend: vendored PP + env graph + mid-run replan → proposals endpoint
+  returning *Plan* (plan continuation) and *KI* (PP replan) per conflict, each
+  simulated. Tests.
+  **Status (2026-09-15): built.** `app/planners/blackbox/` (PP + helpers, MIT notice),
+  `app/planners/replan.py` (`build_rail_digraph`, `replan_from_state`),
+  `GET /session/{id}/proposals?handle=&action=` in `api/overrides.py` (variants
+  `plan` / `ai` / `human`, each with train outcome, system KPIs, trajectories).
+  Tests: `test_blackbox_pp.py` (ported upstream cases), `test_replan_proposals.py`.
+  A replan on Walensee takes ~50 ms.
+  **Finding — in the probed cases PP's default order reproduces the plan.** Tour
+  incident (step 29/30), the never-experienced head-on case (35/38) and the study
+  disturbance (19/22): the replan's arrivals equal the plan's. The plan is already a
+  good solution there, so an "AI proposal" in default order says "keep the plan".
+  **The priority order is where proposals differ.** Study disturbance at step 19:
+  W1 first gets W1 in one step earlier but makes E1 or E2 arrive at 79 instead of
+  63/64 — a real trade-off. In the single-track head-on cases W1 first has no
+  collision-free plan at all. So the agent should offer *several* ranked orders
+  (2c), not one replan.
+- **2b** Frontend: widget B1 as Plan / KI / Mensch.
+- **2c** Options beyond the next switch: hold until clear, priority into the section.
+  **Status (2026-09-15): backend built** (done before 2b, so the widget gets its final
+  payload once).
+  - `replan_orders(env)` in `planners/replan.py`: PP over priority orders (all orders
+    up to four trains, else each train once in front), infeasible orders dropped,
+    identical plans reported once.
+  - `/proposals` ranks the orders by `score` (summed arrival delay vs. plan, +1000 per
+    train not arriving): best is `ai`, the next ones `ai_alternatives` (`ai-2`, …),
+    each with its `priority`. `ai_matches_plan` says when the best replan keeps every
+    arrival of the plan.
+  - Human side takes `option` = `hold` | `hold_until_clear` | `proceed` | `reroute`
+    (or a raw `action`); `hold_until_clear` releases the hold after the impact
+    analysis' `clears_in_steps` via the new `release_at` of `run_branch`.
+  - Walensee tour, step 30, ICE_42: plan = ai `[0,1,2]` arrival 70 (+7), score 26;
+    ai-2 `[0,2,1]` arrival 85 (+22), score 40; hold → never arrives (1/3);
+    hold until clear → 72 (+9), 3/3; proceed = plan; reroute → none available.
+  - Tests: `test_replan_proposals.py` (release ends a hold, distinct orders, ranked
+    orders and hold-until-clear arriving).
+  - Open: route alternatives beyond the impact analysis' first switch.
 
 - One interface for proposal agents, extending the existing pluggable
   `InterventionRecommender` (`core/recommenders/`, today `phase1_proximity`): per
