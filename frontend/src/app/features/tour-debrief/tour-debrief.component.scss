@@ -1,0 +1,347 @@
+:host {
+  display: block;
+}
+
+.db {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.db-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.db-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--app-colearning-accent);
+}
+
+.db-title {
+  margin: 2px 0 0;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-link {
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-white);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.db-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.db-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 4px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--sbb-color-granite);
+  background: var(--sbb-color-white);
+  border: 1px dashed var(--sbb-color-graphite);
+  border-radius: 999px;
+  cursor: pointer;
+
+  &.is-done {
+    color: var(--sbb-color-charcoal);
+    border-style: solid;
+
+    .db-step__num {
+      color: var(--sbb-color-white);
+      background: var(--app-positive);
+    }
+  }
+
+  &.is-active {
+    font-weight: 700;
+    color: var(--sbb-color-charcoal);
+    border: 2px solid var(--app-colearning-accent);
+
+    .db-step__num {
+      color: var(--app-colearning-on-accent);
+      background: var(--app-colearning-accent);
+    }
+  }
+}
+
+.db-step__num {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border-radius: 50%;
+}
+
+.db-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.db-lead {
+  max-width: 72ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.db-kpi {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border-radius: 4px;
+
+  &.is-warn strong {
+    color: var(--app-severity-warn);
+  }
+
+  &.is-alert strong {
+    color: var(--app-severity-error);
+  }
+}
+
+.db-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db-block__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--sbb-color-granite);
+}
+
+.db-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.db-item,
+.db-moment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+}
+
+.db-item__step {
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.db-item__reason {
+  color: var(--sbb-color-charcoal);
+}
+
+.db-item__response,
+.db-moment__why {
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.db-badge {
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--app-colearning-on-accent);
+  background: var(--app-colearning-accent);
+  border-radius: 999px;
+}
+
+.db-line,
+.db-note,
+.db-saved {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-note {
+  color: var(--sbb-color-granite);
+
+  &.is-warn {
+    color: var(--app-severity-error);
+  }
+}
+
+.db-saved {
+  color: var(--app-positive);
+}
+
+.db-btn {
+  align-self: flex-start;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--app-colearning-on-accent);
+  background: var(--app-colearning-accent);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+.db-case {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+}
+
+.db-case__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-badge--novel {
+  color: var(--sbb-color-white);
+  background: var(--app-severity-error);
+}
+
+.db-variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.db-variant {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background: var(--sbb-color-milk);
+  border: 2px solid transparent;
+  border-radius: 4px;
+
+  &.is-mine {
+    background: var(--sbb-color-white);
+    border-color: var(--app-whatif-human);
+  }
+}
+
+.db-variant__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.db-variant__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-mine {
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sbb-color-white);
+  background: var(--app-whatif-human);
+  border-radius: 999px;
+}
+
+.db-variant__desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+}
+
+.db-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-trains {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sbb-color-charcoal);
+}
+
+.db-late {
+  color: var(--app-severity-error);
+}
+
+.db-concept {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+  border: 1px dashed var(--sbb-color-graphite);
+  border-radius: 4px;
+
+  ol {
+    margin: 6px 0 0;
+    padding-left: 20px;
+  }
+}
+
+.db-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sbb-color-cloud);
+}

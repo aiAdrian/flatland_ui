@@ -591,9 +591,75 @@ const GUIDE_MODE_LIGHT: LayoutPreset = {
   },
 };
 
+/**
+ * Co-Learning expert interviews (tour `co-learning-interview`). The study
+ * layout plus the Fahrplan as a third centre tab and the Impact panel on the
+ * right, because the interviews walk through every Co-Learning module, and
+ * Impact is where the analysis and the neutral options live.
+ */
+const COLEARNING_INTERVIEW: LayoutPreset = {
+  id: 'preset-colearning-interview',
+  name: 'Co-Learning · Interview',
+  purpose: 'Für die Experteninterviews: Lage links, Streckenspiegel/ZWL/Fahrplan in der Mitte, alle Co-Learning-Module rechts.',
+  layout: {
+    columns: [
+      {
+        id: 'preset-ci-left',
+        zone: 'left',
+        rowId: 'preset-ci-row',
+        name: 'Lage',
+        width: 20,
+        role: 'sidebar',
+        panels: [
+          { id: 'preset-ci-situation', type: 'situation-summary', title: 'Situation Summary', expanded: true, collapsible: true, minHeight: 120 },
+          { id: 'preset-ci-notifications', type: 'notifications', title: 'Notifications', expanded: true, collapsible: true, minHeight: 160 },
+          { id: 'preset-ci-trains', type: 'agents', title: 'Züge', expanded: true, collapsible: true, minHeight: 200 },
+        ],
+      },
+      {
+        id: 'preset-ci-center',
+        zone: 'center',
+        rowId: 'preset-ci-row',
+        name: 'Netz',
+        width: 50,
+        role: 'main',
+        panels: [
+          {
+            id: 'preset-ci-views',
+            type: 'view-tabs',
+            title: 'Streckenspiegel & ZWL',
+            expanded: true,
+            collapsible: false,
+            minHeight: 520,
+            // Low enough that the Fahrplan below is on screen too on a laptop.
+            settings: { tabs: ['flatland-map', 'marey'], minBodyHeight: 340 },
+          },
+          // Open below the network views rather than a third tab: the timetable
+          // is the overview that stays in sight while the map or ZWL is read.
+          { id: 'preset-ci-timetable', type: 'timetable', title: 'Fahrplan', expanded: true, collapsible: true, minHeight: 160 },
+        ],
+      },
+      {
+        id: 'preset-ci-right',
+        zone: 'right',
+        rowId: 'preset-ci-row',
+        name: 'Co-Learning',
+        width: 30,
+        role: 'sidebar',
+        panels: [
+          { id: 'preset-ci-impact', type: 'impact', title: 'Impact', expanded: true, collapsible: true, minHeight: 180 },
+          { id: 'preset-ci-whatif', type: 'whatif-compare', title: 'What-if Compare', expanded: true, collapsible: true, minHeight: 240 },
+          { id: 'preset-ci-reflection', type: 'co-learning-reflection', title: 'Reflection', expanded: true, collapsible: true, minHeight: 220 },
+        ],
+      },
+    ],
+  },
+};
+
 export const LAYOUT_PRESETS: readonly LayoutPreset[] = [
   GUIDE_MODE_LIGHT,
   COLEARNING_STUDY2,
+  COLEARNING_INTERVIEW,
   RECOMMENDATION_STUDY2,
   COMBINED_ACTIONS_DEMO,
   COMBINED_ACTIONS_PACKAGE,

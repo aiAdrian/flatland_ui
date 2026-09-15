@@ -1,0 +1,17 @@
+{
+  "id": "interview-e1-breakdown-single-track",
+  "name": "Interview: Zug bleibt im Einspurabschnitt stehen (+12 Schritte)",
+  "description": "For the Co-learning Monte Carlo Interviews tour, not a study condition, so it is not offered in the experiment picker. Train 0 (E1 in the scene) breaks down inside the single-track section (cols 96-101) at step 28 for 12 steps. Train 1 (E2), six steps behind on the same track, reaches the blocked cell before it clears, so the impact analysis lists it for steps 28-39. Rerouting is impossible there, which leaves hold or proceed. The labels below name no train: the notification is linked to the train, and the HMI shows its shared name.",
+  "scenario": "pf-ch-wn-wal-long-approach",
+  "events": [
+    {
+      "step": 28,
+      "type": "train_delay",
+      "agent_handle": 0,
+      "delay_steps": 12,
+      "severity": "high",
+      "label": "Störung im Einspurabschnitt (+12 Schritte)",
+      "description": "Ein Zug bleibt mitten im einspurigen Abschnitt stehen. Der Zug dahinter folgt auf demselben Gleis und erreicht die Stelle, bevor sie wieder frei ist."
+    }
+  ]
+}

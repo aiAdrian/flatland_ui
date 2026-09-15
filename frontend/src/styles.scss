@@ -203,6 +203,15 @@ body {
   --app-whatif-ai:    var(--sbb-color-orange, #ffaa00);
 }
 
+/* Co-Learning module marker (core/demo/tour-context.service.ts): in the expert
+   interview tour it marks which panels are the new Co-Learning extension, as
+   opposed to the TMS base. Violet, because blue/yellow already mean human/AI in
+   the what-if convention above. */
+:root {
+  --app-colearning-accent: var(--sbb-color-violet, #762c8f);
+  --app-colearning-on-accent: var(--sbb-color-white, #fff);
+}
+
 /* Train service category (Combined Actions chips, widget E1). Trains in an
    action package are fixture ids, not Flatland handles, so AgentColorService
    does not apply — a chip is typed by the service it belongs to instead.

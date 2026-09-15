@@ -41,6 +41,63 @@
   font-size: 0.75rem;
 }
 
+/* Co-Learning module marker (expert interview tour only). */
+.layout-panel-shell--colearning {
+  border-left: 3px solid var(--app-colearning-accent);
+}
+
+.layout-panel-shell__colearning {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+  margin-right: 0.5rem;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--app-colearning-on-accent);
+  background: var(--app-colearning-accent);
+  border-radius: 999px;
+}
+
+/* The tour guide's current step points here. */
+.layout-panel-shell--guide-focus {
+  outline: 2px solid var(--app-colearning-accent);
+  outline-offset: 1px;
+
+  .layout-panel-shell__colearning {
+    animation: layout-panel-shell-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes layout-panel-shell-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout-panel-shell--guide-focus .layout-panel-shell__colearning {
+    animation: none;
+  }
+}
+
+.layout-panel-shell__colearning-mark {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
 .layout-panel-shell__content,
 .layout-panel-shell__body {
   width: 100%;
@@ -109,6 +166,12 @@
    spare. */
 :host([data-panel-type='combined-actions']) .layout-panel-shell__body--scroll {
   max-height: min(80vh, 42rem);
+}
+
+/* The centre view container is alone in its column; it only grows past 50vh
+   when a preset gives it a body height (`settings.minBodyHeight`). */
+:host([data-panel-type='view-tabs']) .layout-panel-shell__body--scroll {
+  max-height: min(85vh, 60rem);
 }
 
 /* Important: only hide bodies of real expansion panels.

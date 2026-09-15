@@ -17,6 +17,12 @@ import { DirectorDirectiveComponent } from './features/director-directive/direct
 import { SurveyComponent } from './features/survey/survey.component';
 import { ModeIntroComponent } from './features/mode-intro/mode-intro.component';
 import { DemoCompleteComponent } from './features/demo-complete/demo-complete.component';
+import { TourBriefingComponent } from './features/tour-briefing/tour-briefing.component';
+import { briefingById } from './core/demo/tour-briefings';
+import { TourContextService } from './core/demo/tour-context.service';
+import { TourGuideService } from './core/demo/tour-guide.service';
+import { TourGuideComponent } from './features/tour-guide/tour-guide.component';
+import { TourDebriefComponent } from './features/tour-debrief/tour-debrief.component';
 import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
@@ -86,6 +92,9 @@ type RuntimeLayoutOption = {
     ViewToggleComponent,
     ModeIntroComponent,
     DemoCompleteComponent,
+    TourBriefingComponent,
+    TourGuideComponent,
+    TourDebriefComponent,
     HelpAboutComponent,
     PanelShellComponent,
     ConfigShellComponent,
@@ -366,7 +375,7 @@ export class AppComponent implements OnInit {
    * it is what the operator looks at when the work is done.
    */
   readonly shiftScreenOpen = computed(
-    () => this.panelAvailable('shift-review') && this.store.shiftReviewOpen(),
+    () => (this.panelAvailable('shift-review') || this.tourContext.hasDebrief()) && this.store.shiftReviewOpen(),
   );
 
   /** Label of the currently active collaboration mode (for the header dropdown). */
@@ -493,6 +502,7 @@ export class AppComponent implements OnInit {
     if (!opts) return;
     this.store.stopDemo();
     this.demoComplete.set(false);
+    this.tourContext.clear();
     this.createSession(opts);
     this.store.startDemo();
   }
@@ -508,6 +518,21 @@ export class AppComponent implements OnInit {
 
   setSelectedTour(id: string): void {
     this.selectedTourId.set(id);
+  }
+
+  readonly activeBriefing = computed(() => briefingById(this.selectedTour().briefingId));
+  readonly tourContext = inject(TourContextService);
+  readonly tourGuide = inject(TourGuideService);
+  /** The tour's opening page is showing; it precedes the first mode intro. */
+  readonly tourOpeningOpen = signal(false);
+
+  closeTourOpening(): void {
+    this.tourOpeningOpen.set(false);
+  }
+
+  exitTourFromOpening(): void {
+    this.tourOpeningOpen.set(false);
+    this.exitDemo();
   }
 
   /**
@@ -527,6 +552,9 @@ export class AppComponent implements OnInit {
       tour.layout === 'system' ? this.systemRuntimeLayoutId : tour.layout,
     );
     this.setSelectedRuntimeInfrastructure(tour.infrastructureId);
+    if (tour.disturbanceIds?.length) {
+      this.selectedDisturbanceIds.set(new Set(tour.disturbanceIds));
+    }
 
     const opts = this.resolveWelcomeSessionOpts();
     if (!opts) return;
@@ -535,7 +563,9 @@ export class AppComponent implements OnInit {
     this.demoComplete.set(false);
     this.store.setInteractionMode(tour.modes[0]);
     this.createSession(opts);
+    this.tourContext.set(this.activeBriefing());
     this.store.startDemo(tour.modes, tour.surveyAfterEachMode);
+    this.tourOpeningOpen.set(!!this.activeBriefing());
   }
 
   /** Direct entry into the Director screen — Roman's & Gereon's design
@@ -1025,7 +1055,12 @@ export class AppComponent implements OnInit {
    *  map). A plan, if the scenario ships one, needs nothing here: it travels
    *  with the scenario and the backend puts the session on it. */
   private presetSessionOpts(scenarioPresetId: string): NewSessionOpts {
-    const offered = new Set(this.selectedPresetDisturbances().map((d) => d.id));
+    // A tour may pin a disturbance the picker does not list (backend
+    // `tour_disturbances`); only a started tour puts those ids in the selection.
+    const offered = new Set([
+      ...this.selectedPresetDisturbances().map((d) => d.id),
+      ...(this.selectedTour().disturbanceIds ?? []),
+    ]);
     return {
       scenarioPresetId,
       disturbanceIds: [...this.selectedDisturbanceIds()].filter((id) => offered.has(id)),

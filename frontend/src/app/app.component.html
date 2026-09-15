@@ -107,16 +107,23 @@
   </app-config-shell>
 
   
-    @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending()) && !demoComplete()) {
+    @if (!runtimeLayoutActive() && !(store.demoActive() && store.demoIntroPending()) && !demoComplete() && !tourOpeningOpen()) {
   <app-toolbar [settingsActive]="settingsMode()" [scenarioPolicyActive]="scenarioPolicyMode()" [demoActive]="store.demoActive()" [demoIsLast]="store.demoIsLast()" [demoSurvey]="store.demoSurveyEnabled()" (openSettings)="settingsMode() ? cancelSettings() : openSettings()" (openScenarioPolicy)="scenarioPolicyMode() ? cancelScenarioPolicySettings() : openScenarioPolicySettings()" (resetRequested)="resetWithSettings()" (finishDemoMode)="finishDemoMode()"></app-toolbar>
 }
 
   @if (store.session()) {
-    @if (store.demoActive() && store.demoIntroPending()) {
+    @if (tourOpeningOpen() && activeBriefing(); as briefing) {
+      <app-tour-briefing [briefing]="briefing" page="opening" (proceed)="closeTourOpening()" (exit)="exitTourFromOpening()"></app-tour-briefing>
+    } @else if (store.demoActive() && store.demoIntroPending()) {
       <app-mode-intro></app-mode-intro>
+    } @else if (demoComplete() && activeBriefing(); as briefing) {
+      <app-tour-briefing [briefing]="briefing" page="closing" (restart)="startTour()" (exit)="exitDemo()"></app-tour-briefing>
     } @else if (demoComplete()) {
       <app-demo-complete (restart)="startDemoSession()" (exit)="exitDemo()"></app-demo-complete>
     } @else {
+    @if (tourGuide.active()) {
+      <app-tour-guide></app-tour-guide>
+    }
     @if (useSavedRuntimeLayout()) {
       <!-- The Director bar is chrome, not a panel: it carries the run state,
            play/pause and "Schicht beenden" — the only route to the closing
@@ -390,7 +397,11 @@
          layout branch, so a designed layout can reach it as well. -->
     @if (shiftScreenOpen()) {
       <section class="shift-screen" role="region" aria-label="Schichtabschluss">
-        <app-shift-review></app-shift-review>
+        @if (tourContext.hasDebrief()) {
+          <app-tour-debrief (finish)="finishDemoMode()"></app-tour-debrief>
+        } @else {
+          <app-shift-review></app-shift-review>
+        }
       </section>
     }
     }
@@ -958,7 +969,9 @@
         }
         <!-- A shift the operator declared over is finished for questionnaire
              purposes too; waiting for step 400 would only hide the survey. -->
-        @if (store.shiftReviewOpen()) {
+        <!-- A tour with its own debrief is run as an interview: the questions are
+             asked in person, and a survey button there only invites a detour. -->
+        @if (store.shiftReviewOpen() && !tourContext.hasDebrief() && !(demoComplete() && activeBriefing()?.debrief)) {
           <button class="footer-survey-btn" type="button" (click)="openSurvey()">
             Post-session survey →
           </button>

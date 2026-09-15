@@ -54,3 +54,13 @@
   flex: 1;
   min-height: 0;
 }
+
+/* A preset-given body height has to reach the view. The child above is created
+   by NgComponentOutlet and does not carry this component's scoping attribute, so
+   `> *` never matches it; a single grid track stretches it to a definite height
+   instead, which its own `height: 100%` can resolve against. */
+.view-tabs__body--sized {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}

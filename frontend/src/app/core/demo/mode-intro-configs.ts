@@ -9,8 +9,38 @@ import { InteractionMode } from '../events/event-types';
  * survey-configs.ts is editable content today. Swap/extend this array to
  * define new or reworded modes without touching the rendering component.
  */
+export interface ModeIntroLabels {
+  stepPrefix: string;
+  stepOf: string;
+  whatHappens: string;
+  focusView: string;
+  yourRole: string;
+  control: string;
+  watchFor: string;
+  goal: string;
+  start: string;
+  exit: string;
+}
+
+export const MODE_INTRO_LABELS_EN: ModeIntroLabels = {
+  stepPrefix: 'Mode',
+  stepOf: 'of',
+  whatHappens: 'What happens',
+  focusView: 'Where to look',
+  yourRole: 'Your role',
+  control: 'What you can control',
+  watchFor: 'What to watch for',
+  goal: 'Goal',
+  start: 'Start scenario',
+  exit: 'Exit demo',
+};
+
 export interface ModeIntro {
   mode: InteractionMode;
+  /** Section and button labels; English when omitted. */
+  labels?: ModeIntroLabels;
+  /** Shown above the actions, e.g. a caveat about the prototype. */
+  note?: string;
   wp: string;
   title: string;
   tagline: string;

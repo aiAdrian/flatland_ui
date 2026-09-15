@@ -1,0 +1,326 @@
+/* min-width: 0 down the flex chain, so the modules table scrolls inside its
+   own container instead of widening the whole page. */
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.briefing {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 24px 16px;
+  background: var(--sbb-color-milk);
+}
+
+.briefing-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 1040px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px 36px;
+  background: var(--sbb-color-white);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+
+  @media (max-width: 600px) {
+    padding: 20px 16px;
+  }
+}
+
+.briefing-card--wide {
+  max-width: 1200px;
+}
+
+.briefing-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--sbb-color-blue);
+}
+
+.briefing-title {
+  margin: 2px 0 0;
+  color: var(--sbb-color-charcoal);
+}
+
+.briefing-lead {
+  max-width: 72ch;
+  margin: 6px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--sbb-color-charcoal);
+}
+
+.briefing-byline {
+  margin: 6px 0 16px;
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.briefing-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 4px 32px;
+  align-items: start;
+}
+
+.briefing-section {
+  min-width: 0;
+  margin-bottom: 16px;
+
+  sbb-title {
+    margin: 0 0 6px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--sbb-color-charcoal);
+  }
+
+  ol {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--sbb-color-charcoal);
+  }
+
+  ol.plain {
+    list-style: disc;
+  }
+}
+
+.briefing-section--goal {
+  padding: 12px 14px;
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--sbb-color-blue);
+  border-radius: 4px;
+}
+
+.briefing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.briefing-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.briefing-reminder {
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-milk);
+  border-left: 3px solid var(--sbb-color-blue);
+  border-radius: 4px;
+}
+
+.briefing-disclaimer {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+  border: 1px dashed var(--sbb-color-graphite);
+  border-radius: 4px;
+}
+
+/* Theory: Kolb cycle next to the two loops. */
+.briefing-theory {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 4px 32px;
+  margin-top: 16px;
+}
+
+.kolb {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+
+  @media (max-width: 460px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cycle reading order 1 → 2 → 3 → 4 clockwise: 1 2 / 4 3. */
+.kolb-phase:nth-child(3) { grid-column: 2; grid-row: 2; }
+.kolb-phase:nth-child(4) { grid-column: 1; grid-row: 2; }
+
+@media (max-width: 460px) {
+  .kolb-phase:nth-child(3),
+  .kolb-phase:nth-child(4) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+.kolb-phase {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--sbb-color-blue);
+  border-radius: 4px;
+}
+
+.kolb-phase--unsupported {
+  border-style: dashed;
+  border-color: var(--sbb-color-graphite);
+
+  .kolb-num,
+  .kolb-flag {
+    color: var(--sbb-color-granite);
+  }
+}
+
+.kolb-num {
+  grid-row: span 3;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--sbb-color-blue);
+}
+
+.kolb-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.kolb-note {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--sbb-color-charcoal);
+}
+
+.kolb-flag {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--sbb-color-blue);
+}
+
+.loops {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.loop {
+  padding: 10px 12px;
+  background: var(--sbb-color-milk);
+  border-radius: 4px;
+
+  ol {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.loop-name {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--sbb-color-granite);
+}
+
+/* Modules table */
+.modules-scroll {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.modules {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+
+  th,
+  td {
+    padding: 10px 12px 10px 0;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--sbb-color-cloud);
+  }
+
+  thead th {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--sbb-color-granite);
+    border-bottom-color: var(--sbb-color-graphite);
+  }
+
+  tbody th {
+    font-weight: 400;
+  }
+}
+
+.module-name {
+  display: block;
+  font-weight: 700;
+}
+
+.module-area {
+  display: block;
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.status {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 1px solid currentcolor;
+  border-radius: 9px;
+}
+
+.status--live { color: var(--app-positive); }
+.status--partial { color: var(--sbb-color-blue); }
+.status--concept { color: var(--sbb-color-granite); }
+
+.status-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}

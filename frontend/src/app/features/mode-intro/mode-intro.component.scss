@@ -114,6 +114,16 @@
 }
 .intro-goal h3 { color: var(--sbb-color-blue, #0079c7); }
 
+.intro-note {
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+  border: 1px dashed var(--sbb-color-graphite);
+  border-radius: 4px;
+}
+
 .intro-actions {
   display: flex;
   align-items: center;

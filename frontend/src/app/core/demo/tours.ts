@@ -40,6 +40,10 @@ export interface Tour {
   surveyAfterEachMode: boolean;
   /** Rough wall-clock budget, so a facilitator can plan. */
   expectedMinutes: number;
+  /** Scripted disturbances of the scenario to switch on, by id. */
+  disturbanceIds?: string[];
+  /** Opening/closing pages around the modes (`core/demo/tour-briefings.ts`). */
+  briefingId?: string;
 }
 
 export const TOURS: Tour[] = [
@@ -79,6 +83,19 @@ export const TOURS: Tour[] = [
     infrastructureId: 'guided-demo',
     surveyAfterEachMode: true,
     expectedMinutes: 14,
+  },
+  {
+    id: 'co-learning-monte-carlo-interviews',
+    name: 'Co-learning Monte Carlo Interviews',
+    description:
+      'Einführung ins Thema und Ziel der Befragung, dann die Störung am Walensee im Co-Learning-Modus mit markierten Modulen, zum Schluss alle Module mit Lerntheorie. Ohne Survey: die Fragen stellt das Interview.',
+    modes: ['co-learning'],
+    layout: 'preset-colearning-interview',
+    infrastructureId: 'pf-ch-wn-wal-long-approach',
+    disturbanceIds: ['interview-e1-breakdown-single-track'],
+    surveyAfterEachMode: false,
+    expectedMinutes: 15,
+    briefingId: 'co-learning-cost-benefit',
   },
   {
     id: 'director-only',
