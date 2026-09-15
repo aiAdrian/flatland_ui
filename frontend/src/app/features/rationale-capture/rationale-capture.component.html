@@ -6,7 +6,7 @@
     </div>
 
     <p class="rc-context">
-      Zug {{ p.handle }} → <strong>{{ strategyLabel() }}</strong>
+      {{ trainName(p.handle) }} → <strong>{{ strategyLabel() }}</strong>
       @if (p.aiSuggestion) {
         <span class="rc-vs"> statt AI: {{ p.aiSuggestion }}</span>
       }

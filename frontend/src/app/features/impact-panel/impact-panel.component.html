@@ -46,7 +46,7 @@
               (mouseleave)="onLeave()">
             <div class="ip-row">
               <span class="ip-dot" [style.background]="agentColor(item.handle)"></span>
-              <span class="ip-title">Train {{ item.handle }}</span>
+              <span class="ip-title">{{ trainName(item.handle) }}</span>
               @if (isHeld(item.handle)) {
                 <span class="ip-held-tag">held</span>
               }
@@ -54,7 +54,7 @@
             </div>
 
             <div class="ip-why">
-              blocked by Train {{ item.blocked_by }} at ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
+              blocked by {{ trainName(item.blocked_by) }} at ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
               · reaches in {{ item.eta_steps }} · clears in {{ item.clears_in_steps }}
             </div>
 

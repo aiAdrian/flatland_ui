@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
@@ -56,6 +57,7 @@ export class WhatifCompareComponent implements OnDestroy {
   private trainActions = inject(TrainActionService);
   private api = inject(ApiService);
   private colors = inject(AgentColorService);
+  private identity = inject(TrainIdentityService);
 
   /** Actions the human can propose. Flatland: 4=STOP(hold), 2=FORWARD, 1=LEFT, 3=RIGHT. */
   readonly actionChoices: ActionChoice[] = [
@@ -96,7 +98,7 @@ export class WhatifCompareComponent implements OnDestroy {
 
   targetLabel(): string {
     const h = this.targetHandle();
-    return h == null ? '' : `Train ${h}`;
+    return h == null ? '' : this.identity.nameFor(h);
   }
 
   isChosen(action: ActionInt): boolean {

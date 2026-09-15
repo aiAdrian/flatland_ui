@@ -57,11 +57,11 @@
               (click)="onNotificationClick(n)">
             <span class="kind-marker" [attr.aria-label]="n.kind"></span>
             <div class="content">
-              <span class="title">{{ n.title }}</span>
-              <span class="msg">{{ n.message }}</span>
+              <span class="title">{{ named(n.title) }}</span>
+              <span class="msg">{{ named(n.message) }}</span>
               @if (n.relatedElement) {
                 <span class="related">
-                  {{ n.relatedElement.kind }} #{{ n.relatedElement.id }}
+                  {{ relatedLabel(n) }}
                 </span>
               }
             </div>

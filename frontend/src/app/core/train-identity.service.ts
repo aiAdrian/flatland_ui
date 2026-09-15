@@ -70,6 +70,15 @@ export class TrainIdentityService {
     return this.nameByHandle()[handle] ?? `#${handle}`;
   }
 
+  /**
+   * Text from outside the HMI (backend notifications) names trains by handle:
+   * "Train 0 is malfunctioning". Rewritten here, so those texts use the same name
+   * as every panel instead of a second vocabulary.
+   */
+  withTrainNames(text: string): string {
+    return text.replace(/\b(?:Train|Zug)\s*#?\s*(\d+)\b/g, (_, handle: string) => this.nameFor(Number(handle)));
+  }
+
   /** Handle for a service name, or null when this session has no such train. */
   handleFor(name: string): number | null {
     const handle = this.handleByName()[name];

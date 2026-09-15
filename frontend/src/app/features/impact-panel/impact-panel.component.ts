@@ -4,6 +4,7 @@ import { SessionStore } from '../../core/session.store';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { ImpactItem, ImpactOption } from '../../core/events/event-types';
 import { ActionInt } from '../../core/models';
 
@@ -37,6 +38,11 @@ export class ImpactPanelComponent implements OnDestroy {
   private trainActions = inject(TrainActionService);
   private api = inject(ApiService);
   private colors = inject(AgentColorService);
+  private identity = inject(TrainIdentityService);
+
+  trainName(handle: number): string {
+    return this.identity.nameFor(handle);
+  }
 
   private static readonly STOP = 4;
   private _pollHandle: any = null;

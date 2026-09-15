@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, effect, inject, OnDestroy} from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
 import { AgentColorService } from '../../core/agent-color.service';
@@ -26,6 +27,21 @@ export class NotificationsPanelComponent implements OnDestroy {
   api = inject(ApiService);
   bus = inject(EventBusService);
   colors = inject(AgentColorService);
+  private readonly identity = inject(TrainIdentityService);
+
+  /** Backend texts name trains by handle; show the shared name instead. */
+  named(text: string | null | undefined): string {
+    return this.identity.withTrainNames(text ?? '');
+  }
+
+  relatedLabel(n: AppNotification): string {
+    const related = n.relatedElement;
+    if (!related) return '';
+    if (related.kind === 'train' && Number.isFinite(Number(related.id))) {
+      return this.identity.nameFor(Number(related.id));
+    }
+    return `${related.kind} #${related.id}`;
+  }
 
   private _notifPollHandle: any = null;
   private _notifLastSession: string | null = null;

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { LearningRecord } from '../../core/learning-store.service';
 import { ReasoningItem } from '../../shared/ui/reasoning-list.component';
 import { MetricChipComponent } from '../../shared/ui/metric-chip.component';
@@ -28,8 +29,14 @@ type MetricLevel = 'good' | 'fair' | 'low' | 'neutral';
 })
 export class LearningRecordsComponent {
   store = inject(SessionStore);
+  private readonly identity = inject(TrainIdentityService);
 
   readonly records = computed(() => this.store.learningRecords());
+
+  /** The shared train name, so the card reads like the map and the timetable. */
+  trainName(handle: number): string {
+    return this.identity.nameFor(handle);
+  }
 
   /** Split the joined rationale back into reasoning-list items. */
   reasoningFor(r: LearningRecord): ReasoningItem[] {
