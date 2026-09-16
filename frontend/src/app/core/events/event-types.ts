@@ -187,6 +187,43 @@ export interface WhatIfResult {
   baseline_source?: 'plan' | 'director' | 'policy';
 }
 
+/** What the operator can propose for one train in the Plan / KI / Mensch compare. */
+export type ProposalOption = 'hold' | 'hold_until_clear' | 'proceed' | 'reroute';
+
+/** One simulated course of the whole system: the plan running on, an AI replan,
+ *  or the operator's choice. `train` is the selected train's own fate. */
+export interface ProposalVariant {
+  /** 'plan' | 'ai' | 'ai-2', 'ai-3' … | 'human'. */
+  id: string;
+  /** What produced it: 'plan' | 'director' | 'policy' | 'pp_replan' | 'operator'. */
+  source: string;
+  train: WhatIfTrainSide & { handle: number };
+  system: WhatIfKpis;
+  trajectories?: WhatIfTrajById;
+  /** AI variants: the priority order the replan gave the trains. */
+  priority?: number[];
+  /** Summed arrival delay against the plan; lower is better. */
+  score?: number;
+  /** Human variant: the option (or `action:<int>`) behind it. */
+  choice?: string;
+}
+
+/** `GET /session/{id}/proposals` — the Plan / KI / Mensch compare (widget B1). */
+export interface ProposalsResult {
+  session_id: string;
+  handle: number;
+  step: number;
+  horizon: number;
+  ai_available: boolean;
+  /** True when the best replan keeps every arrival of the plan: the AI would
+   *  not change course. */
+  ai_matches_plan: boolean;
+  /** plan, the best AI order, and the human's choice when one is given. */
+  variants: ProposalVariant[];
+  /** Further AI priority orders, ranked after the best one. */
+  ai_alternatives: ProposalVariant[];
+}
+
 /** One affected train from the Phase-1 impact analysis (malfunction fallout). */
 export interface ImpactItem {
   handle: number;

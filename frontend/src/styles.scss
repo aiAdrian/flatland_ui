@@ -201,6 +201,9 @@ body {
 :root {
   --app-whatif-human: var(--sbb-color-blue,   #0079c7);
   --app-whatif-ai:    var(--sbb-color-orange, #ffaa00);
+  /* The third course in the Plan / KI / Mensch compare: the timetable plan
+     running on — neutral, because it is nobody's proposal. */
+  --app-whatif-plan:  var(--sbb-color-granite, #68757b);
 }
 
 /* Co-Learning module marker (core/demo/tour-context.service.ts): in the expert

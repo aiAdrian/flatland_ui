@@ -123,6 +123,27 @@ a different arrival step; backend tests cover the plan factory and the arrival s
   collision-free plan at all. So the agent should offer *several* ranked orders
   (2c), not one replan.
 - **2b** Frontend: widget B1 as Plan / KI / Mensch.
+  **Status (2026-09-16): built.** A separate panel type `proposal-compare`
+  (`features/proposal-compare/`, catalogue B1b, Co-Learning only) rather than a
+  rewrite of `whatif-compare`: that widget is what the User Study 2 conditions
+  show, and its framing (my plan vs. the AI's) is not this one's. The interview
+  preset uses the new panel; the study presets are untouched.
+  - Three columns for the selected train — Plan (neutral grey), KI (yellow, with
+    its priority order in train names), Mensch (blue, the chosen option) — each
+    with arrival vs. plan and trains arrived. Further AI orders behind a toggle.
+  - Options: Halten, Halten bis frei, Weiterfahren, Umleiten. The backend's own
+    sentence is shown when it refuses one (no reroute here).
+  - The map overlay keeps the A3S colours: the operator's course blue against the
+    AI's yellow once an option is picked, the AI against the plan before that.
+  - "Übernehmen" goes through `TrainActionService` with a new `proposals` origin,
+    so the decision log keeps the widget it came from. `Halten bis frei` commits
+    as a hold and says that the release is the operator's, because the timed
+    release lives in the simulated variant only.
+  - Verified live on the tour session at step 52 with ICE_42: plan and KI both
+    arrive at 70 (+7), order IC_703 → ICE_42 → RE_18, verdict "die KI würde hier
+    beim Plan bleiben"; Halten bis frei adds the third column and the caveat.
+    Note: at step 52 the malfunction is long over, so that option is free there —
+    the telling case is the decision moment (the backend test: 72 vs. never).
 - **2c** Options beyond the next switch: hold until clear, priority into the section.
   **Status (2026-09-15): backend built** (done before 2b, so the widget gets its final
   payload once).

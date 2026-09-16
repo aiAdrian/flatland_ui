@@ -19,7 +19,8 @@ export type ActionOrigin =
   | 'marey'      // decision pills on the graphic timetable
   | 'inspector'  // Agent Inspector detail overlay
   | 'impact'     // Impact panel option buttons
-  | 'whatif';    // What-if Compare "commit my plan"
+  | 'whatif'     // What-if Compare "commit my plan"
+  | 'proposals'; // Plan / KI / Mensch compare "take this option"
 
 /**
  * TrainActionService — the single authority for acting on one train.

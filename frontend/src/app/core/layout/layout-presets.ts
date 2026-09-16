@@ -650,7 +650,7 @@ const COLEARNING_INTERVIEW: LayoutPreset = {
         role: 'sidebar',
         panels: [
           { id: 'preset-ci-impact', type: 'impact', title: 'Impact', expanded: true, collapsible: true, minHeight: 180 },
-          { id: 'preset-ci-whatif', type: 'whatif-compare', title: 'What-if Compare', expanded: true, collapsible: true, minHeight: 240 },
+          { id: 'preset-ci-whatif', type: 'proposal-compare', title: 'Plan / KI / Mensch', expanded: true, collapsible: true, minHeight: 260 },
           // No reflection panel: the tour asks for the reason in a dialog
           // (`reasonDialog`) and shows the learning cards in the debrief.
         ],

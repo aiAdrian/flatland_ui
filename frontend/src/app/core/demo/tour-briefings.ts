@@ -147,7 +147,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         module: true,
         panelType: 'impact',
         title: 'Alternativen',
-        hint: 'Neu: Die KI bietet Optionen an, ohne eine zu empfehlen. Mit «What-if» vergleichen Sie vorab, was eine Aktion für den gewählten Zug bewirkt.',
+        hint: 'Neu: Die KI bietet Optionen an, ohne eine zu empfehlen. Unter «Plan / KI / Mensch» sehen Sie vorab, was der Plan, der KI-Vorschlag und Ihre eigene Wahl für den Zug bedeuten.',
       },
       {
         id: 'decide',
@@ -195,7 +195,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     ],
     moduleBadges: {
       impact: 'Auswirkungsanalyse und Alternativen',
-      'whatif-compare': 'Auswirkungsanalyse: Wirkung einer Aktion',
+      'proposal-compare': 'Auswirkungsanalyse: Plan, KI-Vorschlag und Ihre Wahl',
     },
     modeIntros: {
       'co-learning': {
@@ -212,7 +212,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         whatYouCanControl: [
           'Die Simulation starten, pausieren oder schrittweise laufen lassen',
           'Für einen betroffenen Zug eine Option wählen',
-          'Mit «What-if» vorab vergleichen, was eine Aktion für den gewählten Zug bewirkt',
+          'Unter «Plan / KI / Mensch» vorab vergleichen: Plan, KI-Vorschlag und Ihre eigene Wahl',
           'Nach einer Entscheidung den Grund angeben, als Regel oder nur für diesmal',
         ],
         watchFor: [
