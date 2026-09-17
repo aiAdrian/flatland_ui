@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentDTO } from '../../core/models';
 import { RationaleCaptureComponent } from '../rationale-capture/rationale-capture.component';
 import { LearningRecordsComponent } from '../learning-records/learning-records.component';
@@ -48,6 +49,11 @@ export class CoLearningReflectionComponent {
   }
 
   store = inject(SessionStore);
+  private readonly identity = inject(TrainIdentityService);
+
+  trainName(handle: number): string {
+    return this.identity.nameFor(handle);
+  }
 
 
   /**

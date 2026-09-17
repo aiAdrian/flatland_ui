@@ -1,8 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
-import { DecisionLogEntry, DecisionOwner } from '../../core/decision-log';
+import { DecisionAction, DecisionLogEntry, DecisionOwner } from '../../core/decision-log';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainIdentityService } from '../../core/train-identity.service';
+
+const ACTION_LABEL: Record<DecisionAction, string> = {
+  hold: 'Halten',
+  proceed: 'Weiterfahren',
+  reroute: 'Umleiten',
+  accept: 'Übernommen',
+  override: 'Übersteuert',
+  dismiss: 'Verworfen',
+  strategy: 'Ziel gesetzt',
+};
 
 /**
  * Tile A2 — Decision Log & Accountability Strip (spec:
@@ -45,6 +56,19 @@ export class DecisionLogPanelComponent {
 
   readonly store = inject(SessionStore);
   private readonly colors = inject(AgentColorService);
+  private readonly identity = inject(TrainIdentityService);
+
+  trainName(handle: number): string {
+    return handle < 0 ? 'Gesamtplan' : this.identity.nameFor(handle);
+  }
+
+  actionLabel(action: DecisionAction): string {
+    return ACTION_LABEL[action] ?? action;
+  }
+
+  verbLabel(verb: 'accept' | 'override' | '—'): string {
+    return verb === 'accept' ? 'übernommen' : verb === 'override' ? 'übersteuert' : verb;
+  }
 
   /** Newest-first view of the rolling log (cap 200 for the strip). */
   readonly entries = computed<DecisionLogEntry[]>(() =>
@@ -97,7 +121,7 @@ export class DecisionLogPanelComponent {
   }
 
   ownerLabel(owner: DecisionOwner): string {
-    return owner === 'human' ? 'You' : owner === 'ai' ? 'AI' : 'System';
+    return owner === 'human' ? 'Mensch' : owner === 'ai' ? 'KI' : 'System';
   }
 
   /** Accept vs. override (derived): a human entry whose action differs from the

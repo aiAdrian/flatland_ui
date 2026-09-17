@@ -89,7 +89,7 @@
   @if (store.session() && demoActive) {
     <sbb-divider orientation="vertical"></sbb-divider>
     <sbb-secondary-button size="s" (click)="requestFinishDemoMode()">
-      {{ demoIsLast ? 'Finish & survey' : 'Finish mode & survey →' }}
+      {{ demoSurvey ? (demoIsLast ? 'Finish & survey' : 'Finish mode & survey →') : (demoIsLast ? 'Finish tour' : 'Next mode →') }}
     </sbb-secondary-button>
   }
 </div>

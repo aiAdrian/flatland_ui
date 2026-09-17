@@ -30,7 +30,8 @@ from app.models.hmi import (
     Recommendation,
     ScenarioOption,
 )
-from app.policies.registry import scenario_policy_factories
+from app.policies.plan_policy import plan_branch_factory
+from app.policies.registry import PLAN_POLICY_ID, scenario_policy_factories
 
 
 # ── Policy registry (used by /hmi/scenarios + POST /policy) ──────────
@@ -56,6 +57,13 @@ def _rollout_baseline(sess, enabled: set):
         from app.policies.goal_directed_policy import director_replay_factory
 
         factory = director_replay_factory(sess.env)
+        if factory is not None:
+            return baseline_id, factory
+    if baseline_id == PLAN_POLICY_ID:
+        # The plan policy is not a scenario policy (it needs the trainruns), so
+        # without this a plan-driven session was forecast with a fallback that
+        # routes trains differently from the plan it runs.
+        factory = plan_branch_factory(sess.env)
         if factory is not None:
             return baseline_id, factory
     if baseline_id not in enabled:

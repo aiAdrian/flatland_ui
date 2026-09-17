@@ -1,0 +1,217 @@
+<div class="db">
+  <header class="db-head">
+    <div>
+      <span class="db-eyebrow">Nach der Schicht · Lern-Loop</span>
+      <sbb-title level="2" visual-level="4" class="db-title">Schicht auswerten</sbb-title>
+    </div>
+    @if (canReopen()) {
+      <button class="db-link" type="button" (click)="reopenShift()">← Zurück zur laufenden Schicht</button>
+    }
+  </header>
+
+  <nav class="db-steps" aria-label="Schritte nach der Schicht">
+    @for (s of sections; track s.id) {
+      <button
+        type="button"
+        class="db-step"
+        [class.is-active]="active() === s.id"
+        [class.is-done]="guide.done().has(s.id)"
+        [attr.aria-current]="active() === s.id ? 'step' : null"
+        (click)="select(s.id)"
+      >
+        <span class="db-step__num">{{ guide.done().has(s.id) ? '✓' : s.n }}</span>
+        {{ s.title }}
+      </button>
+    }
+  </nav>
+
+  @switch (active()) {
+    @case ('shift-summary') {
+      <section class="db-section">
+        <p class="db-lead">
+          Die Schichtbilanz fasst zusammen, was in dieser Schicht passiert ist: alle Eingriffe und ihre Wirkung.
+        </p>
+
+        @if (review(); as r) {
+          <div class="db-kpis">
+            <span class="db-kpi"><strong>{{ r.kpis.arrived }}/{{ r.kpis.total }}</strong> angekommen</span>
+            <span class="db-kpi" [class.is-warn]="r.kpis.delayed > 0"><strong>{{ r.kpis.delayed }}</strong> verspätet</span>
+            <span class="db-kpi"><strong>{{ r.kpis.totalDelay }}</strong> Schritte Verspätung gesamt</span>
+            <span class="db-kpi" [class.is-alert]="r.kpis.malfunctions > 0"><strong>{{ r.kpis.malfunctions }}</strong> Störung(en) am Ende</span>
+          </div>
+
+          <div class="db-block">
+            <span class="db-block__title">Ihre Eingriffe ({{ interventions().length }})</span>
+            @if (interventions().length === 0) {
+              <p class="db-note">Sie haben in dieser Schicht nicht selbst eingegriffen.</p>
+            } @else {
+              <ul class="db-list">
+                @for (i of interventions(); track i.seq) {
+                  <li class="db-item">
+                    <span class="db-item__step">Schritt {{ i.step }}</span>
+                    <span><strong>{{ trainName(i.handle) }}</strong> · {{ actionLabel(i.action) }}</span>
+                    @if (i.reason) {
+                      <span class="db-item__reason">Grund: «{{ i.reason }}»</span>
+                    }
+                    @if (responseLabel(i.response); as label) {
+                      <span class="db-item__response">{{ label }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+            @if (systemHolds() > 0) {
+              <p class="db-note">Das System hat {{ systemHolds() }}× vorsorglich einen Zug angehalten, bis Sie entschieden haben.</p>
+            }
+          </div>
+
+          @if (r.moments.length > 0) {
+            <div class="db-block">
+              <span class="db-block__title">Worüber es sich zu sprechen lohnt</span>
+              @for (m of r.moments; track m.entry.seq) {
+                <div class="db-moment">
+                  <span class="db-badge">{{ caseLabel(m.caseType) }}</span>
+                  <span>Schritt {{ m.entry.simStep }} · {{ trainName(m.entry.handle) }}</span>
+                  <span class="db-moment__why">Ausgewählt weil: {{ m.reasons.join(' · ') }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <p class="db-concept">
+          Im Endausbau fasst die Schichtbilanz eine ganze Schicht mit vielen Vorfällen zusammen und bündelt ähnliche
+          Situationen. Diese Tour hat einen Vorfall.
+        </p>
+      </section>
+    }
+
+    @case ('event-simulation') {
+      <section class="db-section">
+        <p class="db-lead">
+          In der Sandbox spielen Sie einen Vorfall ausserhalb des Betriebs nochmals durch, mit einer anderen Entscheidung,
+          und sehen, was sie bewirkt hätte. Ebenso üben Sie Hochrisiko-Fälle, die Sie noch nie erlebt haben.
+        </p>
+
+        @for (c of sandbox.cases; track c.id) {
+          <article class="db-case">
+            <div class="db-case__head">
+              <span class="db-badge" [class.db-badge--novel]="c.kind === 'novel'">
+                {{ c.kind === 'experienced' ? 'Erlebter Vorfall' : 'Nie erlebter Hochrisiko-Fall' }}
+              </span>
+              <strong>{{ fill(c.title) }}</strong>
+            </div>
+            <p class="db-note">{{ fill(c.situation) }}</p>
+
+            <div class="db-variants">
+              @for (v of c.variants; track v.id) {
+                <div class="db-variant" [class.is-mine]="isUserChoice(c, v)">
+                  <div class="db-variant__head">
+                    <span class="db-variant__label">{{ fill(v.label) }}</span>
+                    @if (isUserChoice(c, v)) {
+                      <span class="db-mine">Ihre Wahl</span>
+                    }
+                  </div>
+                  <p class="db-variant__desc">{{ fill(v.description) }}</p>
+                  <div class="db-figures">
+                    <span [class.db-late]="v.arrived < v.total"><strong>{{ v.arrived }}/{{ v.total }}</strong> angekommen</span>
+                    @if (v.arrived === v.total) {
+                      <span><strong>+{{ v.totalDelayVsPlan }}</strong> Schritte Verspätung gegenüber Fahrplan</span>
+                    } @else {
+                      <!-- A sum over the trains that did arrive would read as the better outcome. -->
+                      <span class="db-late">Verspätung nicht vergleichbar: {{ v.total - v.arrived }} Zug/Züge kommen nicht an</span>
+                    }
+                  </div>
+                  <ul class="db-trains">
+                    @for (t of v.trains; track t.handle) {
+                      <li>
+                        {{ trainName(t.handle) }}:
+                        @if (!t.arrived) {
+                          <span class="db-late">kommt nicht an</span>
+                        } @else if (t.delayVsPlan) {
+                          <span class="db-late">+{{ t.delayVsPlan }}</span>
+                        } @else {
+                          nach Fahrplan
+                        }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          </article>
+        }
+
+        <p class="db-concept">
+          Vorberechnet mit dem Simulator auf derselben Episode, nicht erfunden: gleicher Fahrplan, gleiche Störung, gleiche
+          Haltelogik. Im Endausbau spielen Sie die Varianten in der Sandbox selbst durch.
+        </p>
+      </section>
+    }
+
+    @case ('ai-learns') {
+      <section class="db-section">
+        <p class="db-lead">
+          Die KI lernt aus den Gründen, die Sie bestätigt haben. Einzelfälle («Nur diesmal») werden nicht zur Regel.
+        </p>
+
+        <div class="db-block">
+          <span class="db-block__title">Lern-Karten dieser Schicht</span>
+          @if (store.learningRecords().length === 0) {
+            <p class="db-note">Keine Lern-Karte: In dieser Schicht wurde kein Grund bestätigt.</p>
+          } @else {
+            <app-learning-records />
+          }
+        </div>
+
+        @if (valueProfile(); as vp) {
+          @if (vp.dominant) {
+            <p class="db-line">
+              Muster bisher: <strong>{{ vp.label }}</strong> ({{ vp.dominantPct }} % von {{ vp.total }} bewussten Entscheidungen).
+            </p>
+          }
+        }
+
+        <div class="db-block">
+          <span class="db-block__title">Für die nächste Schicht</span>
+          @switch (saveState()) {
+            @case ('saved') {
+              <p class="db-saved">✓ Gespeichert. Die bestätigten Präferenzen gelten ab der nächsten Schicht als Startvorschlag.</p>
+            }
+            @case ('error') {
+              <p class="db-note is-warn">Speichern hat nicht funktioniert. Nichts wurde übernommen.</p>
+            }
+            @default {
+              <button class="db-btn" type="button" [disabled]="saveState() === 'saving'" (click)="savePreferences()">
+                {{ saveState() === 'saving' ? 'Speichere …' : 'Präferenzen für die nächste Schicht speichern' }}
+              </button>
+            }
+          }
+          <p class="db-note">Jedes Interview läuft unter einem eigenen Profil. Nichts davon geht an die nächste befragte Person.</p>
+        </div>
+
+        <div class="db-concept db-concept--card">
+          <span class="db-block__title">Konzept, nicht umgesetzt: Rückfluss ins TMS</span>
+          <ol>
+            <li>Bestätigte Regeln vieler Disponentinnen und Disponenten werden über Schichten gesammelt.</li>
+            <li>Fachleute prüfen und geben frei, was allgemein gelten soll.</li>
+            <li>Freigegebene Regeln passen die Gewichte der Empfehlungen und die Parameter der TMS-Algorithmen an.</li>
+          </ol>
+        </div>
+      </section>
+    }
+  }
+
+  <footer class="db-actions">
+    @if (activeIndex() > 0) {
+      <sbb-transparent-button size="m" (click)="back()">Zurück</sbb-transparent-button>
+    }
+    <sbb-button size="m" (click)="next()">
+      @if (nextSection(); as n) {
+        Weiter: {{ n.n }} {{ n.title }}
+      } @else {
+        Zur Übersicht
+      }
+    </sbb-button>
+  </footer>
+</div>

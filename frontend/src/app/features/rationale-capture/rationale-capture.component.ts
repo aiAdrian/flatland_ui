@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { buildPreferenceHypothesis, strategyLabelForAction } from '../../core/learning-store.service';
 
 /** One selectable structured "why" chip (LLM-free first cut). */
@@ -32,6 +33,11 @@ interface ReasonChip {
 })
 export class RationaleCaptureComponent {
   store = inject(SessionStore);
+  private readonly identity = inject(TrainIdentityService);
+
+  trainName(handle: number): string {
+    return this.identity.nameFor(handle);
+  }
 
   /** Structured reasons (dispatching trade-offs + experience). Multi-select. */
   readonly chips: ReasonChip[] = [

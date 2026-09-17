@@ -556,6 +556,31 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     spec: 'docs/plans/widget-b1-whatif-compare.md',
   },
   {
+    catalogId: 'B1b',
+    type: 'proposal-compare',
+    title: 'Plan / KI / Mensch',
+    dataSource: 'simulation',
+    kind: 'prediction',
+    granularity: 'detail',
+    writes: 'simulation',
+    status: 'first-cut',
+    description: 'Three simulated courses for the selected train: the timetable plan running on (grey), a Prioritized Planning replan of all trains with its ranked priority orders (yellow), and the operator\'s option — hold, hold until clear, proceed, reroute (blue).',
+    promise: 'See what the plan, the AI and your own option each do to this train, before committing.',
+    grounding:
+      'The proposal seam of docs/plans/proposal-agents-roadmap.md: a base algorithm with small agents proposing local deviations. PP solver from AI4REALNET/flatland-blackbox (vendored); branch simulation as in B1; A3S colours (human blue, AI yellow), the plan neutral as nobody\'s proposal.',
+    availableModes: ['co-learning'],
+    perMode: {
+      recommendation:
+        'Not offered: the AI marking one of the three courses as the recommended one is the `recommendations` panel\'s job, and it would break this widget\'s neutral framing.',
+      'co-learning': 'Neutral options, no ranking of the human against the AI; the plan is the third course, not a baseline to beat.',
+      director:
+        'Not offered yet. Under a directive the AI owns actuation, so the human column would have nothing to commit; the supervisory branch view is `whatif-compare`.',
+    },
+    defaultZone: 'right',
+    minHeight: 220,
+    spec: 'docs/plans/proposal-agents-roadmap.md',
+  },
+  {
     catalogId: 'B2',
     type: '',
     title: 'Conflict-aware Marey (ribbons + predicted lines)',
@@ -646,7 +671,9 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     type: 'combined-actions',
     catalogId: 'E1',
     title: 'Combined Actions',
-    dataSource: 'mock',
+    // Real input, modelled prediction: the packages are built from the
+    // session's live contention groups, the impact figures are not.
+    dataSource: 'mixed',
     kind: 'decision-support',
     granularity: 'overview-detail',
     status: 'first-cut',
@@ -663,7 +690,9 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
       director:
         'Suppressed to read-only supervision. Dispatch-altitude decision support belongs to the AI in Director (the human\'s lever is the objective, in `strategy-options`), so the executing package is marked "AI executing", chips are not draggable and Apply/Reset are hidden. Pointing at a card still previews its consequence in the map and the ZWL — supervising means seeing what the AI is doing.',
     },
-    writes: 'view',
+    // `Apply` writes a coordinated-action record to the decision log
+    // (`recordCoordinatedAction`). Still nothing the simulation sees.
+    writes: 'record',
     defaultZone: 'right',
     minHeight: 420,
     spec: 'docs/plans/widget-e1-combined-actions.md',
@@ -689,7 +718,8 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
       director:
         'Supervisory read-only, like E1: the package the AI executes is shown, not editable.',
     },
-    writes: 'view',
+    // Same `recordCoordinatedAction` seam as E1.
+    writes: 'record',
     defaultZone: 'right',
     minHeight: 420,
     spec: 'docs/plans/widget-e1-combined-actions.md',

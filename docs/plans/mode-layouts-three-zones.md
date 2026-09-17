@@ -53,13 +53,16 @@ Four facts that the plan has to move:
 3. **The Fahrplan is in no mode layout.** `timetable` is registered as a centre
    view ([center-views.ts:33](../../frontend/src/app/features/view-tabs/center-views.ts))
    but only the Combined-Actions preset configures it.
-4. **Zone detection is string-sniffing and gets presets wrong.**
-   `toRuntimeZone()` ([app.component.ts:1254-1266](../../frontend/src/app/app.component.ts))
-   derives the zone from the column's `role`/`name`: a preset column named
-   `"Entscheidung"` matches neither `right` nor `center|main|map` and is typed
-   **`left`**. The CSS-class sibling has an extra `index === 1` fallback the zone
-   function lacks, so the two already disagree. Any zone-based rule must fix this
-   first (§7 P0).
+4. ~~**Zone detection is string-sniffing and gets presets wrong.**~~ **Fixed
+   2026-09-11 — and it was worse than described.** The sniffing in
+   `toRuntimeZone()` does read a column named `"Entscheidung"` as `left`, but the
+   designed-layout path never called it: it bound `[panel]="panel"` straight from
+   the design, and a design's panel objects carry **no `zone` at all**
+   (`LayoutPresetPanel` has id/type/title/expanded/collapsible/minHeight/settings).
+   So a zone-derived rule was not wrong in a preset, it was *inert*. Now
+   `LayoutPresetColumn` declares `zone`, all four presets set it, and
+   `runtimeZonedPanel()` resolves column zone → legacy sniffing → panel, cached
+   per column+panel for a stable reference.
 
 ---
 
@@ -90,6 +93,20 @@ Two things fall out of this that are worth having on their own:
   the right column because Director had no left column to put it in.
 
 ### Enforcing read-only
+
+> **First slice landed 2026-09-08 ("Guide Mode light"), completed 2026-09-11
+> with P0.** `panel-plugin-host`
+> derives `zoneViewOnly` from `panel.zone === 'left'` and passes it to the two
+> widgets that carry dispatch controls (`agents` → `left-sidebar`,
+> `agents-table`). The roster still reports what the train faces ("Next:
+> SWITCH") and still selects, it just no longer sets the override; the table
+> keeps the AI star and the operator's own marking as labels. Deliberately *not*
+> in this slice: moving any panel, Director's missing left column, and the
+> notifications dismiss (§10.1 is still open). No layout changed, so nothing
+> here needed the resolver. Verified in the running app on both paths: the
+> hardcoded Default Layout and the Recommendation/Co-Learning presets each render
+> 0 action buttons in the left column and keep selection plus the Agent Inspector
+> on the right.
 
 Derive it from the zone rather than writing it into each widget:
 `panel.zone === 'left'` ⇒ the host passes `readonly` to the widget. `PanelInstance`
@@ -397,7 +414,7 @@ the formats are compatible by construction.
 
 ## 8. Sequencing
 
-- **P0 — zones become data.** Add an explicit `zone: 'left' | 'center' | 'right'`
+- **P0 — zones become data. ✅ landed 2026-09-11.** Add an explicit `zone: 'left' | 'center' | 'right'`
   to `LayoutPresetColumn`, keep `toRuntimeZone()`'s string-sniffing only as the
   legacy fallback (§2.4). Nothing else in this plan is safe until a right column
   is actually typed `right`.

@@ -269,4 +269,58 @@ def trainruns_from_env(env: RailEnv) -> Optional[TrainrunDict]:
     return getattr(env, "_trainrun_plan", None)
 
 
-__all__ = ["PlanPolicy", "trainruns_from_env"]
+def plan_branch_factory(env: RailEnv):
+    """Zero-arg policy factory (the `TrajectoryBranchRunner` contract) that
+    follows `env`'s plan on forked envs; None when `env` ships no plan.
+
+    Branch envs are persister clones and do not carry the stashed plan, so the
+    trainruns are read from the live env here and handed to every policy. Without
+    this a plan-driven session was forecast with deadlock avoidance, which routes
+    trains differently from the plan the session actually runs.
+    """
+    trainruns = trainruns_from_env(env)
+    if not trainruns:
+        return None
+
+    def factory() -> PlanPolicy:
+        return PlanPolicy(None, trainruns)
+
+    return factory
+
+
+def baseline_trainruns_from_env(env: RailEnv) -> Optional[TrainrunDict]:
+    """The timetable the session started from, even after a replan replaced it.
+
+    Accepting an AI replan swaps `_trainrun_plan` for the plan the trains now
+    follow. "Delay against the plan" must keep meaning the *timetable*, or every
+    accepted replan would silently reset the yardstick to itself.
+    """
+    return getattr(env, "_baseline_trainrun_plan", None) or trainruns_from_env(env)
+
+
+def install_trainrun_plan(env: RailEnv, trainruns: TrainrunDict) -> None:
+    """Make `trainruns` the plan the session runs on, keeping the timetable as
+    the yardstick (stashed on first replacement)."""
+    if getattr(env, "_baseline_trainrun_plan", None) is None:
+        env._baseline_trainrun_plan = trainruns_from_env(env)
+    env._trainrun_plan = trainruns
+
+
+def planned_arrival_steps(env: RailEnv) -> Dict[int, int]:
+    """Step at which each planned train is DONE when it runs to the timetable.
+
+    A trainrun's last waypoint is the target cell, entered at `scheduled_at`;
+    Flatland marks the train DONE one step later.
+    """
+    trainruns = baseline_trainruns_from_env(env) or {}
+    return {int(handle): int(run[-1].scheduled_at) + 1 for handle, run in trainruns.items() if run}
+
+
+__all__ = [
+    "PlanPolicy",
+    "baseline_trainruns_from_env",
+    "install_trainrun_plan",
+    "plan_branch_factory",
+    "planned_arrival_steps",
+    "trainruns_from_env",
+]

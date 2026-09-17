@@ -206,3 +206,11 @@
 }
 
 .ai-star { font-size: 10px; }
+
+/* Zone rule (Guide Mode): an option shown, not offered. Keeps the button's
+   shape so the AI star and the operator's own marking still read the same,
+   but is inert — no pointer, no hover. */
+.action-btn--view {
+  cursor: default;
+  &:hover { background: inherit; }
+}

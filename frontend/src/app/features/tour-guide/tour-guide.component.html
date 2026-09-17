@@ -1,0 +1,54 @@
+<nav class="tour-guide" aria-label="Ablauf der Tour">
+  <div class="tour-guide__groups">
+    @for (group of groups(); track group.loop) {
+      <div class="tour-guide__group">
+        <span class="tour-guide__loop">{{ group.label }}</span>
+        <ol class="tour-guide__list">
+          @for (item of group.steps; track item.step.id) {
+            <li
+              class="tour-guide__step"
+              [class.is-done]="guide.done().has(item.step.id)"
+              [class.is-current]="guide.current()?.id === item.step.id"
+              [class.is-after]="item.step.afterEpisode"
+              [attr.aria-current]="guide.current()?.id === item.step.id ? 'step' : null"
+              [attr.title]="item.step.hint"
+            >
+              <span class="tour-guide__num">{{ guide.done().has(item.step.id) ? '✓' : item.n }}</span>
+              <span>{{ item.step.title }}</span>
+              @if (item.step.module) {
+                <span class="tour-guide__module" role="img" aria-label="Co-Learning-Modul"></span>
+              }
+              @if (item.step.afterEpisode) {
+                <span class="tour-guide__after">nach der Episode</span>
+              }
+            </li>
+          }
+        </ol>
+      </div>
+    }
+  </div>
+
+  <div class="tour-guide__row">
+    <p class="tour-guide__hint" role="status" aria-live="polite">
+      @if (guide.current(); as step) {
+        <strong>Schritt {{ currentNumber() }} · {{ step.title }}:</strong> {{ step.hint }}
+      } @else if (!store.shiftReviewOpen()) {
+        {{ afterLiveHint }}
+      } @else {
+        Alle neun Schritte sind erlebt.
+      }
+    </p>
+    @if (!store.shiftReviewOpen()) {
+      <div class="tour-guide__actions">
+        @if (canReflect()) {
+          <button type="button" class="tour-guide__reflect" (click)="store.reopenRationale()">
+            Reflexion öffnen
+          </button>
+        }
+        <button type="button" class="tour-guide__end" [class.is-primary]="guide.liveDone()" (click)="store.endShift()">
+          Schicht beenden
+        </button>
+      </div>
+    }
+  </div>
+</nav>

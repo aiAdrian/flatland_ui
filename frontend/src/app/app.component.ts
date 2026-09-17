@@ -17,6 +17,13 @@ import { DirectorDirectiveComponent } from './features/director-directive/direct
 import { SurveyComponent } from './features/survey/survey.component';
 import { ModeIntroComponent } from './features/mode-intro/mode-intro.component';
 import { DemoCompleteComponent } from './features/demo-complete/demo-complete.component';
+import { TourBriefingComponent } from './features/tour-briefing/tour-briefing.component';
+import { briefingById } from './core/demo/tour-briefings';
+import { TourContextService } from './core/demo/tour-context.service';
+import { TourGuideService } from './core/demo/tour-guide.service';
+import { TourGuideComponent } from './features/tour-guide/tour-guide.component';
+import { TourDebriefComponent } from './features/tour-debrief/tour-debrief.component';
+import { TourReasonDialogComponent } from './features/tour-reason-dialog/tour-reason-dialog.component';
 import { HelpAboutComponent } from './features/help-about/help-about.component';
 import { SURVEY_PARTS, DEFAULT_SURVEY_PARTS } from './core/survey/survey-configs';
 import { ApiService } from './core/api.service';
@@ -43,6 +50,7 @@ import { InfrastructureSceneStorageService } from './features/infrastructure-bui
 import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gallery.component';
 import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
 import { ContributeComponent } from './features/contribute/contribute.component';
+import { TOURS, Tour, tourById } from './core/demo/tours';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 import { LAYOUT_PRESETS } from './core/layout/layout-presets';
@@ -85,6 +93,10 @@ type RuntimeLayoutOption = {
     ViewToggleComponent,
     ModeIntroComponent,
     DemoCompleteComponent,
+    TourBriefingComponent,
+    TourGuideComponent,
+    TourDebriefComponent,
+    TourReasonDialogComponent,
     HelpAboutComponent,
     PanelShellComponent,
     ConfigShellComponent,
@@ -365,7 +377,7 @@ export class AppComponent implements OnInit {
    * it is what the operator looks at when the work is done.
    */
   readonly shiftScreenOpen = computed(
-    () => this.panelAvailable('shift-review') && this.store.shiftReviewOpen(),
+    () => (this.panelAvailable('shift-review') || this.tourContext.hasDebrief()) && this.store.shiftReviewOpen(),
   );
 
   /** Label of the currently active collaboration mode (for the header dropdown). */
@@ -492,8 +504,70 @@ export class AppComponent implements OnInit {
     if (!opts) return;
     this.store.stopDemo();
     this.demoComplete.set(false);
+    this.tourContext.clear();
     this.createSession(opts);
     this.store.startDemo();
+  }
+
+  // ── Tours (core/demo/tours.ts) ───────────────────────────────────────────
+  readonly tours = TOURS;
+  readonly selectedTourId = signal<string>(TOURS[0].id);
+  readonly selectedTour = computed<Tour>(() => tourById(this.selectedTourId()) ?? TOURS[0]);
+
+  /** The running tour's name for the footer; falls back to the generic label
+   *  when a demo was started without naming a tour. */
+  readonly activeTourName = computed(() => this.selectedTour()?.name ?? 'Guided demo');
+
+  setSelectedTour(id: string): void {
+    this.selectedTourId.set(id);
+  }
+
+  readonly activeBriefing = computed(() => briefingById(this.selectedTour().briefingId));
+  readonly tourContext = inject(TourContextService);
+  readonly tourGuide = inject(TourGuideService);
+  /** The tour's opening page is showing; it precedes the first mode intro. */
+  readonly tourOpeningOpen = signal(false);
+
+  closeTourOpening(): void {
+    this.tourOpeningOpen.set(false);
+  }
+
+  exitTourFromOpening(): void {
+    this.tourOpeningOpen.set(false);
+    this.exitDemo();
+  }
+
+  /**
+   * Start the selected tour. A tour pins everything — modes, layout,
+   * environment, survey — so this is the one entry point on the start screen
+   * that needs no other choice from the person (plan §4.6/§11).
+   *
+   * Order matters: the layout and the mode are set *before* the session is
+   * created, because `newSession` reads the mode to pick the goal_directed
+   * policy from step one, and because a Director leg has to be in the hardcoded
+   * layout to show its own surfaces at all.
+   */
+  startTour(): void {
+    const tour = this.selectedTour();
+
+    this.setRuntimeLayout(
+      tour.layout === 'system' ? this.systemRuntimeLayoutId : tour.layout,
+    );
+    this.setSelectedRuntimeInfrastructure(tour.infrastructureId);
+    if (tour.disturbanceIds?.length) {
+      this.selectedDisturbanceIds.set(new Set(tour.disturbanceIds));
+    }
+
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+
+    this.store.stopDemo();
+    this.demoComplete.set(false);
+    this.store.setInteractionMode(tour.modes[0]);
+    this.createSession(opts);
+    this.tourContext.set(this.activeBriefing());
+    this.store.startDemo(tour.modes, tour.surveyAfterEachMode);
+    this.tourOpeningOpen.set(!!this.activeBriefing());
   }
 
   /** Direct entry into the Director screen — Roman's & Gereon's design
@@ -519,9 +593,158 @@ export class AppComponent implements OnInit {
     this.createSession(opts);
   }
 
-  /** Finish the current demo mode → open its survey (advance happens on close). */
+  // ── Welcome: three doors, one Start (plan §11) ───────────────────────────
+  /**
+   * Which door is open on the start screen. SBB Lyne forbids several primary
+   * buttons on one page, so the three entry points are a selection and there is
+   * exactly one Start — whose meaning follows the selection.
+   */
+  readonly welcomeDoor = signal<'introduction' | 'build' | 'experiments'>('introduction');
+
+  private static readonly MODE_LABEL: Record<InteractionMode, string> = {
+    recommendation: 'Recommendation',
+    'co-learning': 'Co-Learning',
+    director: 'Director',
+  };
+
+  /**
+   * Experiment conditions available today: the two User Study 2 layouts, each
+   * bound to the mode it was designed for. A first cut of the Experiment entity
+   * (plan §4.7) — no participant id, no counterbalanced order yet.
+   */
+  readonly studyConditions: ReadonlyArray<{ layoutId: string; mode: InteractionMode; label: string }> = [
+    { layoutId: 'preset-recommendation-study2', mode: 'recommendation', label: 'Recommendation · User Study 2' },
+    { layoutId: 'preset-colearning-study2', mode: 'co-learning', label: 'Co-Learning · User Study 2' },
+  ];
+  private readonly _studyLayoutId = signal<string>('preset-recommendation-study2');
+  readonly selectedStudyCondition = computed(
+    () => this.studyConditions.find((c) => c.layoutId === this._studyLayoutId()) ?? this.studyConditions[0],
+  );
+
+  /** Only scenarios that ship a premade plan: that is what makes a run reproducible. */
+  readonly planScenarioPresets = computed(() =>
+    (this.scenarioPresets() as any[]).filter((preset) => preset?.has_plan),
+  );
+  private readonly _experimentScenarioId = signal<string>('');
+  readonly selectedExperimentScenarioId = computed(() => {
+    const plans = this.planScenarioPresets();
+    const chosen = this._experimentScenarioId();
+    return plans.some((preset) => preset.id === chosen) ? chosen : (plans[0]?.id ?? '');
+  });
+
+  setWelcomeDoor(door: string): void {
+    if (door !== 'introduction' && door !== 'build' && door !== 'experiments') return;
+    this.welcomeDoor.set(door);
+    // The disturbance checkboxes follow the selected scenario, and both the
+    // Build and the Experiments door read it — point it at the experiment's
+    // scenario when that door opens.
+    if (door === 'experiments') {
+      const id = this.selectedExperimentScenarioId();
+      if (id && this.selectedRuntimeInfrastructureId() !== id) {
+        this.setSelectedRuntimeInfrastructure(id);
+      }
+    }
+  }
+
+  setStudyCondition(layoutId: string): void {
+    this._studyLayoutId.set(layoutId);
+  }
+
+  setExperimentScenario(id: string): void {
+    this._experimentScenarioId.set(id);
+    this.setSelectedRuntimeInfrastructure(id);
+  }
+
+  /** The label of the one Start button, naming what it will start. */
+  readonly welcomeStartLabel = computed(() => {
+    switch (this.welcomeDoor()) {
+      case 'introduction': return 'Start tour';
+      case 'experiments': return 'Start experiment';
+      default: return 'Start session';
+    }
+  });
+
+  /**
+   * One sentence naming the resolved run before it starts (plan §11, rule 2):
+   * the person sees the result of their choices before committing to them.
+   */
+  readonly welcomeSummary = computed(() => {
+    const label = AppComponent.MODE_LABEL;
+    switch (this.welcomeDoor()) {
+      case 'introduction': {
+        const tour = this.selectedTour();
+        return `You start the tour “${tour.name}”: ${tour.modes.map((m) => label[m]).join(' → ')}, about ${tour.expectedMinutes} min.`;
+      }
+      case 'experiments': {
+        const condition = this.selectedStudyCondition();
+        const count = this.selectedDisturbanceIds().size;
+        const disturbances = count ? `${count} disturbance${count === 1 ? '' : 's'}` : 'no disturbances (reference run)';
+        return `You start ${condition.label} on ${this.welcomeNetworkLabel(this.selectedExperimentScenarioId())}, ${disturbances}.`;
+      }
+      default:
+        return `You start ${this.welcomeNetworkLabel(this.selectedRuntimeInfrastructureId())} in ${this.welcomeLayoutLabel(this.selectedRuntimeLayoutId())}, mode ${label[this.store.interactionMode()]}.`;
+    }
+  });
+
+  private welcomeNetworkLabel(id: string): string {
+    if (id === AppComponent.GUIDED_DEMO_INFRA_ID) return 'the Guided Demo Environment';
+    if (id === 'random') return `a random network (${this.newWidth()} × ${this.newHeight()}, ${this.newAgents()} trains)`;
+    const preset = (this.scenarioPresets() as any[]).find((p) => p?.id === id);
+    if (preset) return preset.name;
+    return this.runtimeInfrastructureScenes().find((scene) => scene.id === id)?.name ?? id;
+  }
+
+  private welcomeLayoutLabel(id: string): string {
+    if (!id || id === this.systemRuntimeLayoutId) return 'the default layout';
+    const name = this.runtimeLayoutOptions().find((layout) => layout.id === id)?.name;
+    return name ? `“${name}”` : 'the default layout';
+  }
+
+  /** The one Start: dispatches on the selected door. */
+  startFromWelcome(): void {
+    switch (this.welcomeDoor()) {
+      case 'introduction': this.startTour(); return;
+      case 'experiments': this.startExperiment(); return;
+      default: this.onWelcomeNewSession();
+    }
+  }
+
+  /**
+   * Start a prepared condition. Layout and mode are set before the session is
+   * created, for the same reason as a tour: `newSession` reads the mode.
+   */
+  startExperiment(): void {
+    const condition = this.selectedStudyCondition();
+    const scenarioId = this.selectedExperimentScenarioId();
+    if (!scenarioId) {
+      this.store.error.set('No scenario with a premade plan is available for an experiment.');
+      return;
+    }
+    this.setRuntimeLayout(condition.layoutId);
+    // Only switch when needed: switching clears the disturbance ticks, which
+    // are part of the condition the person just set up.
+    if (this.selectedRuntimeInfrastructureId() !== scenarioId) {
+      this.setSelectedRuntimeInfrastructure(scenarioId);
+    }
+    const opts = this.resolveWelcomeSessionOpts();
+    if (!opts) return;
+    this.store.stopDemo();
+    this.demoComplete.set(false);
+    this.store.setInteractionMode(condition.mode);
+    this.createSession(opts);
+  }
+
+  /** Finish the current tour leg. With the survey on, opening it advances on
+   *  close; a tour that runs without one (the Director-only tour) has to
+   *  advance here instead, or "Finish mode" would do nothing. */
   finishDemoMode() {
-    this.openSurvey();
+    if (this.store.demoSurveyEnabled()) {
+      this.openSurvey();
+      return;
+    }
+    if (!this.store.advanceDemo()) {
+      this.demoComplete.set(true);
+    }
   }
 
   exitDemo() {
@@ -834,7 +1057,12 @@ export class AppComponent implements OnInit {
    *  map). A plan, if the scenario ships one, needs nothing here: it travels
    *  with the scenario and the backend puts the session on it. */
   private presetSessionOpts(scenarioPresetId: string): NewSessionOpts {
-    const offered = new Set(this.selectedPresetDisturbances().map((d) => d.id));
+    // A tour may pin a disturbance the picker does not list (backend
+    // `tour_disturbances`); only a started tour puts those ids in the selection.
+    const offered = new Set([
+      ...this.selectedPresetDisturbances().map((d) => d.id),
+      ...(this.selectedTour().disturbanceIds ?? []),
+    ]);
     return {
       scenarioPresetId,
       disturbanceIds: [...this.selectedDisturbanceIds()].filter((id) => offered.has(id)),
@@ -1237,6 +1465,36 @@ export class AppComponent implements OnInit {
       hidden: false,
       sizeMode: zone === 'center' ? 'fill' : 'auto',
     } as PanelInstance;
+  }
+
+  /**
+   * The panel a designed layout renders, carrying the zone of the column it
+   * sits in. A design's panel objects have no `zone` of their own, so any
+   * zone-derived rule — the read-only left column of the three-zone contract —
+   * was inert on this path (docs/plans/mode-layouts-three-zones.md §2/§3).
+   *
+   * Resolution order: the column's declared `zone`, else the legacy
+   * name-sniffing in `toRuntimeZone()` for designs saved before the field
+   * existed.
+   *
+   * Cached per column+panel so the binding keeps a stable object reference
+   * across change detection; a fresh literal each cycle would make every panel
+   * look changed on every tick.
+   */
+  private readonly _zonedPanels = new Map<string, any>();
+
+  runtimeZonedPanel(column: any, panel: any): any {
+    const key = `${column?.id ?? '?'}/${panel?.id ?? '?'}`;
+    const zone = column?.zone ?? this.toRuntimeZone(column);
+    const cached = this._zonedPanels.get(key);
+
+    if (cached && cached.__source === panel && cached.zone === zone) {
+      return cached;
+    }
+
+    const zoned = { ...panel, zone, __source: panel };
+    this._zonedPanels.set(key, zoned);
+    return zoned;
   }
 
   private toRuntimeZone(column: any): 'left' | 'center' | 'right' {

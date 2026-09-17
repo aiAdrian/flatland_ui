@@ -11,6 +11,8 @@ import { LeftSidebarComponent } from '../left-sidebar/left-sidebar.component';
 })
 export class AgentsPanelComponent {
   @Input() embedded = false;
+  /** Zone rule: render without dispatch controls (see panel-plugin-host). */
+  @Input() viewOnly = false;
 
   @HostBinding('class.embedded')
   get embeddedClass(): boolean {

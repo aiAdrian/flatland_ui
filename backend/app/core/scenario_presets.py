@@ -43,7 +43,7 @@ ENV_PRESET = "env"
 SCENE_PRESET = "scene"
 
 # Keys that are implementation detail, not part of the UI payload.
-_INTERNAL_FIELDS = {"path", "kind", "session", "plan", "disturbances"}
+_INTERNAL_FIELDS = {"path", "kind", "session", "plan", "disturbances", "tour_disturbances"}
 
 
 # id -> metadata. `path` points at the file; width/height/agents are the loaded
@@ -158,6 +158,9 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "source": "Gleisschema of the Pfäffikon SZ–Chur line",
         "plan": _FIXTURES / "pf_ch" / "pf-ch-wn-wal-long-approach.plan.json",
         "disturbances": _FIXTURES / "pf_ch" / "disturbances_long_approach",
+        # Selectable by id (a tour pins it) but never listed in the picker, so a
+        # demo disturbance cannot be mistaken for a study condition.
+        "tour_disturbances": _FIXTURES / "pf_ch" / "disturbances_tour_long_approach",
         # Same network, trains and targets as the short version; both spawns
         # move one station further out (WN->ZB eastbound, WAL->FMS westbound)
         # so the conflict is visible for longer before it has to be resolved.
@@ -236,7 +239,9 @@ def select_disturbances(preset_id: str, ids: list[str] | None) -> list[dict[str,
     if not ids:
         return []
     wanted = set(ids)
-    available = preset_disturbances(preset_id)
+    available = preset_disturbances(preset_id) + list_disturbances(
+        get_preset(preset_id).get("tour_disturbances")
+    )
     unknown = wanted - {d["id"] for d in available}
     if unknown:
         raise KeyError(

@@ -1,4 +1,4 @@
-import { DecisionLogEntry } from './decision-log';
+import { DecisionAction, DecisionLogEntry } from './decision-log';
 import { LearningRecord } from './learning-store.service';
 import { ValueAxis } from './operator-model.service';
 import { valueAxisFor } from './operator-value-axis';
@@ -126,6 +126,35 @@ function contradictionFrom(choices: ShiftChoice[]): ShiftContradiction | null {
       `priorisiert. Was war in der Lage anders — oder hängt es von etwas ab, das ich ` +
       `noch nicht kenne?`,
   };
+}
+
+/** One per-train decision the human took, as a Co-Learning shift summary lists it. */
+export interface ShiftIntervention {
+  seq: number;
+  step: number;
+  handle: number;
+  action: DecisionAction;
+  reason: string | null;
+  response: 'yes' | 'once' | 'no' | null;
+}
+
+/**
+ * The human's per-train decisions of a shift, chronological. Director's goal
+ * choices (`strategy`) and coordinated packages (`handle -1`) are not
+ * interventions on a train; system holds belong to neither party.
+ */
+export function interventionsFrom(decisionLog: DecisionLogEntry[]): ShiftIntervention[] {
+  return decisionLog
+    .filter((e) => e.accountableOwner === 'human' && e.action !== 'strategy' && e.handle >= 0)
+    .sort((a, b) => a.seq - b.seq)
+    .map((e) => ({
+      seq: e.seq,
+      step: e.simStep,
+      handle: e.handle,
+      action: e.action,
+      reason: statedReason(e.rationale),
+      response: e.hypothesisResponse ?? null,
+    }));
 }
 
 export function buildShiftReview(input: {

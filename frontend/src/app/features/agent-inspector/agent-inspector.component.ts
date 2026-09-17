@@ -1,5 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentDTO } from '../../core/models';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
@@ -13,6 +14,11 @@ import { TrainActionService } from '../../core/dispatch/train-action.service';
 })
 export class AgentInspectorComponent {
   store = inject(SessionStore);
+  private readonly identity = inject(TrainIdentityService);
+
+  trainName(handle: number): string {
+    return this.identity.nameFor(handle);
+  }
   private agentColors = inject(AgentColorService);
   /** Acting goes through the dispatch seam, never straight to the store. */
   private trainActions = inject(TrainActionService);

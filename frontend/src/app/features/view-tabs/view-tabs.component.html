@@ -11,7 +11,9 @@
     }
   </div>
 
-  <div class="view-tabs__body">
+  <div class="view-tabs__body"
+       [class.view-tabs__body--sized]="minBodyHeight() !== null"
+       [style.min-height.px]="minBodyHeight()">
     @if (activeComponent(); as cmp) {
       <ng-container *ngComponentOutlet="cmp; inputs: activeInputs()"></ng-container>
     }

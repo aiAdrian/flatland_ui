@@ -20,6 +20,7 @@ import { RecommendationsPanelComponent } from '../../../recommendations-panel/re
 import { RecommendationsClassicComponent } from '../../../recommendations-classic/recommendations-classic.component';
 import { ImpactPanelComponent } from '../../../impact-panel/impact-panel.component';
 import { WhatifCompareComponent } from '../../../whatif-compare/whatif-compare.component';
+import { ProposalCompareComponent } from '../../../proposal-compare/proposal-compare.component';
 import { RiskUncertaintyPanelComponent } from '../../../risk-uncertainty/risk-uncertainty-panel.component';
 import { DecisionLogPanelComponent } from '../../../decision-log/decision-log-panel.component';
 import { FlatlandMapComponent } from '../../../flatland-map/flatland-map.component';
@@ -66,6 +67,7 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     RecommendationsClassicComponent,
     ImpactPanelComponent,
     WhatifCompareComponent,
+    ProposalCompareComponent,
     RiskUncertaintyPanelComponent,
     DecisionLogPanelComponent,
     FlatlandMapComponent,
@@ -181,6 +183,15 @@ export class PanelPluginHostComponent implements OnInit, OnDestroy {
   }
 
   @Input({ required: true }) panel!: PanelInstance;
+
+  /** Guide-Mode zone rule: the left column is status and events — it may be
+   *  read and navigated, never acted from. Panels that carry dispatch controls
+   *  ask for this and render them as read-only. The action itself is not lost:
+   *  it lives in the Agent Inspector on the right and on the map overlay.
+   *  See docs/plans/mode-layouts-three-zones.md §1/§3. */
+  get zoneViewOnly(): boolean {
+    return this.panel?.zone === 'left';
+  }
 
   @HostBinding('attr.data-panel-type')
   get hostPanelType(): string | null {

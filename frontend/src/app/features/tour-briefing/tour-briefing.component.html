@@ -1,0 +1,118 @@
+<div class="briefing">
+  @if (page === 'opening') {
+    @let o = briefing.opening;
+    <article class="briefing-card">
+      <span class="briefing-eyebrow">{{ o.eyebrow }}</span>
+      <sbb-title level="2" visual-level="3" class="briefing-title">{{ o.title }}</sbb-title>
+      <p class="briefing-lead">{{ o.lead }}</p>
+      <p class="briefing-byline">{{ o.byline }}</p>
+
+      <div class="briefing-sections">
+        @for (section of o.sections; track section.heading; let i = $index) {
+          <section class="briefing-section" [class.briefing-section--goal]="i === 1">
+            <sbb-title level="3" visual-level="5">{{ section.heading }}</sbb-title>
+            @if (section.body) {
+              <p>{{ section.body }}</p>
+            }
+            @if (section.items) {
+              <ol [class.plain]="!section.ordered">
+                @for (item of section.items; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ol>
+            }
+          </section>
+        }
+      </div>
+
+      <div class="briefing-actions">
+        <sbb-button size="l" (click)="proceed.emit()">{{ o.proceedLabel }}</sbb-button>
+        <sbb-transparent-button size="m" (click)="exit.emit()">Tour beenden</sbb-transparent-button>
+      </div>
+    </article>
+  } @else {
+    @let c = briefing.closing;
+    <article class="briefing-card briefing-card--wide">
+      <span class="briefing-eyebrow">{{ c.eyebrow }}</span>
+      <sbb-title level="2" visual-level="3" class="briefing-title">{{ c.title }}</sbb-title>
+      <p class="briefing-lead">{{ c.lead }}</p>
+
+      <div class="briefing-theory">
+        <section class="briefing-section">
+          <sbb-title level="3" visual-level="5">Lernzyklus nach Kolb</sbb-title>
+          <p>{{ c.kolbIntro }}</p>
+          <ol class="kolb">
+            @for (phase of c.kolb; track phase.name; let i = $index) {
+              <li class="kolb-phase" [class.kolb-phase--unsupported]="!phase.supported">
+                <span class="kolb-num">{{ i + 1 }}</span>
+                <span class="kolb-name">{{ phase.name }}</span>
+                <span class="kolb-note">{{ phase.note }}</span>
+                <span class="kolb-flag">{{ phase.supported ? 'vom System unterstützt' : 'beim Menschen' }}</span>
+              </li>
+            }
+          </ol>
+        </section>
+
+        <section class="briefing-section">
+          <sbb-title level="3" visual-level="5">Zwei Loops</sbb-title>
+          <div class="loops">
+            @for (loop of c.loops; track loop.name) {
+              <div class="loop">
+                <span class="loop-name">{{ loop.name }}</span>
+                <ol>
+                  @for (step of loop.steps; track $index) {
+                    <li><strong>{{ step.actor }}</strong> {{ step.action }}</li>
+                  }
+                </ol>
+              </div>
+            }
+          </div>
+          <p class="briefing-note">{{ c.loopsNote }}</p>
+        </section>
+      </div>
+
+      <section class="briefing-section">
+        <sbb-title level="3" visual-level="5">Module und Funktionen</sbb-title>
+        <div class="modules-scroll">
+          <table class="modules">
+            <thead>
+              <tr>
+                <th scope="col">Modul</th>
+                <th scope="col">Kolb-Phase</th>
+                <th scope="col">Was es tut</th>
+                <th scope="col">In der Tour</th>
+                <th scope="col">Stand im Prototyp</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of c.modules; track m.name) {
+                <tr>
+                  <th scope="row">
+                    <span class="module-name">{{ m.name }}</span>
+                    <span class="module-area">{{ m.area }}</span>
+                  </th>
+                  <td>{{ m.kolbPhase }}</td>
+                  <td>{{ m.does }}</td>
+                  <td>{{ m.inTour }}</td>
+                  <td>
+                    <span class="status status--{{ m.status }}">{{ c.statusLabels[m.status] }}</span>
+                    <span class="status-note">{{ m.statusNote }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="briefing-reminder">{{ c.estimationReminder }}</p>
+      <p class="briefing-disclaimer">{{ c.disclaimer }}</p>
+      <p class="briefing-note">{{ c.sources }}</p>
+
+      <div class="briefing-actions">
+        <sbb-button size="l" (click)="exit.emit()">Tour beenden</sbb-button>
+        <sbb-transparent-button size="m" (click)="restart.emit()">Tour neu starten</sbb-transparent-button>
+      </div>
+    </article>
+  }
+</div>

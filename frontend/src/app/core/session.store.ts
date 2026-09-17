@@ -10,6 +10,7 @@ import {
 } from './visual-encoding';
 import {
   DECISION_LOG_CAP,
+  DecisionAction,
   DecisionLogEntry,
   DecisionOwner,
   DecisionValueAxis,
@@ -511,6 +512,44 @@ export class SessionStore {
   }
 
   /**
+   * Log a decision that is not an override: keeping the timetable, or accepting
+   * the AI's replan. Both are decisions the operator is accountable for, so they
+   * belong in the log and deserve the same "why?" prompt as a hold — otherwise
+   * the two courses the operator can choose would leave no trace at all.
+   */
+  recordProposalChoice(handle: number, action: DecisionAction): void {
+    const now = Date.now();
+    const simStep = this.elapsedSteps();
+    const decisionSeq = this._appendDecision({
+      t: now,
+      simStep,
+      mode: this.interactionMode(),
+      handle,
+      accountableOwner: 'human',
+      action,
+      aiSuggestion: null,
+      decisionTimeMs: this._closeDecisionWindow(handle),
+      origin: 'proposals',
+    });
+    if (this.interactionMode() === 'director') return;
+    this.pendingRationale.set({
+      handle,
+      // No Flatland action stands for "keep the plan" or "run the AI's plan";
+      // the label carries the meaning and the context keeps the situation.
+      action: 2,
+      mode: this.interactionMode(),
+      aiSuggestion: null,
+      simStep,
+      timestamp: now,
+      // The label lives on the decision-log entry (`action`); the context stays
+      // the situation snapshot the hypothesis template expects.
+      context: this._snapshotRationaleContext(handle, null),
+      decisionSeq,
+      coLearningTimestamp: null,
+    });
+  }
+
+  /**
    * Single consumption surface for the KPI filter. Raw slider values are
    * normalised to weights that sum to 1 (or fall back to an equal split when
    * every slider is at 0). Any view that wants to reflect KPI priorities
@@ -848,24 +887,35 @@ export class SessionStore {
    */
   // ── Guided demo flow (sequential modes on the SAME environment) ──────
   readonly demoActive = signal(false);
-  readonly demoSequence: InteractionMode[] = ['recommendation', 'co-learning', 'director'];
+  /** The running tour's mode sequence. A signal, not a constant: which modes a
+   *  guided run walks through is a property of the chosen Tour
+   *  (core/demo/tours.ts), not of the store. Defaults to the original
+   *  three-mode walk so anything starting a demo without naming a tour behaves
+   *  as before. */
+  readonly demoSequence = signal<InteractionMode[]>(['recommendation', 'co-learning', 'director']);
+  /** Whether each leg of the running tour ends with the survey. */
+  readonly demoSurveyEnabled = signal(true);
   readonly demoStepIndex = signal(0);
   /** Current demo phase (mode) or null when no demo is running. */
   readonly demoPhase = computed<InteractionMode | null>(() =>
-    this.demoActive() ? this.demoSequence[this.demoStepIndex()] : null,
+    this.demoActive() ? this.demoSequence()[this.demoStepIndex()] : null,
   );
-  readonly demoIsLast = computed(() => this.demoStepIndex() >= this.demoSequence.length - 1);
+  readonly demoIsLast = computed(() => this.demoStepIndex() >= this.demoSequence().length - 1);
 
   /** True while the intro/explainer screen for the current demo mode is showing,
    *  before the human has chosen to start that mode's scenario. */
   readonly demoIntroPending = signal(false);
 
-  /** Begin the guided demo at the first mode (caller creates the session). */
-  startDemo(): void {
+  /** Begin a guided tour at its first mode (caller creates the session).
+   *  Pass the tour's sequence and survey setting; omitting them keeps the
+   *  original three-mode walk. */
+  startDemo(modes?: InteractionMode[], surveyAfterEachMode = true): void {
+    if (modes?.length) this.demoSequence.set([...modes]);
+    this.demoSurveyEnabled.set(surveyAfterEachMode);
     this.demoStepIndex.set(0);
     this.demoActive.set(true);
     this.demoIntroPending.set(true);
-    this.setInteractionMode(this.demoSequence[0]);
+    this.setInteractionMode(this.demoSequence()[0]);
   }
 
   /** Advance to the next demo mode; returns false when the demo is finished. */
@@ -876,7 +926,7 @@ export class SessionStore {
     }
     this.demoStepIndex.update((i) => i + 1);
     this.demoIntroPending.set(true);
-    this.setInteractionMode(this.demoSequence[this.demoStepIndex()]);
+    this.setInteractionMode(this.demoSequence()[this.demoStepIndex()]);
     return true;
   }
 
@@ -1055,13 +1105,32 @@ export class SessionStore {
       this.learning.addRecord(record);
     }
 
+    // Answered: there is nothing left to ask again.
+    this._dismissedRationale.set(null);
     this.pendingRationale.set(null);
   }
 
   /** Dismiss the "why?" prompt without recording (e.g. user closes it). The
    *  override itself stays logged; only the rationale is forgone. */
   dismissRationale(): void {
+    this._dismissedRationale.set(this.pendingRationale());
     this.pendingRationale.set(null);
+  }
+
+  /** The prompt the user closed without answering, so it can be asked again.
+   *  Closing it used to end the question for good — with the reflection panel
+   *  gone (the tour asks in a dialog), that left no way back. */
+  private readonly _dismissedRationale = signal<PendingRationale | null>(null);
+  readonly canReopenRationale = computed(
+    () => this._dismissedRationale() !== null && this.pendingRationale() === null,
+  );
+
+  /** Ask again for the rationale that was closed unanswered. */
+  reopenRationale(): void {
+    const dismissed = this._dismissedRationale();
+    if (!dismissed || this.pendingRationale() !== null) return;
+    this._dismissedRationale.set(null);
+    this.pendingRationale.set(dismissed);
   }
 
   readonly notifications = signal<AppNotification[]>([]);

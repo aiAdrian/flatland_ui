@@ -55,9 +55,22 @@
           <div class="wic-compare">
             <!-- AI plan (yellow) -->
             <div class="wic-col wic-col--ai">
-              <div class="wic-col-head">{{ modeBehavior().aiLabel }}</div>
+              <div class="wic-col-head">{{ baselineLabel(r) }}</div>
               <dl class="wic-kpis">
                 <div><dt>Arrives</dt><dd>{{ t.baseline.arrived ? '✓ yes' : '✗ no' }}</dd></div>
+                <div>
+                  <dt>Arrival</dt>
+                  <dd>
+                    @if (t.baseline.arrival_step != null) {
+                      step {{ t.baseline.arrival_step }}
+                      @if (t.baseline.delay_vs_plan != null) {
+                        <span class="wic-unit">{{ signedDelta(t.baseline.delay_vs_plan) }} vs plan</span>
+                      }
+                    } @else {
+                      —
+                    }
+                  </dd>
+                </div>
                 <div><dt>Delay</dt><dd>{{ t.baseline.delay }}<span class="wic-unit">steps</span></dd></div>
                 <div><dt>Deadlock</dt><dd>{{ t.baseline.deadlocked ? 'yes' : 'no' }}</dd></div>
               </dl>
@@ -74,6 +87,24 @@
                       <span class="wic-delta" [class.good]="t.branch.arrived && !t.baseline.arrived" [class.bad]="!t.branch.arrived && t.baseline.arrived">
                         {{ t.branch.arrived ? '▲ arrives' : '▼ no arrival' }}
                       </span>
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt>Arrival</dt>
+                  <dd>
+                    @if (t.branch.arrival_step != null) {
+                      step {{ t.branch.arrival_step }}
+                      @if (t.branch.delay_vs_plan != null) {
+                        <span class="wic-unit">{{ signedDelta(t.branch.delay_vs_plan) }} vs plan</span>
+                      }
+                      @if (arrivalDelta(t); as d) {
+                        <span class="wic-delta" [class.good]="d < 0" [class.bad]="d > 0">
+                          {{ deltaArrow(d) }}{{ signedDelta(d) }}
+                        </span>
+                      }
+                    } @else {
+                      —
                     }
                   </dd>
                 </div>

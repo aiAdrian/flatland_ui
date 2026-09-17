@@ -2,7 +2,7 @@
   <div class="agent-overlay">
     <div class="ao-head">
       <span class="ao-dot" [style.background]="agentColor(a.handle)"></span>
-      <span class="ao-title">Train {{ a.handle }}</span>
+      <span class="ao-title">{{ trainName(a.handle) }}</span>
       @if (isMalfunctioning(a)) {
         <span class="ao-malf" title="Malfunction: {{ a.malfunction_remaining }} step(s) remaining">!</span>
       }

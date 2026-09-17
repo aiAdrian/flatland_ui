@@ -1,0 +1,354 @@
+:host {
+  display: block;
+}
+
+.pc-note,
+.pc-empty,
+.pc-loading {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sbb-color-granite);
+}
+
+.pc-target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.pc-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.pc-target-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sbb-color-charcoal);
+}
+
+.pc-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.pc-option {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--sbb-color-cloud);
+  background: var(--sbb-color-white);
+  color: var(--sbb-color-charcoal);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--app-whatif-human);
+  }
+
+  &.is-chosen {
+    border-color: var(--app-whatif-human);
+    background: color-mix(in srgb, var(--app-whatif-human) 12%, transparent);
+    color: var(--app-whatif-human);
+    font-weight: 600;
+  }
+}
+
+.pc-courses {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.pc-course {
+  border: 1px solid var(--sbb-color-cloud);
+  border-top-width: 3px;
+  border-radius: 4px;
+  padding: 6px 8px;
+
+  &--plan {
+    border-top-color: var(--app-whatif-plan);
+  }
+
+  &--ai {
+    border-top-color: var(--app-whatif-ai);
+  }
+
+  &--human {
+    border-top-color: var(--app-whatif-human);
+  }
+}
+
+.pc-course-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+
+.pc-course-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  .pc-course--plan & {
+    color: var(--app-whatif-plan);
+  }
+
+  .pc-course--ai & {
+    color: var(--app-whatif-ai);
+  }
+
+  .pc-course--human & {
+    color: var(--app-whatif-human);
+  }
+}
+
+.pc-course-sub,
+.pc-system,
+.pc-priority {
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.pc-arrival {
+  margin: 0 0 2px;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+
+  &.good {
+    color: var(--app-positive);
+  }
+
+  &.bad {
+    color: var(--app-severity-error);
+  }
+}
+
+.pc-system,
+.pc-priority {
+  margin: 0;
+}
+
+.pc-verdict {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--sbb-color-iron);
+}
+
+.pc-toggle {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--app-whatif-human);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.pc-alternatives {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pc-alternative {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--sbb-color-iron);
+  border-top: 1px solid var(--sbb-color-cloud);
+  padding-top: 4px;
+
+  .good {
+    color: var(--app-positive);
+  }
+
+  .bad {
+    color: var(--app-severity-error);
+  }
+}
+
+.pc-commit {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--app-whatif-human);
+  color: var(--sbb-color-white);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--app-whatif-human) 85%, var(--sbb-color-black));
+  }
+}
+
+.pc-committed {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--app-positive);
+}
+
+.pc-caveat {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.pc-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--sbb-color-cloud);
+  color: var(--sbb-color-granite);
+}
+
+/* One button per course: all three are decisions the operator can take. */
+.pc-take {
+  margin-top: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-whatif-plan);
+  background: var(--sbb-color-white);
+  border: 1px solid var(--app-whatif-plan);
+  border-radius: 2px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--app-whatif-plan) 10%, transparent);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+
+  &--ai {
+    color: var(--app-whatif-ai);
+    border-color: var(--app-whatif-ai);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--app-whatif-ai) 14%, transparent);
+    }
+  }
+
+  &--human {
+    color: var(--sbb-color-white);
+    background: var(--app-whatif-human);
+    border-color: var(--app-whatif-human);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--app-whatif-human) 85%, var(--sbb-color-black));
+    }
+  }
+}
+
+.pc-taken {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-positive);
+}
+
+/* The human course before an option is picked: named, so the third column is
+   visibly waiting for a choice rather than missing. */
+.pc-course--empty {
+  border-top-style: dashed;
+}
+
+.pc-placeholder {
+  margin: 0;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+/* Comparison bars: the three courses on the two numbers this simulation can
+   honestly carry. Scaled per axis, so a row is read within itself. */
+.pc-compare {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sbb-color-cloud);
+}
+
+.pc-compare-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sbb-color-granite);
+}
+
+.pc-compare-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.pc-axis {
+  margin-top: 6px;
+}
+
+.pc-axis-label {
+  display: block;
+  font-size: 11px;
+  color: var(--sbb-color-iron);
+  margin-bottom: 2px;
+}
+
+.pc-bar-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 34px;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.pc-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sbb-color-cloud) 60%, transparent);
+  overflow: hidden;
+}
+
+.pc-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--app-whatif-plan);
+
+  &.is-ai {
+    background: var(--app-whatif-ai);
+  }
+
+  &.is-human {
+    background: var(--app-whatif-human);
+  }
+}
+
+.pc-bar-value {
+  text-align: right;
+  color: var(--sbb-color-charcoal);
+}
+
+/* "n. v." — the number exists but would mislead, so it is shown as withheld
+   rather than as a good score. */
+.pc-bar-value.is-void {
+  color: var(--sbb-color-granite);
+  font-style: italic;
+}

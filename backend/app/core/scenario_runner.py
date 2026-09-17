@@ -104,16 +104,21 @@ def _safe_int(v) -> Optional[int]:
         return None
 
 
-def agent_outcomes(env) -> Dict[int, dict]:
+def agent_outcomes(env, arrival_steps: Optional[Dict[int, int]] = None) -> Dict[int, dict]:
     """Per-agent post-branch outcome map: handle →
-    {arrived, deadlocked, delay}.
+    {arrived, deadlocked, delay, arrival_step}.
 
     - ``arrived`` — state == TrainState.DONE.
     - ``deadlocked`` — handle in :func:`deadlocked_agents` (operator
       definition: physically face-to-face blocked, can't reach target).
     - ``delay`` — same formula as ``serializer.py`` (steps overdue vs.
       ``latest_arrival``; 0 while not yet overdue or already arrived).
+    - ``arrival_step`` — step at which the train became DONE within the
+      branch; None if it did not arrive there or had arrived before the fork.
+      Two routes that both arrive inside a wide latest-arrival window only
+      differ here.
     """
+    arrival_steps = arrival_steps or {}
     from flatland.envs.step_utils.states import TrainState
 
     elapsed = int(getattr(env, "_elapsed_steps", 0) or 0)
@@ -131,6 +136,7 @@ def agent_outcomes(env) -> Dict[int, dict]:
             "arrived": bool(arrived),
             "deadlocked": int(h) in deadlocked,
             "delay": int(delay),
+            "arrival_step": arrival_steps.get(int(h)),
         }
     return out
 
@@ -209,6 +215,7 @@ class TrajectoryBranchRunner:
         max_steps: int = 50,
         blocked_threshold: int = 3,
         detect_deadlocks: bool = True,
+        release_at: Optional[Dict[int, int]] = None,
     ) -> BranchResult:
         """Fork the env, apply overrides, run forward, collect KPIs.
 
@@ -222,7 +229,13 @@ class TrajectoryBranchRunner:
           4. On termination (all done, or max_steps reached, or
              "Episode is done"), call detector.on_episode_end and
              assemble the BranchResult.
+
+        ``release_at`` maps a handle to the absolute step at which its
+        override is cleared — a hold with a known end ("hold until the
+        block clears"), which a sticky STOP alone cannot express.
         """
+        from flatland.envs.step_utils.states import TrainState
+
         from app.core.override_manager import override_manager
 
         overrides = overrides or {}
@@ -250,10 +263,22 @@ class TrajectoryBranchRunner:
 
             steps_run = 0
             terminated_early = False
+            arrival_steps: Dict[int, int] = {}
+            pending_release = {int(h): int(s) for h, s in (release_at or {}).items()}
+            done_at_fork = {
+                int(a.handle) for a in env.agents
+                if getattr(a, "state", None) == TrainState.DONE
+            }
             for _ in range(max_steps):
                 if self._all_done(env):
                     terminated_early = True
                     break
+
+                now = int(getattr(env, "_elapsed_steps", 0) or 0)
+                for handle, step in list(pending_release.items()):
+                    if now >= step:
+                        override_manager.clear(session_id, handle)
+                        del pending_release[handle]
 
                 handles = env.get_agent_handles()
                 observations = {h: env for h in handles}  # FullEnv-style fallback
@@ -273,6 +298,14 @@ class TrajectoryBranchRunner:
                 policy.end_step()
                 detector.on_episode_step(env=env)
                 steps_run += 1
+                for a in env.agents:
+                    handle = int(a.handle)
+                    if (
+                        handle not in done_at_fork
+                        and handle not in arrival_steps
+                        and getattr(a, "state", None) == TrainState.DONE
+                    ):
+                        arrival_steps[handle] = int(getattr(env, "_elapsed_steps", 0) or 0)
 
             policy.end_episode()
             detector.on_episode_end(env=env)
@@ -291,7 +324,7 @@ class TrajectoryBranchRunner:
                 elapsed_steps=int(getattr(env, "_elapsed_steps", steps_run)),
                 finished=terminated_early,
                 terminated_early=terminated_early,
-                agent_outcomes=agent_outcomes(env),
+                agent_outcomes=agent_outcomes(env, arrival_steps),
             )
             return result
         finally:

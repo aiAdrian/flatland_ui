@@ -1,0 +1,184 @@
+@if (embedded) {
+  <div class="pc pc--embedded">
+    <ng-container [ngTemplateOutlet]="pcContent"></ng-container>
+  </div>
+} @else {
+  <sbb-expansion-panel class="lyne-feature-panel pc" color="white" size="s" expanded>
+    <sbb-expansion-panel-header class="pc-head">
+      <span class="lyne-panel-title panel-title" title="Plan, KI-Vorschlag und Ihre Wahl für den ausgewählten Zug, alle gleich weit vorausgerechnet.">
+        Plan / KI / Mensch
+      </span>
+    </sbb-expansion-panel-header>
+    <sbb-expansion-panel-content class="lyne-panel-content">
+      <ng-container [ngTemplateOutlet]="pcContent"></ng-container>
+    </sbb-expansion-panel-content>
+  </sbb-expansion-panel>
+}
+
+<ng-template #pcContent>
+  <p class="pc-note">
+    Drei Verläufe für den gewählten Zug: der Plan ohne Eingriff, der Vorschlag der KI und Ihre Wahl.
+    Nichts davon wird umgesetzt, bis Sie eine der drei Varianten übernehmen.
+  </p>
+
+  @if (targetHandle() == null) {
+    <p class="pc-empty">Wählen Sie einen Zug — auf der Karte, im Fahrplan oder im Impact-Panel.</p>
+  } @else {
+    <div class="pc-target">
+      <span class="pc-dot" [style.background]="targetColor()"></span>
+      <span class="pc-target-label">{{ targetLabel() }}</span>
+    </div>
+
+    <div class="pc-options" role="group" aria-label="Ihre Option">
+      @for (c of optionChoices; track c.option) {
+        <button type="button"
+                class="pc-option"
+                [class.is-chosen]="isChosen(c.option)"
+                [disabled]="isDisabled(c.option)"
+                [title]="isDisabled(c.option) ? 'Für diesen Zug gibt es hier keine Umleitung.' : c.hint"
+                (click)="choose(c.option)">
+          {{ c.label }}
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <p class="pc-loading">Verläufe werden gerechnet…</p>
+    } @else if (failed(); as message) {
+      <p class="pc-empty">{{ message }}</p>
+    }
+
+    @if (result(); as r) {
+      <div class="pc-courses">
+        @if (plan(); as v) {
+          <section class="pc-course pc-course--plan">
+            <header class="pc-course-head">
+              <span class="pc-course-name">Plan</span>
+              <span class="pc-course-sub">ohne Eingriff</span>
+            </header>
+            <p class="pc-arrival">{{ arrivalText(v) }}</p>
+            <p class="pc-system">{{ v.system.done }}/{{ v.system.total }} Züge am Ziel</p>
+            @if (appliedVariant() === 'plan') {
+              <p class="pc-taken">✓ übernommen</p>
+            } @else {
+              <button type="button" class="pc-take" [disabled]="applying() !== null" (click)="take('plan')">
+                {{ applying() === 'plan' ? 'wird übernommen…' : 'Plan behalten' }}
+              </button>
+            }
+          </section>
+        }
+
+        @if (ai(); as v) {
+          <section class="pc-course pc-course--ai">
+            <header class="pc-course-head">
+              <span class="pc-course-name">KI</span>
+              <span class="pc-course-sub">Neuplanung aller Züge</span>
+            </header>
+            <p class="pc-arrival"
+               [class.good]="betterThanPlan(v)"
+               [class.bad]="worseThanPlan(v)">{{ arrivalText(v) }}</p>
+            <p class="pc-system">{{ v.system.done }}/{{ v.system.total }} Züge am Ziel</p>
+            @if (priorityText(v); as order) {
+              <p class="pc-priority">Reihenfolge: {{ order }}</p>
+            }
+            @if (appliedVariant() === 'ai') {
+              <p class="pc-taken">✓ übernommen</p>
+            } @else {
+              <button type="button" class="pc-take pc-take--ai" [disabled]="applying() !== null" (click)="take('ai')">
+                {{ applying() === 'ai' ? 'wird übernommen…' : 'KI-Plan übernehmen' }}
+              </button>
+            }
+          </section>
+        }
+
+        @if (human(); as v) {
+          <section class="pc-course pc-course--human">
+            <header class="pc-course-head">
+              <span class="pc-course-name">Mensch</span>
+              <span class="pc-course-sub">{{ humanLabel() }}</span>
+            </header>
+            <p class="pc-arrival"
+               [class.good]="betterThanPlan(v)"
+               [class.bad]="worseThanPlan(v)">{{ arrivalText(v) }}</p>
+            <p class="pc-system">{{ v.system.done }}/{{ v.system.total }} Züge am Ziel</p>
+            @if (appliedVariant() === 'human') {
+              <p class="pc-taken">✓ übernommen</p>
+            } @else {
+              <button type="button" class="pc-take pc-take--human" [disabled]="applying() !== null" (click)="take('human')">
+                {{ humanLabel() }} übernehmen
+              </button>
+            }
+          </section>
+        } @else {
+          <!-- The human course exists only once an option is picked; say so
+               rather than showing two courses and leaving the third a mystery. -->
+          <section class="pc-course pc-course--human pc-course--empty">
+            <header class="pc-course-head">
+              <span class="pc-course-name">Mensch</span>
+              <span class="pc-course-sub">Ihre Wahl</span>
+            </header>
+            <p class="pc-placeholder">Wählen Sie oben eine Option, dann rechnen wir Ihren Verlauf.</p>
+          </section>
+        }
+      </div>
+
+      @if (comparison(); as axes) {
+        <section class="pc-compare">
+          <div class="pc-compare-head">Vergleich <span class="pc-compare-hint">weniger ist besser</span></div>
+          @for (axis of axes; track axis.id) {
+            <div class="pc-axis">
+              <span class="pc-axis-label">{{ axis.label }}</span>
+              @for (bar of axis.bars; track bar.id) {
+                <div class="pc-bar-row">
+                  <span class="pc-bar-name">{{ bar.label }}</span>
+                  <span class="pc-bar">
+                    <span class="pc-bar-fill"
+                          [class.is-plan]="bar.id === 'plan'"
+                          [class.is-ai]="bar.id === 'ai'"
+                          [class.is-human]="bar.id === 'human'"
+                          [style.width.%]="bar.pct"></span>
+                  </span>
+                  <span class="pc-bar-value" [class.is-void]="bar.value === null">
+                    {{ bar.value === null ? 'n. v.' : bar.value }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+          @if (comparisonCaveat(); as caveat) {
+            <p class="pc-caveat">{{ caveat }}</p>
+          }
+        </section>
+      }
+
+      @if (r.ai_matches_plan) {
+        <p class="pc-verdict">Die KI würde hier beim Plan bleiben: ihre beste Reihenfolge ändert keine Ankunft.</p>
+      }
+
+      @if (alternatives().length > 0) {
+        <button type="button" class="pc-toggle" (click)="showAlternatives.set(!showAlternatives())">
+          {{ showAlternatives() ? 'Weitere KI-Reihenfolgen ausblenden' : 'Weitere KI-Reihenfolgen (' + alternatives().length + ')' }}
+        </button>
+        @if (showAlternatives()) {
+          <ul class="pc-alternatives">
+            @for (v of alternatives(); track v.id) {
+              <li class="pc-alternative">
+                <span class="pc-alternative-order">{{ priorityText(v) }}</span>
+                <span class="pc-alternative-outcome"
+                      [class.bad]="worseThanPlan(v)"
+                      [class.good]="betterThanPlan(v)">{{ arrivalText(v) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      @if (chosenOption() === 'hold_until_clear' && appliedVariant() !== 'human') {
+        <p class="pc-caveat">Im Prototyp hält der Zug damit an; die Freigabe geben Sie selbst, sobald die Stelle frei ist.</p>
+      }
+      @if (appliedVariant() === 'ai') {
+        <p class="pc-caveat">Die Züge fahren ab jetzt nach dem Plan der KI. «Gegenüber Plan» misst weiterhin am ursprünglichen Fahrplan.</p>
+      }
+    }
+  }
+</ng-template>

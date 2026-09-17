@@ -146,6 +146,12 @@ export interface WhatIfTrainSide {
   arrived: boolean;
   delay: number;
   deadlocked: boolean;
+  /** Step the train arrives within the branch; null if it does not. */
+  arrival_step?: number | null;
+  /** Arrival step the scenario plan gives the train; null without a plan. */
+  planned_arrival?: number | null;
+  /** `arrival_step - planned_arrival`; null when either is missing. */
+  delay_vs_plan?: number | null;
 }
 export interface WhatIfTrainOutcome {
   handle: number;
@@ -176,6 +182,59 @@ export interface WhatIfResult {
   branch_trajectories?: WhatIfTrajById;
   /** Handles the override applies to (the affected trains to draw). */
   handles?: number[];
+  /** What the baseline follows: the scenario plan, a committed Director plan,
+   *  or a dispatching policy. */
+  baseline_source?: 'plan' | 'director' | 'policy';
+}
+
+/** What the operator can propose for one train in the Plan / KI / Mensch compare. */
+export type ProposalOption = 'hold' | 'hold_until_clear' | 'proceed' | 'reroute';
+
+/** The few numbers the three courses are compared on. Lower is better for all
+ *  three; `not_arrived` says when the other two are not comparable. */
+export interface ProposalMetrics {
+  /** Summed lateness against the timetable, arrived trains only. */
+  lateness: number;
+  /** Summed steps the trains are still running from now on. */
+  time_in_network: number;
+  /** Trains still out at the horizon. */
+  not_arrived: number;
+}
+
+/** One simulated course of the whole system: the plan running on, an AI replan,
+ *  or the operator's choice. `train` is the selected train's own fate. */
+export interface ProposalVariant {
+  /** 'plan' | 'ai' | 'ai-2', 'ai-3' … | 'human'. */
+  id: string;
+  /** What produced it: 'plan' | 'director' | 'policy' | 'pp_replan' | 'operator'. */
+  source: string;
+  train: WhatIfTrainSide & { handle: number };
+  system: WhatIfKpis;
+  trajectories?: WhatIfTrajById;
+  /** AI variants: the priority order the replan gave the trains. */
+  priority?: number[];
+  /** Summed arrival delay against the plan; lower is better. */
+  score?: number;
+  /** Human variant: the option (or `action:<int>`) behind it. */
+  choice?: string;
+  /** System-wide numbers for the comparison bars. */
+  metrics?: ProposalMetrics;
+}
+
+/** `GET /session/{id}/proposals` — the Plan / KI / Mensch compare (widget B1). */
+export interface ProposalsResult {
+  session_id: string;
+  handle: number;
+  step: number;
+  horizon: number;
+  ai_available: boolean;
+  /** True when the best replan keeps every arrival of the plan: the AI would
+   *  not change course. */
+  ai_matches_plan: boolean;
+  /** plan, the best AI order, and the human's choice when one is given. */
+  variants: ProposalVariant[];
+  /** Further AI priority orders, ranked after the best one. */
+  ai_alternatives: ProposalVariant[];
 }
 
 /** One affected train from the Phase-1 impact analysis (malfunction fallout). */

@@ -87,7 +87,7 @@
               <li class="intervention">
                 <span class="iv-step">step {{ e.step }}</span>
                 <span class="iv-body">
-                  Train {{ e.handle }} → action {{ e.humanAction }}
+                  {{ trainName(e.handle) }} → action {{ e.humanAction }}
                   @if (e.aiSuggestion) {
                     <span class="iv-ai" title="AI recommendation at that moment">vs AI: {{ e.aiSuggestion }}</span>
                   }

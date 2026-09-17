@@ -2,7 +2,7 @@
   <div class="impact-panel impact-panel--embedded">
     <div class="ip-panel-head ip-panel-head--embedded">
       <span class="panel-title" title="Trains whose route is blocked by another train's malfunction before it clears — not the malfunctioning trains themselves (those appear in Notifications).">
-        Disruption Conflicts
+        {{ assessmentOnly() ? 'Lage: Risiko & Auswirkung' : 'Disruption Conflicts' }}
       </span>
       <span class="ip-count" [class.zero]="items().length === 0">{{ items().length }}</span>
     </div>
@@ -27,13 +27,24 @@
 <ng-template #impactContent>
   @if (!collapsed()) {
     @if (items().length === 0) {
-      <p class="ip-empty">No affected trains right now.</p>
+      <p class="ip-empty">
+        {{ assessmentOnly() ? 'Zurzeit ist kein Zug betroffen.' : 'No affected trains right now.' }}
+      </p>
     } @else {
       @if (heldCount() > 0) {
         <div class="ip-held-banner">
-          <strong>{{ heldCount() }} train(s) held</strong> — waiting for your decision.
-          The rest of the network keeps running.
+          @if (assessmentOnly()) {
+            <strong>{{ heldCount() === 1 ? 'Ein Zug wartet' : heldCount() + ' Züge warten' }}</strong>
+            — bis Sie entscheiden. Das übrige Netz fährt weiter.
+          } @else {
+            <strong>{{ heldCount() }} train(s) held</strong> — waiting for your decision.
+            The rest of the network keeps running.
+          }
         </div>
+      }
+
+      @if (assessmentOnly()) {
+        <p class="ip-summary">{{ assessmentSummary() }}</p>
       }
 
       <ul class="ip-list">
@@ -46,19 +57,43 @@
               (mouseleave)="onLeave()">
             <div class="ip-row">
               <span class="ip-dot" [style.background]="agentColor(item.handle)"></span>
-              <span class="ip-title">Train {{ item.handle }}</span>
+              <span class="ip-title">{{ trainName(item.handle) }}</span>
               @if (isHeld(item.handle)) {
                 <span class="ip-held-tag">held</span>
               }
               <span class="ip-sev" [class.high]="item.severity === 'high'">{{ item.severity }}</span>
             </div>
 
-            <div class="ip-why">
-              blocked by Train {{ item.blocked_by }} at ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
-              · reaches in {{ item.eta_steps }} · clears in {{ item.clears_in_steps }}
-            </div>
+            @if (assessmentOnly()) {
+              <!-- Assessment only (thesis Table 1): what the situation is, not what to
+                   do about it. The options are in the Plan / KI / Mensch panel. -->
+              <div class="ip-why">
+                blockiert durch {{ trainName(item.blocked_by) }} bei ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
+              </div>
+              <dl class="ip-assessment">
+                <div><dt>Erreicht die Stelle in</dt><dd>{{ item.eta_steps }} Schritten</dd></div>
+                <div><dt>Stelle frei in</dt><dd>{{ item.clears_in_steps }} Schritten</dd></div>
+                <div><dt>Zeitpuffer</dt>
+                  <dd>
+                    @if (buffer(item) > 0) {
+                      keiner — der Zug stünde {{ buffer(item) }} Schritte
+                    } @else {
+                      reicht knapp
+                    }
+                  </dd>
+                </div>
+                <div><dt>Mögliche Massnahmen</dt><dd>{{ actionKinds(item) }}</dd></div>
+              </dl>
+            } @else {
+              <div class="ip-why">
+                blocked by {{ trainName(item.blocked_by) }} at ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
+                · reaches in {{ item.eta_steps }} · clears in {{ item.clears_in_steps }}
+              </div>
+            }
 
-            @if (store.optionPresentation() === 'none') {
+            @if (assessmentOnly()) {
+              <div class="ip-handoff">Entscheiden Sie unter «Plan / KI / Mensch».</div>
+            } @else if (store.optionPresentation() === 'none') {
               <div class="ip-overview">AI handling autonomously</div>
             } @else {
               <div class="ip-options-list" (mouseleave)="onOptionLeave()">

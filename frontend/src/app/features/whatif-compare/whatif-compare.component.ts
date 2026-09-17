@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
@@ -56,6 +57,7 @@ export class WhatifCompareComponent implements OnDestroy {
   private trainActions = inject(TrainActionService);
   private api = inject(ApiService);
   private colors = inject(AgentColorService);
+  private identity = inject(TrainIdentityService);
 
   /** Actions the human can propose. Flatland: 4=STOP(hold), 2=FORWARD, 1=LEFT, 3=RIGHT. */
   readonly actionChoices: ActionChoice[] = [
@@ -96,7 +98,7 @@ export class WhatifCompareComponent implements OnDestroy {
 
   targetLabel(): string {
     const h = this.targetHandle();
-    return h == null ? '' : `Train ${h}`;
+    return h == null ? '' : this.identity.nameFor(h);
   }
 
   isChosen(action: ActionInt): boolean {
@@ -157,6 +159,19 @@ export class WhatifCompareComponent implements OnDestroy {
   }
 
   // ── Train-outcome presentation helpers (primary block) ────────────────
+
+  /** The baseline column's name: in a plan-driven session it is the timetable
+   *  plan running on, not an AI proposal. */
+  baselineLabel(r: WhatIfResult): string {
+    return r.baseline_source === 'plan' ? 'Timetable plan' : this.modeBehavior().aiLabel;
+  }
+
+  /** Arrival of My plan minus arrival of the baseline, when both arrive. */
+  arrivalDelta(t: WhatIfTrainOutcome): number | null {
+    const before = t.baseline.arrival_step;
+    const after = t.branch.arrival_step;
+    return before == null || after == null ? null : after - before;
+  }
 
   /** Signed delay delta of My plan vs AI plan for the selected train. */
   trainDelayDelta(t: WhatIfTrainOutcome): number {

@@ -1,7 +1,7 @@
 @if (records().length > 0) {
   <section class="lr">
     <div class="lr-head">
-      <span class="lr-title">Learning Records</span>
+      <span class="lr-title">Lern-Karten</span>
       <span class="lr-count">{{ records().length }}</span>
     </div>
 
@@ -13,7 +13,7 @@
             <!-- A Director strategy choice governs the whole plan, not one train
                  (handle -1). Showing "Zug -1" leaked that placeholder. -->
             @if (r.handle >= 0) {
-              <span class="lr-card__train">Zug {{ r.handle }}</span>
+              <span class="lr-card__train">{{ trainName(r.handle) }}</span>
             } @else {
               <span class="lr-card__train">Gesamtplan</span>
             }
@@ -28,9 +28,9 @@
 
         @if (hasContext(r)) {
           <div class="lr-card__metrics">
-            <app-metric-chip label="Delay" [value]="delayMetric(r).value" [level]="delayMetric(r).level" />
-            <app-metric-chip label="Connection" [value]="connectionMetric(r).value" [level]="connectionMetric(r).level" />
-            <app-metric-chip label="Ripple" [value]="rippleMetric(r).value" [level]="rippleMetric(r).level" />
+            <app-metric-chip label="Verspätung" [value]="delayMetric(r).value" [level]="delayMetric(r).level" />
+            <app-metric-chip label="Anschluss" [value]="connectionMetric(r).value" [level]="connectionMetric(r).level" />
+            <app-metric-chip label="Folgewirkung" [value]="rippleMetric(r).value" [level]="rippleMetric(r).level" />
           </div>
         }
 

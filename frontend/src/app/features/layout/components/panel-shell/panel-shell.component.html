@@ -1,11 +1,13 @@
 @if (isCanvasPanel) {
   <div
     class="layout-panel-shell layout-panel-shell--canvas"
+    [class.layout-panel-shell--colearning]="colearningModule()"
+    [class.layout-panel-shell--guide-focus]="isGuideFocus()"
     [attr.data-panel-type]="panel.type"
     [attr.data-panel-zone]="panel.zone"
   >
     <div class="layout-panel-shell__header layout-panel-shell__header--canvas">
-      <span class="layout-panel-shell__title">{{ panel.title }}</span>
+      <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ panel.title }}</span>
     </div>
 
     <div class="layout-panel-shell__body layout-panel-shell__body--canvas">
@@ -15,6 +17,8 @@
 } @else {
   <sbb-expansion-panel
     class="layout-panel-shell layout-panel-shell--expansion"
+    [class.layout-panel-shell--colearning]="colearningModule()"
+    [class.layout-panel-shell--guide-focus]="isGuideFocus()"
     color="white"
     size="s"
     [attr.data-panel-type]="panel.type"
@@ -23,7 +27,7 @@
   >
     <sbb-expansion-panel-header (click)="toggleExpanded()">
       <div class="layout-panel-shell__header">
-        <span class="layout-panel-shell__title">{{ panel.title }}</span>
+        <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ panel.title }}</span>
 
         @if (panel.hidden) {
           <span class="layout-panel-shell__meta">Hidden</span>

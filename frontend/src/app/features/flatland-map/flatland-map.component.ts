@@ -1,7 +1,8 @@
 import {
-  Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, viewChild, HostListener, AfterViewInit, OnDestroy
+  Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, untracked, viewChild, HostListener, AfterViewInit, OnDestroy
 } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TourContextService } from '../../core/demo/tour-context.service';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
@@ -154,6 +155,10 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   private readonly viewportAspect = signal(0);
   private resizeObserver?: ResizeObserver;
 
+  private readonly tourContext = inject(TourContextService);
+  /** Set once the tour's column focus is applied, so steps and user zoom keep it. */
+  private readonly focusApplied = signal(false);
+
   private get svgEl(): SVGSVGElement | undefined {
     return this.svgRef()?.nativeElement;
   }
@@ -190,7 +195,33 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       this.store.panResetTrigger();
       this.panX.set(0);
       this.panY.set(0);
+      this.focusApplied.set(false);
     });
+
+    // A long corridor (Walensee is 191 × 9) fitted to its width is a hairline.
+    // When the tour names a column range, start on that range; the rest of the
+    // line stays reachable by dragging.
+    effect(() => {
+      const cols = this.tourContext.mapFocusCols();
+      const aspect = this.viewportAspect();
+      const hasRails = this.store.railTiles().length > 0;
+      if (!cols || aspect <= 0 || !hasRails || this.focusApplied()) return;
+      untracked(() => this.applyColumnFocus(cols));
+    });
+  }
+
+  private applyColumnFocus([first, last]: [number, number]): void {
+    const b = this.bbox();
+    const rows = b.maxR - b.minR + 1;
+    const zoom = (last - first + 1) / (b.maxC - b.minC + 1);
+    if (zoom >= 1) return;
+    this.focusApplied.set(true);
+    const h = rows * this.cellSize;
+    this.zoom.set(zoom);
+    this.panX.set((first - b.minC) * this.cellSize);
+    // The viewBox centres a zoomed height, not the real one; without this the
+    // track sits low and its bottom row is clipped.
+    this.panY.set((h - h * zoom) / 2);
   }
 
   readonly bbox = computed<BoundingBox>(() => {
@@ -1468,6 +1499,8 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     this.panX.set(0);
     this.panY.set(0);
     this.zoom.set(1);
+    const cols = this.tourContext.mapFocusCols();
+    if (cols) this.applyColumnFocus(cols);
   }
 
   // Zoom: smaller value = zoomed in (smaller viewBox)

@@ -9,8 +9,38 @@ import { InteractionMode } from '../events/event-types';
  * survey-configs.ts is editable content today. Swap/extend this array to
  * define new or reworded modes without touching the rendering component.
  */
+export interface ModeIntroLabels {
+  stepPrefix: string;
+  stepOf: string;
+  whatHappens: string;
+  focusView: string;
+  yourRole: string;
+  control: string;
+  watchFor: string;
+  goal: string;
+  start: string;
+  exit: string;
+}
+
+export const MODE_INTRO_LABELS_EN: ModeIntroLabels = {
+  stepPrefix: 'Mode',
+  stepOf: 'of',
+  whatHappens: 'What happens',
+  focusView: 'Where to look',
+  yourRole: 'Your role',
+  control: 'What you can control',
+  watchFor: 'What to watch for',
+  goal: 'Goal',
+  start: 'Start scenario',
+  exit: 'Exit demo',
+};
+
 export interface ModeIntro {
   mode: InteractionMode;
+  /** Section and button labels; English when omitted. */
+  labels?: ModeIntroLabels;
+  /** Shown above the actions, e.g. a caveat about the prototype. */
+  note?: string;
   wp: string;
   title: string;
   tagline: string;
@@ -39,7 +69,10 @@ export const MODE_INTROS: ModeIntro[] = [
     whatYouCanControl: [
       'Accept or reject the AI’s suggested policy change',
       'Override any individual train’s next decision yourself',
-      'Adjust KPI priorities (time / energy / routing) to shape what the AI considers “best”',
+      // Removed 2026-09-13: "Adjust KPI priorities (time / energy / routing)".
+      // `kpi-filter` is offered in no mode (panel-mode-availability.ts) and
+      // kpiPriorities sits at its defaults, so the screen never showed the dial
+      // this line promised.
     ],
     watchFor: [
       'A recommendation card on the right, with a confidence % and countdown',
@@ -62,7 +95,8 @@ export const MODE_INTROS: ModeIntro[] = [
       'Choose freely between neutral options — nothing is ranked for you',
       'Override any individual train’s decision yourself',
       'Trigger “Reflect now” at any point during the run',
-      'Adjust KPI priorities',
+      // Removed 2026-09-13, same reason as in Recommendation: no KPI dial is
+      // offered in any mode.
     ],
     watchFor: [
       'No ranking or badges on the options',
@@ -72,25 +106,35 @@ export const MODE_INTROS: ModeIntro[] = [
       'Same task — but the focus here is what you learn about the situation, and about working with the AI.',
   },
   {
+    // Rewritten 2026-09-13 against what the Director screen actually renders.
+    // Every line here was checked in a running session: the panels present, the
+    // controls that exist, the wording the tiles use. The previous copy pointed
+    // at a "Goal Achievement dashboard" that is offered in no mode, promised KPI
+    // re-weighting that no surface exposes, and promised taking over a single
+    // train — which Director cannot do at all: no agent inspector, no trains
+    // roster, and the impact panel suppresses its per-decision hooks there.
+    // That last one is a real gap in adjustable autonomy, not a copy problem;
+    // it is the autonomy dial in docs/plans/mode-layouts-three-zones.md §6.
     mode: 'director',
     wp: 'WP 3.4',
     title: 'Director',
     tagline: 'You set the goal, the AI acts.',
     whatHappens:
-      'Before starting, you set a high-level directive (priorities, policy). The AI then dispatches all trains on its own.',
+      'You choose which objective the plan should pursue. The AI then dispatches every train on its own and re-plans as the situation changes.',
     focusView:
-      'The Goal Achievement dashboard — you supervise overall goals, not individual trains. At this scale the map is for the big picture, not per-train steering.',
+      'The three strategy tiles above the map. “Auf Karte” draws the chosen plan onto the map as dashed routes, so you see what an objective changes before committing it.',
     yourRole:
-      'Supervise via live goal-tracking; step in only if you feel you need to.',
+      'Supervise the objective, not the trains. You steer by changing what the plan optimises for.',
     whatYouCanControl: [
-      'Set the initial directive (KPI priorities + policy) before the run starts',
-      'Re-weight KPIs or swap the policy while the AI runs',
-      'Take over a single train at any time',
-      'Pause the autonomous run',
+      'Choose the objective: delay, connections, or stability',
+      'Preview it on the map, and replay it, before committing',
+      'Swap the dispatching policy in the toolbar',
+      'Pause, resume, or end the shift',
     ],
     watchFor: [
-      'A directive card before the run starts',
-      'A live “Goal Achievement” panel once it’s running',
+      'The AI-activity feed: what the planner decided, and when it re-planned',
+      'The forecast: what the objective gives, and what it costs',
+      'Dashed look-ahead routes on the map after a preview',
     ],
     goal:
       'See how well the AI performs autonomously — and notice where you feel the pull to intervene.',

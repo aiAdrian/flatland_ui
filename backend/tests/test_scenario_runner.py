@@ -190,7 +190,7 @@ def test_runner_cleans_up_temporary_overrides():
 
 def test_agent_outcomes_populated_for_every_agent():
     """BranchResult.agent_outcomes must have one entry per agent, each
-    with the three fields the what-if UI reads (arrived/deadlocked/delay)."""
+    with the fields the what-if UI reads (arrived/deadlocked/delay/arrival_step)."""
     env = _make_env(num_agents=2)
     runner = TrajectoryBranchRunner(env, DeadLockAvoidancePolicy)
     result = runner.run_branch(overrides={}, max_steps=15)
@@ -198,11 +198,13 @@ def test_agent_outcomes_populated_for_every_agent():
     assert set(result.agent_outcomes.keys()) == set(range(2))
     for h in range(2):
         o = result.agent_outcomes[h]
-        assert set(o.keys()) == {"arrived", "deadlocked", "delay"}
+        assert set(o.keys()) == {"arrived", "deadlocked", "delay", "arrival_step"}
         assert isinstance(o["arrived"], bool)
         assert isinstance(o["deadlocked"], bool)
         assert isinstance(o["delay"], int)
         assert o["delay"] >= 0
+        assert o["arrival_step"] is None or isinstance(o["arrival_step"], int)
+        assert (o["arrival_step"] is not None) == o["arrived"]
 
 
 def test_agent_outcomes_arrived_matches_success_count():

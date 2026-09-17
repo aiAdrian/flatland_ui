@@ -332,3 +332,40 @@ sbb-expansion-panel-header.ip-panel-head {
   margin-bottom: var(--sbb-spacing-fixed-2x, 0.5rem);
 }
 
+
+/* Assessment-only mode (TourBriefing.assessmentOnly): the panel states the
+   situation and hands the decision to the proposals panel. */
+.ip-summary {
+  margin: 0 0 var(--sbb-spacing-fixed-2x, 0.5rem);
+  font-size: 12px;
+  color: var(--sbb-color-granite);
+}
+
+.ip-assessment {
+  margin: 4px 0 0;
+  display: grid;
+  gap: 2px;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  dt {
+    color: var(--sbb-color-granite);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--sbb-color-charcoal);
+    text-align: right;
+  }
+}
+
+.ip-handoff {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--app-whatif-human);
+}

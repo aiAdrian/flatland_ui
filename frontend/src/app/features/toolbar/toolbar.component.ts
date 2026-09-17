@@ -16,6 +16,9 @@ export class ToolbarComponent {
   @Input() scenarioPolicyActive = false;
   @Input() demoActive = false;
   @Input() demoIsLast = false;
+  /** A tour may run without the survey (core/demo/tours.ts), and then the
+   *  button must not promise one. */
+  @Input() demoSurvey = true;
   @Output() openSettings = new EventEmitter<void>();
   @Output() openScenarioPolicy = new EventEmitter<void>();
   @Output() resetRequested = new EventEmitter<void>();

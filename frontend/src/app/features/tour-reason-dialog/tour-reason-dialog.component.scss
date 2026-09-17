@@ -1,0 +1,55 @@
+.reason-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: color-mix(in srgb, var(--sbb-color-charcoal) 30%, transparent);
+}
+
+.reason-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 16px 18px;
+  background: var(--sbb-color-white);
+  border: 1px solid var(--sbb-color-cloud);
+  border-top: 4px solid var(--app-colearning-accent);
+  border-radius: 6px;
+}
+
+.reason-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--app-colearning-accent);
+}
+
+.reason-mark {
+  width: 8px;
+  height: 8px;
+  background: var(--app-colearning-accent);
+  border-radius: 50%;
+}
+
+.reason-lead,
+.reason-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sbb-color-charcoal);
+}
+
+.reason-note {
+  color: var(--sbb-color-granite);
+}

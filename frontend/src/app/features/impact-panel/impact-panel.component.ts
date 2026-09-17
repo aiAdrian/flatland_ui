@@ -4,7 +4,9 @@ import { SessionStore } from '../../core/session.store';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
+import { TrainIdentityService } from '../../core/train-identity.service';
 import { ImpactItem, ImpactOption } from '../../core/events/event-types';
+import { TourContextService } from '../../core/demo/tour-context.service';
 import { ActionInt } from '../../core/models';
 
 /**
@@ -35,8 +37,43 @@ export class ImpactPanelComponent implements OnDestroy {
   /** Acting goes through the dispatch seam; `owner` still distinguishes a human
    *  click from the countdown's auto-decide. */
   private trainActions = inject(TrainActionService);
+  private tour = inject(TourContextService);
   private api = inject(ApiService);
   private colors = inject(AgentColorService);
+  private identity = inject(TrainIdentityService);
+
+  trainName(handle: number): string {
+    return this.identity.nameFor(handle);
+  }
+
+  /**
+   * Assessment only: no options here, they belong to the proposals panel.
+   *
+   * Thesis Table 1 keeps "Risk & Impact Assessment" and the "Alternatives
+   * Module" apart; a panel that assesses and decides at once was the hectic
+   * part. A tour opts in (`TourBriefing.assessmentOnly`); every other layout —
+   * the study conditions included — keeps the options where they were.
+   */
+  readonly assessmentOnly = computed(() => this.tour.assessmentOnly());
+
+  /** How long the train would stand if nobody acts: the block outlasts its
+   *  arrival by this many steps. 0 = it just clears in time. */
+  buffer(item: ImpactItem): number {
+    return Math.max(0, item.clears_in_steps - item.eta_steps);
+  }
+
+  /** What could be done for this train, as words rather than buttons. */
+  actionKinds(item: ImpactItem): string {
+    return item.can_reroute ? 'Halten oder Umleiten' : 'Halten';
+  }
+
+  /** How many trains are affected and how many decisions that asks for. */
+  readonly assessmentSummary = computed(() => {
+    const count = this.items().length;
+    return count === 1
+      ? 'Ein Zug betroffen · eine Massnahme nötig'
+      : `${count} Züge betroffen · ${count} Massnahmen nötig`;
+  });
 
   private static readonly STOP = 4;
   private _pollHandle: any = null;

@@ -82,6 +82,14 @@ export class ViewTabsComponent {
     return types.map((t) => centerViewByType(t)).filter((v): v is CenterViewDef => !!v);
   });
 
+  /** Optional body height floor (px) from `settings.minBodyHeight`. Without it a
+   *  map tab takes its height from the network's aspect ratio, which turns a long
+   *  corridor into a hairline. */
+  readonly minBodyHeight = computed<number | null>(() => {
+    const p = this._panel() as (PanelInstance & { settings?: { minBodyHeight?: number } }) | null;
+    return p?.settings?.minBodyHeight ?? null;
+  });
+
   private readonly _activeType = signal<string | null>(null);
 
   /** Active view: the operator's explicit pick if still present; else the

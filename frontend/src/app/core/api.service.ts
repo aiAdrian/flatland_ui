@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { backendHttpBase } from './backend-origin';
@@ -13,7 +13,7 @@ import {
   SessionState,
   StepResponse,
 } from './models';
-import { AppNotification, ContentionGroup, ContentionsResponse, ImpactItem, KpiPriorities, Recommendation, ScenarioOption, WhatIfResult } from './events/event-types';
+import { AppNotification, ContentionGroup, ContentionsResponse, ImpactItem, KpiPriorities, ProposalOption, ProposalsResult, Recommendation, ScenarioOption, WhatIfResult } from './events/event-types';
 
 /** Build the KPI query params for the scenario/recommendation endpoints. */
 function kpiParams(kpi?: KpiPriorities): { [k: string]: string } {
@@ -474,6 +474,27 @@ export class ApiService {
       `${API_BASE}/session/${id}/what-if-override`,
       { overrides },
     );
+  }
+
+  /** Read-only Plan / KI / Mensch for one train: the plan running on, a PP
+   *  replan (best priority order plus alternatives) and — with `option` — the
+   *  operator's choice, all simulated to the same horizon. */
+  /** Take one of the three courses for real: keep the plan, run the AI's
+   *  replan, or apply the operator's option. Unlike the what-if, this writes. */
+  applyProposal(
+    id: string,
+    body: { variant: 'plan' | 'ai' | 'human'; handle: number; option?: ProposalOption; priority?: number[] },
+  ) {
+    return this.http.post<{ applied: string; label: string; step: number; policy: string }>(
+      `${API_BASE}/session/${id}/proposals/apply`,
+      body,
+    );
+  }
+
+  getProposals(id: string, handle: number, option?: ProposalOption) {
+    let params = new HttpParams().set('handle', handle);
+    if (option) params = params.set('option', option);
+    return this.http.get<ProposalsResult>(`${API_BASE}/session/${id}/proposals`, { params });
   }
 
 }

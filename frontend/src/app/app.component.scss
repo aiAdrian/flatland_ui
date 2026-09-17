@@ -105,7 +105,8 @@
   padding: 20px 24px 32px;
 }
 
-.shift-screen > app-shift-review {
+.shift-screen > app-shift-review,
+.shift-screen > app-tour-debrief {
   display: block;
   max-width: 1100px;
   margin: 0 auto;
@@ -1715,4 +1716,54 @@
   color: var(--sbb-color-graphite);
   opacity: 0.8;
   cursor: default;
+}
+
+/* Start screen: three doors in one Lyne Radio-Button-Group, each a
+   Selection-Expansion-Panel whose options open only when chosen, then a single
+   primary Start (Lyne: avoid several primary buttons per page). The card stays
+   centred; the doors read left-aligned, like a form. */
+.welcome-doors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sbb-spacing-fixed-3x);
+  width: min(100%, 620px);
+  text-align: left;
+}
+
+.welcome-door-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sbb-spacing-fixed-3x);
+}
+
+.welcome-door-content .welcome-layout-choice {
+  width: 100%;
+}
+
+.welcome-door-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sbb-color-granite);
+}
+
+.welcome-summary {
+  margin: 0;
+  max-width: 620px;
+  font-size: 0.875rem;
+  color: var(--sbb-color-iron);
+  text-align: center;
+}
+
+.welcome-start {
+  width: min(100%, 320px);
+}
+
+.welcome-tour-desc {
+  margin: 0;
+}
+
+.welcome-tour-meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sbb-color-granite);
 }

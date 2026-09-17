@@ -30,7 +30,7 @@ export const CENTER_VIEWS: CenterViewDef[] = [
   // are the words the operators used; "Map"/"Marey" were ours.
   { type: 'flatland-map', label: 'Streckenspiegel', component: FlatlandMapComponent },
   { type: 'marey', label: 'ZWL', component: GraphicTimetableComponent },
-  { type: 'timetable', label: 'Timetable', component: TimetableComponent, inputs: () => ({ embedded: true }) },
+  { type: 'timetable', label: 'Fahrplan', component: TimetableComponent, inputs: () => ({ embedded: true }) },
   {
     type: 'goal-achievement',
     label: 'Goal Achievement',
