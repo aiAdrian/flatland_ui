@@ -6,7 +6,18 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from app.api.overrides import _branch_run, _policy_factory_for_session, get_proposals
+import pytest
+from fastapi import HTTPException
+
+from app.api.overrides import (
+    ProposalApplyRequest,
+    _branch_run,
+    _policy_factory_for_session,
+    apply_proposal,
+    get_proposals,
+)
+from app.core.override_manager import override_manager
+from app.policies.plan_policy import planned_arrival_steps, trainruns_from_env
 from app.api.sessions import _build_policy
 from app.core.disturbances import apply_due_disturbances
 from app.core.scenario_presets import select_disturbances
@@ -106,6 +117,43 @@ def test_replan_orders_are_distinct_plans():
         for _, trainruns in orders
     }
     assert len(keys) == len(orders)
+
+
+def test_applying_the_ai_plan_installs_it_and_keeps_the_timetable_as_yardstick():
+    session = _forked_session()
+    before = planned_arrival_steps(session.env)
+    timetable = trainruns_from_env(session.env)
+
+    response = apply_proposal(session.id, ProposalApplyRequest(variant="ai", handle=1))
+
+    assert response["applied"] == "ai"
+    assert session.policy == "plan"
+    installed = trainruns_from_env(session.env)
+    assert installed is not timetable
+    # The session now runs the replan, but "delay vs plan" still means the timetable.
+    assert planned_arrival_steps(session.env) == before
+    # And the live policy built from here follows the replan, not the timetable.
+    policy = _build_policy(session.id, session.env, session.policy)
+    assert policy is not None
+
+
+def test_applying_human_and_plan_set_and_clear_the_override():
+    session = _forked_session()
+
+    apply_proposal(session.id, ProposalApplyRequest(variant="human", handle=1, option="hold"))
+    assert override_manager.get_all(session.id).get(1) == 4
+
+    apply_proposal(session.id, ProposalApplyRequest(variant="plan", handle=1))
+    assert 1 not in override_manager.get_all(session.id)
+
+
+def test_applying_human_without_an_option_is_refused():
+    session = _forked_session()
+
+    with pytest.raises(HTTPException) as excinfo:
+        apply_proposal(session.id, ProposalApplyRequest(variant="human", handle=1))
+
+    assert excinfo.value.status_code == 400
 
 
 def test_proposals_rank_the_ai_orders_and_hold_until_clear_arrives():

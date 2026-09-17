@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { TourContextService } from '../../core/demo/tour-context.service';
 import { TourGuideService } from '../../core/demo/tour-guide.service';
 import { GuideLoop, TourGuideStep } from '../../core/demo/tour-briefings';
 
@@ -28,6 +29,16 @@ interface GuideGroup {
 export class TourGuideComponent {
   readonly guide = inject(TourGuideService);
   readonly store = inject(SessionStore);
+  private readonly tour = inject(TourContextService);
+
+  /**
+   * The reason dialog is the tour's only place for step 6, so closing it
+   * unanswered used to end the question for good. The strip offers it back
+   * while the answer is still outstanding.
+   */
+  readonly canReflect = computed(
+    () => this.tour.reasonDialog() && this.store.canReopenRationale(),
+  );
 
   readonly afterLiveHint =
     'Alle Schritte während der Fahrt sind erlebt. Beenden Sie die Schicht: danach folgen Schichtbilanz, Event-Simulation und was die KI gelernt hat.';

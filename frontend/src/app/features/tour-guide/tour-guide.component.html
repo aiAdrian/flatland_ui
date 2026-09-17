@@ -39,9 +39,16 @@
       }
     </p>
     @if (!store.shiftReviewOpen()) {
-      <button type="button" class="tour-guide__end" [class.is-primary]="guide.liveDone()" (click)="store.endShift()">
-        Schicht beenden
-      </button>
+      <div class="tour-guide__actions">
+        @if (canReflect()) {
+          <button type="button" class="tour-guide__reflect" (click)="store.reopenRationale()">
+            Reflexion öffnen
+          </button>
+        }
+        <button type="button" class="tour-guide__end" [class.is-primary]="guide.liveDone()" (click)="store.endShift()">
+          Schicht beenden
+        </button>
+      </div>
     }
   </div>
 </nav>

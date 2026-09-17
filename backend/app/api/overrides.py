@@ -8,8 +8,13 @@ from app.core.session_manager import session_manager
 from app.core.scenario_cache import scenario_cache
 from app.core.override_manager import override_manager
 from app.core.notification_manager import notification_manager
-from app.planners.replan import replan_orders
-from app.policies.plan_policy import PlanPolicy, plan_branch_factory, planned_arrival_steps
+from app.planners.replan import replan_from_state, replan_orders
+from app.policies.plan_policy import (
+    PlanPolicy,
+    install_trainrun_plan,
+    plan_branch_factory,
+    planned_arrival_steps,
+)
 from app.policies.registry import PLAN_POLICY_ID, scenario_policy_factories
 
 router = APIRouter()
@@ -377,6 +382,78 @@ def _human_course(env, handle: int, committed: dict, elapsed: int, action, optio
         return overrides, release, option
     overrides[handle] = int(action)
     return overrides, release, f"action:{int(action)}"
+
+
+class ProposalApplyRequest(BaseModel):
+    """Which of the three courses the operator takes for real."""
+    variant: str            # 'plan' | 'ai' | 'human'
+    handle: int
+    option: str | None = None      # human: hold | hold_until_clear | proceed | reroute
+    priority: list[int] | None = None  # ai: the order this replan was computed for
+
+
+@router.post("/{session_id}/proposals/apply")
+def apply_proposal(session_id: str, req: ProposalApplyRequest):
+    """Commit one of Plan / KI / Mensch to the running session.
+
+    - ``plan``: drop this train's override — it follows the timetable again.
+    - ``ai``: re-solve the replan for `priority` and make it the plan the session
+      runs on (`install_trainrun_plan`), with the standing overrides cleared,
+      because they were answers to the course the replan just replaced. The
+      timetable stays the yardstick for "delay vs plan".
+    - ``human``: the operator's option as an override, exactly what the what-if
+      simulated.
+
+    The read-only sibling is `GET /proposals`. Plan: docs/plans/proposal-agents-roadmap.md.
+    """
+    session = session_manager.get(session_id)
+    if not session:
+        raise HTTPException(404, f"Session {session_id} not found")
+
+    env = session.env
+    handle = int(req.handle)
+    if handle < 0 or handle >= len(env.agents):
+        raise HTTPException(404, f"Agent {handle} not found")
+
+    step = int(getattr(env, "_elapsed_steps", 0) or 0)
+
+    if req.variant == "plan":
+        override_manager.clear(session_id, handle)
+        label = "Plan behalten"
+
+    elif req.variant == "ai":
+        priority = tuple(int(h) for h in (req.priority or ()))
+        trainruns = replan_from_state(env, priority=priority)
+        if not trainruns:
+            raise HTTPException(409, "The planner found no collision-free plan from here")
+        install_trainrun_plan(env, trainruns)
+        session.trainrun_plan = trainruns
+        session.policy = PLAN_POLICY_ID
+        # The overrides answered the old course; leaving them would fight the
+        # replan the operator just accepted.
+        override_manager.clear_all(session_id)
+        label = "KI-Plan übernommen"
+
+    elif req.variant == "human":
+        if not req.option:
+            raise HTTPException(400, "variant 'human' needs an option")
+        overrides, _release, choice = _human_course(env, handle, {}, step, None, req.option)
+        action = overrides.get(handle)
+        if action is None:
+            override_manager.clear(session_id, handle)
+        else:
+            override_manager.set(session_id, handle, int(action))
+        label = f"Mensch: {choice}"
+
+    else:
+        raise HTTPException(400, f"Unknown variant {req.variant!r}")
+
+    return {
+        "applied": req.variant,
+        "label": label,
+        "step": step,
+        "policy": getattr(session, "policy", None) or "",
+    }
 
 
 @router.get("/{session_id}/proposals")

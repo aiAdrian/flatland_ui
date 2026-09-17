@@ -288,14 +288,39 @@ def plan_branch_factory(env: RailEnv):
     return factory
 
 
+def baseline_trainruns_from_env(env: RailEnv) -> Optional[TrainrunDict]:
+    """The timetable the session started from, even after a replan replaced it.
+
+    Accepting an AI replan swaps `_trainrun_plan` for the plan the trains now
+    follow. "Delay against the plan" must keep meaning the *timetable*, or every
+    accepted replan would silently reset the yardstick to itself.
+    """
+    return getattr(env, "_baseline_trainrun_plan", None) or trainruns_from_env(env)
+
+
+def install_trainrun_plan(env: RailEnv, trainruns: TrainrunDict) -> None:
+    """Make `trainruns` the plan the session runs on, keeping the timetable as
+    the yardstick (stashed on first replacement)."""
+    if getattr(env, "_baseline_trainrun_plan", None) is None:
+        env._baseline_trainrun_plan = trainruns_from_env(env)
+    env._trainrun_plan = trainruns
+
+
 def planned_arrival_steps(env: RailEnv) -> Dict[int, int]:
-    """Step at which each planned train is DONE when it runs to plan.
+    """Step at which each planned train is DONE when it runs to the timetable.
 
     A trainrun's last waypoint is the target cell, entered at `scheduled_at`;
     Flatland marks the train DONE one step later.
     """
-    trainruns = trainruns_from_env(env) or {}
+    trainruns = baseline_trainruns_from_env(env) or {}
     return {int(handle): int(run[-1].scheduled_at) + 1 for handle, run in trainruns.items() if run}
 
 
-__all__ = ["PlanPolicy", "plan_branch_factory", "planned_arrival_steps", "trainruns_from_env"]
+__all__ = [
+    "PlanPolicy",
+    "baseline_trainruns_from_env",
+    "install_trainrun_plan",
+    "plan_branch_factory",
+    "planned_arrival_steps",
+    "trainruns_from_env",
+]

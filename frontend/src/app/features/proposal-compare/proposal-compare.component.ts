@@ -86,6 +86,8 @@ export class ProposalCompareComponent implements OnDestroy {
       untracked(() => {
         this.chosenOption.set(null);
         this.committed.set(false);
+        this.appliedVariant.set(null);
+        this.applying.set(null);
         this.showAlternatives.set(false);
         this.result.set(null);
         this.store.whatIfPreview.set(null);
@@ -154,6 +156,48 @@ export class ProposalCompareComponent implements OnDestroy {
     this.store.whatIfPreview.set({ baseline: yellow, branch: blue, handles: [handle] });
   }
 
+  /**
+   * Take one of the three courses for real.
+   *
+   * All three are decisions, so all three are offered — keeping the plan is a
+   * choice, not the absence of one. The human's option goes through the dispatch
+   * seam (which logs it and asks why); plan and AI go to the backend, because
+   * accepting the replan means the session runs on it from here, and are logged
+   * the same way afterwards.
+   */
+  take(variant: 'plan' | 'ai' | 'human'): void {
+    const sess = this.store.session();
+    const handle = this.targetHandle();
+    if (!sess || handle == null) return;
+
+    if (variant === 'human') {
+      this.commit();
+      return;
+    }
+
+    const priority = variant === 'ai' ? this.ai()?.priority : undefined;
+    this.applying.set(variant);
+    this.api.applyProposal(sess.id, { variant, handle, priority }).subscribe({
+      next: (r) => {
+        this.applying.set(null);
+        this.appliedVariant.set(variant);
+        this.store.whatIfPreview.set(null);
+        // 'accept' is the log's word for taking an AI proposal; keeping the
+        // timetable is the train proceeding as planned.
+        this.store.recordProposalChoice(handle, variant === 'ai' ? 'accept' : 'proceed');
+        this.store.refreshState();
+      },
+      error: (err) => {
+        this.applying.set(null);
+        this.failed.set(err?.error?.detail ?? 'Die Variante konnte nicht übernommen werden.');
+      },
+    });
+  }
+
+  /** Which variant is being applied right now, and which one was taken. */
+  readonly applying = signal<'plan' | 'ai' | 'human' | null>(null);
+  readonly appliedVariant = signal<'plan' | 'ai' | 'human' | null>(null);
+
   /** Take the chosen option for real. Logged through the dispatch seam. */
   commit(): void {
     const handle = this.targetHandle();
@@ -175,6 +219,7 @@ export class ProposalCompareComponent implements OnDestroy {
       this.trainActions.set(handle, ProposalCompareComponent.STOP, 'proposals');
     }
     this.committed.set(true);
+    this.appliedVariant.set('human');
     this.store.whatIfPreview.set(null);
   }
 

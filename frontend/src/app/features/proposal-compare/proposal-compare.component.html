@@ -18,7 +18,7 @@
 <ng-template #pcContent>
   <p class="pc-note">
     Drei Verläufe für den gewählten Zug: der Plan ohne Eingriff, der Vorschlag der KI und Ihre Wahl.
-    Nichts davon wird umgesetzt, bis Sie «Übernehmen» drücken.
+    Nichts davon wird umgesetzt, bis Sie eine der drei Varianten übernehmen.
   </p>
 
   @if (targetHandle() == null) {
@@ -58,6 +58,13 @@
             </header>
             <p class="pc-arrival">{{ arrivalText(v) }}</p>
             <p class="pc-system">{{ v.system.done }}/{{ v.system.total }} Züge am Ziel</p>
+            @if (appliedVariant() === 'plan') {
+              <p class="pc-taken">✓ übernommen</p>
+            } @else {
+              <button type="button" class="pc-take" [disabled]="applying() !== null" (click)="take('plan')">
+                {{ applying() === 'plan' ? 'wird übernommen…' : 'Plan behalten' }}
+              </button>
+            }
           </section>
         }
 
@@ -74,6 +81,13 @@
             @if (priorityText(v); as order) {
               <p class="pc-priority">Reihenfolge: {{ order }}</p>
             }
+            @if (appliedVariant() === 'ai') {
+              <p class="pc-taken">✓ übernommen</p>
+            } @else {
+              <button type="button" class="pc-take pc-take--ai" [disabled]="applying() !== null" (click)="take('ai')">
+                {{ applying() === 'ai' ? 'wird übernommen…' : 'KI-Plan übernehmen' }}
+              </button>
+            }
           </section>
         }
 
@@ -87,6 +101,23 @@
                [class.good]="betterThanPlan(v)"
                [class.bad]="worseThanPlan(v)">{{ arrivalText(v) }}</p>
             <p class="pc-system">{{ v.system.done }}/{{ v.system.total }} Züge am Ziel</p>
+            @if (appliedVariant() === 'human') {
+              <p class="pc-taken">✓ übernommen</p>
+            } @else {
+              <button type="button" class="pc-take pc-take--human" [disabled]="applying() !== null" (click)="take('human')">
+                {{ humanLabel() }} übernehmen
+              </button>
+            }
+          </section>
+        } @else {
+          <!-- The human course exists only once an option is picked; say so
+               rather than showing two courses and leaving the third a mystery. -->
+          <section class="pc-course pc-course--human pc-course--empty">
+            <header class="pc-course-head">
+              <span class="pc-course-name">Mensch</span>
+              <span class="pc-course-sub">Ihre Wahl</span>
+            </header>
+            <p class="pc-placeholder">Wählen Sie oben eine Option, dann rechnen wir Ihren Verlauf.</p>
           </section>
         }
       </div>
@@ -113,15 +144,11 @@
         }
       }
 
-      @if (chosenOption(); as option) {
-        @if (committed()) {
-          <p class="pc-committed">✓ Übernommen: {{ humanLabel() }}.</p>
-        } @else if (human()) {
-          <button type="button" class="pc-commit" (click)="commit()">Übernehmen: {{ humanLabel() }}</button>
-          @if (option === 'hold_until_clear') {
-            <p class="pc-caveat">Im Prototyp hält der Zug damit an; die Freigabe geben Sie selbst, sobald die Stelle frei ist.</p>
-          }
-        }
+      @if (chosenOption() === 'hold_until_clear' && appliedVariant() !== 'human') {
+        <p class="pc-caveat">Im Prototyp hält der Zug damit an; die Freigabe geben Sie selbst, sobald die Stelle frei ist.</p>
+      }
+      @if (appliedVariant() === 'ai') {
+        <p class="pc-caveat">Die Züge fahren ab jetzt nach dem Plan der KI. «Gegenüber Plan» misst weiterhin am ursprünglichen Fahrplan.</p>
       }
     }
   }

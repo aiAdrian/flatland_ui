@@ -213,3 +213,65 @@
   border-color: var(--sbb-color-cloud);
   color: var(--sbb-color-granite);
 }
+
+/* One button per course: all three are decisions the operator can take. */
+.pc-take {
+  margin-top: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-whatif-plan);
+  background: var(--sbb-color-white);
+  border: 1px solid var(--app-whatif-plan);
+  border-radius: 2px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--app-whatif-plan) 10%, transparent);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+
+  &--ai {
+    color: var(--app-whatif-ai);
+    border-color: var(--app-whatif-ai);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--app-whatif-ai) 14%, transparent);
+    }
+  }
+
+  &--human {
+    color: var(--sbb-color-white);
+    background: var(--app-whatif-human);
+    border-color: var(--app-whatif-human);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--app-whatif-human) 85%, var(--sbb-color-black));
+    }
+  }
+}
+
+.pc-taken {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-positive);
+}
+
+/* The human course before an option is picked: named, so the third column is
+   visibly waiting for a choice rather than missing. */
+.pc-course--empty {
+  border-top-style: dashed;
+}
+
+.pc-placeholder {
+  margin: 0;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}

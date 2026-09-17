@@ -10,6 +10,7 @@ import {
 } from './visual-encoding';
 import {
   DECISION_LOG_CAP,
+  DecisionAction,
   DecisionLogEntry,
   DecisionOwner,
   DecisionValueAxis,
@@ -508,6 +509,44 @@ export class SessionStore {
   /** Clear the log (e.g. on session reset). */
   clearDecisionLog(): void {
     this.decisionLog.set([]);
+  }
+
+  /**
+   * Log a decision that is not an override: keeping the timetable, or accepting
+   * the AI's replan. Both are decisions the operator is accountable for, so they
+   * belong in the log and deserve the same "why?" prompt as a hold — otherwise
+   * the two courses the operator can choose would leave no trace at all.
+   */
+  recordProposalChoice(handle: number, action: DecisionAction): void {
+    const now = Date.now();
+    const simStep = this.elapsedSteps();
+    const decisionSeq = this._appendDecision({
+      t: now,
+      simStep,
+      mode: this.interactionMode(),
+      handle,
+      accountableOwner: 'human',
+      action,
+      aiSuggestion: null,
+      decisionTimeMs: this._closeDecisionWindow(handle),
+      origin: 'proposals',
+    });
+    if (this.interactionMode() === 'director') return;
+    this.pendingRationale.set({
+      handle,
+      // No Flatland action stands for "keep the plan" or "run the AI's plan";
+      // the label carries the meaning and the context keeps the situation.
+      action: 2,
+      mode: this.interactionMode(),
+      aiSuggestion: null,
+      simStep,
+      timestamp: now,
+      // The label lives on the decision-log entry (`action`); the context stays
+      // the situation snapshot the hypothesis template expects.
+      context: this._snapshotRationaleContext(handle, null),
+      decisionSeq,
+      coLearningTimestamp: null,
+    });
   }
 
   /**
@@ -1066,13 +1105,32 @@ export class SessionStore {
       this.learning.addRecord(record);
     }
 
+    // Answered: there is nothing left to ask again.
+    this._dismissedRationale.set(null);
     this.pendingRationale.set(null);
   }
 
   /** Dismiss the "why?" prompt without recording (e.g. user closes it). The
    *  override itself stays logged; only the rationale is forgone. */
   dismissRationale(): void {
+    this._dismissedRationale.set(this.pendingRationale());
     this.pendingRationale.set(null);
+  }
+
+  /** The prompt the user closed without answering, so it can be asked again.
+   *  Closing it used to end the question for good — with the reflection panel
+   *  gone (the tour asks in a dialog), that left no way back. */
+  private readonly _dismissedRationale = signal<PendingRationale | null>(null);
+  readonly canReopenRationale = computed(
+    () => this._dismissedRationale() !== null && this.pendingRationale() === null,
+  );
+
+  /** Ask again for the rationale that was closed unanswered. */
+  reopenRationale(): void {
+    const dismissed = this._dismissedRationale();
+    if (!dismissed || this.pendingRationale() !== null) return;
+    this._dismissedRationale.set(null);
+    this.pendingRationale.set(dismissed);
   }
 
   readonly notifications = signal<AppNotification[]>([]);
