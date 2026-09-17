@@ -4,7 +4,7 @@
       <img class="config-shell__logo" src="/ai4realnet_logo.svg" alt="AI4REALNET" />
       <span class="config-shell__title">
         <span class="config-shell__title-main">Flatland Dispatcher</span>
-        <span class="config-shell__title-sub">{{ subtitle }}</span>
+        <span class="config-shell__title-sub">{{ active === 'dispatcher' ? ('shell.subtitle' | transloco) : subtitle }}</span>
       </span>
     </a>
 
@@ -19,12 +19,20 @@
         id="shell-menu-trigger"
         size="m"
         icon-name="hamburger-menu-small">
-        Menu
+        {{ 'shell.menu' | transloco }}
       </sbb-transparent-button>
       <sbb-menu trigger="shell-menu-trigger">
         <ng-content select="[configActions]"></ng-content>
+        <span class="menu-section">{{ 'lang.menu' | transloco }}</span>
+        @for (language of i18n.languages; track language.code) {
+          <sbb-menu-button
+            [attr.icon-name]="i18n.lang() === language.code ? 'tick-small' : null"
+            [attr.aria-current]="i18n.lang() === language.code ? 'true' : null"
+            (click)="i18n.setLang(language.code)">{{ language.label }}</sbb-menu-button>
+        }
+        <sbb-divider></sbb-divider>
         @if (areaLinks.length) {
-          <span class="menu-section">Areas</span>
+          <span class="menu-section">{{ 'shell.areas' | transloco }}</span>
           @for (link of areaLinks; track link.id) {
             <sbb-menu-link [attr.icon-name]="link.icon" [href]="link.href">{{ link.label }}</sbb-menu-link>
           }

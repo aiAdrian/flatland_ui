@@ -1,0 +1,183 @@
+{
+  "lang": {
+    "menu": "Sprache"
+  },
+  "shell": {
+    "menu": "Menü",
+    "areas": "Bereiche",
+    "subtitle": "Ein Spielplatz für Mensch-KI-Teaming"
+  },
+  "mode": {
+    "recommendation": "Recommendation",
+    "co-learning": "Co-Learning",
+    "director": "Director"
+  },
+  "footer": {
+    "mode": "Modus",
+    "guidedDemo": "Geführte Demo"
+  },
+  "welcome": {
+    "subtitle": "Ein Spielplatz für Mensch-KI-Teaming",
+    "desc": "Erkunden Sie, wie Disponentinnen und Disponenten gemeinsam mit agentischer KI auf der Flatland-Bahnsimulation arbeiten.",
+    "doorsAria": "Wie möchten Sie starten?",
+    "door": {
+      "introduction": {
+        "title": "Einführung",
+        "subtext": "Eine geführte Tour. Modi, Layout und Umgebung sind vorgegeben."
+      },
+      "build": {
+        "title": "Selbst zusammenstellen",
+        "subtext": "Netz, Szenario und Layout selbst wählen."
+      },
+      "experiments": {
+        "title": "Experimente",
+        "subtext": "Eine vorbereitete, reproduzierbare Bedingung: fertiger Plan, gewählte Störungen, Studien-Layout."
+      }
+    },
+    "field": {
+      "tour": "Tour",
+      "layout": "Layout",
+      "network": "Netz",
+      "condition": "Bedingung",
+      "scenario": "Szenario",
+      "grid": "Raster:",
+      "width": "Breite",
+      "height": "Höhe",
+      "agents": "Züge",
+      "maxSteps": "Max. Schritte"
+    },
+    "trains": "{{count}} Züge",
+    "network": {
+      "guidedDemo": "Geführte Demo-Umgebung · fester Seed 42",
+      "random": "Zufällig · Standard"
+    },
+    "hint": {
+      "gridCap": "Hier begrenzt, damit eine neue Session auf der kostenlosen Hardware der gehosteten Demo flüssig läuft. Mehr nötig? Session Properties → Basic erlaubt bis {{max}}.",
+      "maxSteps": "Maximale Simulationslänge. Höher = gründlichere What-if-Prognosen, aber langsamer.",
+      "grid": "Begrenzt für einen flüssigen Lauf auf der kostenlosen Hardware der gehosteten Demo — für ein grösseres Raster oder mehr Züge öffnen Sie nach dem Start <strong>Session Properties</strong> (Zahnrad, Tab <em>Basic</em>)."
+    },
+    "tour": {
+      "modeOne": "{{count}} Modus",
+      "modeMany": "{{count}} Modi",
+      "minutes": "~{{minutes}} Min.",
+      "withSurvey": "mit Umfrage",
+      "noSurvey": "ohne Umfrage"
+    },
+    "experimentsNote": "Erste Version. Angeboten werden nur Szenarien mit fertigem Plan, damit ein Lauf reproduzierbar ist. Teilnehmer-IDs und eine ausbalancierte Modus-Reihenfolge fehlen noch — das ist die Experiment-Entität im Plan.",
+    "planNote": "<strong>Plan</strong> — dieses Szenario bringt einen fertigen Plan mit. Die Züge folgen ihm ab dem ersten Schritt genau; was Sie übersteuern, verlässt den Plan und wird dann von der KI gefahren.",
+    "disturbances": {
+      "legend": "Störungen",
+      "hint": "Geskriptete Ereignisse zu festen Schritten. Beliebig kombinierbar — keine Auswahl ist der ungestörte Referenzlauf."
+    },
+    "start": {
+      "tour": "Tour starten",
+      "session": "Session starten",
+      "experiment": "Experiment starten"
+    },
+    "summary": {
+      "tour": "Sie starten die Tour «{{name}}»: {{modes}}, etwa {{minutes}} Min.",
+      "experiment": "Sie starten {{condition}} auf {{network}}, {{disturbances}}.",
+      "build": "Sie starten {{network}} mit {{layout}}, Modus {{mode}}.",
+      "disturbanceOne": "1 Störung",
+      "disturbanceMany": "{{count}} Störungen",
+      "noDisturbances": "ohne Störungen (Referenzlauf)",
+      "networkGuided": "die geführte Demo-Umgebung",
+      "networkRandom": "ein Zufallsnetz ({{w}} × {{h}}, {{n}} Züge)",
+      "layoutDefault": "dem Standard-Layout",
+      "layoutNamed": "«{{name}}»"
+    }
+  },
+  "tours": {
+    "three-modes-original": {
+      "name": "Drei Modi · ursprüngliches Layout",
+      "description": "Derselbe Konflikt in allen drei Modi — Recommendation, Co-Learning, Director — im fest eingebauten Standard-Layout, mit einer kurzen Umfrage nach jedem Modus."
+    },
+    "two-modes-guide-light": {
+      "name": "Zwei Modi · Guide Mode Light",
+      "description": "Recommendation und Co-Learning im Drei-Zonen-Layout: links wird gemeldet, in der Mitte ist das Netz, rechts wird entschieden. Gleiche Umgebung wie die ursprüngliche Tour — nur das Layout unterscheidet sich."
+    },
+    "director-only": {
+      "name": "Nur Director",
+      "description": "Direkt in den Director-Bildschirm — Strategie-Kacheln, Prognose, KI-Aktivitätsfeed — ohne Rundgang und ohne Umfrage. Um diesen Bildschirm für sich zu zeigen."
+    }
+  },
+  "intro": {
+    "labels": {
+      "stepPrefix": "Modus",
+      "stepOf": "von",
+      "whatHappens": "Was passiert",
+      "focusView": "Wohin schauen",
+      "yourRole": "Ihre Rolle",
+      "control": "Was Sie steuern können",
+      "watchFor": "Worauf achten",
+      "goal": "Ziel",
+      "start": "Szenario starten",
+      "exit": "Demo beenden"
+    },
+    "recommendation": {
+      "wp": "WP 3.1",
+      "title": "Recommendation",
+      "tagline": "Die KI schlägt vor, Sie entscheiden.",
+      "whatHappens": "Während die Züge fahren, achtet die KI auf Konflikte. Tritt einer auf, schlägt sie eine bevorzugte Lösung mit einem Konfidenzwert vor.",
+      "focusView": "Die Karte — Sie handeln bei jedem Konflikt dort, wo er entsteht; die Empfehlungskarte rechts ist der Lösungsvorschlag der KI.",
+      "yourRole": "Sie behalten die Verantwortung — übernehmen Sie den Vorschlag der KI oder entscheiden Sie anders.",
+      "control": {
+        "0": "Den vorgeschlagenen Policy-Wechsel der KI annehmen oder ablehnen",
+        "1": "Die nächste Entscheidung eines einzelnen Zuges selbst übersteuern"
+      },
+      "watch": {
+        "0": "Eine Empfehlungskarte rechts, mit Konfidenz in % und Countdown",
+        "1": "Policies, sortiert mit den Markierungen «Recommended» / «Avoid»"
+      },
+      "goal": "Alle Züge mit möglichst wenig Verspätung ans Ziel bringen."
+    },
+    "co-learning": {
+      "wp": "WP 3.3",
+      "title": "Co-Learning",
+      "tagline": "Neutrale Optionen, Sie entscheiden und reflektieren.",
+      "whatHappens": "Die gleiche Art von Situation — aber diesmal bevorzugt die KI keine Option. Sie legt die Möglichkeiten neutral dar.",
+      "focusView": "Die Karte — vergleichen Sie Ihre eigene Aktion (blau) mit dem Plan der KI (gelb) direkt dort, wo die Züge fahren; der What-if-Vergleich rechts vertieft das. Die Reflexion öffnet sich separat, wenn Sie so weit sind.",
+      "yourRole": "Sie wählen frei; jede Entscheidung wird festgehalten. Danach reflektieren Sie, was Sie getan haben — und erhalten auch die Sicht der KI darauf.",
+      "control": {
+        "0": "Frei zwischen neutralen Optionen wählen — nichts ist für Sie gewichtet",
+        "1": "Die Entscheidung eines einzelnen Zuges selbst übersteuern",
+        "2": "Jederzeit während des Laufs «Reflect now» auslösen"
+      },
+      "watch": {
+        "0": "Keine Rangfolge und keine Markierungen bei den Optionen",
+        "1": "Eine «Reflect now»-Option wird im Verlauf verfügbar und öffnet sich von selbst, sobald eine Entscheidung abgeschlossen ist"
+      },
+      "goal": "Die gleiche Aufgabe — hier geht es aber darum, was Sie über die Situation und über die Zusammenarbeit mit der KI lernen."
+    },
+    "director": {
+      "wp": "WP 3.4",
+      "title": "Director",
+      "tagline": "Sie setzen das Ziel, die KI handelt.",
+      "whatHappens": "Sie wählen das Ziel des Plans. Die KI disponiert dann jeden Zug selbständig und plant neu, wenn sich die Lage ändert.",
+      "focusView": "Die drei Strategie-Kacheln über der Karte. «Auf Karte» zeichnet den Plan gestrichelt ein — so sehen Sie, was ein Ziel verändert, bevor Sie es übernehmen.",
+      "yourRole": "Sie überwachen das Ziel, nicht die Züge. Sie steuern, indem Sie ändern, worauf der Plan optimiert.",
+      "control": {
+        "0": "Das Ziel wählen: Verspätung, Anschlüsse oder Stabilität",
+        "1": "Vor dem Übernehmen auf der Karte ansehen und nachspielen",
+        "2": "Die Dispositions-Policy in der Toolbar wechseln",
+        "3": "Die Schicht pausieren, fortsetzen oder beenden"
+      },
+      "watch": {
+        "0": "Den KI-Aktivitätsfeed: Entscheide und Neuplanungen des Planers",
+        "1": "Die Prognose: was das Ziel bringt und was es kostet",
+        "2": "Gestrichelte Routen nach einer Vorschau"
+      },
+      "goal": "Sehen, wie gut die KI autonom arbeitet — und bemerken, wo es Sie drängt einzugreifen."
+    }
+  },
+  "complete": {
+    "step": "Tour abgeschlossen",
+    "modesOne": "{{count}} Modus erledigt",
+    "modesMany": "Alle {{count}} Modi erledigt",
+    "title": "Danke fürs Mitmachen",
+    "taglineSurvey": "{{modes}} — Umfragen pro Modus gespeichert.",
+    "tagline": "{{modes}}",
+    "restart": "Neu starten",
+    "exit": "Demo beenden"
+  }
+}

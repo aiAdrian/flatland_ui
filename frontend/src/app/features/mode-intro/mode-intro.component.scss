@@ -10,7 +10,10 @@
   align-items: center;
   justify-content: center;
   background: var(--sbb-color-milk, #f6f6f6);
-  padding: 24px;
+  /* 16px, not 24: the card used to fit the viewport with zero pixels to spare,
+     so any language longer than English, or a taller localized header, tipped
+     it back into scrolling. This is the headroom translations need. */
+  padding: 16px;
   overflow-y: auto;
 }
 
