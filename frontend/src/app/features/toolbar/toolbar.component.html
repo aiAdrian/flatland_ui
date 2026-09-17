@@ -56,8 +56,8 @@
         class="policy-select"
         (change)="onPolicyChange($event)">
         @for (p of selectablePolicies(); track p.id) {
-          <option [value]="p.id" [title]="p.description" [selected]="p.id === policy()">
-            {{ p.label }}
+          <option [value]="p.id" [title]="i18n.policyDescription(p)" [selected]="p.id === policy()">
+            {{ i18n.policyLabel(p) }}
           </option>
         }
       </select>

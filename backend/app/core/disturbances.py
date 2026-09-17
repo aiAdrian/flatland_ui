@@ -112,9 +112,15 @@ class DisturbanceScheduler:
     """
 
     def __init__(self, disturbances: Sequence[Mapping[str, Any]] = ()):
+        # Each event keeps which file it came from and its position there
+        # (`_source`, `_index`). Flattening the files into one timeline used to
+        # drop that, and without it a fired event has no stable identity — its
+        # notification could only ever be shown in the language it was authored
+        # in. Underscored so they cannot collide with fields a file defines.
         self.events: List[Dict[str, Any]] = sorted(
-            (dict(event) for disturbance in disturbances
-             for event in disturbance.get("events", [])),
+            ({**dict(event), "_source": str(disturbance.get("id") or ""), "_index": position}
+             for disturbance in disturbances
+             for position, event in enumerate(disturbance.get("events", []))),
             key=lambda e: int(e["step"]),
         )
         self._fired: set[int] = set()
@@ -203,6 +209,18 @@ def notification_for(event: Mapping[str, Any]) -> Tuple[str, str, str, Optional[
     return kind, title, message, None if handle is None else str(handle)
 
 
+def notification_code_for(event: Mapping[str, Any]) -> Tuple[str, Dict[str, Any]]:
+    """`(code, params)` so the frontend can show the event in the viewer's
+    language: the source file and the event's index within it identify the
+    authored label and description. Separate from `notification_for`, whose
+    tuple callers already rely on."""
+    params: Dict[str, Any] = {"type": str(event.get("type") or "")}
+    if event.get("_source"):
+        params["disturbance"] = str(event["_source"])
+        params["event"] = int(event.get("_index", 0))
+    return "disturbance.event", params
+
+
 def apply_due_disturbances(session_id: str, session, env) -> List[Dict[str, Any]]:
     """Fire whatever is due at the env's current step; notify for each.
 
@@ -224,6 +242,7 @@ def apply_due_disturbances(session_id: str, session, env) -> List[Dict[str, Any]
     fired = scheduler.tick(env, step)
     for event in fired:
         kind, title, message, related_id = notification_for(event)
+        code, params = notification_code_for(event)
         notification_manager.add(
             session_id,
             kind=kind,
@@ -235,12 +254,15 @@ def apply_due_disturbances(session_id: str, session, env) -> List[Dict[str, Any]
             # which drops the whole merged block, override alerts included.
             related_kind="train" if related_id is not None else None,
             related_id=related_id,
+            code=code,
+            params=params,
         )
     return fired
 
 
 __all__ = [
     "DisturbanceError",
+    "notification_code_for",
     "DisturbanceScheduler",
     "EVENT_TYPES",
     "apply_due_disturbances",

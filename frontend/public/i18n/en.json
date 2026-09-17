@@ -179,5 +179,148 @@
     "tagline": "{{modes}}",
     "restart": "Restart",
     "exit": "Exit demo"
+  },
+  "notifications": {
+    "panel": {
+      "title": "Event Feed",
+      "errors": "Errors",
+      "warnings": "Warnings",
+      "total": "Total events",
+      "dismiss": "Dismiss",
+      "empty": "No events",
+      "legend": {
+        "error": "Disruption / conflict",
+        "warning": "Notice — keep an eye on it",
+        "info": "Information"
+      }
+    },
+    "episode": {
+      "finished": {
+        "title": "Episode finished",
+        "message": "All agents have reached their target."
+      }
+    },
+    "train": {
+      "malfunction": {
+        "title": "Malfunction",
+        "message": "{{train}} is malfunctioning ({{steps}} steps remaining)."
+      },
+      "overridePending": {
+        "title": "Override active",
+        "message": "{{train}}: operator override {{direction}} pending."
+      },
+      "decisionPending": {
+        "title": "Decision pending",
+        "message": "{{train}} reaches a {{cell}} at ({{row}},{{col}}) in {{distance}} cells."
+      }
+    },
+    "override": {
+      "riskIncrease": {
+        "title": "Override risk increase",
+        "message": "{{train}}: deadlocks may increase ({{before}} → {{after}})."
+      },
+      "fewerArrivals": {
+        "title": "Override reduces arrivals",
+        "message": "{{train}}: fewer agents may finish ({{before}} → {{after}})."
+      }
+    },
+    "direction": {
+      "left": "LEFT",
+      "forward": "FORWARD",
+      "right": "RIGHT"
+    },
+    "cell": {
+      "switch": "switch",
+      "merging": "merge",
+      "decision": "decision point"
+    }
+  },
+  "scenarios": {
+    "ecml2026-scene1-level0": {
+      "name": "ECML 2026 — Scene 1 (Level 0)"
+    },
+    "olten": {
+      "name": "Olten — undisrupted"
+    },
+    "olten-disrupted": {
+      "name": "Olten — disrupted"
+    },
+    "olten-partially-closed": {
+      "name": "Olten — partially closed"
+    },
+    "pf-ch-corridor": {
+      "name": "PF–CH corridor (double track)"
+    },
+    "pf-ch-corridor-stops": {
+      "name": "PF–CH corridor (with intermediate stops)"
+    },
+    "pf-ch-wn-wal-conflict": {
+      "name": "PF–CH · WN↔WAL single-track conflict"
+    },
+    "pf-ch-wn-wal-long-approach": {
+      "name": "PF–CH · WN↔WAL conflict (long approach)"
+    }
+  },
+  "disturbances": {
+    "e1-station-hold": {
+      "name": "E1: stop after the crossing",
+      "description": "E1 (WN→WAL) stands for 8 steps just after the crossing, with E2 following on the same track — the delay is passed straight on to the train behind.",
+      "events": {
+        "0": {
+          "label": "E1: unscheduled stop (+8 steps)",
+          "description": "E1 stops on the open line; E2 follows on the same track and inherits the delay."
+        }
+      }
+    },
+    "w1-door-fault": {
+      "name": "W1: door fault in the single-track section",
+      "description": "W1 (WAL→WN) stands for 8 steps while it occupies the single-track section, so both eastbound trains have to wait it out.",
+      "events": {
+        "0": {
+          "label": "W1: door fault (+8 steps)",
+          "description": "W1 blocks the single-track section; according to the plan, E1 and E2 are already waiting for the crossing."
+        }
+      }
+    },
+    "e1-late-into-the-section": {
+      "name": "E1: +6 steps before the single-track section",
+      "description": "E1 stands for 6 steps at Weesen, exactly the headway the plan gives it over E2. It therefore reaches the single-track section at the same step E2 is planned to. Without it all three trains drive through the section non-stop; with it E2 has to give way in front of it, and W1 — timed to arrive just as E2 clears — is held at the eastern mouth too.",
+      "events": {
+        "0": {
+          "label": "E1: unscheduled stop at WN (+6 steps)",
+          "description": "E1 loses exactly the lead the timetable gives it over E2. Both now reach the single-track section in the same step; W1 follows third, as planned."
+        }
+      }
+    }
+  },
+  "policies": {
+    "deadlock_avoidance": {
+      "label": "DLA (Default)",
+      "description": "Avoids deadlocks proactively by checking opponent paths."
+    },
+    "shortest_path": {
+      "label": "Shortest Path",
+      "description": "Each agent picks the action that minimises distance to its target."
+    },
+    "random": {
+      "label": "Random",
+      "description": "Picks a random valid action per agent."
+    },
+    "forward_only": {
+      "label": "Forward Only",
+      "description": "Always MOVE_FORWARD; ignores switches."
+    },
+    "do_nothing": {
+      "label": "Do Nothing",
+      "description": "All agents stay still (DO_NOTHING)."
+    },
+    "goal_directed": {
+      "label": "Director Planner",
+      "description": "Plans all trains with the weighted model-guided search (punctuality / connections / stability), then drives the plan."
+    },
+    "plan": {
+      "label": "Scripted Plan",
+      "description": "Drives every train along the scenario's premade plan; trains the plan does not cover, or that the operator overrode, fall back to deadlock avoidance."
+    }
   }
 }

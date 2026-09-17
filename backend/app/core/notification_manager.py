@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.models.hmi import AppNotification, RelatedElement
 
@@ -24,6 +24,8 @@ class NotificationManager:
         related_kind: Optional[str] = None,
         related_id: Optional[str] = None,
         ttl_steps: int = 30,
+        code: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> str:
         ev_id = f"evt_{uuid.uuid4().hex[:10]}"
         ev = {
@@ -35,6 +37,8 @@ class NotificationManager:
             "expires_at": int(timestamp + max(1, ttl_steps)),
             "related_kind": related_kind,
             "related_id": related_id,
+            "code": code,
+            "params": dict(params) if params else None,
         }
         self._events.setdefault(session_id, []).append(ev)
         # Keep memory bounded.
@@ -60,6 +64,8 @@ class NotificationManager:
                     message=str(e["message"]),
                     timestamp=int(e["timestamp"]),
                     relatedElement=rel,
+                    code=e.get("code"),
+                    params=e.get("params"),
                 )
             )
         return out

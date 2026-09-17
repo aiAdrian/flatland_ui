@@ -179,5 +179,148 @@
     "tagline": "{{modes}}",
     "restart": "Neu starten",
     "exit": "Demo beenden"
+  },
+  "notifications": {
+    "panel": {
+      "title": "Ereignisse",
+      "errors": "Fehler",
+      "warnings": "Warnungen",
+      "total": "Ereignisse insgesamt",
+      "dismiss": "Ausblenden",
+      "empty": "Keine Ereignisse",
+      "legend": {
+        "error": "Störung / Konflikt",
+        "warning": "Hinweis, beobachten",
+        "info": "Information"
+      }
+    },
+    "episode": {
+      "finished": {
+        "title": "Episode beendet",
+        "message": "Alle Züge haben ihr Ziel erreicht."
+      }
+    },
+    "train": {
+      "malfunction": {
+        "title": "Störung",
+        "message": "{{train}} ist gestört (noch {{steps}} Schritte)."
+      },
+      "overridePending": {
+        "title": "Eingriff aktiv",
+        "message": "{{train}}: Eingriff {{direction}} steht an."
+      },
+      "decisionPending": {
+        "title": "Entscheidung steht an",
+        "message": "{{train}}: {{cell}} bei ({{row}},{{col}}) in {{distance}} Feldern."
+      }
+    },
+    "override": {
+      "riskIncrease": {
+        "title": "Eingriff erhöht das Risiko",
+        "message": "{{train}}: Blockaden können zunehmen ({{before}} → {{after}})."
+      },
+      "fewerArrivals": {
+        "title": "Eingriff senkt die Ankünfte",
+        "message": "{{train}}: weniger Züge erreichen womöglich ihr Ziel ({{before}} → {{after}})."
+      }
+    },
+    "direction": {
+      "left": "LINKS",
+      "forward": "GERADEAUS",
+      "right": "RECHTS"
+    },
+    "cell": {
+      "switch": "Weiche",
+      "merging": "Zusammenführung",
+      "decision": "Entscheidungspunkt"
+    }
+  },
+  "scenarios": {
+    "ecml2026-scene1-level0": {
+      "name": "ECML 2026 — Szene 1 (Level 0)"
+    },
+    "olten": {
+      "name": "Olten — ungestört"
+    },
+    "olten-disrupted": {
+      "name": "Olten — gestört"
+    },
+    "olten-partially-closed": {
+      "name": "Olten — teilweise gesperrt"
+    },
+    "pf-ch-corridor": {
+      "name": "Korridor PF–CH (Doppelspur)"
+    },
+    "pf-ch-corridor-stops": {
+      "name": "Korridor PF–CH (mit Zwischenhalten)"
+    },
+    "pf-ch-wn-wal-conflict": {
+      "name": "PF–CH · WN↔WAL Einspurkonflikt"
+    },
+    "pf-ch-wn-wal-long-approach": {
+      "name": "PF–CH · WN↔WAL Konflikt (lange Zufahrt)"
+    }
+  },
+  "disturbances": {
+    "e1-station-hold": {
+      "name": "E1: Halt nach der Kreuzung",
+      "description": "E1 (WN→WAL) steht kurz nach der Kreuzung 8 Schritte lang, E2 folgt auf demselben Gleis — die Verspätung geht direkt auf den nachfolgenden Zug über.",
+      "events": {
+        "0": {
+          "label": "E1: ausserplanmässiger Halt (+8 Schritte)",
+          "description": "E1 steht auf freier Strecke; E2 folgt auf demselben Gleis und erbt die Verspätung."
+        }
+      }
+    },
+    "w1-door-fault": {
+      "name": "W1: Türstörung im Einspurabschnitt",
+      "description": "W1 (WAL→WN) steht 8 Schritte, während er den Einspurabschnitt belegt — beide ostwärts fahrenden Züge müssen warten.",
+      "events": {
+        "0": {
+          "label": "W1: Türstörung (+8 Schritte)",
+          "description": "W1 blockiert den Einspurabschnitt; E1 und E2 warten laut Plan bereits auf die Kreuzung."
+        }
+      }
+    },
+    "e1-late-into-the-section": {
+      "name": "E1: +6 Schritte vor dem Einspurabschnitt",
+      "description": "E1 steht 6 Schritte in Weesen — genau den Vorsprung, den der Plan ihm vor E2 gibt. Damit erreicht er den Einspurabschnitt im selben Schritt, in dem E2 geplant ist. Ohne diese Störung fahren alle drei Züge ohne Halt durch den Abschnitt; mit ihr muss E2 davor warten, und auch W1 — so getaktet, dass er ankommt, wenn E2 den Abschnitt freigibt — wird an der östlichen Einfahrt zurückgehalten.",
+      "events": {
+        "0": {
+          "label": "E1: ausserplanmässiger Halt in WN (+6 Schritte)",
+          "description": "E1 verliert genau den Vorsprung, den der Fahrplan ihm vor E2 gibt. Beide erreichen den Einspurabschnitt jetzt im selben Schritt; W1 folgt planmässig als drittes."
+        }
+      }
+    }
+  },
+  "policies": {
+    "deadlock_avoidance": {
+      "label": "DLA (Standard)",
+      "description": "Vermeidet Blockaden vorausschauend, indem es die Wege der anderen Züge prüft."
+    },
+    "shortest_path": {
+      "label": "Kürzester Weg",
+      "description": "Jeder Zug wählt die Aktion, die den Abstand zu seinem Ziel verringert."
+    },
+    "random": {
+      "label": "Zufällig",
+      "description": "Wählt pro Zug eine zufällige gültige Aktion."
+    },
+    "forward_only": {
+      "label": "Nur vorwärts",
+      "description": "Immer MOVE_FORWARD; ignoriert Weichen."
+    },
+    "do_nothing": {
+      "label": "Nichts tun",
+      "description": "Alle Züge bleiben stehen (DO_NOTHING)."
+    },
+    "goal_directed": {
+      "label": "Director-Planer",
+      "description": "Plant alle Züge mit der gewichteten, modellgeführten Suche (Pünktlichkeit / Anschlüsse / Stabilität) und fährt dann den Plan."
+    },
+    "plan": {
+      "label": "Vorgegebener Plan",
+      "description": "Fährt jeden Zug entlang des vorgegebenen Plans des Szenarios; Züge, die der Plan nicht abdeckt oder die übersteuert wurden, fallen auf Blockadenvermeidung zurück."
+    }
   }
 }

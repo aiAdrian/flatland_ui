@@ -209,6 +209,8 @@ def set_override(session_id: str, handle: int, req: OverrideRequest):
                 related_kind="train",
                 related_id=str(handle),
                 ttl_steps=40,
+                code="override.riskIncrease",
+                params={"train": int(handle), "before": int(before_deadlocks), "after": int(after_deadlocks)},
             )
 
         if after_done < before_done:
@@ -224,6 +226,8 @@ def set_override(session_id: str, handle: int, req: OverrideRequest):
                 related_kind="train",
                 related_id=str(handle),
                 ttl_steps=40,
+                code="override.fewerArrivals",
+                params={"train": int(handle), "before": int(before_done), "after": int(after_done)},
             )
     except Exception:
         # Best-effort only; override setting must never fail due to alert logic.

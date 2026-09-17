@@ -3,7 +3,7 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel notifications-panel-lyne-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header>
-      <span class="lyne-panel-title">Event Feed</span>
+      <span class="lyne-panel-title">{{ 'notifications.panel.title' | transloco }}</span>
     </sbb-expansion-panel-header>
 
     <sbb-expansion-panel-content class="lyne-panel-content">
@@ -15,29 +15,29 @@
 <ng-template #notificationContent>
   <div class="notifications-panel">
     <div class="panel-head">
-      <sbb-title level="3" visual-level="5" class="panel-title">Event Feed</sbb-title>
+      <sbb-title level="3" visual-level="5" class="panel-title">{{ 'notifications.panel.title' | transloco }}</sbb-title>
       @if (store.notifications().length > 0) {
         <span class="feed-counts">
           @if (errorCount() > 0) {
-            <span class="count count-error" title="Errors">{{ errorCount() }}</span>
+            <span class="count count-error" [attr.title]="'notifications.panel.errors' | transloco">{{ errorCount() }}</span>
           }
           @if (warningCount() > 0) {
-            <span class="count count-warning" title="Warnings">{{ warningCount() }}</span>
+            <span class="count count-warning" [attr.title]="'notifications.panel.warnings' | transloco">{{ warningCount() }}</span>
           }
-          <span class="count count-total" title="Total events">{{ store.notifications().length }}</span>
+          <span class="count count-total" [attr.title]="'notifications.panel.total' | transloco">{{ store.notifications().length }}</span>
         </span>
       }
     </div>
 
     @if (store.notifications().length === 0) {
-      <p class="empty">No events</p>
+      <p class="empty">{{ 'notifications.panel.empty' | transloco }}</p>
     } @else {
       <!-- HMI review: "rot = Alarm, gelb = Vorsicht?" — the colour code
            was guessable but never stated. State it. -->
       <p class="severity-legend">
-        <span class="legend-item"><span class="legend-dot dot-error"></span>Störung / Konflikt</span>
-        <span class="legend-item"><span class="legend-dot dot-warning"></span>Hinweis, beobachten</span>
-        <span class="legend-item"><span class="legend-dot dot-info"></span>Information</span>
+        <span class="legend-item"><span class="legend-dot dot-error"></span>{{ 'notifications.panel.legend.error' | transloco }}</span>
+        <span class="legend-item"><span class="legend-dot dot-warning"></span>{{ 'notifications.panel.legend.warning' | transloco }}</span>
+        <span class="legend-item"><span class="legend-dot dot-info"></span>{{ 'notifications.panel.legend.info' | transloco }}</span>
       </p>
 
       <ul class="notif-list">
@@ -57,8 +57,8 @@
               (click)="onNotificationClick(n)">
             <span class="kind-marker" [attr.aria-label]="n.kind"></span>
             <div class="content">
-              <span class="title">{{ named(n.title) }}</span>
-              <span class="msg">{{ named(n.message) }}</span>
+              <span class="title">{{ titleOf(n) }}</span>
+              <span class="msg">{{ messageOf(n) }}</span>
               @if (n.relatedElement) {
                 <span class="related">
                   {{ relatedLabel(n) }}
@@ -67,7 +67,7 @@
             </div>
             <button class="dismiss"
                     (click)="dismiss(n, $event)"
-                    title="Dismiss">×</button>
+                    [attr.title]="'notifications.panel.dismiss' | transloco">×</button>
           </li>
         }
       </ul>

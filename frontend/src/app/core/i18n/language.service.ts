@@ -74,6 +74,30 @@ export class LanguageService {
    * data-driven copy whose English source lives in TypeScript (tours, mode
    * intros) — `fallback` is returned, so a missing key never reaches the screen.
    */
+  // ── Content with a stable id (i18n plan, phase 4) ─────────────────────────
+  // Scenario presets, disturbance files and policies arrive from the backend
+  // with their text already written. A translation is keyed by the id; without
+  // one, the text is shown exactly as delivered.
+  policyLabel(policy: { id: string; label: string }): string {
+    return this.t(`policies.${policy.id}.label`, undefined, policy.label);
+  }
+
+  policyDescription(policy: { id: string; description?: string | null }): string {
+    return this.t(`policies.${policy.id}.description`, undefined, policy.description ?? '');
+  }
+
+  scenarioName(preset: { id: string; name: string }): string {
+    return this.t(`scenarios.${preset.id}.name`, undefined, preset.name);
+  }
+
+  disturbanceName(disturbance: { id: string; name: string }): string {
+    return this.t(`disturbances.${disturbance.id}.name`, undefined, disturbance.name);
+  }
+
+  disturbanceDescription(disturbance: { id: string; description?: string | null }): string {
+    return this.t(`disturbances.${disturbance.id}.description`, undefined, disturbance.description ?? '');
+  }
+
   t(key: string, params?: TranslateParams, fallback?: string): string {
     this.version();
     this.lang();
