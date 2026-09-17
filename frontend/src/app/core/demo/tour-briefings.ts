@@ -201,9 +201,13 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         hint: 'Neu: Die KI übernimmt bestätigte Gründe in ihr Modell. Nach der Schicht sehen Sie das als Lern-Karte.',
       },
     ],
+    // Panels that belong to the Co-Learning extension: they carry the violet
+    // edge. The name is the tooltip and the wording used in the closing
+    // overview — the panels themselves are no longer labelled.
     moduleBadges: {
       impact: 'Risiko- und Auswirkungsanalyse',
       'proposal-compare': 'Auswirkungsanalyse: Plan, KI-Vorschlag und Ihre Wahl',
+      'decision-log': 'Grundlage für Reflexion und Lernen',
     },
     modeIntros: {
       'co-learning': {

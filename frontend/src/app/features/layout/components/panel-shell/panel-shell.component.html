@@ -7,8 +7,7 @@
     [attr.data-panel-zone]="panel.zone"
   >
     <div class="layout-panel-shell__header layout-panel-shell__header--canvas">
-      <span class="layout-panel-shell__title">{{ panel.title }}</span>
-      <ng-container [ngTemplateOutlet]="colearningBadge"></ng-container>
+      <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ panel.title }}</span>
     </div>
 
     <div class="layout-panel-shell__body layout-panel-shell__body--canvas">
@@ -28,8 +27,7 @@
   >
     <sbb-expansion-panel-header (click)="toggleExpanded()">
       <div class="layout-panel-shell__header">
-        <span class="layout-panel-shell__title">{{ panel.title }}</span>
-        <ng-container [ngTemplateOutlet]="colearningBadge"></ng-container>
+        <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ panel.title }}</span>
 
         @if (panel.hidden) {
           <span class="layout-panel-shell__meta">Hidden</span>
@@ -46,12 +44,3 @@
     </sbb-expansion-panel-content>
   </sbb-expansion-panel>
 }
-
-<ng-template #colearningBadge>
-  @if (colearningModule(); as module) {
-    <span class="layout-panel-shell__colearning" [attr.title]="'Neues Co-Learning-Modul: ' + module + ' · Entwurf, nicht final'">
-      <span class="layout-panel-shell__colearning-mark" aria-hidden="true"></span>
-      Co-Learning
-    </span>
-  }
-</ng-template>

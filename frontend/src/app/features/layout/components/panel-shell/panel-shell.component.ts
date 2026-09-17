@@ -13,7 +13,6 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
 import { PanelInstance } from '../../../../core/layout';
 import { TourContextService } from '../../../../core/demo/tour-context.service';
 import { TourGuideService } from '../../../../core/demo/tour-guide.service';
@@ -22,7 +21,7 @@ import { PanelPluginHostComponent } from '../panel-plugin-host/panel-plugin-host
 @Component({
   selector: 'app-panel-shell',
   standalone: true,
-  imports: [PanelPluginHostComponent, NgTemplateOutlet],
+  imports: [PanelPluginHostComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './panel-shell.component.html',
   styleUrl: './panel-shell.component.scss',
@@ -34,6 +33,13 @@ export class PanelShellComponent implements OnChanges {
 
   colearningModule(): string | null {
     return this.tour.moduleFor(this.panel?.type);
+  }
+
+  /** Tooltip on a Co-Learning panel's title, naming the module the violet edge
+   *  stands for. Replaces the chip the header used to carry. */
+  moduleHint(): string | null {
+    const module = this.colearningModule();
+    return module ? `Co-Learning-Modul: ${module} · Entwurf, nicht final` : null;
   }
 
   private readonly guide = inject(TourGuideService);
