@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
@@ -20,7 +22,7 @@ import { ActionInt } from '../../core/models';
 @Component({
   selector: 'app-impact-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './impact-panel.component.html',
   styleUrl: './impact-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -34,6 +36,7 @@ export class ImpactPanelComponent implements OnDestroy {
   }
 
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   /** Acting goes through the dispatch seam; `owner` still distinguishes a human
    *  click from the countdown's auto-decide. */
   private trainActions = inject(TrainActionService);
@@ -64,15 +67,15 @@ export class ImpactPanelComponent implements OnDestroy {
 
   /** What could be done for this train, as words rather than buttons. */
   actionKinds(item: ImpactItem): string {
-    return item.can_reroute ? 'Halten oder Umleiten' : 'Halten';
+    return this.i18n.t(item.can_reroute ? 'impact.measureHoldOrReroute' : 'impact.measureHold');
   }
 
   /** How many trains are affected and how many decisions that asks for. */
   readonly assessmentSummary = computed(() => {
     const count = this.items().length;
     return count === 1
-      ? 'Ein Zug betroffen · eine Massnahme nötig'
-      : `${count} Züge betroffen · ${count} Massnahmen nötig`;
+      ? this.i18n.t('impact.summaryOne')
+      : this.i18n.t('impact.summaryMany', { n: count });
   });
 
   private static readonly STOP = 4;
@@ -368,6 +371,12 @@ export class ImpactPanelComponent implements OnDestroy {
       next: (r) => this._setFeedback(key, { loading: false, summary: r.summary }),
       error: () => this._setFeedback(key, { loading: false, summary: '' }),
     });
+  }
+
+  /** An impact option's label: `hold` / `reroute` / `proceed` as the impact
+   *  analysis names them, translated where we have a translation. */
+  optionLabel(opt: { action: string; label: string }): string {
+    return this.i18n.t(`log.action.${opt.action}`, undefined, opt.label);
   }
 
   onOptionLeave(): void {

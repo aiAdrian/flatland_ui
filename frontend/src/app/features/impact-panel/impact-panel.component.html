@@ -1,8 +1,8 @@
 @if (embedded) {
   <div class="impact-panel impact-panel--embedded">
     <div class="ip-panel-head ip-panel-head--embedded">
-      <span class="panel-title" title="Trains whose route is blocked by another train's malfunction before it clears — not the malfunctioning trains themselves (those appear in Notifications).">
-        {{ assessmentOnly() ? 'Lage: Risiko & Auswirkung' : 'Disruption Conflicts' }}
+      <span class="panel-title" [attr.title]="'impact.titleTooltip' | transloco">
+        {{ (assessmentOnly() ? 'panels.riskAndImpact' : 'impact.conflictsTitle') | transloco }}
       </span>
       <span class="ip-count" [class.zero]="items().length === 0">{{ items().length }}</span>
     </div>
@@ -12,8 +12,8 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel impact-panel-lyne-panel impact-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header class="ip-panel-head">
-      <span class="lyne-panel-title panel-title" title="Trains whose route is blocked by another train's malfunction before it clears — not the malfunctioning trains themselves (those appear in Notifications).">
-        Disruption Conflicts
+      <span class="lyne-panel-title panel-title" [attr.title]="'impact.titleTooltip' | transloco">
+        {{ 'impact.conflictsTitle' | transloco }}
       </span>
       <span class="ip-count" [class.zero]="items().length === 0">{{ items().length }}</span>
     </sbb-expansion-panel-header>
@@ -27,19 +27,12 @@
 <ng-template #impactContent>
   @if (!collapsed()) {
     @if (items().length === 0) {
-      <p class="ip-empty">
-        {{ assessmentOnly() ? 'Zurzeit ist kein Zug betroffen.' : 'No affected trains right now.' }}
-      </p>
+      <p class="ip-empty">{{ 'impact.empty' | transloco }}</p>
     } @else {
       @if (heldCount() > 0) {
         <div class="ip-held-banner">
-          @if (assessmentOnly()) {
-            <strong>{{ heldCount() === 1 ? 'Ein Zug wartet' : heldCount() + ' Züge warten' }}</strong>
-            — bis Sie entscheiden. Das übrige Netz fährt weiter.
-          } @else {
-            <strong>{{ heldCount() }} train(s) held</strong> — waiting for your decision.
-            The rest of the network keeps running.
-          }
+          <strong>{{ (heldCount() === 1 ? 'impact.heldOne' : 'impact.heldMany') | transloco: { n: heldCount() } }}</strong>
+          {{ 'impact.heldText' | transloco }}
         </div>
       }
 
@@ -59,42 +52,41 @@
               <span class="ip-dot" [style.background]="agentColor(item.handle)"></span>
               <span class="ip-title">{{ trainName(item.handle) }}</span>
               @if (isHeld(item.handle)) {
-                <span class="ip-held-tag">held</span>
+                <span class="ip-held-tag">{{ 'impact.held' | transloco }}</span>
               }
-              <span class="ip-sev" [class.high]="item.severity === 'high'">{{ item.severity }}</span>
+              <span class="ip-sev" [class.high]="item.severity === 'high'">{{ 'impact.severity.' + item.severity | transloco }}</span>
             </div>
 
             @if (assessmentOnly()) {
               <!-- Assessment only (thesis Table 1): what the situation is, not what to
                    do about it. The options are in the Plan / KI / Mensch panel. -->
               <div class="ip-why">
-                blockiert durch {{ trainName(item.blocked_by) }} bei ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
+                {{ 'impact.blockedBy' | transloco: { train: trainName(item.blocked_by), row: item.blocked_cell[0], col: item.blocked_cell[1] } }}
               </div>
               <dl class="ip-assessment">
-                <div><dt>Erreicht die Stelle in</dt><dd>{{ item.eta_steps }} Schritten</dd></div>
-                <div><dt>Stelle frei in</dt><dd>{{ item.clears_in_steps }} Schritten</dd></div>
-                <div><dt>Zeitpuffer</dt>
+                <div><dt>{{ 'impact.reachesIn' | transloco }}</dt><dd>{{ 'impact.steps' | transloco: { n: item.eta_steps } }}</dd></div>
+                <div><dt>{{ 'impact.clearsIn' | transloco }}</dt><dd>{{ 'impact.steps' | transloco: { n: item.clears_in_steps } }}</dd></div>
+                <div><dt>{{ 'impact.buffer' | transloco }}</dt>
                   <dd>
                     @if (buffer(item) > 0) {
-                      keiner — der Zug stünde {{ buffer(item) }} Schritte
+                      {{ 'impact.bufferNone' | transloco: { n: buffer(item) } }}
                     } @else {
-                      reicht knapp
+                      {{ 'impact.bufferTight' | transloco }}
                     }
                   </dd>
                 </div>
-                <div><dt>Mögliche Massnahmen</dt><dd>{{ actionKinds(item) }}</dd></div>
+                <div><dt>{{ 'impact.measures' | transloco }}</dt><dd>{{ actionKinds(item) }}</dd></div>
               </dl>
             } @else {
               <div class="ip-why">
-                blocked by {{ trainName(item.blocked_by) }} at ({{ item.blocked_cell[0] }}, {{ item.blocked_cell[1] }})
-                · reaches in {{ item.eta_steps }} · clears in {{ item.clears_in_steps }}
+                {{ 'impact.blockedByShort' | transloco: { train: trainName(item.blocked_by), row: item.blocked_cell[0], col: item.blocked_cell[1], eta: item.eta_steps, clears: item.clears_in_steps } }}
               </div>
             }
 
             @if (assessmentOnly()) {
-              <div class="ip-handoff">Entscheiden Sie unter «Plan / KI / Mensch».</div>
+              <div class="ip-handoff">{{ 'impact.handoff' | transloco }}</div>
             } @else if (store.optionPresentation() === 'none') {
-              <div class="ip-overview">AI handling autonomously</div>
+              <div class="ip-overview">{{ 'impact.autonomous' | transloco }}</div>
             } @else {
               <div class="ip-options-list" (mouseleave)="onOptionLeave()">
                 @for (opt of item.options; track opt.action) {
@@ -104,12 +96,12 @@
                     [disabled]="!opt.available"
                     (mouseenter)="onOptionHover(item, opt)"
                     (click)="applyOption(item, opt.action); $event.stopPropagation()">
-                    {{ opt.label }}
+                    {{ optionLabel(opt) }}
                     @if (store.optionPresentation() === 'recommended' && opt.recommended) {
-                      <span class="ip-rec-tag">Recommended</span>
+                      <span class="ip-rec-tag">{{ 'impact.recommendedTag' | transloco }}</span>
                     }
                     @if (!opt.available) {
-                      <span class="ip-na">n/a</span>
+                      <span class="ip-na">{{ 'impact.notAvailable' | transloco }}</span>
                     }
                   </button>
                 }
@@ -120,7 +112,7 @@
                   <div class="ip-opt-feedback" [class.loading]="fb.loading">
                     <span class="ip-fb-label">{{ ho.label }} →</span>
                     @if (fb.loading) {
-                      <span class="ip-fb-text">simulating…</span>
+                      <span class="ip-fb-text">{{ 'impact.simulating' | transloco }}</span>
                     } @else {
                       <span class="ip-fb-text">{{ fb.summary }}</span>
                     }
@@ -134,9 +126,7 @@
 
       @if (countdownRemaining() !== null) {
         <div class="ip-countdown">
-          <div class="ip-cd-text">
-            AI decides in <strong>{{ countdownRemaining() }}s</strong> if you don't
-          </div>
+          <div class="ip-cd-text">{{ 'impact.countdown' | transloco: { n: countdownRemaining() } }}</div>
           <div class="ip-cd-bar">
             <div class="ip-cd-fill" [style.width.%]="countdownPct() * 100"></div>
           </div>

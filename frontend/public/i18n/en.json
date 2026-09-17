@@ -269,7 +269,21 @@
     },
     "pf-ch-wn-wal-long-approach": {
       "name": "PF–CH · WN↔WAL conflict (long approach)"
-    }
+    },
+    "panelTitle": "Scenarios",
+    "neutralHint": "Options shown neutrally — compare and decide; none is marked “best”.",
+    "empty": "No scenarios available",
+    "recommended": "Recommended",
+    "avoid": "Avoid",
+    "kpi": {
+      "done": "Done",
+      "deadlock": "Deadlock",
+      "delay": "Delay",
+      "steps": "Steps",
+      "total": "({{n}} total)"
+    },
+    "switching": "Switching…",
+    "switchTo": "Switch to this policy"
   },
   "disturbances": {
     "e1-station-hold": {
@@ -707,5 +721,132 @@
     "why": "Why",
     "once": "Once",
     "confirmed": "Confirmed"
+  },
+  "impact": {
+    "conflictsTitle": "Disruption Conflicts",
+    "titleTooltip": "Trains whose route is blocked by another train’s malfunction before it clears — not the disrupted trains themselves (those are in Events).",
+    "empty": "No train is affected right now.",
+    "heldOne": "One train is waiting",
+    "heldMany": "{{n}} trains are waiting",
+    "heldText": "— for your decision. The rest of the network keeps running.",
+    "summaryOne": "One train affected · one measure needed",
+    "summaryMany": "{{n}} trains affected · {{n}} measures needed",
+    "held": "held",
+    "blockedBy": "blocked by {{train}} at ({{row}}, {{col}})",
+    "blockedByShort": "blocked by {{train}} at ({{row}}, {{col}}) · reaches it in {{eta}} · clears in {{clears}}",
+    "reachesIn": "Reaches the spot in",
+    "clearsIn": "Spot clears in",
+    "steps": "{{n}} steps",
+    "buffer": "Time buffer",
+    "bufferNone": "none — the train would stand for {{n}} steps",
+    "bufferTight": "just enough",
+    "measures": "Possible measures",
+    "measureHold": "Hold",
+    "measureHoldOrReroute": "Hold or reroute",
+    "handoff": "Decide under “Plan / AI / human”.",
+    "autonomous": "AI handling autonomously",
+    "recommendedTag": "Recommended",
+    "notAvailable": "n/a",
+    "simulating": "simulating…",
+    "countdown": "AI decides in {{n}}s if you don’t",
+    "severity": {
+      "high": "high",
+      "medium": "medium",
+      "low": "low"
+    }
+  },
+  "reflection": {
+    "title": "Co-Learning Reflection",
+    "calmNudge": "reflect now?",
+    "calmNudgeTitle": "Things have calmed down — a good moment to reflect",
+    "phase": "reflect",
+    "phaseTitle": "Kolb experiential learning — reflection phase",
+    "worthReflecting": "MR · worth reflecting on",
+    "yourRun": "MR · your run",
+    "conceptualise": "AM · reflect & conceptualise",
+    "mirroringTitle": "Supportive-AI mode: Mirroring",
+    "animationTitle": "Supportive-AI modes: Animation / Transparency",
+    "step": "step {{n}}",
+    "otherwise": "usually {{expected}} → this time {{actual}}",
+    "momentNote": "Picked from {{n}} decisions — by pattern break, override and handover to the AI.",
+    "interventionOne": "intervention",
+    "interventionMany": "interventions",
+    "despiteAi": "despite AI hint",
+    "arrived": "arrived",
+    "totalDelay": "total delay",
+    "action": "{{train}} → action {{action}}",
+    "vsAi": "vs AI: {{suggestion}}",
+    "vsAiTitle": "AI recommendation at that moment",
+    "notePlaceholder": "Add your notes…",
+    "done": "Done — reflect again later",
+    "q": {
+      "cuesIntervened": "You intervened {{n}} time(s). Which signals made you step in?",
+      "cuesNone": "You let the AI run without intervening. Which signals were you watching?",
+      "expected": "Where did the outcome differ from what you expected — and why?",
+      "rule": "What if-then rule would you draw for a similar situation next time?",
+      "trust": "When did you trust the AI, and when did you override it? What drove that?",
+      "success": "How would you measure whether this run went well?"
+    },
+    "mode": {
+      "MR": "Mirroring",
+      "AM": "Animation",
+      "TP": "Transparency"
+    },
+    "case": {
+      "pattern_deviation": "pattern break",
+      "override": "override",
+      "deferred_to_ai": "left to the AI",
+      "confirmed_preference": "preference confirmed",
+      "one_off": "one-off",
+      "reasoned": "with a reason given",
+      "passive_accept": "silent approval"
+    }
+  },
+  "whatif": {
+    "titleTooltip": "Formulate your own action for the selected train and compare its simulated future with the AI’s plan.",
+    "empty": "Select a train (track diagram, list or impact) to compare your plan against the AI.",
+    "proposeAria": "Propose an action",
+    "loading": "Simulating both futures…",
+    "failed": "Could not simulate this branch. Try another action.",
+    "thisTrain": "This train",
+    "myPlan": "My plan",
+    "arrives": "Arrives",
+    "yes": "✓ yes",
+    "no": "✗ no",
+    "arrival": "Arrival",
+    "atStep": "step {{n}}",
+    "vsPlan": "{{delta}} vs plan",
+    "delay": "Delay",
+    "stepsUnit": "steps",
+    "deadlock": "Deadlock",
+    "plainYes": "yes",
+    "plainNo": "no",
+    "deltaArrives": "▲ arrives",
+    "deltaNoArrival": "▼ no arrival",
+    "deltaDeadlock": "▼ deadlock",
+    "deltaAvoids": "▲ avoids",
+    "systemEffect": "System effect",
+    "arrivedCount": "Arrived",
+    "deadlocks": "Deadlocks",
+    "committed": "✓ My plan committed as an override.",
+    "commit": "Commit my plan",
+    "readonly": "Read-only in Director — the AI keeps actuation.",
+    "action": {
+      "hold": "Hold",
+      "forward": "Forward",
+      "left": "Left",
+      "right": "Right"
+    },
+    "aiPlan": {
+      "recommendation": "AI plan (current + suggestion)",
+      "coLearning": "AI plan",
+      "director": "AI plan (autonomous)"
+    },
+    "note": {
+      "recommendation": "Compare your action against the AI’s current course.",
+      "coLearning": "Formulate your own action and compare it with the AI — neither is marked “right”.",
+      "director": "Supervisory what-if — inspect a branch; the AI keeps actuation under the directive."
+    },
+    "timetablePlan": "Timetable plan"
   }
 }

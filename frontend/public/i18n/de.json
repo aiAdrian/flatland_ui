@@ -269,7 +269,21 @@
     },
     "pf-ch-wn-wal-long-approach": {
       "name": "PF–CH · WN↔WAL Konflikt (lange Zufahrt)"
-    }
+    },
+    "panelTitle": "Szenarien",
+    "neutralHint": "Optionen neutral dargestellt — vergleichen und entscheiden; keine ist als «beste» markiert.",
+    "empty": "Keine Szenarien verfügbar",
+    "recommended": "Empfohlen",
+    "avoid": "Vermeiden",
+    "kpi": {
+      "done": "Angekommen",
+      "deadlock": "Blockade",
+      "delay": "Verspätung",
+      "steps": "Schritte",
+      "total": "({{n}} gesamt)"
+    },
+    "switching": "Wechsle …",
+    "switchTo": "Auf diese Policy wechseln"
   },
   "disturbances": {
     "e1-station-hold": {
@@ -707,5 +721,132 @@
     "why": "Warum",
     "once": "Einmal",
     "confirmed": "Bestätigt"
+  },
+  "impact": {
+    "conflictsTitle": "Störungskonflikte",
+    "titleTooltip": "Züge, deren Weg durch die Störung eines anderen Zuges blockiert ist, bevor sie behoben ist — nicht die gestörten Züge selbst (die stehen unter Ereignisse).",
+    "empty": "Zurzeit ist kein Zug betroffen.",
+    "heldOne": "Ein Zug wartet",
+    "heldMany": "{{n}} Züge warten",
+    "heldText": "— bis Sie entscheiden. Das übrige Netz fährt weiter.",
+    "summaryOne": "Ein Zug betroffen · eine Massnahme nötig",
+    "summaryMany": "{{n}} Züge betroffen · {{n}} Massnahmen nötig",
+    "held": "wartet",
+    "blockedBy": "blockiert durch {{train}} bei ({{row}}, {{col}})",
+    "blockedByShort": "blockiert durch {{train}} bei ({{row}}, {{col}}) · erreicht die Stelle in {{eta}} · frei in {{clears}}",
+    "reachesIn": "Erreicht die Stelle in",
+    "clearsIn": "Stelle frei in",
+    "steps": "{{n}} Schritten",
+    "buffer": "Zeitpuffer",
+    "bufferNone": "keiner — der Zug stünde {{n}} Schritte",
+    "bufferTight": "reicht knapp",
+    "measures": "Mögliche Massnahmen",
+    "measureHold": "Halten",
+    "measureHoldOrReroute": "Halten oder Umleiten",
+    "handoff": "Entscheiden Sie unter «Plan / KI / Mensch».",
+    "autonomous": "Die KI erledigt das autonom",
+    "recommendedTag": "Empfohlen",
+    "notAvailable": "n/v",
+    "simulating": "simuliere …",
+    "countdown": "Die KI entscheidet in {{n}} s, wenn Sie es nicht tun",
+    "severity": {
+      "high": "hoch",
+      "medium": "mittel",
+      "low": "gering"
+    }
+  },
+  "reflection": {
+    "title": "Co-Learning-Reflexion",
+    "calmNudge": "jetzt reflektieren?",
+    "calmNudgeTitle": "Es ist ruhiger geworden — ein guter Moment zum Reflektieren",
+    "phase": "reflektieren",
+    "phaseTitle": "Kolb-Lernzyklus — Phase der Reflexion",
+    "worthReflecting": "MR · zum Reflektieren",
+    "yourRun": "MR · Ihr Lauf",
+    "conceptualise": "AM · reflektieren & einordnen",
+    "mirroringTitle": "Supportive-AI-Modus: Mirroring",
+    "animationTitle": "Supportive-AI-Modi: Animation / Transparenz",
+    "step": "Schritt {{n}}",
+    "otherwise": "sonst {{expected}} → diesmal {{actual}}",
+    "momentNote": "Aus {{n}} Entscheidungen ausgewählt — nach Musterbruch, Override und Übergabe an die KI.",
+    "interventionOne": "Eingriff",
+    "interventionMany": "Eingriffe",
+    "despiteAi": "trotz KI-Hinweis",
+    "arrived": "angekommen",
+    "totalDelay": "Verspätung gesamt",
+    "action": "{{train}} → Aktion {{action}}",
+    "vsAi": "vs. KI: {{suggestion}}",
+    "vsAiTitle": "KI-Empfehlung in diesem Moment",
+    "notePlaceholder": "Ihre Notizen …",
+    "done": "Fertig — später weiter reflektieren",
+    "q": {
+      "cuesIntervened": "Sie haben {{n}}× eingegriffen. Welche Signale haben Sie dazu gebracht?",
+      "cuesNone": "Sie haben die KI laufen lassen, ohne einzugreifen. Welche Signale haben Sie beobachtet?",
+      "expected": "Wo ist das Ergebnis anders ausgefallen als erwartet — und warum?",
+      "rule": "Welche Wenn-dann-Regel würden Sie für eine ähnliche Lage ableiten?",
+      "trust": "Wann haben Sie der KI vertraut und wann übersteuert? Was war ausschlaggebend?",
+      "success": "Woran würden Sie messen, ob dieser Lauf gut gelaufen ist?"
+    },
+    "mode": {
+      "MR": "Mirroring",
+      "AM": "Animation",
+      "TP": "Transparenz"
+    },
+    "case": {
+      "pattern_deviation": "Musterbruch",
+      "override": "Override",
+      "deferred_to_ai": "der KI überlassen",
+      "confirmed_preference": "Präferenz bestätigt",
+      "one_off": "Einzelfall",
+      "reasoned": "mit Begründung",
+      "passive_accept": "stille Zustimmung"
+    }
+  },
+  "whatif": {
+    "titleTooltip": "Formulieren Sie eine eigene Massnahme für den gewählten Zug und vergleichen Sie die simulierte Zukunft mit dem Plan der KI.",
+    "empty": "Wählen Sie einen Zug (Karte, Liste oder Auswirkung), um Ihren Plan mit der KI zu vergleichen.",
+    "proposeAria": "Massnahme vorschlagen",
+    "loading": "Simuliere beide Zukünfte …",
+    "failed": "Dieser Zweig liess sich nicht simulieren. Versuchen Sie eine andere Massnahme.",
+    "thisTrain": "Dieser Zug",
+    "myPlan": "Mein Plan",
+    "arrives": "Kommt an",
+    "yes": "✓ ja",
+    "no": "✗ nein",
+    "arrival": "Ankunft",
+    "atStep": "Schritt {{n}}",
+    "vsPlan": "{{delta}} ggü. Plan",
+    "delay": "Verspätung",
+    "stepsUnit": "Schritte",
+    "deadlock": "Blockade",
+    "plainYes": "ja",
+    "plainNo": "nein",
+    "deltaArrives": "▲ kommt an",
+    "deltaNoArrival": "▼ keine Ankunft",
+    "deltaDeadlock": "▼ Blockade",
+    "deltaAvoids": "▲ vermeidet",
+    "systemEffect": "Wirkung aufs System",
+    "arrivedCount": "Angekommen",
+    "deadlocks": "Blockaden",
+    "committed": "✓ Mein Plan ist als Eingriff gesetzt.",
+    "commit": "Meinen Plan setzen",
+    "readonly": "Nur Ansicht im Director — die Ausführung bleibt bei der KI.",
+    "action": {
+      "hold": "Halten",
+      "forward": "Geradeaus",
+      "left": "Links",
+      "right": "Rechts"
+    },
+    "aiPlan": {
+      "recommendation": "Plan der KI (aktuell + Vorschlag)",
+      "coLearning": "Plan der KI",
+      "director": "Plan der KI (autonom)"
+    },
+    "note": {
+      "recommendation": "Vergleichen Sie Ihre Massnahme mit dem aktuellen Kurs der KI.",
+      "coLearning": "Formulieren Sie eine eigene Massnahme und vergleichen Sie sie mit der KI — keine ist als «richtig» markiert.",
+      "director": "Was-wäre-wenn zur Aufsicht — prüfen Sie einen Zweig; die Ausführung bleibt unter der Vorgabe bei der KI."
+    },
+    "timetablePlan": "Fahrplan"
   }
 }

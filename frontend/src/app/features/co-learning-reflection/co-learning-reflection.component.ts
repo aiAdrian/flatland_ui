@@ -12,10 +12,15 @@ import {
   selectReflectionMoments,
 } from '../../core/reflection-moments';
 import { ValueAxis } from '../../core/operator-model.service';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 
 interface ReflectionQuestion {
   key: string;
-  text: string;
+  /** Translation key for the prompt (i18n plan, phase 3). */
+  textKey: string;
+  /** Interpolation parameters for `textKey`, if it takes any. */
+  params?: Record<string, unknown>;
   /** Supportive-AI mode this prompt embodies (Waefler et al. 2025). */
   mode: 'MR' | 'AM' | 'TP';
 }
@@ -31,7 +36,7 @@ interface ReflectionQuestion {
 @Component({
   selector: 'app-co-learning-reflection',
   standalone: true,
-  imports: [CommonModule, RationaleCaptureComponent, LearningRecordsComponent],
+  imports: [TranslocoPipe, CommonModule, RationaleCaptureComponent, LearningRecordsComponent],
   templateUrl: './co-learning-reflection.component.html',
   styleUrl: './co-learning-reflection.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -49,6 +54,7 @@ export class CoLearningReflectionComponent {
   }
 
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private readonly identity = inject(TrainIdentityService);
 
   trainName(handle: number): string {
@@ -81,11 +87,11 @@ export class CoLearningReflectionComponent {
   readonly moments = computed(() => selectReflectionMoments(this.store.decisionLog()));
 
   caseLabel(caseType: ReflectionCaseType): string {
-    return REFLECTION_CASE_LABELS[caseType];
+    return this.i18n.t(`reflection.case.${caseType}`, undefined, REFLECTION_CASE_LABELS[caseType]);
   }
 
   axisLabel(axis: ValueAxis | null): string {
-    return axis ? VALUE_AXIS_LABELS[axis] : '—';
+    return axis ? this.i18n.t(`effect.${axis === 'stability' ? 'networkStability' : axis === 'connection' ? 'connections' : axis}`, undefined, VALUE_AXIS_LABELS[axis]) : '—';
   }
   // ── Mirroring [MR]: the operator's own run, reflected back ──────────
   readonly interventions = computed(() => this.store.coLearningFeedback());
@@ -113,14 +119,13 @@ export class CoLearningReflectionComponent {
       {
         key: 'cues',
         mode: 'AM',
-        text: n > 0
-          ? `You intervened ${n} time${n === 1 ? '' : 's'}. Which signals made you step in?`
-          : 'You let the AI run without intervening. Which signals were you watching?',
+        textKey: n > 0 ? 'reflection.q.cuesIntervened' : 'reflection.q.cuesNone',
+        params: { n },
       },
-      { key: 'expected', mode: 'TP', text: 'Where did the outcome differ from what you expected — and why?' },
-      { key: 'rule', mode: 'AM', text: 'What if-then rule would you draw for a similar situation next time?' },
-      { key: 'trust', mode: 'MR', text: 'When did you trust the AI, and when did you override it? What drove that?' },
-      { key: 'success', mode: 'TP', text: 'How would you measure whether this run went well?' },
+      { key: 'expected', mode: 'TP', textKey: 'reflection.q.expected' },
+      { key: 'rule', mode: 'AM', textKey: 'reflection.q.rule' },
+      { key: 'trust', mode: 'MR', textKey: 'reflection.q.trust' },
+      { key: 'success', mode: 'TP', textKey: 'reflection.q.success' },
     ];
   });
 
@@ -169,7 +174,7 @@ export class CoLearningReflectionComponent {
   }
 
   modeLabel(mode: 'MR' | 'AM' | 'TP'): string {
-    return mode === 'MR' ? 'Mirroring' : mode === 'AM' ? 'Animation' : 'Transparency';
+    return this.i18n.t(`reflection.mode.${mode}`);
   }
 
   setAnswer(key: string, value: string): void {

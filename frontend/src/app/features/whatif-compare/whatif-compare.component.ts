@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { TrainIdentityService } from '../../core/train-identity.service';
@@ -11,7 +13,8 @@ import { ActionInt } from '../../core/models';
 /** One selectable action the human can propose for the target train. */
 interface ActionChoice {
   action: ActionInt;
-  label: string;
+  /** Translation key; the label itself lives in the translation files. */
+  labelKey: string;
 }
 
 /**
@@ -38,12 +41,13 @@ interface ActionChoice {
 @Component({
   selector: 'app-whatif-compare',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './whatif-compare.component.html',
   styleUrl: './whatif-compare.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class WhatifCompareComponent implements OnDestroy {
+  private readonly i18n = inject(LanguageService);
   @Input() embedded = false;
 
   @HostBinding('class.embedded')
@@ -61,10 +65,10 @@ export class WhatifCompareComponent implements OnDestroy {
 
   /** Actions the human can propose. Flatland: 4=STOP(hold), 2=FORWARD, 1=LEFT, 3=RIGHT. */
   readonly actionChoices: ActionChoice[] = [
-    { action: 4, label: 'Hold' },
-    { action: 2, label: 'Forward' },
-    { action: 1, label: 'Left' },
-    { action: 3, label: 'Right' },
+    { action: 4, labelKey: 'whatif.action.hold' },
+    { action: 2, labelKey: 'whatif.action.forward' },
+    { action: 1, labelKey: 'whatif.action.left' },
+    { action: 3, labelKey: 'whatif.action.right' },
   ];
 
   /** The human's currently proposed action ("My plan"). */
@@ -82,11 +86,11 @@ export class WhatifCompareComponent implements OnDestroy {
   readonly modeBehavior = computed(() => {
     switch (this.store.interactionMode()) {
       case 'recommendation':
-        return { canCommit: true, aiLabel: 'AI plan (current + suggestion)', note: 'Compare your action against the AI’s current course.' };
+        return { canCommit: true, aiLabelKey: 'whatif.aiPlan.recommendation', noteKey: 'whatif.note.recommendation' };
       case 'co-learning':
-        return { canCommit: true, aiLabel: 'AI plan', note: 'Formulate your own action and compare it with the AI — neither is marked “right”.' };
+        return { canCommit: true, aiLabelKey: 'whatif.aiPlan.coLearning', noteKey: 'whatif.note.coLearning' };
       case 'director':
-        return { canCommit: false, aiLabel: 'AI plan (autonomous)', note: 'Supervisory what-if — inspect a branch; the AI keeps actuation under the directive.' };
+        return { canCommit: false, aiLabelKey: 'whatif.aiPlan.director', noteKey: 'whatif.note.director' };
     }
   });
 
@@ -163,7 +167,7 @@ export class WhatifCompareComponent implements OnDestroy {
   /** The baseline column's name: in a plan-driven session it is the timetable
    *  plan running on, not an AI proposal. */
   baselineLabel(r: WhatIfResult): string {
-    return r.baseline_source === 'plan' ? 'Timetable plan' : this.modeBehavior().aiLabel;
+    return this.i18n.t(r.baseline_source === 'plan' ? 'whatif.timetablePlan' : this.modeBehavior().aiLabelKey);
   }
 
   /** Arrival of My plan minus arrival of the baseline, when both arrive. */

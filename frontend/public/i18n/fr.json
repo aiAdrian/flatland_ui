@@ -269,7 +269,21 @@
     },
     "pf-ch-wn-wal-long-approach": {
       "name": "PF–CH · WN↔WAL conflit (longue approche)"
-    }
+    },
+    "panelTitle": "Scénarios",
+    "neutralHint": "Options présentées de façon neutre — comparez et décidez ; aucune n’est marquée « meilleure ».",
+    "empty": "Aucun scénario disponible",
+    "recommended": "Recommandé",
+    "avoid": "À éviter",
+    "kpi": {
+      "done": "Arrivés",
+      "deadlock": "Blocage",
+      "delay": "Retard",
+      "steps": "Pas",
+      "total": "({{n}} au total)"
+    },
+    "switching": "Changement…",
+    "switchTo": "Passer à cette politique"
   },
   "disturbances": {
     "e1-station-hold": {
@@ -707,5 +721,132 @@
     "why": "Pourquoi",
     "once": "Une fois",
     "confirmed": "Confirmé"
+  },
+  "impact": {
+    "conflictsTitle": "Conflits de perturbation",
+    "titleTooltip": "Trains dont l’itinéraire est bloqué par la panne d’un autre train avant sa résolution — pas les trains en panne eux-mêmes (ceux-ci figurent dans les événements).",
+    "empty": "Aucun train n’est concerné pour l’instant.",
+    "heldOne": "Un train attend",
+    "heldMany": "{{n}} trains attendent",
+    "heldText": "— votre décision. Le reste du réseau continue de rouler.",
+    "summaryOne": "Un train concerné · une mesure nécessaire",
+    "summaryMany": "{{n}} trains concernés · {{n}} mesures nécessaires",
+    "held": "en attente",
+    "blockedBy": "bloqué par {{train}} en ({{row}}, {{col}})",
+    "blockedByShort": "bloqué par {{train}} en ({{row}}, {{col}}) · y arrive dans {{eta}} · libre dans {{clears}}",
+    "reachesIn": "Atteint l’endroit dans",
+    "clearsIn": "Endroit libre dans",
+    "steps": "{{n}} pas",
+    "buffer": "Marge de temps",
+    "bufferNone": "aucune — le train serait à l’arrêt {{n}} pas",
+    "bufferTight": "tout juste suffisante",
+    "measures": "Mesures possibles",
+    "measureHold": "Maintenir",
+    "measureHoldOrReroute": "Maintenir ou détourner",
+    "handoff": "Décidez sous « Plan / IA / humain ».",
+    "autonomous": "L’IA s’en charge de façon autonome",
+    "recommendedTag": "Recommandé",
+    "notAvailable": "n/d",
+    "simulating": "simulation…",
+    "countdown": "L’IA décide dans {{n}} s si vous ne le faites pas",
+    "severity": {
+      "high": "élevée",
+      "medium": "moyenne",
+      "low": "faible"
+    }
+  },
+  "reflection": {
+    "title": "Réflexion Co-Learning",
+    "calmNudge": "réfléchir maintenant ?",
+    "calmNudgeTitle": "Le calme est revenu — un bon moment pour réfléchir",
+    "phase": "réfléchir",
+    "phaseTitle": "Cycle de Kolb — phase de réflexion",
+    "worthReflecting": "MR · à méditer",
+    "yourRun": "MR · votre session",
+    "conceptualise": "AM · réfléchir et conceptualiser",
+    "mirroringTitle": "Mode d’IA de soutien : Mirroring",
+    "animationTitle": "Modes d’IA de soutien : Animation / Transparence",
+    "step": "pas {{n}}",
+    "otherwise": "d’habitude {{expected}} → cette fois {{actual}}",
+    "momentNote": "Choisi parmi {{n}} décisions — rupture de schéma, intervention et passage de main à l’IA.",
+    "interventionOne": "intervention",
+    "interventionMany": "interventions",
+    "despiteAi": "malgré l’indication de l’IA",
+    "arrived": "arrivés",
+    "totalDelay": "retard total",
+    "action": "{{train}} → action {{action}}",
+    "vsAi": "vs IA : {{suggestion}}",
+    "vsAiTitle": "Recommandation de l’IA à ce moment-là",
+    "notePlaceholder": "Vos notes…",
+    "done": "Terminé — réfléchir à nouveau plus tard",
+    "q": {
+      "cuesIntervened": "Vous êtes intervenu {{n}} fois. Quels signaux vous ont poussé à agir ?",
+      "cuesNone": "Vous avez laissé l’IA faire sans intervenir. Quels signaux surveilliez-vous ?",
+      "expected": "En quoi le résultat a-t-il différé de vos attentes — et pourquoi ?",
+      "rule": "Quelle règle « si… alors » tireriez-vous pour une situation semblable ?",
+      "trust": "Quand avez-vous fait confiance à l’IA et quand l’avez-vous contredite ? Qu’est-ce qui a motivé cela ?",
+      "success": "À quoi mesureriez-vous la réussite de cette session ?"
+    },
+    "mode": {
+      "MR": "Mirroring",
+      "AM": "Animation",
+      "TP": "Transparence"
+    },
+    "case": {
+      "pattern_deviation": "rupture de schéma",
+      "override": "intervention",
+      "deferred_to_ai": "laissé à l’IA",
+      "confirmed_preference": "préférence confirmée",
+      "one_off": "cas isolé",
+      "reasoned": "avec justification",
+      "passive_accept": "approbation tacite"
+    }
+  },
+  "whatif": {
+    "titleTooltip": "Formulez votre propre mesure pour le train sélectionné et comparez son avenir simulé avec le plan de l’IA.",
+    "empty": "Sélectionnez un train (carte, liste ou impact) pour comparer votre plan avec l’IA.",
+    "proposeAria": "Proposer une mesure",
+    "loading": "Simulation des deux avenirs…",
+    "failed": "Impossible de simuler cette branche. Essayez une autre mesure.",
+    "thisTrain": "Ce train",
+    "myPlan": "Mon plan",
+    "arrives": "Arrive",
+    "yes": "✓ oui",
+    "no": "✗ non",
+    "arrival": "Arrivée",
+    "atStep": "pas {{n}}",
+    "vsPlan": "{{delta}} p. r. au plan",
+    "delay": "Retard",
+    "stepsUnit": "pas",
+    "deadlock": "Blocage",
+    "plainYes": "oui",
+    "plainNo": "non",
+    "deltaArrives": "▲ arrive",
+    "deltaNoArrival": "▼ pas d’arrivée",
+    "deltaDeadlock": "▼ blocage",
+    "deltaAvoids": "▲ évite",
+    "systemEffect": "Effet sur le système",
+    "arrivedCount": "Arrivés",
+    "deadlocks": "Blocages",
+    "committed": "✓ Mon plan est appliqué comme intervention.",
+    "commit": "Appliquer mon plan",
+    "readonly": "Lecture seule en mode Director — l’IA garde l’exécution.",
+    "action": {
+      "hold": "Maintenir",
+      "forward": "Tout droit",
+      "left": "Gauche",
+      "right": "Droite"
+    },
+    "aiPlan": {
+      "recommendation": "Plan de l’IA (actuel + suggestion)",
+      "coLearning": "Plan de l’IA",
+      "director": "Plan de l’IA (autonome)"
+    },
+    "note": {
+      "recommendation": "Comparez votre mesure au cours actuel de l’IA.",
+      "coLearning": "Formulez votre propre mesure et comparez-la avec l’IA — aucune n’est marquée « juste ».",
+      "director": "Simulation de supervision — examinez une branche ; l’IA garde l’exécution selon la consigne."
+    },
+    "timetablePlan": "Plan horaire"
   }
 }
