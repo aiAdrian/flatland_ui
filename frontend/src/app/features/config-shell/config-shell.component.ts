@@ -1,4 +1,6 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, inject } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 
 export type ConfigArea =
   | 'dispatcher'
@@ -52,11 +54,17 @@ const AREA_LINKS: AreaLink[] = [
 @Component({
   selector: 'app-config-shell',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './config-shell.component.html',
   styleUrl: './config-shell.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ConfigShellComponent {
+  /** App language. The switch lives in this shared menu so every surface offers it,
+   *  but only in-scope copy follows it — internal tools stay English by design
+   *  (docs/plans/i18n-strategy.md). */
+  readonly i18n = inject(LanguageService);
+
   /** Which surface is active — drives the brand subtitle and is excluded from Areas. */
   @Input({ required: true }) active!: ConfigArea;
 

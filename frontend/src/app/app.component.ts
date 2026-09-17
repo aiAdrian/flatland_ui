@@ -51,6 +51,8 @@ import { WidgetsGalleryComponent } from './features/widgets-gallery/widgets-gall
 import { AlgorithmsGalleryComponent } from './features/algorithms-gallery/algorithms-gallery.component';
 import { ContributeComponent } from './features/contribute/contribute.component';
 import { TOURS, Tour, tourById } from './core/demo/tours';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from './core/i18n/language.service';
 import { PanelPluginHostComponent } from './features/layout/components/panel-plugin-host/panel-plugin-host.component';
 import { ConfigShellComponent } from './features/config-shell/config-shell.component';
 import { LAYOUT_PRESETS } from './core/layout/layout-presets';
@@ -69,7 +71,7 @@ type RuntimeLayoutOption = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
+  imports: [TranslocoPipe, 
     NgTemplateOutlet,
     PanelPluginHostComponent,
     LayoutDesignerComponent,
@@ -516,7 +518,37 @@ export class AppComponent implements OnInit {
 
   /** The running tour's name for the footer; falls back to the generic label
    *  when a demo was started without naming a tour. */
-  readonly activeTourName = computed(() => this.selectedTour()?.name ?? 'Guided demo');
+  readonly activeTourName = computed(() => {
+    const tour = this.selectedTour();
+    return tour ? this.tourLabel(tour) : this.i18n.t('footer.guidedDemo', undefined, 'Guided demo');
+  });
+
+  /** App language (docs/plans/i18n-strategy.md). */
+  private readonly i18n = inject(LanguageService);
+
+  /** A tour's name and description are keyed by tour id; a tour without keys
+   *  (e.g. the German interview tour) shows its own text in every language. */
+  tourLabel(tour: Tour): string {
+    return this.i18n.t(`tours.${tour.id}.name`, undefined, tour.name);
+  }
+
+  tourDescription(tour: Tour): string {
+    return this.i18n.t(`tours.${tour.id}.description`, undefined, tour.description);
+  }
+
+  readonly selectedTourMeta = computed(() => {
+    const tour = this.selectedTour();
+    const count = tour.modes.length;
+    return [
+      this.i18n.t(count === 1 ? 'welcome.tour.modeOne' : 'welcome.tour.modeMany', { count }),
+      this.i18n.t('welcome.tour.minutes', { minutes: tour.expectedMinutes }),
+      this.i18n.t(tour.surveyAfterEachMode ? 'welcome.tour.withSurvey' : 'welcome.tour.noSurvey'),
+    ].join(' · ');
+  });
+
+  private modeLabel(mode: InteractionMode): string {
+    return this.i18n.t(`mode.${mode}`, undefined, AppComponent.MODE_LABEL[mode]);
+  }
 
   setSelectedTour(id: string): void {
     this.selectedTourId.set(id);
@@ -658,9 +690,9 @@ export class AppComponent implements OnInit {
   /** The label of the one Start button, naming what it will start. */
   readonly welcomeStartLabel = computed(() => {
     switch (this.welcomeDoor()) {
-      case 'introduction': return 'Start tour';
-      case 'experiments': return 'Start experiment';
-      default: return 'Start session';
+      case 'introduction': return this.i18n.t('welcome.start.tour');
+      case 'experiments': return this.i18n.t('welcome.start.experiment');
+      default: return this.i18n.t('welcome.start.session');
     }
   });
 
@@ -669,35 +701,52 @@ export class AppComponent implements OnInit {
    * the person sees the result of their choices before committing to them.
    */
   readonly welcomeSummary = computed(() => {
-    const label = AppComponent.MODE_LABEL;
     switch (this.welcomeDoor()) {
       case 'introduction': {
         const tour = this.selectedTour();
-        return `You start the tour “${tour.name}”: ${tour.modes.map((m) => label[m]).join(' → ')}, about ${tour.expectedMinutes} min.`;
+        return this.i18n.t('welcome.summary.tour', {
+          name: this.tourLabel(tour),
+          modes: tour.modes.map((m) => this.modeLabel(m)).join(' → '),
+          minutes: tour.expectedMinutes,
+        });
       }
       case 'experiments': {
         const condition = this.selectedStudyCondition();
         const count = this.selectedDisturbanceIds().size;
-        const disturbances = count ? `${count} disturbance${count === 1 ? '' : 's'}` : 'no disturbances (reference run)';
-        return `You start ${condition.label} on ${this.welcomeNetworkLabel(this.selectedExperimentScenarioId())}, ${disturbances}.`;
+        const disturbances = count === 0
+          ? this.i18n.t('welcome.summary.noDisturbances')
+          : count === 1
+            ? this.i18n.t('welcome.summary.disturbanceOne')
+            : this.i18n.t('welcome.summary.disturbanceMany', { count });
+        return this.i18n.t('welcome.summary.experiment', {
+          condition: condition.label,
+          network: this.welcomeNetworkLabel(this.selectedExperimentScenarioId()),
+          disturbances,
+        });
       }
       default:
-        return `You start ${this.welcomeNetworkLabel(this.selectedRuntimeInfrastructureId())} in ${this.welcomeLayoutLabel(this.selectedRuntimeLayoutId())}, mode ${label[this.store.interactionMode()]}.`;
+        return this.i18n.t('welcome.summary.build', {
+          network: this.welcomeNetworkLabel(this.selectedRuntimeInfrastructureId()),
+          layout: this.welcomeLayoutLabel(this.selectedRuntimeLayoutId()),
+          mode: this.modeLabel(this.store.interactionMode()),
+        });
     }
   });
 
   private welcomeNetworkLabel(id: string): string {
-    if (id === AppComponent.GUIDED_DEMO_INFRA_ID) return 'the Guided Demo Environment';
-    if (id === 'random') return `a random network (${this.newWidth()} × ${this.newHeight()}, ${this.newAgents()} trains)`;
+    if (id === AppComponent.GUIDED_DEMO_INFRA_ID) return this.i18n.t('welcome.summary.networkGuided');
+    if (id === 'random') {
+      return this.i18n.t('welcome.summary.networkRandom', { w: this.newWidth(), h: this.newHeight(), n: this.newAgents() });
+    }
     const preset = (this.scenarioPresets() as any[]).find((p) => p?.id === id);
     if (preset) return preset.name;
     return this.runtimeInfrastructureScenes().find((scene) => scene.id === id)?.name ?? id;
   }
 
   private welcomeLayoutLabel(id: string): string {
-    if (!id || id === this.systemRuntimeLayoutId) return 'the default layout';
+    if (!id || id === this.systemRuntimeLayoutId) return this.i18n.t('welcome.summary.layoutDefault');
     const name = this.runtimeLayoutOptions().find((layout) => layout.id === id)?.name;
-    return name ? `“${name}”` : 'the default layout';
+    return name ? this.i18n.t('welcome.summary.layoutNamed', { name }) : this.i18n.t('welcome.summary.layoutDefault');
   }
 
   /** The one Start: dispatches on the selected door. */

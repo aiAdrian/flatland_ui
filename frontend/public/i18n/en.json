@@ -1,0 +1,183 @@
+{
+  "lang": {
+    "menu": "Language"
+  },
+  "shell": {
+    "menu": "Menu",
+    "areas": "Areas",
+    "subtitle": "A Human-AI Teaming Playground"
+  },
+  "mode": {
+    "recommendation": "Recommendation",
+    "co-learning": "Co-Learning",
+    "director": "Director"
+  },
+  "footer": {
+    "mode": "mode",
+    "guidedDemo": "Guided demo"
+  },
+  "welcome": {
+    "subtitle": "A Human-AI Teaming Playground",
+    "desc": "Explore how a human dispatcher and agentic AI can co-operate on the Flatland railway simulation.",
+    "doorsAria": "How do you want to start?",
+    "door": {
+      "introduction": {
+        "title": "Introduction",
+        "subtext": "A guided tour. Modes, layout and environment are set for you."
+      },
+      "build": {
+        "title": "Build your own",
+        "subtext": "Choose the network, scenario and layout yourself."
+      },
+      "experiments": {
+        "title": "Experiments",
+        "subtext": "A prepared, reproducible condition: premade plan, chosen disturbances, study layout."
+      }
+    },
+    "field": {
+      "tour": "Tour",
+      "layout": "Layout",
+      "network": "Network",
+      "condition": "Condition",
+      "scenario": "Scenario",
+      "grid": "Grid:",
+      "width": "Width",
+      "height": "Height",
+      "agents": "# Agents",
+      "maxSteps": "Max Steps"
+    },
+    "trains": "{{count}} trains",
+    "network": {
+      "guidedDemo": "Guided Demo Environment · fixed seed 42",
+      "random": "Random · default"
+    },
+    "hint": {
+      "gridCap": "Capped here so a fresh session stays smooth on the hosted demo's free hardware. Need bigger? Session Properties → Basic goes up to {{max}}.",
+      "maxSteps": "Max simulation length. Higher = more thorough what-if forecasts but slower.",
+      "grid": "Capped for a smooth run on the hosted demo's free hardware — for a bigger grid or more trains, open <strong>Session Properties</strong> after starting a session (gear icon, <em>Basic</em> tab)."
+    },
+    "tour": {
+      "modeOne": "{{count}} mode",
+      "modeMany": "{{count}} modes",
+      "minutes": "~{{minutes}} min",
+      "withSurvey": "with survey",
+      "noSurvey": "no survey"
+    },
+    "experimentsNote": "First cut. Only scenarios that ship a premade plan are offered, so a run is reproducible. Participant ids and counterbalanced mode order are not built yet — that is the Experiment entity in the plan.",
+    "planNote": "<strong>Plan</strong> — this scenario ships a premade plan. The trains follow it exactly from the first step; anything you override leaves the plan and is driven by the AI instead.",
+    "disturbances": {
+      "legend": "Disturbances",
+      "hint": "Scripted events that hit at fixed steps. Pick any combination — none is the undisturbed reference run."
+    },
+    "start": {
+      "tour": "Start tour",
+      "session": "Start session",
+      "experiment": "Start experiment"
+    },
+    "summary": {
+      "tour": "You start the tour “{{name}}”: {{modes}}, about {{minutes}} min.",
+      "experiment": "You start {{condition}} on {{network}}, {{disturbances}}.",
+      "build": "You start {{network}} in {{layout}}, mode {{mode}}.",
+      "disturbanceOne": "1 disturbance",
+      "disturbanceMany": "{{count}} disturbances",
+      "noDisturbances": "no disturbances (reference run)",
+      "networkGuided": "the Guided Demo Environment",
+      "networkRandom": "a random network ({{w}} × {{h}}, {{n}} trains)",
+      "layoutDefault": "the default layout",
+      "layoutNamed": "“{{name}}”"
+    }
+  },
+  "tours": {
+    "three-modes-original": {
+      "name": "Three modes · original layout",
+      "description": "The same conflict handled in all three modes — Recommendation, Co-Learning, Director — in the hardcoded default layout, with a short survey after each."
+    },
+    "two-modes-guide-light": {
+      "name": "Two modes · Guide Mode Light",
+      "description": "Recommendation and Co-Learning in the three-zone layout: left reports, centre shows the network, right decides. Same environment as the original tour, so the layout is the only difference."
+    },
+    "director-only": {
+      "name": "Director only",
+      "description": "Straight into the Director screen — strategy tiles, forecast, AI-activity feed — with no walk and no survey. For showing that screen on its own."
+    }
+  },
+  "intro": {
+    "labels": {
+      "stepPrefix": "Mode",
+      "stepOf": "of",
+      "whatHappens": "What happens",
+      "focusView": "Where to look",
+      "yourRole": "Your role",
+      "control": "What you can control",
+      "watchFor": "What to watch for",
+      "goal": "Goal",
+      "start": "Start scenario",
+      "exit": "Exit demo"
+    },
+    "recommendation": {
+      "wp": "WP 3.1",
+      "title": "Recommendation",
+      "tagline": "AI suggests, you decide.",
+      "whatHappens": "As trains run, the AI watches for conflicts. When one appears, it proposes a preferred solution with a confidence score.",
+      "focusView": "The map — you act on each conflict where it happens; the recommendation card on the right is the AI’s suggested fix.",
+      "yourRole": "You stay in charge — accept the AI’s suggestion, or choose differently yourself.",
+      "control": {
+        "0": "Accept or reject the AI’s suggested policy change",
+        "1": "Override any individual train’s next decision yourself"
+      },
+      "watch": {
+        "0": "A recommendation card on the right, with a confidence % and countdown",
+        "1": "Policies ranked with “Recommended” / “Avoid” badges"
+      },
+      "goal": "Get all trains to their destination with as little delay as possible."
+    },
+    "co-learning": {
+      "wp": "WP 3.3",
+      "title": "Co-Learning",
+      "tagline": "Neutral options, you decide and reflect.",
+      "whatHappens": "Same kind of situation — but this time the AI doesn’t push a favorite. It lays out the options neutrally.",
+      "focusView": "The map — compare your own action (blue) against the AI’s plan (yellow) right where the trains run; the what-if compare on the right deepens it. Reflection opens separately when you’re ready.",
+      "yourRole": "You choose freely; every decision is recorded. Afterwards, you reflect on what you did — and get the AI’s perspective on it too.",
+      "control": {
+        "0": "Choose freely between neutral options — nothing is ranked for you",
+        "1": "Override any individual train’s decision yourself",
+        "2": "Trigger “Reflect now” at any point during the run"
+      },
+      "watch": {
+        "0": "No ranking or badges on the options",
+        "1": "A “Reflect now” option becomes available as you go, and opens on its own once a decision is resolved"
+      },
+      "goal": "Same task — but the focus here is what you learn about the situation, and about working with the AI."
+    },
+    "director": {
+      "wp": "WP 3.4",
+      "title": "Director",
+      "tagline": "You set the goal, the AI acts.",
+      "whatHappens": "You choose which objective the plan should pursue. The AI then dispatches every train on its own and re-plans as the situation changes.",
+      "focusView": "The three strategy tiles above the map. “Auf Karte” draws the chosen plan onto the map as dashed routes, so you see what an objective changes before committing it.",
+      "yourRole": "Supervise the objective, not the trains. You steer by changing what the plan optimises for.",
+      "control": {
+        "0": "Choose the objective: delay, connections, or stability",
+        "1": "Preview it on the map, and replay it, before committing",
+        "2": "Swap the dispatching policy in the toolbar",
+        "3": "Pause, resume, or end the shift"
+      },
+      "watch": {
+        "0": "The AI-activity feed: what the planner decided, and when it re-planned",
+        "1": "The forecast: what the objective gives, and what it costs",
+        "2": "Dashed look-ahead routes on the map after a preview"
+      },
+      "goal": "See how well the AI performs autonomously — and notice where you feel the pull to intervene."
+    }
+  },
+  "complete": {
+    "step": "Tour complete",
+    "modesOne": "{{count}} mode done",
+    "modesMany": "All {{count}} modes done",
+    "title": "Thanks for taking part",
+    "taglineSurvey": "{{modes}} — surveys saved per mode.",
+    "tagline": "{{modes}}",
+    "restart": "Restart",
+    "exit": "Exit demo"
+  }
+}

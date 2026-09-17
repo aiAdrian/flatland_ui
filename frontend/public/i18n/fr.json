@@ -1,0 +1,183 @@
+{
+  "lang": {
+    "menu": "Langue"
+  },
+  "shell": {
+    "menu": "Menu",
+    "areas": "Espaces",
+    "subtitle": "Un terrain d’essai pour la collaboration humain-IA"
+  },
+  "mode": {
+    "recommendation": "Recommendation",
+    "co-learning": "Co-Learning",
+    "director": "Director"
+  },
+  "footer": {
+    "mode": "mode",
+    "guidedDemo": "Démo guidée"
+  },
+  "welcome": {
+    "subtitle": "Un terrain d’essai pour la collaboration humain-IA",
+    "desc": "Découvrez comment les régulateurs du trafic et une IA agentique coopèrent sur la simulation ferroviaire Flatland.",
+    "doorsAria": "Comment souhaitez-vous commencer ?",
+    "door": {
+      "introduction": {
+        "title": "Introduction",
+        "subtext": "Une visite guidée. Les modes, la mise en page et l’environnement sont définis pour vous."
+      },
+      "build": {
+        "title": "Composer soi-même",
+        "subtext": "Choisissez vous-même le réseau, le scénario et la mise en page."
+      },
+      "experiments": {
+        "title": "Expériences",
+        "subtext": "Une condition préparée et reproductible : plan prédéfini, perturbations choisies, mise en page d’étude."
+      }
+    },
+    "field": {
+      "tour": "Visite",
+      "layout": "Mise en page",
+      "network": "Réseau",
+      "condition": "Condition",
+      "scenario": "Scénario",
+      "grid": "Grille :",
+      "width": "Largeur",
+      "height": "Hauteur",
+      "agents": "Trains",
+      "maxSteps": "Pas max."
+    },
+    "trains": "{{count}} trains",
+    "network": {
+      "guidedDemo": "Environnement de démo guidée · graine fixe 42",
+      "random": "Aléatoire · par défaut"
+    },
+    "hint": {
+      "gridCap": "Limité ici pour qu’une nouvelle session reste fluide sur le matériel gratuit de la démo hébergée. Besoin de plus ? Session Properties → Basic permet jusqu’à {{max}}.",
+      "maxSteps": "Durée maximale de simulation. Plus élevée = prévisions what-if plus complètes, mais plus lentes.",
+      "grid": "Limité pour une exécution fluide sur le matériel gratuit de la démo hébergée — pour une grille plus grande ou plus de trains, ouvrez <strong>Session Properties</strong> après le démarrage (icône d’engrenage, onglet <em>Basic</em>)."
+    },
+    "tour": {
+      "modeOne": "{{count}} mode",
+      "modeMany": "{{count}} modes",
+      "minutes": "~{{minutes}} min",
+      "withSurvey": "avec questionnaire",
+      "noSurvey": "sans questionnaire"
+    },
+    "experimentsNote": "Première version. Seuls les scénarios avec un plan prédéfini sont proposés, pour qu’une exécution soit reproductible. Les identifiants de participant et l’ordre équilibré des modes ne sont pas encore implémentés — c’est l’entité Experiment du plan.",
+    "planNote": "<strong>Plan</strong> — ce scénario fournit un plan prédéfini. Les trains le suivent exactement dès le premier pas ; toute intervention de votre part quitte le plan et est alors pilotée par l’IA.",
+    "disturbances": {
+      "legend": "Perturbations",
+      "hint": "Événements scriptés à des pas fixes. Toute combinaison est possible — aucune sélection correspond à l’exécution de référence sans perturbation."
+    },
+    "start": {
+      "tour": "Démarrer la visite",
+      "session": "Démarrer la session",
+      "experiment": "Démarrer l’expérience"
+    },
+    "summary": {
+      "tour": "Vous démarrez la visite « {{name}} » : {{modes}}, environ {{minutes}} min.",
+      "experiment": "Vous démarrez {{condition}} sur {{network}}, {{disturbances}}.",
+      "build": "Vous démarrez {{network}} avec {{layout}}, mode {{mode}}.",
+      "disturbanceOne": "1 perturbation",
+      "disturbanceMany": "{{count}} perturbations",
+      "noDisturbances": "sans perturbation (exécution de référence)",
+      "networkGuided": "l’environnement de démo guidée",
+      "networkRandom": "un réseau aléatoire ({{w}} × {{h}}, {{n}} trains)",
+      "layoutDefault": "la mise en page par défaut",
+      "layoutNamed": "« {{name}} »"
+    }
+  },
+  "tours": {
+    "three-modes-original": {
+      "name": "Trois modes · mise en page d’origine",
+      "description": "Le même conflit traité dans les trois modes — Recommendation, Co-Learning, Director — dans la mise en page par défaut intégrée, avec un court questionnaire après chacun."
+    },
+    "two-modes-guide-light": {
+      "name": "Deux modes · Guide Mode Light",
+      "description": "Recommendation et Co-Learning dans la mise en page à trois zones : à gauche le suivi, au centre le réseau, à droite la décision. Même environnement que la visite d’origine : seule la mise en page change."
+    },
+    "director-only": {
+      "name": "Director uniquement",
+      "description": "Directement dans l’écran Director — tuiles de stratégie, prévision, fil d’activité de l’IA — sans parcours ni questionnaire. Pour montrer cet écran seul."
+    }
+  },
+  "intro": {
+    "labels": {
+      "stepPrefix": "Mode",
+      "stepOf": "sur",
+      "whatHappens": "Ce qui se passe",
+      "focusView": "Où regarder",
+      "yourRole": "Votre rôle",
+      "control": "Ce que vous pouvez contrôler",
+      "watchFor": "À surveiller",
+      "goal": "Objectif",
+      "start": "Démarrer le scénario",
+      "exit": "Quitter la démo"
+    },
+    "recommendation": {
+      "wp": "WP 3.1",
+      "title": "Recommendation",
+      "tagline": "L’IA propose, vous décidez.",
+      "whatHappens": "Pendant que les trains circulent, l’IA surveille les conflits. Quand un conflit apparaît, elle propose une solution privilégiée avec un indice de confiance.",
+      "focusView": "La carte — vous agissez sur chaque conflit là où il survient ; la carte de recommandation à droite est la solution proposée par l’IA.",
+      "yourRole": "Vous gardez la main — acceptez la proposition de l’IA ou choisissez autrement.",
+      "control": {
+        "0": "Accepter ou refuser le changement de politique proposé par l’IA",
+        "1": "Remplacer vous-même la prochaine décision d’un train"
+      },
+      "watch": {
+        "0": "Une carte de recommandation à droite, avec un indice de confiance en % et un compte à rebours",
+        "1": "Des politiques classées avec les badges « Recommended » / « Avoid »"
+      },
+      "goal": "Amener tous les trains à destination avec le moins de retard possible."
+    },
+    "co-learning": {
+      "wp": "WP 3.3",
+      "title": "Co-Learning",
+      "tagline": "Des options neutres : vous décidez et vous réfléchissez.",
+      "whatHappens": "Le même type de situation — mais cette fois, l’IA ne favorise aucune option. Elle présente les possibilités de manière neutre.",
+      "focusView": "La carte — comparez votre propre action (bleu) au plan de l’IA (jaune) là où circulent les trains ; la comparaison what-if à droite l’approfondit. La réflexion s’ouvre séparément, quand vous le souhaitez.",
+      "yourRole": "Vous choisissez librement ; chaque décision est enregistrée. Ensuite, vous réfléchissez à ce que vous avez fait — et recevez aussi le point de vue de l’IA.",
+      "control": {
+        "0": "Choisir librement entre des options neutres — rien n’est classé pour vous",
+        "1": "Remplacer vous-même la décision d’un train",
+        "2": "Déclencher « Reflect now » à tout moment pendant l’exécution"
+      },
+      "watch": {
+        "0": "Aucun classement ni badge sur les options",
+        "1": "Une option « Reflect now » devient disponible au fil du temps et s’ouvre d’elle-même dès qu’une décision est résolue"
+      },
+      "goal": "La même tâche — mais l’accent est mis ici sur ce que vous apprenez de la situation et de la collaboration avec l’IA."
+    },
+    "director": {
+      "wp": "WP 3.4",
+      "title": "Director",
+      "tagline": "Vous fixez l’objectif, l’IA agit.",
+      "whatHappens": "Vous choisissez l’objectif du plan. L’IA régule ensuite chaque train de manière autonome et replanifie quand la situation change.",
+      "focusView": "Les trois tuiles de stratégie au-dessus de la carte. « Auf Karte » trace le plan choisi en pointillés, pour voir ce qu’un objectif change avant de l’adopter.",
+      "yourRole": "Supervisez l’objectif, pas les trains. Vous pilotez en changeant ce que le plan optimise.",
+      "control": {
+        "0": "Choisir l’objectif : retard, correspondances ou stabilité",
+        "1": "L’afficher sur la carte et le rejouer avant de l’adopter",
+        "2": "Changer la politique dans la barre d’outils",
+        "3": "Mettre en pause, reprendre ou terminer le service"
+      },
+      "watch": {
+        "0": "Le fil d’activité de l’IA : décisions du planificateur et replanifications",
+        "1": "La prévision : ce que l’objectif apporte et ce qu’il coûte",
+        "2": "Les itinéraires prévus en pointillés, après un aperçu"
+      },
+      "goal": "Voir comment l’IA agit seule — et remarquer où vous avez envie d’intervenir."
+    }
+  },
+  "complete": {
+    "step": "Visite terminée",
+    "modesOne": "{{count}} mode terminé",
+    "modesMany": "Les {{count}} modes sont terminés",
+    "title": "Merci de votre participation",
+    "taglineSurvey": "{{modes}} — questionnaires enregistrés par mode.",
+    "tagline": "{{modes}}",
+    "restart": "Recommencer",
+    "exit": "Quitter la démo"
+  }
+}
