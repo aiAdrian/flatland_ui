@@ -266,7 +266,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         {
           heading: 'Was wir von Ihnen brauchen',
           items: [
-            'Pro Kosten- oder Nutzenposition drei Werte: Minimum, wahrscheinlichster Wert, Maximum',
+            'Pro Kosten- oder Nutzenposition drei Werte: Maximum, Minimum, wahrscheinlichster Wert',
             'Bezug ist ein ausgereiftes, eingeführtes System (TRL 9), nicht der Prototyp, den Sie gleich sehen',
             'Angaben in Personenmonaten oder CHF, je nachdem, was Ihnen leichter fällt',
             'Eine breite Spanne ist eine gültige Antwort, wenn die Unsicherheit gross ist',
@@ -403,7 +403,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         concept: 'Konzept',
       },
       estimationReminder:
-        'Bitte schätzen Sie für ein ausgereiftes, eingeführtes System (TRL 9), nicht für diesen Prototyp: Minimum, wahrscheinlichster Wert, Maximum.',
+        'Bitte schätzen Sie für ein ausgereiftes, eingeführtes System (TRL 9), nicht für diesen Prototyp: Maximum, Minimum, wahrscheinlichster Wert.',
       disclaimer: PROTOTYPE_DISCLAIMER,
       sources: 'Grundlagen: Hamouche et al. (2026), Mussi et al. (2025), Bessa et al. (2026), AI4REALNET.',
     },
