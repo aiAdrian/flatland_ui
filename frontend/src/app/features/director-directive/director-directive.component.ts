@@ -1,4 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
 
@@ -30,6 +31,8 @@ import { AgentDTO } from '../../core/models';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DirectorDirectiveComponent {
+  private readonly i18n = inject(LanguageService);
+
   store = inject(SessionStore);
 
   /** Whether the run has already produced steps (→ "Resume" instead of "Start"). */
@@ -38,7 +41,8 @@ export class DirectorDirectiveComponent {
   /** Active policy label for the directive summary. */
   readonly policyLabel = computed(() => {
     const id = this.store.activePolicy();
-    return this.store.availablePolicies().find((p) => p.id === id)?.label ?? id;
+    const policy = this.store.availablePolicies().find((p) => p.id === id);
+    return policy ? this.i18n.policyLabel(policy) : id;
   });
 
   // ── Aggregate state (carried over from the Situation Summary) ─────────────

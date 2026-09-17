@@ -1,5 +1,6 @@
 import '@sbb-esta/lyne-elements/toggle-check.js';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, Output, computed, effect, inject, signal } from '@angular/core';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { PolicyName } from '../../core/models';
 import { ApiService } from '../../core/api.service';
@@ -12,6 +13,9 @@ import { ApiService } from '../../core/api.service';
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ToolbarComponent {
+  /** Policy names and descriptions in the viewer's language (i18n phase 4). */
+  readonly i18n = inject(LanguageService);
+
   @Input() settingsActive = false;
   @Input() scenarioPolicyActive = false;
   @Input() demoActive = false;

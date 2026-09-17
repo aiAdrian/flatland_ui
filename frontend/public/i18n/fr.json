@@ -179,5 +179,148 @@
     "tagline": "{{modes}}",
     "restart": "Recommencer",
     "exit": "Quitter la démo"
+  },
+  "notifications": {
+    "panel": {
+      "title": "Fil d’événements",
+      "errors": "Erreurs",
+      "warnings": "Avertissements",
+      "total": "Total des événements",
+      "dismiss": "Masquer",
+      "empty": "Aucun événement",
+      "legend": {
+        "error": "Perturbation / conflit",
+        "warning": "Avis — à surveiller",
+        "info": "Information"
+      }
+    },
+    "episode": {
+      "finished": {
+        "title": "Épisode terminé",
+        "message": "Tous les trains ont atteint leur destination."
+      }
+    },
+    "train": {
+      "malfunction": {
+        "title": "Panne",
+        "message": "{{train}} est en panne (encore {{steps}} pas)."
+      },
+      "overridePending": {
+        "title": "Intervention active",
+        "message": "{{train}} : intervention {{direction}} en attente."
+      },
+      "decisionPending": {
+        "title": "Décision en attente",
+        "message": "{{train}} : {{cell}} en ({{row}},{{col}}) dans {{distance}} cases."
+      }
+    },
+    "override": {
+      "riskIncrease": {
+        "title": "L’intervention augmente le risque",
+        "message": "{{train}} : les blocages peuvent augmenter ({{before}} → {{after}})."
+      },
+      "fewerArrivals": {
+        "title": "L’intervention réduit les arrivées",
+        "message": "{{train}} : moins de trains pourraient arriver ({{before}} → {{after}})."
+      }
+    },
+    "direction": {
+      "left": "GAUCHE",
+      "forward": "TOUT DROIT",
+      "right": "DROITE"
+    },
+    "cell": {
+      "switch": "aiguillage",
+      "merging": "jonction",
+      "decision": "point de décision"
+    }
+  },
+  "scenarios": {
+    "ecml2026-scene1-level0": {
+      "name": "ECML 2026 — Scène 1 (niveau 0)"
+    },
+    "olten": {
+      "name": "Olten — sans perturbation"
+    },
+    "olten-disrupted": {
+      "name": "Olten — perturbé"
+    },
+    "olten-partially-closed": {
+      "name": "Olten — partiellement fermé"
+    },
+    "pf-ch-corridor": {
+      "name": "Corridor PF–CH (double voie)"
+    },
+    "pf-ch-corridor-stops": {
+      "name": "Corridor PF–CH (avec arrêts intermédiaires)"
+    },
+    "pf-ch-wn-wal-conflict": {
+      "name": "PF–CH · WN↔WAL conflit sur voie unique"
+    },
+    "pf-ch-wn-wal-long-approach": {
+      "name": "PF–CH · WN↔WAL conflit (longue approche)"
+    }
+  },
+  "disturbances": {
+    "e1-station-hold": {
+      "name": "E1 : arrêt après le croisement",
+      "description": "E1 (WN→WAL) s’arrête 8 pas juste après le croisement, E2 suivant sur la même voie — le retard est transmis directement au train suivant.",
+      "events": {
+        "0": {
+          "label": "E1 : arrêt imprévu (+8 pas)",
+          "description": "E1 s’arrête en pleine voie ; E2 suit sur la même voie et hérite du retard."
+        }
+      }
+    },
+    "w1-door-fault": {
+      "name": "W1 : dérangement de porte sur le tronçon à voie unique",
+      "description": "W1 (WAL→WN) s’arrête 8 pas en occupant le tronçon à voie unique : les deux trains en direction de l’est doivent attendre.",
+      "events": {
+        "0": {
+          "label": "W1 : dérangement de porte (+8 pas)",
+          "description": "W1 bloque le tronçon à voie unique ; selon le plan, E1 et E2 attendent déjà le croisement."
+        }
+      }
+    },
+    "e1-late-into-the-section": {
+      "name": "E1 : +6 pas avant le tronçon à voie unique",
+      "description": "E1 s’arrête 6 pas à Weesen — exactement l’avance que le plan lui donne sur E2. Il atteint donc le tronçon à voie unique au même pas que celui prévu pour E2. Sans cela, les trois trains traversent le tronçon sans arrêt ; avec, E2 doit céder le passage devant lui, et W1 — cadencé pour arriver au moment où E2 libère le tronçon — est lui aussi retenu à l’entrée est.",
+      "events": {
+        "0": {
+          "label": "E1 : arrêt imprévu à WN (+6 pas)",
+          "description": "E1 perd exactement l’avance que l’horaire lui donne sur E2. Tous deux atteignent désormais le tronçon à voie unique au même pas ; W1 suit en troisième, comme prévu."
+        }
+      }
+    }
+  },
+  "policies": {
+    "deadlock_avoidance": {
+      "label": "DLA (par défaut)",
+      "description": "Évite les blocages de manière proactive en vérifiant les trajets des autres trains."
+    },
+    "shortest_path": {
+      "label": "Plus court chemin",
+      "description": "Chaque train choisit l’action qui réduit la distance jusqu’à sa destination."
+    },
+    "random": {
+      "label": "Aléatoire",
+      "description": "Choisit une action valide au hasard pour chaque train."
+    },
+    "forward_only": {
+      "label": "Tout droit uniquement",
+      "description": "Toujours MOVE_FORWARD ; ignore les aiguillages."
+    },
+    "do_nothing": {
+      "label": "Ne rien faire",
+      "description": "Tous les trains restent à l’arrêt (DO_NOTHING)."
+    },
+    "goal_directed": {
+      "label": "Planificateur Director",
+      "description": "Planifie tous les trains avec la recherche guidée par modèle et pondérée (ponctualité / correspondances / stabilité), puis exécute le plan."
+    },
+    "plan": {
+      "label": "Plan prédéfini",
+      "description": "Fait circuler chaque train selon le plan prédéfini du scénario ; les trains non couverts par le plan, ou sur lesquels l’opérateur est intervenu, reviennent à l’évitement des blocages."
+    }
   }
 }

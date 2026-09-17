@@ -478,7 +478,7 @@
                     <option value="random">{{ 'welcome.network.random' | transloco }}</option>
                     @for (preset of scenarioPresets(); track preset.id) {
                       <option [value]="preset.id">
-                        {{ preset.name }} · {{ preset.width }} × {{ preset.height }} · {{ 'welcome.trains' | transloco: { count: preset.agents } }}
+                        {{ i18n.scenarioName(preset) }} · {{ preset.width }} × {{ preset.height }} · {{ 'welcome.trains' | transloco: { count: preset.agents } }}
                       </option>
                     }
                     @for (scene of runtimeInfrastructureScenes(); track scene.id) {
@@ -551,7 +551,7 @@
                     [value]="selectedExperimentScenarioId()"
                     (change)="setExperimentScenario($any($event.target).value)">
                     @for (preset of planScenarioPresets(); track preset.id) {
-                      <option [value]="preset.id">{{ preset.name }}</option>
+                      <option [value]="preset.id">{{ i18n.scenarioName(preset) }}</option>
                     }
                   </select>
                 </label>
@@ -590,8 +590,8 @@
                              [checked]="isDisturbanceSelected(disturbance.id)"
                              (change)="toggleDisturbance(disturbance.id)">
                       <span class="welcome-disturbance-text">
-                        <span class="welcome-disturbance-name">{{ disturbance.name }}</span>
-                        <span class="welcome-disturbance-desc">{{ disturbance.description }}</span>
+                        <span class="welcome-disturbance-name">{{ i18n.disturbanceName(disturbance) }}</span>
+                        <span class="welcome-disturbance-desc">{{ i18n.disturbanceDescription(disturbance) }}</span>
                       </span>
                     </label>
                   }
@@ -861,11 +861,11 @@
                       size="m"
                       name="policy-control"
                       [value]="p.id"
-                      [title]="p.description"
+                      [title]="i18n.policyDescription(p)"
                       [checked]="isDraftControlPolicyEnabled(p.id)"
                       [disabled]="isDraftControlPolicyEnabled(p.id) && draftControlPolicyIds().length === 1"
                       (change)="toggleDraftControlPolicy(p.id, $any($event.target).checked)">
-                      {{ p.label }}
+                      {{ i18n.policyLabel(p) }}
                     </sbb-toggle-check>
                   }
                 }
@@ -882,11 +882,11 @@
                       size="m"
                       name="scenario-policy-selection"
                       [value]="p.id"
-                      [title]="p.description"
+                      [title]="i18n.policyDescription(p)"
                       [checked]="isDraftScenarioPolicyEnabled(p.id)"
                       [disabled]="isDraftScenarioPolicyEnabled(p.id) && draftScenarioPolicyIds().length === 1"
                       (change)="toggleDraftScenarioPolicy(p.id, $any($event.target).checked)">
-                      {{ p.label }}
+                      {{ i18n.policyLabel(p) }}
                     </sbb-toggle-check>
                   }
                 }

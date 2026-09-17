@@ -524,7 +524,7 @@ export class AppComponent implements OnInit {
   });
 
   /** App language (docs/plans/i18n-strategy.md). */
-  private readonly i18n = inject(LanguageService);
+  readonly i18n = inject(LanguageService);
 
   /** A tour's name and description are keyed by tour id; a tour without keys
    *  (e.g. the German interview tour) shows its own text in every language. */
@@ -739,7 +739,7 @@ export class AppComponent implements OnInit {
       return this.i18n.t('welcome.summary.networkRandom', { w: this.newWidth(), h: this.newHeight(), n: this.newAgents() });
     }
     const preset = (this.scenarioPresets() as any[]).find((p) => p?.id === id);
-    if (preset) return preset.name;
+    if (preset) return this.i18n.scenarioName(preset);
     return this.runtimeInfrastructureScenes().find((scene) => scene.id === id)?.name ?? id;
   }
 

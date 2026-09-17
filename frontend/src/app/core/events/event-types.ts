@@ -41,6 +41,10 @@ export interface AppNotification {
   message: string;
   timestamp: number;
   relatedElement?: { kind: 'train' | 'switch' | 'signal'; id: string };
+  /** Stable code + values for wording the notification in the viewer's
+   *  language (i18n plan, phase 4). `title`/`message` stay the fallback. */
+  code?: string;
+  params?: Record<string, string | number>;
 }
 
 export interface ScenarioKpis {
