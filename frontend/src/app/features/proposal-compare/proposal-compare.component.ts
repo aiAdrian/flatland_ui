@@ -198,6 +198,22 @@ export class ProposalCompareComponent implements OnDestroy {
     return this.chosenOption() === option;
   }
 
+  /**
+   * Offer only what this train actually has. While the impact analysis lists the
+   * train it also says whether a reroute exists; without a branch ahead the
+   * backend refuses that option, and the assessment panel already says so —
+   * an enabled button that always fails would contradict it.
+   */
+  readonly rerouteAvailable = computed(() => {
+    const handle = this.targetHandle();
+    const item = this.store.impact().find((i) => i.handle === handle);
+    return item ? item.can_reroute : true;
+  });
+
+  isDisabled(option: ProposalOption): boolean {
+    return option === 'reroute' && !this.rerouteAvailable();
+  }
+
   /** "Hält bis frei" as the human column's heading, not the raw option id. */
   humanLabel(): string {
     const option = this.chosenOption();

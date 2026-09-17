@@ -80,6 +80,13 @@ export interface TourBriefing {
   freshOperatorProfile?: boolean;
   /** Pause after a decision and ask "why?" in a dialog instead of only in the reflection panel. */
   reasonDialog?: boolean;
+  /**
+   * Keep the impact panel to the assessment and leave the options to the
+   * proposals panel — the split of thesis Table 1, where "Risk & Impact
+   * Assessment" and the "Alternatives Module" are two modules. Off elsewhere, so
+   * the study conditions keep the panel that decides and assesses in one place.
+   */
+  assessmentOnly?: boolean;
   /** Replaces the default intro of a mode while this tour runs. */
   modeIntros?: Partial<Record<InteractionMode, ModeIntro>>;
   /** Panel type → module name: these panels carry a "Co-Learning" badge. */
@@ -124,6 +131,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     // For the demo: makes step 6 hard to miss. The interview layout has no
     // reflection panel, so switching this off needs that panel back in the preset.
     reasonDialog: true,
+    assessmentOnly: true,
     // Steps 1-9 of the thesis' interaction flow (Table 2): operational loop 1-5,
     // learning loop 6-9, with shift summary and event simulation after the episode.
     guide: [
@@ -139,22 +147,22 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         module: true,
         panelType: 'impact',
         title: 'Risiko & Auswirkung',
-        hint: 'Neu: «Impact» zeigt, welcher Zug betroffen ist, wann er die Stelle erreicht und wann sie wieder frei ist. Der betroffene Zug wartet, bis Sie entscheiden.',
+        hint: 'Neu: «Impact» zeigt die Lage — welcher Zug betroffen ist, wie lange er stehen würde und wie viele Massnahmen nötig sind. Entschieden wird hier nicht; der betroffene Zug wartet.',
       },
       {
         id: 'alternatives',
         loop: 'operational',
         module: true,
-        panelType: 'impact',
+        panelType: 'proposal-compare',
         title: 'Alternativen',
         hint: 'Neu: Die KI bietet Optionen an, ohne eine zu empfehlen. Unter «Plan / KI / Mensch» sehen Sie vorab, was der Plan, der KI-Vorschlag und Ihre eigene Wahl für den Zug bedeuten.',
       },
       {
         id: 'decide',
         loop: 'operational',
-        panelType: 'impact',
+        panelType: 'proposal-compare',
         title: 'Entscheiden',
-        hint: 'Wählen Sie im Panel «Impact» eine Option für den betroffenen Zug.',
+        hint: 'Wählen Sie unter «Plan / KI / Mensch» eine Option für den betroffenen Zug und übernehmen Sie sie.',
       },
       {
         id: 'execute',
@@ -194,7 +202,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
       },
     ],
     moduleBadges: {
-      impact: 'Auswirkungsanalyse und Alternativen',
+      impact: 'Risiko- und Auswirkungsanalyse',
       'proposal-compare': 'Auswirkungsanalyse: Plan, KI-Vorschlag und Ihre Wahl',
     },
     modeIntros: {

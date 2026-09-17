@@ -144,6 +144,25 @@ a different arrival step; backend tests cover the plan factory and the arrival s
     beim Plan bleiben"; Halten bis frei adds the third column and the caveat.
     Note: at step 52 the malfunction is long over, so that option is free there —
     the telling case is the decision moment (the backend test: 72 vs. never).
+- **2d** Impact panel: assessment and options split (2026-09-17, after a walkthrough).
+  The panel assessed the situation *and* decided it, which read as hectic and put
+  the Alternatives module inside the Risk & Impact one — thesis Table 1 keeps them
+  apart, and Hamouche et al. (2026) frame supportive AI as helping the cognitive
+  process rather than handing over a choice.
+  - `TourBriefing.assessmentOnly` (interview tour only, so the **User Study 2
+    conditions keep the panel they had**) → the impact panel drops its option
+    buttons and the hover forecast, and states the situation instead: who is
+    blocked by whom and where, when the train reaches the spot, when it clears,
+    the **time buffer** ("keiner — der Zug stünde 6 Schritte"), and which kinds of
+    measure exist ("Halten" / "Halten oder Umleiten"), plus how many trains are
+    affected and how many decisions that asks for.
+  - The row hands over: clicking it selects the train, which fills Plan / KI /
+    Mensch, and the panel says so in one line.
+  - Panel title in the preset: "Lage: Risiko & Auswirkung"; the guide steps
+    "Alternativen" and "Entscheiden" now point at the proposals panel.
+  - **Not covered: affected sectors** (Table 1). The frontend has no section model
+    — stations are derived "S1…S5" labels from stop cells — so the panel names the
+    blocked cell rather than inventing a sector.
 - **2c** Options beyond the next switch: hold until clear, priority into the section.
   **Status (2026-09-15): backend built** (done before 2b, so the widget gets its final
   payload once).

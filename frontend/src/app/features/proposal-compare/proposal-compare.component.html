@@ -34,7 +34,8 @@
         <button type="button"
                 class="pc-option"
                 [class.is-chosen]="isChosen(c.option)"
-                [title]="c.hint"
+                [disabled]="isDisabled(c.option)"
+                [title]="isDisabled(c.option) ? 'Für diesen Zug gibt es hier keine Umleitung.' : c.hint"
                 (click)="choose(c.option)">
           {{ c.label }}
         </button>

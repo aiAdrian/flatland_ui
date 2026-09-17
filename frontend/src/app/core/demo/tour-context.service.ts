@@ -19,6 +19,8 @@ export class TourContextService {
   readonly mapFocusCols = computed(() => this.briefing()?.mapFocusCols ?? null);
   readonly hasDebrief = computed(() => !!this.briefing()?.debrief);
   readonly reasonDialog = computed(() => !!this.briefing()?.reasonDialog);
+  /** Impact panel shows the assessment only; the options live in the proposals panel. */
+  readonly assessmentOnly = computed(() => !!this.briefing()?.assessmentOnly);
 
   private readonly operatorModel = inject(OperatorModelService);
   private operatorIdBeforeTour: string | null = null;

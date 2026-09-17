@@ -206,3 +206,10 @@
   font-size: 11px;
   color: var(--sbb-color-granite);
 }
+
+.pc-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--sbb-color-cloud);
+  color: var(--sbb-color-granite);
+}
