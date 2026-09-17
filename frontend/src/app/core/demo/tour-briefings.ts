@@ -224,7 +224,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           'Nach einer Entscheidung den Grund angeben, als Regel oder nur für diesmal',
         ],
         watchFor: [
-          'Panels mit dem Zeichen «Co-Learning» sind die neue Erweiterung. Alles andere steht für das heutige TMS.',
+          'Panels mit dem Zeichen «Co-Learning» sind die neue Erweiterung. Alles andere steht für das TMS als Ganzes.',
           'Optionen erscheinen ohne Ranking und ohne «empfohlen»',
           'Blau steht für Ihre Entscheidung, gelb für die Variante der KI',
           'Oben führt ein Leitfaden durch die neun Schritte. Das jeweils nächste Modul wird hervorgehoben.',
@@ -283,9 +283,22 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           ],
         },
         {
+          heading: 'Die Simulation',
+          body:
+            'Sie sehen die Bahnsimulation Flatland: ein Gitter mit Zügen, Weichen und Haltepunkten, bewusst vereinfacht. Keine Signale, keine Fahrdynamik, ein Zeitschritt statt Sekunden und Minuten. Das genügt, um Konflikte, Auswirkungen und Entscheidungen erlebbar zu machen — Fahrzeiten oder Kapazitäten lassen sich damit nicht rechnen.',
+        },
+        {
+          heading: 'Wer entscheidet was',
+          items: [
+            'TMS: plant den Fahrplan und passt ihn bei Störungen mit seinem eigenen Optimierungsalgorithmus an. Der Fahrplan ist dabei nur das Gerüst aus Ankunfts- und Haltezeiten, die Route bleibt beweglich.',
+            'Co-Learning-KI: schaut auf die konkrete Situation und schlägt lokale Abweichungen vor — etwa, wer zuerst durch den Einspurabschnitt fährt. Gedacht ist dafür ein MARL-Ansatz, also mehrere lernende Agenten über dem Hauptalgorithmus. Im Prototyp rechnet an dieser Stelle noch ein klassischer Planungsalgorithmus, kein gelernter Agent.',
+            'Mensch: Sie entscheiden als Fachperson. Ihre Entscheidung und Ihre Begründung fliessen zurück — daraus lernt die KI, und langfristig verbessert das den Hauptalgorithmus.',
+          ],
+        },
+        {
           heading: 'Zum Prototyp',
           body:
-            'Der Playground ist ein Forschungsprototyp auf der Bahnsimulation Flatland, kein Produkt. Die neuen Co-Learning-Module tragen ein violettes Zeichen «Co-Learning», alles andere steht für das heutige TMS. ' +
+            'Der Playground ist ein Forschungsprototyp auf der Bahnsimulation Flatland, kein Produkt. Die neuen Co-Learning-Module tragen ein violettes Zeichen «Co-Learning», alles andere steht für das TMS als Ganzes. ' +
             PROTOTYPE_DISCLAIMER +
             ' Die Übersicht am Ende zeigt, was Sie erlebt haben und was nur skizziert ist.',
         },
@@ -352,7 +365,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           area: 'Reflection',
           kolbPhase: 'Reflexion',
           does: 'Reflexionsfragen stellen, ähnliche Situationen bündeln, automatisch zusammenfassen, anonymisiert im Team teilen',
-          inTour: 'Panel «Reflection»: Rückspiegelung und offene Fragen',
+          inTour: 'Dialog «Warum diese Entscheidung?» direkt nach dem Entscheid (Schritt 6)',
           status: 'partial',
           statusNote: 'Fragen und Rückspiegelung live, Teilen im Team nicht gebaut',
         },
@@ -379,7 +392,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           area: 'Co-Learning AI',
           kolbPhase: 'KI-seitig',
           does: 'Empfehlungsmodell aus dem Feedback anpassen, Input für TMS-Algorithmen liefern',
-          inTour: 'Lern-Karten in «Reflection» und nach der Schicht (Schritt 9)',
+          inTour: 'Lern-Karten nach der Schicht (Schritt 9)',
           status: 'partial',
           statusNote: 'Präferenzmodell live, Rückfluss ins TMS nur Konzept',
         },
