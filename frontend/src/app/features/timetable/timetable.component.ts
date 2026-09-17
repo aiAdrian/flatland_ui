@@ -2,6 +2,8 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, inject
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainIdentityService } from '../../core/train-identity.service';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 
 /** One schedule row. `from`/`to` are the shared station labels (S{n}) — the same
  *  labels the map stations layer renders, so a stop can be read across both.
@@ -32,7 +34,7 @@ interface TimetableRow {
 @Component({
   selector: 'app-timetable',
   standalone: true,
-  imports: [],
+  imports: [TranslocoPipe],
   templateUrl: './timetable.component.html',
   styleUrl: './timetable.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -47,6 +49,7 @@ export class TimetableComponent {
 
   private store = inject(SessionStore);
   private colors = inject(AgentColorService);
+  private i18n = inject(LanguageService);
   /** Shared train naming, so a row reads the same as the map, the ZWL and
    *  the action packages (core/train-identity.service.ts). */
   readonly identity = inject(TrainIdentityService);
@@ -61,8 +64,8 @@ export class TimetableComponent {
       // Where it is now.
       let now: string;
       if (done) now = `${to} ✓`;
-      else if (!a.position) now = 'waiting';           // still off-map before departure
-      else now = atStop ?? 'en route';
+      else if (!a.position) now = this.i18n.t('timetable.now.waiting');   // still off-map before departure
+      else now = atStop ?? this.i18n.t('timetable.now.enRoute');
 
       // How it is going.
       let status: string;
@@ -71,16 +74,18 @@ export class TimetableComponent {
         status = `⚠ ${a.malfunction_remaining}`;
         tone = 'warn';
       } else if (done) {
-        status = 'arrived';
+        status = this.i18n.t('timetable.status.arrived');
         tone = 'ok';
       } else if (!a.position) {
-        status = a.eta_to_depart != null && a.eta_to_depart > 0 ? `dep in ${a.eta_to_depart}` : 'ready';
+        status = a.eta_to_depart != null && a.eta_to_depart > 0
+          ? this.i18n.t('timetable.status.depIn', { n: a.eta_to_depart })
+          : this.i18n.t('timetable.status.ready');
         tone = 'muted';
       } else if (delay > 0) {
-        status = `+${delay} late`;
+        status = this.i18n.t('train.late', { n: delay });
         tone = 'late';
       } else {
-        status = 'on time';
+        status = this.i18n.t('train.onTime');
         tone = 'ok';
       }
 

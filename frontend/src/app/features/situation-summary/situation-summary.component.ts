@@ -1,4 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
 
@@ -11,6 +12,7 @@ import { AgentDTO } from '../../core/models';
 @Component({
   selector: 'app-situation-summary',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './situation-summary.component.html',
   styleUrl: './situation-summary.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

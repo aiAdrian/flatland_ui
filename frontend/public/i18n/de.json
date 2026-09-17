@@ -14,7 +14,17 @@
   },
   "footer": {
     "mode": "Modus",
-    "guidedDemo": "Geführte Demo"
+    "guidedDemo": "Geführte Demo",
+    "step": "Schritt:",
+    "grid": "Raster:",
+    "agents": "Züge:",
+    "interventions": "Eingriffe:",
+    "interventionsTitle": "In diesem Lauf erfasste manuelle Eingriffe",
+    "playing": "Läuft",
+    "loading": "Lädt…",
+    "survey": "Umfrage nach der Session →",
+    "progressTitle": "Fortschritt der geführten Demo",
+    "wsTitle": "WebSocket-Verbindung"
   },
   "welcome": {
     "subtitle": "Ein Spielplatz für Mensch-KI-Teaming",
@@ -322,5 +332,233 @@
       "label": "Vorgegebener Plan",
       "description": "Fährt jeden Zug entlang des vorgegebenen Plans des Szenarios; Züge, die der Plan nicht abdeckt oder die übersteuert wurden, fallen auf Blockadenvermeidung zurück."
     }
+  },
+  "panels": {
+    "situationSummary": "Lagebild",
+    "situation": "Lage",
+    "notifications": "Ereignisse",
+    "events": "Ereignisse",
+    "agents": "Züge",
+    "trains": "Züge",
+    "trainsTable": "Züge (Dispositionstabelle)",
+    "map": "Streckenspiegel",
+    "graphicTimetable": "Grafischer Fahrplan (ZWL)",
+    "impact": "Auswirkung",
+    "consequences": "Folgen",
+    "scenario": "Szenario",
+    "recommendations": "Empfehlungen",
+    "recommendation": "Empfehlung",
+    "whatifCompare": "Was-wäre-wenn-Vergleich",
+    "kpiFilter": "KPI-Filter",
+    "directorWeights": "Director-Gewichtung",
+    "directorDirective": "Director-Vorgabe",
+    "viewsMapZwl": "Streckenspiegel & ZWL",
+    "viewsAll": "Streckenplan · ZWL · Fahrplan",
+    "viewTabs": "Ansichten",
+    "reflection": "Reflexion",
+    "coLearningReflection": "Co-Learning-Reflexion",
+    "coLearningEffect": "Co-Learning-Effekt",
+    "timetable": "Fahrplan",
+    "combinedActions": "Kombinierte Massnahmen",
+    "problemOverview": "Problemübersicht",
+    "trainDetail": "Zug-Detail",
+    "agentInspector": "Zug-Detail",
+    "decisionLog": "Entscheidungsprotokoll",
+    "riskAndImpact": "Lage: Risiko & Auswirkung",
+    "planAiHuman": "Plan / KI / Mensch",
+    "riskUncertainty": "Risiko & Unsicherheit",
+    "aiActivity": "KI-Aktivität",
+    "goalAchievement": "Zielerreichung",
+    "strategyOptions": "Strategieoptionen (A/B/C)",
+    "strategyForecast": "Prognose der Strategiewirkung",
+    "strategyReflection": "Strategie-Reflexion",
+    "shiftReview": "Schichtabschluss",
+    "layerVisibility": "Kartenebenen",
+    "toolbar": "Werkzeugleiste",
+    "hidden": "Ausgeblendet",
+    "moduleHint": "Co-Learning-Modul: {{module}} · Entwurf, nicht final"
+  },
+  "train": {
+    "name": "Zug {{n}}",
+    "slackLeft": "noch {{n}}",
+    "late": "+{{n}} spät",
+    "now": "jetzt",
+    "inSteps": "in {{n}}",
+    "arr": "Ank.",
+    "dep": "Abf.",
+    "disruption": "Störung {{n}}",
+    "onTime": "pünktlich",
+    "noSession": "Keine aktive Session",
+    "conflictsOnly": "Nur Konflikte ({{n}})",
+    "conflictsOnlyTitle": "Züge, die in einem Konflikt stecken (blockiert, blockierend oder gestört)",
+    "filtered": "gefiltert — {{n}} Züge insgesamt",
+    "resumesIn": "{{type}} — fährt in {{n}} Schritt(en) weiter",
+    "myOverride": "Ihr gesetzter Eingriff — erneut klicken hebt ihn auf",
+    "myOverrideShort": "Ihr gesetzter Eingriff",
+    "setOverride": "Als Eingriff für diesen Zug setzen",
+    "aiRecommendation": "Empfehlung der KI für diesen Zug",
+    "aiRecommendationShort": "Empfehlung der KI"
+  },
+  "actions": {
+    "1": "← Links",
+    "2": "↑ Geradeaus",
+    "3": "→ Rechts",
+    "4": "■ Halt"
+  },
+  "malfunction": {
+    "breakdown": "Zugstörung",
+    "demo": "{{type}} (Demo)",
+    "types": {
+      "trackBlockage": "Streckenblockade",
+      "switchFailure": "Weichenstörung",
+      "signalFailure": "Signalstörung",
+      "powerFailure": "Fahrleitungsstörung"
+    }
+  },
+  "situation": {
+    "title": "Lage",
+    "arrived": "{{n}}/{{total}} angekommen",
+    "arrivedPct": "{{pct}} % angekommen",
+    "step": "Schritt",
+    "active": "aktiv",
+    "delayed": "verspätet",
+    "malfunctionOne": "Störung",
+    "malfunctionMany": "Störungen"
+  },
+  "roster": {
+    "title": "Züge",
+    "titleCount": "Züge ({{active}} / {{total}})",
+    "waitingForState": "warte auf Zustand…",
+    "key": {
+      "arrDep": "Ank./Abf.",
+      "arrDepText": "planmässiger Simulationsschritt",
+      "left": "noch N",
+      "leftText": "Puffer bis dahin",
+      "late": "+N spät",
+      "lateText": "= darüber",
+      "disruption": "Störung N",
+      "disruptionText": "Restdauer der Störung"
+    },
+    "group": {
+      "moving": "unterwegs",
+      "waiting": "noch nicht abgefahren",
+      "done": "am Ziel angekommen"
+    },
+    "next": "Nächste: {{cell}}",
+    "overrideOnRight": "Eingriff im Zug-Detail rechts",
+    "redHint": "rot = Ihr gesetzter Eingriff · erneut klicken hebt ihn auf",
+    "readyTitle": "Abfahrbereit",
+    "latestArrivalTitle": "Späteste planmässige Ankunft (Simulationsschritt)",
+    "earliestDepartureTitle": "Früheste planmässige Abfahrt (Simulationsschritt)",
+    "stepsToDepartureTitle": "Schritte bis zur frühesten Abfahrt",
+    "malfunctionTitle": "Störung: noch {{n}} Schritt(e)",
+    "noneActive": "keine Züge unterwegs",
+    "noneWaiting": "keiner wartet",
+    "noneArrived": "noch keiner angekommen",
+    "delay": "+{{n}} Verspätung",
+    "latestArrival": "Späteste Ankunft: {{target}}",
+    "slackTooltip": "Noch {{n}} Schritt(e) Puffer bis zur spätesten Ankunft ({{target}})",
+    "lateTooltip": "{{n}} Schritt(e) über der spätesten Ankunft ({{target}})",
+    "emptyBefore": "Klicken Sie in der Toolbar auf",
+    "emptyAfter": ", um zu starten."
+  },
+  "table": {
+    "title": "Züge — Dispositionstabelle",
+    "col": {
+      "status": "Status",
+      "train": "Zug",
+      "message": "Meldung",
+      "schedule": "Soll",
+      "slack": "Puffer",
+      "nextSwitch": "Nächste Weiche",
+      "action": "Aktion"
+    },
+    "status": {
+      "moving": "unterwegs",
+      "waiting": "wartet",
+      "done": "angekommen"
+    },
+    "hint": {
+      "recommended": "★ = Empfehlung der KI für diesen Zug · rot = Ihr gesetzter Eingriff",
+      "neutral": "Optionen gleichwertig — Sie entscheiden zuerst · rot = Ihr gesetzter Eingriff"
+    },
+    "msg": {
+      "disruption": "Störung, noch {{n}}",
+      "blockedBy": "blockiert durch Zug {{train}} · frei in {{n}}",
+      "blocking": "blockiert Zug {{trains}}"
+    },
+    "emptyConflicts": "Kein Zug steckt gerade in einem Konflikt.",
+    "empty": "Keine Züge."
+  },
+  "timetable": {
+    "empty": "Keine Züge in diesem Szenario.",
+    "col": {
+      "train": "Zug",
+      "from": "Von",
+      "to": "Nach",
+      "via": "Via",
+      "dep": "Ab",
+      "arr": "An",
+      "now": "Jetzt",
+      "status": "Status"
+    },
+    "now": {
+      "waiting": "wartet",
+      "enRoute": "unterwegs"
+    },
+    "status": {
+      "arrived": "angekommen",
+      "depIn": "ab in {{n}}",
+      "ready": "bereit"
+    }
+  },
+  "layers": {
+    "label": "Ebenen",
+    "grid": "Raster",
+    "decisions": "Entscheidungen",
+    "trajectory": "Fahrweg",
+    "cellInfo": "Zellinfo",
+    "switches": "Weichen",
+    "signals": "Signale",
+    "stations": "Stationen",
+    "legend": "Legende",
+    "legendAria": "Kartenlegende",
+    "item": {
+      "train": "Zug",
+      "trainText": "die Farbe identifiziert den Zug, gleich in Liste, Karte und ZWL",
+      "disruption": "Roter Ring mit «!»",
+      "disruptionText": "dieser Zug hat eine Störung",
+      "decisionText": "nächster Entscheidungspunkt; die Pills daneben sind die wählbaren Aktionen (dieselben wie in der Zugliste)",
+      "switchText": "Weiche",
+      "signalText": "Signal an einer Verzweigung",
+      "stationText": "Station (S1, S2, …)",
+      "gridText": "Zellraster zur Orientierung"
+    }
+  },
+  "views": {
+    "map": "Streckenspiegel",
+    "zwl": "ZWL",
+    "timetable": "Fahrplan",
+    "goalAchievement": "Zielerreichung",
+    "toggle": {
+      "label": "Ansicht",
+      "map": "Karte",
+      "marey": "ZWL"
+    }
+  },
+  "toolbar": {
+    "pause": "Pause",
+    "play": "Start",
+    "speed": "Simulationstempo",
+    "stepsOne": "{{n}} Schritt",
+    "stepsMany": "{{n}} Schritte",
+    "step": "Schritt {{n}}",
+    "policy": "Policy",
+    "episodeFinished": "Episode beendet",
+    "stepsRemaining": "Verbleibende Schritte",
+    "finishSurvey": "Abschliessen & Umfrage",
+    "finishModeSurvey": "Modus abschliessen & Umfrage →",
+    "finishTour": "Tour beenden",
+    "nextMode": "Nächster Modus →"
   }
 }

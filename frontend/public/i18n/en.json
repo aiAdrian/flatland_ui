@@ -14,7 +14,17 @@
   },
   "footer": {
     "mode": "mode",
-    "guidedDemo": "Guided demo"
+    "guidedDemo": "Guided demo",
+    "step": "Step:",
+    "grid": "Grid:",
+    "agents": "Agents:",
+    "interventions": "Interventions:",
+    "interventionsTitle": "Manual interventions captured this run",
+    "playing": "Playing",
+    "loading": "Loading…",
+    "survey": "Post-session survey →",
+    "progressTitle": "Guided demo progress",
+    "wsTitle": "WebSocket connection"
   },
   "welcome": {
     "subtitle": "A Human-AI Teaming Playground",
@@ -322,5 +332,233 @@
       "label": "Scripted Plan",
       "description": "Drives every train along the scenario's premade plan; trains the plan does not cover, or that the operator overrode, fall back to deadlock avoidance."
     }
+  },
+  "panels": {
+    "situationSummary": "Situation Summary",
+    "situation": "Situation",
+    "notifications": "Notifications",
+    "events": "Events",
+    "agents": "Agents",
+    "trains": "Trains",
+    "trainsTable": "Trains (disposition table)",
+    "map": "Flatland Map",
+    "graphicTimetable": "Graphic Timetable",
+    "impact": "Impact",
+    "consequences": "Consequences",
+    "scenario": "Scenario",
+    "recommendations": "Recommendations",
+    "recommendation": "Recommendation",
+    "whatifCompare": "What-if Compare",
+    "kpiFilter": "KPI Filter",
+    "directorWeights": "Director Weights",
+    "directorDirective": "Director Directive",
+    "viewsMapZwl": "Track diagram & time–distance",
+    "viewsAll": "Track diagram · time–distance · timetable",
+    "viewTabs": "View Tabs",
+    "reflection": "Reflection",
+    "coLearningReflection": "Co-Learning Reflection",
+    "coLearningEffect": "Co-Learning Effect",
+    "timetable": "Timetable",
+    "combinedActions": "Combined Actions",
+    "problemOverview": "Problem Overview",
+    "trainDetail": "Train detail",
+    "agentInspector": "Agent Inspector",
+    "decisionLog": "Decision Log",
+    "riskAndImpact": "Situation: risk & impact",
+    "planAiHuman": "Plan / AI / human",
+    "riskUncertainty": "Risk & Uncertainty",
+    "aiActivity": "AI Activity",
+    "goalAchievement": "Goal Achievement",
+    "strategyOptions": "Strategy Options (A/B/C)",
+    "strategyForecast": "Strategy Impact Forecast",
+    "strategyReflection": "Strategy Reflection",
+    "shiftReview": "Shift Review",
+    "layerVisibility": "Layer Visibility",
+    "toolbar": "Toolbar",
+    "hidden": "Hidden",
+    "moduleHint": "Co-Learning module: {{module}} · draft, not final"
+  },
+  "train": {
+    "name": "Train {{n}}",
+    "slackLeft": "{{n}} left",
+    "late": "+{{n}} late",
+    "now": "now",
+    "inSteps": "in {{n}}",
+    "arr": "Arr.",
+    "dep": "Dep.",
+    "disruption": "Disruption {{n}}",
+    "onTime": "on time",
+    "noSession": "No active session",
+    "conflictsOnly": "Conflicts only ({{n}})",
+    "conflictsOnlyTitle": "Trains caught in a conflict (blocked, blocking or disrupted)",
+    "filtered": "filtered — {{n}} trains in total",
+    "resumesIn": "{{type}} — moves on in {{n}} step(s)",
+    "myOverride": "Your override — click again to clear it",
+    "myOverrideShort": "Your override",
+    "setOverride": "Set as override for this train",
+    "aiRecommendation": "The AI’s recommendation for this train",
+    "aiRecommendationShort": "AI recommendation"
+  },
+  "actions": {
+    "1": "← Left",
+    "2": "↑ Forward",
+    "3": "→ Right",
+    "4": "■ Stop"
+  },
+  "malfunction": {
+    "breakdown": "Train breakdown",
+    "demo": "{{type}} (demo)",
+    "types": {
+      "trackBlockage": "Track blockage",
+      "switchFailure": "Switch failure",
+      "signalFailure": "Signal failure",
+      "powerFailure": "Overhead-power failure"
+    }
+  },
+  "situation": {
+    "title": "Situation",
+    "arrived": "{{n}}/{{total}} arrived",
+    "arrivedPct": "{{pct}}% arrived",
+    "step": "Step",
+    "active": "active",
+    "delayed": "delayed",
+    "malfunctionOne": "malfunction",
+    "malfunctionMany": "malfunctions"
+  },
+  "roster": {
+    "title": "Agents",
+    "titleCount": "Agents ({{active}} / {{total}})",
+    "waitingForState": "waiting for state…",
+    "key": {
+      "arrDep": "Arr./Dep.",
+      "arrDepText": "scheduled simulation step",
+      "left": "N left",
+      "leftText": "slack until then",
+      "late": "+N late",
+      "lateText": "= past it",
+      "disruption": "Disruption N",
+      "disruptionText": "time left on the disruption"
+    },
+    "group": {
+      "moving": "en route",
+      "waiting": "not yet departed",
+      "done": "arrived at destination"
+    },
+    "next": "Next: {{cell}}",
+    "overrideOnRight": "Set overrides in the train detail on the right",
+    "redHint": "red = your override · click again to clear it",
+    "readyTitle": "Ready to depart",
+    "latestArrivalTitle": "Latest scheduled arrival (simulation step)",
+    "earliestDepartureTitle": "Earliest scheduled departure (simulation step)",
+    "stepsToDepartureTitle": "Steps until the earliest departure",
+    "malfunctionTitle": "Malfunction: {{n}} step(s) remaining",
+    "noneActive": "no trains active",
+    "noneWaiting": "none waiting",
+    "noneArrived": "none arrived yet",
+    "delay": "+{{n}} delay",
+    "latestArrival": "Latest arrival: {{target}}",
+    "slackTooltip": "{{n}} step(s) of slack before the latest arrival ({{target}})",
+    "lateTooltip": "{{n}} step(s) past the latest arrival ({{target}})",
+    "emptyBefore": "Click",
+    "emptyAfter": "in the toolbar to start."
+  },
+  "table": {
+    "title": "Trains — disposition table",
+    "col": {
+      "status": "Status",
+      "train": "Train",
+      "message": "Message",
+      "schedule": "Scheduled",
+      "slack": "Slack",
+      "nextSwitch": "Next switch",
+      "action": "Action"
+    },
+    "status": {
+      "moving": "en route",
+      "waiting": "waiting",
+      "done": "arrived"
+    },
+    "hint": {
+      "recommended": "★ = the AI’s recommendation for this train · red = your override",
+      "neutral": "Options are equal — you decide first · red = your override"
+    },
+    "msg": {
+      "disruption": "Disruption, {{n}} left",
+      "blockedBy": "blocked by train {{train}} · clear in {{n}}",
+      "blocking": "blocking train {{trains}}"
+    },
+    "emptyConflicts": "No train is in a conflict right now.",
+    "empty": "No trains."
+  },
+  "timetable": {
+    "empty": "No trains in this scenario.",
+    "col": {
+      "train": "Train",
+      "from": "From",
+      "to": "To",
+      "via": "Via",
+      "dep": "Dep",
+      "arr": "Arr",
+      "now": "Now",
+      "status": "Status"
+    },
+    "now": {
+      "waiting": "waiting",
+      "enRoute": "en route"
+    },
+    "status": {
+      "arrived": "arrived",
+      "depIn": "dep in {{n}}",
+      "ready": "ready"
+    }
+  },
+  "layers": {
+    "label": "Layers",
+    "grid": "Grid",
+    "decisions": "Decisions",
+    "trajectory": "Trajectory",
+    "cellInfo": "Cell info",
+    "switches": "Switches",
+    "signals": "Signals",
+    "stations": "Stations",
+    "legend": "Legend",
+    "legendAria": "Map legend",
+    "item": {
+      "train": "Train",
+      "trainText": "the colour identifies the train, the same in the list, on the map and in the time–distance diagram",
+      "disruption": "Red ring with “!”",
+      "disruptionText": "this train has a disruption",
+      "decisionText": "next decision point; the pills beside it are the actions you can pick (the same as in the train list)",
+      "switchText": "switch",
+      "signalText": "signal at a junction",
+      "stationText": "station (S1, S2, …)",
+      "gridText": "cell grid for orientation"
+    }
+  },
+  "views": {
+    "map": "Track diagram",
+    "zwl": "Time–distance",
+    "timetable": "Timetable",
+    "goalAchievement": "Goal Achievement",
+    "toggle": {
+      "label": "View",
+      "map": "Map",
+      "marey": "Marey"
+    }
+  },
+  "toolbar": {
+    "pause": "Pause",
+    "play": "Play",
+    "speed": "Simulation speed",
+    "stepsOne": "{{n}} step",
+    "stepsMany": "{{n}} steps",
+    "step": "Step {{n}}",
+    "policy": "Policy",
+    "episodeFinished": "Episode finished",
+    "stepsRemaining": "Steps remaining",
+    "finishSurvey": "Finish & survey",
+    "finishModeSurvey": "Finish mode & survey →",
+    "finishTour": "Finish tour",
+    "nextMode": "Next mode →"
   }
 }

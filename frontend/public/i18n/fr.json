@@ -14,7 +14,17 @@
   },
   "footer": {
     "mode": "mode",
-    "guidedDemo": "Démo guidée"
+    "guidedDemo": "Démo guidée",
+    "step": "Pas :",
+    "grid": "Grille :",
+    "agents": "Trains :",
+    "interventions": "Interventions :",
+    "interventionsTitle": "Interventions manuelles enregistrées pendant cette exécution",
+    "playing": "En cours",
+    "loading": "Chargement…",
+    "survey": "Questionnaire après la session →",
+    "progressTitle": "Progression de la démo guidée",
+    "wsTitle": "Connexion WebSocket"
   },
   "welcome": {
     "subtitle": "Un terrain d’essai pour la collaboration humain-IA",
@@ -322,5 +332,233 @@
       "label": "Plan prédéfini",
       "description": "Fait circuler chaque train selon le plan prédéfini du scénario ; les trains non couverts par le plan, ou sur lesquels l’opérateur est intervenu, reviennent à l’évitement des blocages."
     }
+  },
+  "panels": {
+    "situationSummary": "Synthèse de la situation",
+    "situation": "Situation",
+    "notifications": "Fil d’événements",
+    "events": "Événements",
+    "agents": "Trains",
+    "trains": "Trains",
+    "trainsTable": "Trains (tableau de régulation)",
+    "map": "Plan de voies",
+    "graphicTimetable": "Graphique horaire",
+    "impact": "Impact",
+    "consequences": "Conséquences",
+    "scenario": "Scénario",
+    "recommendations": "Recommandations",
+    "recommendation": "Recommandation",
+    "whatifCompare": "Comparaison « et si »",
+    "kpiFilter": "Filtre KPI",
+    "directorWeights": "Pondérations Director",
+    "directorDirective": "Consigne Director",
+    "viewsMapZwl": "Plan de voies et graphique horaire",
+    "viewsAll": "Plan de voies · graphique horaire · horaire",
+    "viewTabs": "Vues",
+    "reflection": "Réflexion",
+    "coLearningReflection": "Réflexion Co-Learning",
+    "coLearningEffect": "Effet Co-Learning",
+    "timetable": "Horaire",
+    "combinedActions": "Actions combinées",
+    "problemOverview": "Vue d’ensemble du problème",
+    "trainDetail": "Détail du train",
+    "agentInspector": "Détail du train",
+    "decisionLog": "Journal des décisions",
+    "riskAndImpact": "Situation : risque et impact",
+    "planAiHuman": "Plan / IA / humain",
+    "riskUncertainty": "Risque et incertitude",
+    "aiActivity": "Activité de l’IA",
+    "goalAchievement": "Atteinte des objectifs",
+    "strategyOptions": "Options de stratégie (A/B/C)",
+    "strategyForecast": "Prévision de l’effet de la stratégie",
+    "strategyReflection": "Réflexion sur la stratégie",
+    "shiftReview": "Bilan de service",
+    "layerVisibility": "Couches de la carte",
+    "toolbar": "Barre d’outils",
+    "hidden": "Masqué",
+    "moduleHint": "Module Co-Learning : {{module}} · ébauche, non définitive"
+  },
+  "train": {
+    "name": "Train {{n}}",
+    "slackLeft": "reste {{n}}",
+    "late": "+{{n}} retard",
+    "now": "maintenant",
+    "inSteps": "dans {{n}}",
+    "arr": "Arr.",
+    "dep": "Dép.",
+    "disruption": "Perturbation {{n}}",
+    "onTime": "à l’heure",
+    "noSession": "Aucune session active",
+    "conflictsOnly": "Conflits seulement ({{n}})",
+    "conflictsOnlyTitle": "Trains pris dans un conflit (bloqués, bloquants ou perturbés)",
+    "filtered": "filtré — {{n}} trains au total",
+    "resumesIn": "{{type}} — repart dans {{n}} pas",
+    "myOverride": "Votre intervention — cliquez à nouveau pour l’annuler",
+    "myOverrideShort": "Votre intervention",
+    "setOverride": "Définir comme intervention pour ce train",
+    "aiRecommendation": "Recommandation de l’IA pour ce train",
+    "aiRecommendationShort": "Recommandation de l’IA"
+  },
+  "actions": {
+    "1": "← Gauche",
+    "2": "↑ Tout droit",
+    "3": "→ Droite",
+    "4": "■ Arrêt"
+  },
+  "malfunction": {
+    "breakdown": "Panne du train",
+    "demo": "{{type}} (démo)",
+    "types": {
+      "trackBlockage": "Voie obstruée",
+      "switchFailure": "Dérangement d’aiguillage",
+      "signalFailure": "Dérangement de signal",
+      "powerFailure": "Panne de caténaire"
+    }
+  },
+  "situation": {
+    "title": "Situation",
+    "arrived": "{{n}}/{{total}} arrivés",
+    "arrivedPct": "{{pct}} % arrivés",
+    "step": "Pas",
+    "active": "actifs",
+    "delayed": "en retard",
+    "malfunctionOne": "panne",
+    "malfunctionMany": "pannes"
+  },
+  "roster": {
+    "title": "Trains",
+    "titleCount": "Trains ({{active}} / {{total}})",
+    "waitingForState": "en attente de l’état…",
+    "key": {
+      "arrDep": "Arr./Dép.",
+      "arrDepText": "pas de simulation prévu",
+      "left": "reste N",
+      "leftText": "marge jusque-là",
+      "late": "+N retard",
+      "lateText": "= au-delà",
+      "disruption": "Perturbation N",
+      "disruptionText": "durée restante de la perturbation"
+    },
+    "group": {
+      "moving": "en circulation",
+      "waiting": "pas encore parti",
+      "done": "arrivé à destination"
+    },
+    "next": "Prochain : {{cell}}",
+    "overrideOnRight": "Intervention dans le détail du train, à droite",
+    "redHint": "rouge = votre intervention · cliquez à nouveau pour l’annuler",
+    "readyTitle": "Prêt au départ",
+    "latestArrivalTitle": "Arrivée prévue au plus tard (pas de simulation)",
+    "earliestDepartureTitle": "Départ prévu au plus tôt (pas de simulation)",
+    "stepsToDepartureTitle": "Pas jusqu’au départ au plus tôt",
+    "malfunctionTitle": "Panne : encore {{n}} pas",
+    "noneActive": "aucun train en circulation",
+    "noneWaiting": "aucun en attente",
+    "noneArrived": "aucun arrivé pour l’instant",
+    "delay": "+{{n}} de retard",
+    "latestArrival": "Arrivée au plus tard : {{target}}",
+    "slackTooltip": "Encore {{n}} pas de marge avant l’arrivée au plus tard ({{target}})",
+    "lateTooltip": "{{n}} pas au-delà de l’arrivée au plus tard ({{target}})",
+    "emptyBefore": "Cliquez sur",
+    "emptyAfter": "dans la barre d’outils pour commencer."
+  },
+  "table": {
+    "title": "Trains — tableau de régulation",
+    "col": {
+      "status": "État",
+      "train": "Train",
+      "message": "Message",
+      "schedule": "Prévu",
+      "slack": "Marge",
+      "nextSwitch": "Prochain aiguillage",
+      "action": "Action"
+    },
+    "status": {
+      "moving": "en circulation",
+      "waiting": "en attente",
+      "done": "arrivé"
+    },
+    "hint": {
+      "recommended": "★ = recommandation de l’IA pour ce train · rouge = votre intervention",
+      "neutral": "Options équivalentes — vous décidez d’abord · rouge = votre intervention"
+    },
+    "msg": {
+      "disruption": "Perturbation, reste {{n}}",
+      "blockedBy": "bloqué par le train {{train}} · libre dans {{n}}",
+      "blocking": "bloque le train {{trains}}"
+    },
+    "emptyConflicts": "Aucun train n’est en conflit pour le moment.",
+    "empty": "Aucun train."
+  },
+  "timetable": {
+    "empty": "Aucun train dans ce scénario.",
+    "col": {
+      "train": "Train",
+      "from": "De",
+      "to": "À",
+      "via": "Via",
+      "dep": "Dép.",
+      "arr": "Arr.",
+      "now": "Actuel",
+      "status": "État"
+    },
+    "now": {
+      "waiting": "en attente",
+      "enRoute": "en route"
+    },
+    "status": {
+      "arrived": "arrivé",
+      "depIn": "départ dans {{n}}",
+      "ready": "prêt"
+    }
+  },
+  "layers": {
+    "label": "Couches",
+    "grid": "Grille",
+    "decisions": "Décisions",
+    "trajectory": "Trajectoire",
+    "cellInfo": "Infos cellule",
+    "switches": "Aiguillages",
+    "signals": "Signaux",
+    "stations": "Gares",
+    "legend": "Légende",
+    "legendAria": "Légende de la carte",
+    "item": {
+      "train": "Train",
+      "trainText": "la couleur identifie le train, la même dans la liste, sur la carte et dans le graphique horaire",
+      "disruption": "Anneau rouge avec « ! »",
+      "disruptionText": "ce train a une perturbation",
+      "decisionText": "prochain point de décision ; les pastilles à côté sont les actions possibles (les mêmes que dans la liste des trains)",
+      "switchText": "aiguillage",
+      "signalText": "signal à un embranchement",
+      "stationText": "gare (S1, S2, …)",
+      "gridText": "grille de cellules pour s’orienter"
+    }
+  },
+  "views": {
+    "map": "Plan de voies",
+    "zwl": "Graphique horaire",
+    "timetable": "Horaire",
+    "goalAchievement": "Atteinte des objectifs",
+    "toggle": {
+      "label": "Vue",
+      "map": "Carte",
+      "marey": "Graphique horaire"
+    }
+  },
+  "toolbar": {
+    "pause": "Pause",
+    "play": "Lecture",
+    "speed": "Vitesse de simulation",
+    "stepsOne": "{{n}} pas",
+    "stepsMany": "{{n}} pas",
+    "step": "Pas {{n}}",
+    "policy": "Politique",
+    "episodeFinished": "Épisode terminé",
+    "stepsRemaining": "Pas restants",
+    "finishSurvey": "Terminer et questionnaire",
+    "finishModeSurvey": "Terminer le mode et questionnaire →",
+    "finishTour": "Terminer la visite",
+    "nextMode": "Mode suivant →"
   }
 }

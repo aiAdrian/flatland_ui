@@ -7,7 +7,7 @@
         class="view-tabs__tab"
         [class.on]="active()?.type === t.type"
         [attr.aria-selected]="active()?.type === t.type"
-        (click)="select(t.type)">{{ t.label }}</button>
+        (click)="select(t.type)">{{ t.labelKey ? i18n.t(t.labelKey, undefined, t.label) : t.label }}</button>
     }
   </div>
 

@@ -924,26 +924,26 @@
     <div class="footer-left">
       @if (store.session()) {
         @if (store.demoActive()) {
-          <span class="footer-demo-progress" title="Guided demo progress">
+          <span class="footer-demo-progress" [attr.title]="'footer.progressTitle' | transloco">
             {{ activeTourName() }} · {{ 'footer.mode' | transloco }} {{ store.demoStepIndex() + 1 }}/{{ store.demoSequence().length }} · <strong>{{ currentModeLabel() }}</strong>
           </span>
         }
-        <span>Step: <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>
-        <span>Grid: <strong>{{ store.state()?.width }} × {{ store.state()?.height }}</strong></span>
-        <span>Agents: <strong>{{ store.agents().length }}</strong></span>
+        <span>{{ 'footer.step' | transloco }} <strong>{{ store.elapsedSteps() }}</strong> / {{ store.maxSteps() }}</span>
+        <span>{{ 'footer.grid' | transloco }} <strong>{{ store.state()?.width }} × {{ store.state()?.height }}</strong></span>
+        <span>{{ 'footer.agents' | transloco }} <strong>{{ store.agents().length }}</strong></span>
         @if (store.isCoLearning()) {
-          <span class="footer-interventions" title="Manual interventions captured this run">
-            Interventions: <strong>{{ store.interventionCount() }}</strong>
+          <span class="footer-interventions" [attr.title]="'footer.interventionsTitle' | transloco">
+            {{ 'footer.interventions' | transloco }} <strong>{{ store.interventionCount() }}</strong>
           </span>
         }
         @if (store.playing()) {
           <span class="playing-indicator">
             <sbb-loading-indicator-circle size="s"></sbb-loading-indicator-circle>
-            Playing
+            {{ 'footer.playing' | transloco }}
           </span>
         }
         @if (store.loading()) {
-          <span class="loading">Loading…</span>
+          <span class="loading">{{ 'footer.loading' | transloco }}</span>
         }
         <!-- A shift the operator declared over is finished for questionnaire
              purposes too; waiting for step 400 would only hide the survey. -->
@@ -951,11 +951,11 @@
              asked in person, and a survey button there only invites a detour. -->
         @if (store.shiftReviewOpen() && !tourContext.hasDebrief() && !(demoComplete() && activeBriefing()?.debrief)) {
           <button class="footer-survey-btn" type="button" (click)="openSurvey()">
-            Post-session survey →
+            {{ 'footer.survey' | transloco }}
           </button>
         }
       } @else {
-        <span class="footer-idle">No active session</span>
+        <span class="footer-idle">{{ 'train.noSession' | transloco }}</span>
       }
     </div>
   
@@ -971,7 +971,7 @@
           Session: {{ store.session()?.id }}
         </span>
       }
-      <span class="ws-status" [class.connected]="store.wsConnected()" title="WebSocket connection">
+      <span class="ws-status" [class.connected]="store.wsConnected()" [attr.title]="'footer.wsTitle' | transloco">
         <span class="ws-dot"></span>
       </span>
     </div>
