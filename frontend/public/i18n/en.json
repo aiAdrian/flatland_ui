@@ -560,5 +560,152 @@
     "finishModeSurvey": "Finish mode & survey →",
     "finishTour": "Finish tour",
     "nextMode": "Next mode →"
+  },
+  "rec": {
+    "empty": "No active recommendations",
+    "legend": {
+      "score": "Score",
+      "scoreText": "= outcome quality of the option (weighted KPIs)",
+      "confidence": "Confidence",
+      "confidenceBefore": "= how sure the AI is that the option beats the",
+      "current": "current",
+      "confidenceAfter": "course"
+    },
+    "badge": {
+      "activeRecommended": "Active · Recommended",
+      "active": "Active",
+      "recommended": "Recommended"
+    },
+    "metric": {
+      "delay": "Delay",
+      "connection": "Connection",
+      "ripple": "Ripple Risk",
+      "better": "Better",
+      "stable": "Stable",
+      "reduced": "Reduced",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "ai": "AI",
+    "confidence": "Confidence {{pct}}%",
+    "note": {
+      "mock": "Demo data — no real comparison run behind it.",
+      "uncalibrated": "The AI’s model value, not calibrated against observed outcomes.",
+      "better": "{{margin}} better than the current course",
+      "worse": "{{margin}} worse than the current course",
+      "equal": "on a par with the current course",
+      "priorOnly": "{{lead}} — no comparison variants, so the evidence is weak.",
+      "spreadWide": "the variants lie far apart",
+      "spreadMedium": "the variants lie moderately far apart",
+      "spreadNarrow": "the variants lie close together",
+      "full": "{{lead}}, {{agreement}} (spread {{spread}}). Model value, not calibrated."
+    },
+    "why": {
+      "heading": "Why this option",
+      "connections": "Protects connections",
+      "connectionsDetail": "More trains complete than under the current plan.",
+      "ripple": "Low ripple risk",
+      "rippleDetail": "No added deadlocks expected downstream.",
+      "delay": "Limited delay impact",
+      "delayDetail": "Mean delay stays at or below the current plan.",
+      "rationale": "Rationale"
+    },
+    "colearning": {
+      "withPrefs": "Takes {{n}} confirmed preference(s) into account — a ranking nudge, not a hard rule.",
+      "noPrefs": "Ranking still rests purely on the KPI assessment (no confirmed preferences yet)."
+    },
+    "preview": {
+      "pinned": "Preview pinned",
+      "pin": "Pin preview",
+      "hintPinned": "The reroute stays visible on the track diagram & ZWL",
+      "hintHover": "Hovering shows the changed route on the track diagram & ZWL"
+    },
+    "accept": "Accept",
+    "reject": "Reject",
+    "rejectTitle": "Decline this change",
+    "autoDispatchOff": "Disabled for auto-dispatch",
+    "applyFailed": "Failed to apply recommendation"
+  },
+  "inspector": {
+    "noSelection": "No train selected",
+    "noSelectionText": "Hover over a train or select one on the track diagram or in the train list.",
+    "clearSelection": "Clear selection",
+    "resumesIn": "— resumes in {{n}} step(s)",
+    "atStep": "(at step {{n}})",
+    "offMap": "off-map",
+    "destination": "Destination",
+    "next": "Next ({{cell}})",
+    "noSelectionHint": "It then shows position, destination, status and the actions available."
+  },
+  "log": {
+    "titleTooltip": "Every decision this session: who decided, when, how long it took, accepted or overridden.",
+    "human": "Human",
+    "ai": "AI",
+    "system": "System",
+    "overridden": "overridden",
+    "meanDecision": "Ø decision",
+    "directorNote": "You intervened {{n}}×: exceptions to an autonomous operation.",
+    "empty": "No decisions in this session yet.",
+    "aiSuggestionTitle": "The AI’s suggestion at the time of the decision",
+    "exportJson": "Export JSON",
+    "clear": "Clear",
+    "action": {
+      "hold": "Hold",
+      "proceed": "Proceed",
+      "reroute": "Reroute"
+    },
+    "verb": {
+      "accepted": "Accepted",
+      "override": "Overridden",
+      "rejected": "Rejected",
+      "directive": "Directive set"
+    },
+    "wholePlan": "Whole plan"
+  },
+  "rationale": {
+    "title": "Why this decision?",
+    "aria": "Why did you override?",
+    "close": "Close",
+    "insteadOfAi": "instead of AI: {{suggestion}}",
+    "reasonsAria": "Reasons",
+    "notePlaceholder": "Your own note (optional)…",
+    "hypothesisLabel": "Preference hypothesis",
+    "yes": "Yes, as a rule",
+    "once": "Just this once",
+    "no": "No",
+    "hint": "“Just this once” stays a one-off decision and does not become a rule.",
+    "chip": {
+      "connection": "Protects connection",
+      "delay": "Little extra delay",
+      "ripple": "Low ripple risk",
+      "deadlock": "Avoid deadlock",
+      "critical": "Critical situation",
+      "experience": "Experience",
+      "other": "Other"
+    }
+  },
+  "effect": {
+    "calloutBefore": "Because you confirmed that, I now weight",
+    "calloutAfter": "higher.",
+    "note": "A ranking nudge, not a hard rule.",
+    "derived": "Derived from your decisions",
+    "punctuality": "Punctuality",
+    "connections": "Connections",
+    "stability": "Stability",
+    "networkStability": "Network stability",
+    "throughput": "Throughput",
+    "applied": "Applied — the planner recomputes with it.",
+    "applying": "Applying …",
+    "applyForDirector": "Apply for Director",
+    "onlyDeliberate": "Only deliberate decisions count — quick approvals stay out.",
+    "warm": "From {{n}} earlier session(s):",
+    "warmPrefs": "· {{n}} confirmed preference(s)"
+  },
+  "records": {
+    "title": "Learning cards",
+    "why": "Why",
+    "once": "Once",
+    "confirmed": "Confirmed"
   }
 }

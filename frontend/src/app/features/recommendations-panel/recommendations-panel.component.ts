@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { LanguageService } from '../../core/i18n/language.service';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
 import { Recommendation, ScenarioOption } from '../../core/events/event-types';
@@ -36,12 +38,13 @@ export interface StrategyCard {
 @Component({
   selector: 'app-recommendations-panel',
   standalone: true,
-  imports: [CommonModule, ScoreBadgeComponent, MetricChipComponent, ReasoningListComponent, RationaleCaptureComponent, LearningRecordsComponent, CoLearningEffectComponent],
+  imports: [CommonModule, TranslocoPipe, ScoreBadgeComponent, MetricChipComponent, ReasoningListComponent, RationaleCaptureComponent, LearningRecordsComponent, CoLearningEffectComponent],
   templateUrl: './recommendations-panel.component.html',
   styleUrl: './recommendations-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class RecommendationsPanelComponent implements OnDestroy {
+  private readonly i18n = inject(LanguageService);
   @Input() embedded = false;
 
   @HostBinding('class.embedded')
@@ -247,30 +250,33 @@ export class RecommendationsPanelComponent implements OnDestroy {
   /** One line of evidence for the number, phrased for an operator. */
   confidenceNote(r: Recommendation): string {
     if (r.confidenceBasis === 'mock') {
-      return 'Demo-Daten — kein echter Vergleichslauf dahinter.';
+      return this.i18n.t('rec.note.mock');
     }
 
     const margin = r.margin;
     if (margin == null) {
-      return 'Modellwert der KI, nicht an beobachteten Ergebnissen kalibriert.';
+      return this.i18n.t('rec.note.uncalibrated');
     }
 
     const lead =
-      margin > 0.01 ? `${margin.toFixed(2)} besser als der aktuelle Kurs`
-      : margin < -0.01 ? `${Math.abs(margin).toFixed(2)} schlechter als der aktuelle Kurs`
-      : 'gleichauf mit dem aktuellen Kurs';
+      margin > 0.01 ? this.i18n.t('rec.note.better', { margin: margin.toFixed(2) })
+      : margin < -0.01 ? this.i18n.t('rec.note.worse', { margin: Math.abs(margin).toFixed(2) })
+      : this.i18n.t('rec.note.equal');
 
     if (r.confidenceBasis === 'prior-only') {
-      return `${this._capitalize(lead)} — keine Vergleichsvarianten, daher schwache Evidenz.`;
+      return this.i18n.t('rec.note.priorOnly', { lead: this._capitalize(lead) });
     }
 
     const spread = r.dispersion ?? 0;
-    const agreement = spread > 0.5 ? 'die Varianten liegen weit auseinander'
-      : spread > 0.2 ? 'die Varianten liegen mittelweit auseinander'
-      : 'die Varianten liegen eng beieinander';
+    const agreement = spread > 0.5 ? this.i18n.t('rec.note.spreadWide')
+      : spread > 0.2 ? this.i18n.t('rec.note.spreadMedium')
+      : this.i18n.t('rec.note.spreadNarrow');
 
-    return `${this._capitalize(lead)}, ${agreement} (Streuung ${spread.toFixed(2)}). `
-      + 'Modellwert, nicht kalibriert.';
+    return this.i18n.t('rec.note.full', {
+      lead: this._capitalize(lead),
+      agreement,
+      spread: spread.toFixed(2),
+    });
   }
 
   private _capitalize(text: string): string {
@@ -333,9 +339,9 @@ export class RecommendationsPanelComponent implements OnDestroy {
   private _connectionMetric(s?: ScenarioOption): CardMetric {
     const d = s?.kpiDeltas?.done;
     if (d == null) return { value: '—', level: 'neutral' };
-    if (d > 0) return { value: 'Better', level: 'good' };
-    if (d === 0) return { value: 'Stable', level: 'neutral' };
-    return { value: 'Reduced', level: 'low' };
+    if (d > 0) return { value: this.i18n.t('rec.metric.better'), level: 'good' };
+    if (d === 0) return { value: this.i18n.t('rec.metric.stable'), level: 'neutral' };
+    return { value: this.i18n.t('rec.metric.reduced'), level: 'low' };
   }
 
   /** PROXY: ripple risk derived from the `deadlocks` delta. Replace with a
@@ -343,9 +349,9 @@ export class RecommendationsPanelComponent implements OnDestroy {
   private _rippleMetric(s?: ScenarioOption): CardMetric {
     const d = s?.kpiDeltas?.deadlocks;
     if (d == null) return { value: '—', level: 'neutral' };
-    if (d <= 0) return { value: 'Low', level: 'good' };
-    if (d <= 1) return { value: 'Medium', level: 'fair' };
-    return { value: 'High', level: 'low' };
+    if (d <= 0) return { value: this.i18n.t('rec.metric.low'), level: 'good' };
+    if (d <= 1) return { value: this.i18n.t('rec.metric.medium'), level: 'fair' };
+    return { value: this.i18n.t('rec.metric.high'), level: 'low' };
   }
 
   /** Structured "why" reasons for the WHY column — derived from scenario
@@ -356,16 +362,16 @@ export class RecommendationsPanelComponent implements OnDestroy {
     const ripple = this._rippleMetric(s);
     const delay = this._delayMetric(s);
     if (conn.level === 'good') {
-      out.push({ title: 'Protects connections', detail: 'More trains complete than under the current plan.' });
+      out.push({ title: this.i18n.t('rec.why.connections'), detail: this.i18n.t('rec.why.connectionsDetail') });
     }
     if (ripple.level === 'good') {
-      out.push({ title: 'Low ripple risk', detail: 'No added deadlocks expected downstream.' });
+      out.push({ title: this.i18n.t('rec.why.ripple'), detail: this.i18n.t('rec.why.rippleDetail') });
     }
     if (delay.level === 'good') {
-      out.push({ title: 'Limited delay impact', detail: 'Mean delay stays at or below the current plan.' });
+      out.push({ title: this.i18n.t('rec.why.delay'), detail: this.i18n.t('rec.why.delayDetail') });
     }
     if (rec.description) {
-      out.push({ title: 'Rationale', detail: rec.description });
+      out.push({ title: this.i18n.t('rec.why.rationale'), detail: rec.description });
     }
     return out;
   }
@@ -425,7 +431,7 @@ export class RecommendationsPanelComponent implements OnDestroy {
         this.dismiss(r);
       },
       error: (err) => {
-        console.warn('Failed to apply recommendation', err);
+        console.warn(this.i18n.t('rec.applyFailed'), err);
       },
     });
   }

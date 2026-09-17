@@ -1,13 +1,16 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { LanguageService } from '../../core/i18n/language.service';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { buildPreferenceHypothesis, strategyLabelForAction } from '../../core/learning-store.service';
 
 /** One selectable structured "why" chip (LLM-free first cut). */
 interface ReasonChip {
   id: string;
-  label: string;
+  /** Translation key; the label itself lives in the translation files. */
+  labelKey: string;
 }
 
 /**
@@ -26,13 +29,14 @@ interface ReasonChip {
 @Component({
   selector: 'app-rationale-capture',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './rationale-capture.component.html',
   styleUrl: './rationale-capture.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class RationaleCaptureComponent {
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private readonly identity = inject(TrainIdentityService);
 
   trainName(handle: number): string {
@@ -41,13 +45,13 @@ export class RationaleCaptureComponent {
 
   /** Structured reasons (dispatching trade-offs + experience). Multi-select. */
   readonly chips: ReasonChip[] = [
-    { id: 'connection', label: 'Schützt Anschluss' },
-    { id: 'delay', label: 'Geringe Zusatzverspätung' },
-    { id: 'ripple', label: 'Niedriges Ripple-Risiko' },
-    { id: 'deadlock', label: 'Vermeide Deadlock' },
-    { id: 'critical', label: 'Kritische Lage' },
-    { id: 'experience', label: 'Erfahrungswert' },
-    { id: 'other', label: 'Sonstiges' },
+    { id: 'connection', labelKey: 'rationale.chip.connection' },
+    { id: 'delay', labelKey: 'rationale.chip.delay' },
+    { id: 'ripple', labelKey: 'rationale.chip.ripple' },
+    { id: 'deadlock', labelKey: 'rationale.chip.deadlock' },
+    { id: 'critical', labelKey: 'rationale.chip.critical' },
+    { id: 'experience', labelKey: 'rationale.chip.experience' },
+    { id: 'other', labelKey: 'rationale.chip.other' },
   ];
 
   /** Selected chip ids. */
@@ -86,7 +90,7 @@ export class RationaleCaptureComponent {
   private rationaleText(): string {
     const chips = this.chips
       .filter((c) => this.selected().has(c.id))
-      .map((c) => c.label);
+      .map((c) => this.i18n.t(c.labelKey));
     const note = this.note().trim();
     if (note) chips.push(note);
     return chips.join('; ');

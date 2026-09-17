@@ -560,5 +560,152 @@
     "finishModeSurvey": "Terminer le mode et questionnaire →",
     "finishTour": "Terminer la visite",
     "nextMode": "Mode suivant →"
+  },
+  "rec": {
+    "empty": "Aucune recommandation active",
+    "legend": {
+      "score": "Score",
+      "scoreText": "= qualité du résultat de l’option (KPI pondérés)",
+      "confidence": "Confiance",
+      "confidenceBefore": "= à quel point l’IA est sûre que l’option dépasse le cours",
+      "current": "actuel",
+      "confidenceAfter": ""
+    },
+    "badge": {
+      "activeRecommended": "Actif · recommandé",
+      "active": "Actif",
+      "recommended": "Recommandé"
+    },
+    "metric": {
+      "delay": "Retard",
+      "connection": "Correspondance",
+      "ripple": "Risque de propagation",
+      "better": "Meilleur",
+      "stable": "Stable",
+      "reduced": "Réduit",
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé"
+    },
+    "ai": "IA",
+    "confidence": "Confiance {{pct}} %",
+    "note": {
+      "mock": "Données de démonstration — aucune simulation comparative derrière.",
+      "uncalibrated": "Valeur du modèle de l’IA, non calibrée sur des résultats observés.",
+      "better": "{{margin}} de mieux que le cours actuel",
+      "worse": "{{margin}} de moins que le cours actuel",
+      "equal": "à égalité avec le cours actuel",
+      "priorOnly": "{{lead}} — aucune variante de comparaison, donc peu de preuves.",
+      "spreadWide": "les variantes sont très dispersées",
+      "spreadMedium": "les variantes sont moyennement dispersées",
+      "spreadNarrow": "les variantes sont proches",
+      "full": "{{lead}}, {{agreement}} (dispersion {{spread}}). Valeur du modèle, non calibrée."
+    },
+    "why": {
+      "heading": "Pourquoi cette option",
+      "connections": "Protège les correspondances",
+      "connectionsDetail": "Plus de trains arrivent que dans le plan actuel.",
+      "ripple": "Faible risque de propagation",
+      "rippleDetail": "Aucun blocage supplémentaire attendu en aval.",
+      "delay": "Effet limité sur le retard",
+      "delayDetail": "Le retard moyen reste au niveau du plan actuel ou en dessous.",
+      "rationale": "Justification"
+    },
+    "colearning": {
+      "withPrefs": "Tient compte de {{n}} préférence(s) confirmée(s) — un ajustement du classement, pas une règle stricte.",
+      "noPrefs": "Le classement repose encore uniquement sur l’évaluation des KPI (aucune préférence confirmée)."
+    },
+    "preview": {
+      "pinned": "Aperçu épinglé",
+      "pin": "Épingler l’aperçu",
+      "hintPinned": "Le détournement reste visible sur la carte et le graphique horaire",
+      "hintHover": "Le survol montre l’itinéraire modifié sur la carte et le graphique horaire"
+    },
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "rejectTitle": "Refuser cette modification",
+    "autoDispatchOff": "Désactivé pour la répartition automatique",
+    "applyFailed": "Impossible d’appliquer la recommandation"
+  },
+  "inspector": {
+    "noSelection": "Aucun train sélectionné",
+    "noSelectionText": "Survolez un train ou sélectionnez-en un sur la carte ou dans la liste des trains.",
+    "clearSelection": "Effacer la sélection",
+    "resumesIn": "— repart dans {{n}} pas",
+    "atStep": "(au pas {{n}})",
+    "offMap": "hors carte",
+    "destination": "Destination",
+    "next": "Prochain ({{cell}})",
+    "noSelectionHint": "Il affiche alors la position, la destination, l’état et les actions disponibles."
+  },
+  "log": {
+    "titleTooltip": "Chaque décision de cette session : qui a décidé, quand, combien de temps, acceptée ou remplacée.",
+    "human": "Humain",
+    "ai": "IA",
+    "system": "Système",
+    "overridden": "remplacées",
+    "meanDecision": "Ø décision",
+    "directorNote": "Vous êtes intervenu {{n}} fois : des exceptions à une conduite autonome.",
+    "empty": "Aucune décision dans cette session pour l’instant.",
+    "aiSuggestionTitle": "Suggestion de l’IA au moment de la décision",
+    "exportJson": "Exporter en JSON",
+    "clear": "Vider",
+    "action": {
+      "hold": "Maintenir",
+      "proceed": "Poursuivre",
+      "reroute": "Détourner"
+    },
+    "verb": {
+      "accepted": "Acceptée",
+      "override": "Remplacée",
+      "rejected": "Rejetée",
+      "directive": "Consigne définie"
+    },
+    "wholePlan": "Plan global"
+  },
+  "rationale": {
+    "title": "Pourquoi cette décision ?",
+    "aria": "Pourquoi cette intervention ?",
+    "close": "Fermer",
+    "insteadOfAi": "au lieu de l’IA : {{suggestion}}",
+    "reasonsAria": "Motifs",
+    "notePlaceholder": "Votre note (facultatif)…",
+    "hypothesisLabel": "Hypothèse de préférence",
+    "yes": "Oui, comme règle",
+    "once": "Juste cette fois",
+    "no": "Non",
+    "hint": "« Juste cette fois » reste une décision ponctuelle et ne devient pas une règle.",
+    "chip": {
+      "connection": "Protège la correspondance",
+      "delay": "Peu de retard supplémentaire",
+      "ripple": "Faible risque de propagation",
+      "deadlock": "Éviter le blocage",
+      "critical": "Situation critique",
+      "experience": "Expérience",
+      "other": "Autre"
+    }
+  },
+  "effect": {
+    "calloutBefore": "Parce que vous l’avez confirmé, je pondère désormais",
+    "calloutAfter": "plus fortement.",
+    "note": "Un ajustement du classement, pas une règle stricte.",
+    "derived": "Déduit de vos décisions",
+    "punctuality": "Ponctualité",
+    "connections": "Correspondances",
+    "stability": "Stabilité",
+    "networkStability": "Stabilité du réseau",
+    "throughput": "Débit",
+    "applied": "Appliqué — le planificateur recalcule avec cela.",
+    "applying": "Application …",
+    "applyForDirector": "Appliquer pour Director",
+    "onlyDeliberate": "Seules les décisions réfléchies comptent — les approbations rapides sont exclues.",
+    "warm": "D’après {{n}} session(s) précédente(s) :",
+    "warmPrefs": "· {{n}} préférence(s) confirmée(s)"
+  },
+  "records": {
+    "title": "Fiches d’apprentissage",
+    "why": "Pourquoi",
+    "once": "Une fois",
+    "confirmed": "Confirmé"
   }
 }

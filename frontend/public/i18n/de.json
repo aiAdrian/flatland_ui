@@ -560,5 +560,152 @@
     "finishModeSurvey": "Modus abschliessen & Umfrage →",
     "finishTour": "Tour beenden",
     "nextMode": "Nächster Modus →"
+  },
+  "rec": {
+    "empty": "Keine aktiven Empfehlungen",
+    "legend": {
+      "score": "Score",
+      "scoreText": "= Ergebnisgüte der Option (gewichtete KPIs)",
+      "confidence": "Konfidenz",
+      "confidenceBefore": "= wie sicher die KI ist, dass die Option den",
+      "current": "aktuellen",
+      "confidenceAfter": "Kurs schlägt"
+    },
+    "badge": {
+      "activeRecommended": "Aktiv · Empfohlen",
+      "active": "Aktiv",
+      "recommended": "Empfohlen"
+    },
+    "metric": {
+      "delay": "Verspätung",
+      "connection": "Anschluss",
+      "ripple": "Folgewirkung",
+      "better": "Besser",
+      "stable": "Stabil",
+      "reduced": "Geringer",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "ai": "KI",
+    "confidence": "Konfidenz {{pct}} %",
+    "note": {
+      "mock": "Demo-Daten — kein echter Vergleichslauf dahinter.",
+      "uncalibrated": "Modellwert der KI, nicht an beobachteten Ergebnissen kalibriert.",
+      "better": "{{margin}} besser als der aktuelle Kurs",
+      "worse": "{{margin}} schlechter als der aktuelle Kurs",
+      "equal": "gleichauf mit dem aktuellen Kurs",
+      "priorOnly": "{{lead}} — keine Vergleichsvarianten, daher schwache Evidenz.",
+      "spreadWide": "die Varianten liegen weit auseinander",
+      "spreadMedium": "die Varianten liegen mittelweit auseinander",
+      "spreadNarrow": "die Varianten liegen eng beieinander",
+      "full": "{{lead}}, {{agreement}} (Streuung {{spread}}). Modellwert, nicht kalibriert."
+    },
+    "why": {
+      "heading": "Warum diese Option",
+      "connections": "Schützt Anschlüsse",
+      "connectionsDetail": "Mehr Züge kommen an als im aktuellen Plan.",
+      "ripple": "Geringe Folgewirkung",
+      "rippleDetail": "Keine zusätzlichen Blockaden im weiteren Verlauf erwartet.",
+      "delay": "Begrenzte Wirkung auf die Verspätung",
+      "delayDetail": "Die mittlere Verspätung bleibt auf dem Niveau des aktuellen Plans oder darunter.",
+      "rationale": "Begründung"
+    },
+    "colearning": {
+      "withPrefs": "Berücksichtigt {{n}} bestätigte Präferenz(en) — Ranking-Nudge, keine harte Regel.",
+      "noPrefs": "Ranking beruht noch rein auf der KPI-Bewertung (bestätigte Präferenzen fehlen noch)."
+    },
+    "preview": {
+      "pinned": "Vorausschau fixiert",
+      "pin": "Vorausschau fixieren",
+      "hintPinned": "Umleitung bleibt auf Karte & ZWL sichtbar",
+      "hintHover": "Hover zeigt die geänderte Route auf Karte & ZWL"
+    },
+    "accept": "Übernehmen",
+    "reject": "Ablehnen",
+    "rejectTitle": "Diese Änderung ablehnen",
+    "autoDispatchOff": "Deaktiviert für Auto-Dispo",
+    "applyFailed": "Empfehlung konnte nicht übernommen werden"
+  },
+  "inspector": {
+    "noSelection": "Kein Zug ausgewählt",
+    "noSelectionText": "Fahren Sie über einen Zug oder wählen Sie einen auf der Karte oder in der Zugliste.",
+    "clearSelection": "Auswahl aufheben",
+    "resumesIn": "— fährt in {{n}} Schritt(en) weiter",
+    "atStep": "(bei Schritt {{n}})",
+    "offMap": "ausserhalb der Karte",
+    "destination": "Ziel",
+    "next": "Nächste ({{cell}})",
+    "noSelectionHint": "Dann zeigt es Position, Ziel, Status und die verfügbaren Aktionen."
+  },
+  "log": {
+    "titleTooltip": "Jede Entscheidung dieser Session: wer entschieden hat, wann, wie lange, übernommen oder übersteuert.",
+    "human": "Mensch",
+    "ai": "KI",
+    "system": "System",
+    "overridden": "übersteuert",
+    "meanDecision": "Ø Entscheid",
+    "directorNote": "Sie haben {{n}}× eingegriffen: Ausnahmen zu einer autonomen Steuerung.",
+    "empty": "Noch keine Entscheidungen in dieser Session.",
+    "aiSuggestionTitle": "KI-Vorschlag zum Zeitpunkt der Entscheidung",
+    "exportJson": "JSON exportieren",
+    "clear": "Leeren",
+    "action": {
+      "hold": "Halten",
+      "proceed": "Weiterfahren",
+      "reroute": "Umleiten"
+    },
+    "verb": {
+      "accepted": "Übernommen",
+      "override": "Übersteuert",
+      "rejected": "Verworfen",
+      "directive": "Ziel gesetzt"
+    },
+    "wholePlan": "Gesamtplan"
+  },
+  "rationale": {
+    "title": "Warum diese Entscheidung?",
+    "aria": "Warum haben Sie übersteuert?",
+    "close": "Schliessen",
+    "insteadOfAi": "statt KI: {{suggestion}}",
+    "reasonsAria": "Gründe",
+    "notePlaceholder": "Eigene Notiz (optional)…",
+    "hypothesisLabel": "Präferenz-Hypothese",
+    "yes": "Ja, als Regel",
+    "once": "Nur diesmal",
+    "no": "Nein",
+    "hint": "«Nur diesmal» bleibt eine Einmal-Entscheidung und wird nicht zur Regel.",
+    "chip": {
+      "connection": "Schützt Anschluss",
+      "delay": "Geringe Zusatzverspätung",
+      "ripple": "Geringe Folgewirkung",
+      "deadlock": "Blockade vermeiden",
+      "critical": "Kritische Lage",
+      "experience": "Erfahrungswert",
+      "other": "Sonstiges"
+    }
+  },
+  "effect": {
+    "calloutBefore": "Weil Sie mir das bestätigt haben, gewichte ich",
+    "calloutAfter": "jetzt höher.",
+    "note": "Ranking-Nudge, keine harte Regel.",
+    "derived": "Aus Ihren Entscheidungen abgeleitet",
+    "punctuality": "Pünktlichkeit",
+    "connections": "Anschlüsse",
+    "stability": "Stabilität",
+    "networkStability": "Netzstabilität",
+    "throughput": "Durchsatz",
+    "applied": "Übernommen — der Planer rechnet damit neu.",
+    "applying": "Übernehme …",
+    "applyForDirector": "Für Director übernehmen",
+    "onlyDeliberate": "Nur bewusste Entscheidungen zählen — schnelle Zustimmungen bleiben aussen vor.",
+    "warm": "Aus {{n}} früheren Session(s):",
+    "warmPrefs": "· {{n}} bestätigte Präferenz(en)"
+  },
+  "records": {
+    "title": "Lern-Karten",
+    "why": "Warum",
+    "once": "Einmal",
+    "confirmed": "Bestätigt"
   }
 }
