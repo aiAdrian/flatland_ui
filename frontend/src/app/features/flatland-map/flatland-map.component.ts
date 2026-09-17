@@ -3,6 +3,8 @@ import {
 } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { TourContextService } from '../../core/demo/tour-context.service';
+import { ProposalChoiceService } from '../../core/proposals/proposal-choice.service';
+import { ProposalOption } from '../../core/events/event-types';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
@@ -156,6 +158,52 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
 
   private readonly tourContext = inject(TourContextService);
+  private readonly proposalChoice = inject(ProposalChoiceService);
+
+  /** The options the strip at the selected train offers — the proposals panel's. */
+  readonly trainOptionChoices: { option: ProposalOption; label: string }[] = [
+    { option: 'hold', label: 'Halten' },
+    { option: 'hold_until_clear', label: 'Halten bis frei' },
+    { option: 'proceed', label: 'Weiterfahren' },
+    { option: 'reroute', label: 'Umleiten' },
+  ];
+
+  /**
+   * Where to put the option strip for the selected train, in percent of the map,
+   * or null when there is none to show.
+   *
+   * Only in a tour whose Plan / KI / Mensch panel decides (`assessmentOnly`):
+   * picking on the map asks that panel to simulate the option, so without the
+   * panel the strip would ask nobody. HTML over the SVG rather than SVG shapes,
+   * because the corridor is shown at about 0.4 scale and map-unit text would be
+   * a few pixels tall. The viewBox is matched to the SVG's aspect ratio, so a
+   * map coordinate maps linearly onto the element.
+   */
+  readonly trainOptions = computed(() => {
+    if (!this.tourContext.assessmentOnly()) return null;
+    const handle = this.store.selectedHandle();
+    if (handle == null) return null;
+    const agent = this.agents().find((a) => a.handle === handle);
+    if (!agent?.position) return null;
+    const [x, y, w, h] = this.viewBox().split(' ').map(Number);
+    if (!(w > 0 && h > 0)) return null;
+    const left = ((this.agentX(agent) - x) / w) * 100;
+    const top = ((this.agentY(agent) - y) / h) * 100;
+    if (left < 0 || left > 100 || top < 0 || top > 100) return null;
+    return { handle, name: this.identity.nameFor(handle), left, top };
+  });
+
+  chooseTrainOption(handle: number, option: ProposalOption): void {
+    this.proposalChoice.choose(handle, option);
+  }
+
+  isTrainOptionChosen(option: ProposalOption): boolean {
+    return this.proposalChoice.current() === option;
+  }
+
+  trainOptionDisabled(handle: number, option: ProposalOption): boolean {
+    return option === 'reroute' && !this.proposalChoice.rerouteAvailable(handle);
+  }
   /** Set once the tour's column focus is applied, so steps and user zoom keep it. */
   private readonly focusApplied = signal(false);
 

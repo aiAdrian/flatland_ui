@@ -6,6 +6,7 @@ import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { ApiService } from '../../core/api.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { ProposalOption, ProposalsResult, ProposalVariant } from '../../core/events/event-types';
+import { ProposalChoiceService } from '../../core/proposals/proposal-choice.service';
 
 /** One option the operator can put next to the plan and the AI. */
 interface OptionChoice {
@@ -78,6 +79,8 @@ export class ProposalCompareComponent implements OnDestroy {
   private trainActions = inject(TrainActionService);
   private colors = inject(AgentColorService);
   private identity = inject(TrainIdentityService);
+  /** The picked option lives here, so the map's option strip can pick it too. */
+  private choice = inject(ProposalChoiceService);
 
   /** Flatland action ints behind the committable options. */
   private static readonly STOP = 4;
@@ -89,7 +92,7 @@ export class ProposalCompareComponent implements OnDestroy {
     { option: 'reroute', label: 'Umleiten', hint: 'Der Zug nimmt an der nächsten Weiche den anderen Ast.' },
   ];
 
-  readonly chosenOption = signal<ProposalOption | null>(null);
+  readonly chosenOption = computed(() => this.choice.current());
   readonly result = signal<ProposalsResult | null>(null);
   readonly loading = signal(false);
   readonly failed = signal<string | null>(null);
@@ -100,19 +103,28 @@ export class ProposalCompareComponent implements OnDestroy {
   readonly targetHandle = computed(() => this.store.selectedHandle());
 
   constructor() {
-    // A different train is a different question: drop the old answer and ask
-    // again for the plan and the AI course, without an option.
+    // One effect for both ways in: a different train (from anywhere) or a
+    // different option (from this panel or the map). A different train is a
+    // different question, so the old answer goes; a different option only asks
+    // again for the same train.
+    let lastHandle: number | null | undefined;
     effect(() => {
       const handle = this.targetHandle();
+      const option = this.chosenOption();
       untracked(() => {
-        this.chosenOption.set(null);
-        this.committed.set(false);
-        this.appliedVariant.set(null);
+        if (handle !== lastHandle) {
+          lastHandle = handle;
+          this.showAlternatives.set(false);
+          this.result.set(null);
+          this.store.whatIfPreview.set(null);
+          this.appliedVariant.set(null);
+        } else if (this.appliedVariant() === 'human') {
+          // The confirmation belonged to the option that was taken, not this one.
+          this.appliedVariant.set(null);
+        }
         this.applying.set(null);
-        this.showAlternatives.set(false);
-        this.result.set(null);
-        this.store.whatIfPreview.set(null);
-        if (handle != null) this.load(null);
+        this.committed.set(false);
+        if (handle != null) this.load(option);
       });
     });
   }
@@ -155,8 +167,8 @@ export class ProposalCompareComponent implements OnDestroy {
 
   /** Pick an option → simulate it next to the plan and the AI. */
   choose(option: ProposalOption): void {
-    this.chosenOption.set(option);
-    this.load(option);
+    const handle = this.targetHandle();
+    if (handle != null) this.choice.choose(handle, option);
   }
 
   /**
@@ -270,11 +282,7 @@ export class ProposalCompareComponent implements OnDestroy {
    * backend refuses that option, and the assessment panel already says so —
    * an enabled button that always fails would contradict it.
    */
-  readonly rerouteAvailable = computed(() => {
-    const handle = this.targetHandle();
-    const item = this.store.impact().find((i) => i.handle === handle);
-    return item ? item.can_reroute : true;
-  });
+  readonly rerouteAvailable = computed(() => this.choice.rerouteAvailable(this.targetHandle()));
 
   isDisabled(option: ProposalOption): boolean {
     return option === 'reroute' && !this.rerouteAvailable();

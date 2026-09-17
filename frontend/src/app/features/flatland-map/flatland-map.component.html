@@ -559,6 +559,31 @@
   }
 
 
+  <!-- Options at the selected train (interview tour): picking one asks the
+       Plan / KI / Mensch panel to simulate it; committing stays there, where
+       the comparison is. -->
+  @if (trainOptions(); as t) {
+    <div
+      class="map-train-options"
+      role="group"
+      [attr.aria-label]="'Optionen für ' + t.name"
+      [style.left.%]="t.left"
+      [style.top.%]="t.top">
+      <span class="map-train-options__name">{{ t.name }} · im Panel vergleichen</span>
+      @for (c of trainOptionChoices; track c.option) {
+        <button
+          type="button"
+          class="map-train-options__btn"
+          [class.is-chosen]="isTrainOptionChosen(c.option)"
+          [disabled]="trainOptionDisabled(t.handle, c.option)"
+          [title]="trainOptionDisabled(t.handle, c.option) ? 'Für diesen Zug gibt es hier keine Umleitung.' : 'Unter «Plan / KI / Mensch» durchrechnen'"
+          (click)="chooseTrainOption(t.handle, c.option)">
+          {{ c.label }}
+        </button>
+      }
+    </div>
+  }
+
   <!-- Map Navigation Overlay (unten links) -->
   <div class="map-nav-overlay">
     <button class="nav-btn nav-up" (click)="panStep(0, 1)" title="Pan up">↑</button>
