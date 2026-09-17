@@ -5,6 +5,7 @@ import { SessionStore } from '../../core/session.store';
 import { LanguageService } from '../../core/i18n/language.service';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { buildPreferenceHypothesis, strategyLabelForAction } from '../../core/learning-store.service';
+import { valueAxisFromRationaleIds } from '../../core/operator-value-axis';
 
 /** One selectable structured "why" chip (LLM-free first cut). */
 interface ReasonChip {
@@ -107,7 +108,13 @@ export class RationaleCaptureComponent {
     // 'no' may proceed without a rationale (rejecting the hypothesis is itself
     // the answer); for 'yes'/'once' require a reason.
     if (response !== 'no' && !this.canSubmit()) return;
-    this.store.submitRationale({ rationale: this.rationaleText(), response });
+    this.store.submitRationale({
+      rationale: this.rationaleText(),
+      // The axis comes from the chip ids, not from their text: the text is
+      // translated, the ids are not.
+      valueAxis: valueAxisFromRationaleIds([...this.selected()]),
+      response,
+    });
     this._reset();
   }
 

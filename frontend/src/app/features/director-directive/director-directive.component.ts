@@ -1,5 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
 import { LanguageService } from '../../core/i18n/language.service';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { AgentDTO } from '../../core/models';
 
@@ -26,6 +27,7 @@ import { AgentDTO } from '../../core/models';
 @Component({
   selector: 'app-director-directive',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './director-directive.component.html',
   styleUrl: './director-directive.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

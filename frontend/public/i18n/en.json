@@ -848,5 +848,105 @@
       "director": "Supervisory what-if — inspect a branch; the AI keeps actuation under the directive."
     },
     "timetablePlan": "Timetable plan"
+  },
+  "forecast": {
+    "title": "Effect over the next 30 minutes",
+    "col": {
+      "now": "Now",
+      "plus10": "+10 min",
+      "plus20": "+20 min",
+      "plus30": "+30 min"
+    },
+    "row": {
+      "conflict": "Conflict",
+      "connections": "Connections",
+      "networkLoad": "Network load"
+    },
+    "cell": {
+      "active": "active",
+      "open": "open",
+      "unclear": "unclear",
+      "resolving": "resolving",
+      "resolved": "resolved",
+      "stable": "stable",
+      "atRisk": "at risk",
+      "kept": "kept",
+      "lost": "lost",
+      "rising": "rising",
+      "high": "high",
+      "low": "low"
+    },
+    "horizonOk": "Reliable to +{{n}} min · {{problems}} open problem(s)",
+    "horizonShort": "Reliable only to {{horizon}} · {{problems}} open problem(s) — more open problems make the future less certain",
+    "horizonNow": "now",
+    "note": "Rule-based projection, not a re-simulation.",
+    "noteLong": "Rule-based projection from this option’s KPI deltas — the next 30 minutes are not re-simulated.",
+    "emptyTitle": "Effect over 30 minutes",
+    "emptyText": "Pick an option in the strategy widget (“On the map” or “Take it”) to see its forecast."
+  },
+  "directive": {
+    "running": "AI is running",
+    "ready": "Ready",
+    "active": "active",
+    "delayed": "delayed",
+    "malfunctions": "malfunction(s)",
+    "arrived": "arrived",
+    "resume": "Resume",
+    "start": "Start the autonomous run",
+    "endShift": "End shift",
+    "endShiftTitle": "Ends the shift and shows the review — you can go back."
+  },
+  "aiActivity": {
+    "title": "What the AI is doing",
+    "decisions": "{{n}} decisions",
+    "replansCount": "{{n}} re-plan(s)",
+    "sourceLine": "Plan from: {{source}}",
+    "disruptions": "Disruptions",
+    "replans": "Re-plans",
+    "recent": "Decided most recently",
+    "upcoming": "Planned next",
+    "empty": "No planner decisions yet. Start the autonomous run — then this says what the AI decides and when it re-plans.",
+    "src": {
+      "search": "model-guided search",
+      "lines": "baseline: line plan",
+      "avoidance": "baseline: conflict avoidance",
+      "noModels": "fallback: no models installed",
+      "unroutable": "no plan: not routable"
+    },
+    "reason": {
+      "unknown": "trigger unknown",
+      "malfunction": "malfunction on train {{train}}",
+      "manual": "triggered manually",
+      "weights": "directive changed"
+    },
+    "replanned": "{{reason}}: {{n}} train(s) re-planned",
+    "keptRejected": "{{reason}}: plan kept — the simulation rejected the change",
+    "keptNotBetter": "{{reason}}: plan kept (the change was no better)",
+    "noBranch": "Train {{train}}: no usable branch",
+    "holdFor": "hold {{n}} min, ",
+    "viaNode": "Train {{train}}: {{hold}}on via node {{node}}",
+    "optionsChecked": "{{n}} options checked",
+    "scoreDetail": "re-plan {{replan}} vs. carry on {{carryOn}}"
+  },
+  "strategyReflection": {
+    "title": "Your decision",
+    "close": "Close without answering",
+    "tookBefore": "You took",
+    "tookAfter": ".",
+    "price": "The price for it:",
+    "noPrice": "With no measurable price on the other axes.",
+    "contradiction": "So far you have mostly prioritised {{was}}, here {{now}}. Was that this situation — or should I change my assumption about you?",
+    "consistent": "Fits the pattern so far ({{axis}}).",
+    "whyNow": "Why now?",
+    "optional": "(optional)",
+    "ownReason": "✎ My own reason",
+    "notePlaceholder": "In your own words …",
+    "asRule": "Keep as a rule",
+    "notTrue": "Doesn’t apply",
+    "guard": "“Just this once” deliberately does not become a rule — a situational decision should not turn into a lasting preference.",
+    "chip": {
+      "disruption": "Disruption in the network",
+      "reserve": "Build up reserve"
+    }
   }
 }

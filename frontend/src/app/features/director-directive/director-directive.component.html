@@ -3,31 +3,31 @@
 <div class="directive" [class.is-running]="store.playing()" role="status">
   @if (store.playing()) {
     <span class="dir-dot" aria-hidden="true"></span>
-    <span class="dir-lead">KI fährt</span>
+    <span class="dir-lead">{{ 'directive.running' | transloco }}</span>
   } @else {
     <span class="dir-icon" aria-hidden="true">▸</span>
-    <span class="dir-lead">Bereit</span>
+    <span class="dir-lead">{{ 'directive.ready' | transloco }}</span>
   }
 
   <span class="dir-stats">
     <span class="dir-stat">
-      <strong>{{ active() }}</strong> aktiv
+      <strong>{{ active() }}</strong> {{ 'directive.active' | transloco }}
     </span>
     <span class="dir-stat" [class.warn]="delayedCount() > 0">
-      <strong>{{ delayedCount() }}</strong> verspätet
+      <strong>{{ delayedCount() }}</strong> {{ 'directive.delayed' | transloco }}
     </span>
     <span class="dir-stat" [class.alert]="malfunctions() > 0">
-      <strong>{{ malfunctions() }}</strong> Störung(en)
+      <strong>{{ malfunctions() }}</strong> {{ 'directive.malfunctions' | transloco }}
     </span>
     <span class="dir-stat">
-      <strong>{{ arrived() }}/{{ total() }}</strong> angekommen
+      <strong>{{ arrived() }}/{{ total() }}</strong> {{ 'directive.arrived' | transloco }}
     </span>
   </span>
 
   <span class="dir-chip">{{ policyLabel() }}</span>
 
   <button class="dir-start" type="button" (click)="start()" [disabled]="store.playing()">
-    {{ started() ? 'Fortsetzen' : 'Autonomen Lauf starten' }}
+    {{ (started() ? 'directive.resume' : 'directive.start') | transloco }}
   </button>
 
   <!-- The way into the closing review. Without it the review waited for the
@@ -36,8 +36,8 @@
        is not a decision the operator can regret. -->
   @if (started()) {
     <button class="dir-end" type="button" (click)="endShift()"
-            title="Beendet die Schicht und zeigt die Auswertung — du kannst zurück.">
-      Schicht beenden
+            [attr.title]="'directive.endShiftTitle' | transloco">
+      {{ 'directive.endShift' | transloco }}
     </button>
   }
 </div>

@@ -848,5 +848,105 @@
       "director": "Was-wäre-wenn zur Aufsicht — prüfen Sie einen Zweig; die Ausführung bleibt unter der Vorgabe bei der KI."
     },
     "timetablePlan": "Fahrplan"
+  },
+  "forecast": {
+    "title": "Wirkung über die nächsten 30 Minuten",
+    "col": {
+      "now": "Jetzt",
+      "plus10": "+10 Min.",
+      "plus20": "+20 Min.",
+      "plus30": "+30 Min."
+    },
+    "row": {
+      "conflict": "Konflikt",
+      "connections": "Anschlüsse",
+      "networkLoad": "Netzlast"
+    },
+    "cell": {
+      "active": "aktiv",
+      "open": "offen",
+      "unclear": "unklar",
+      "resolving": "löst sich",
+      "resolved": "gelöst",
+      "stable": "stabil",
+      "atRisk": "gefährdet",
+      "kept": "gehalten",
+      "lost": "verloren",
+      "rising": "steigt",
+      "high": "hoch",
+      "low": "niedrig"
+    },
+    "horizonOk": "Belastbar bis +{{n}} Min. · {{problems}} offene Problem(e)",
+    "horizonShort": "Belastbar nur bis {{horizon}} · {{problems}} offene Problem(e) — mehr Offenes macht die Zukunft unsicherer",
+    "horizonNow": "jetzt",
+    "note": "Regelbasierte Projektion, keine Neusimulation.",
+    "noteLong": "Regelbasierte Projektion aus den KPI-Deltas dieser Option — keine Neusimulation der nächsten 30 Minuten.",
+    "emptyTitle": "Wirkung über 30 Minuten",
+    "emptyText": "Wählen Sie im Strategie-Widget eine Option («Auf Karte» oder «Übernehmen»), um ihre Prognose zu sehen."
+  },
+  "directive": {
+    "running": "KI fährt",
+    "ready": "Bereit",
+    "active": "aktiv",
+    "delayed": "verspätet",
+    "malfunctions": "Störung(en)",
+    "arrived": "angekommen",
+    "resume": "Fortsetzen",
+    "start": "Autonomen Lauf starten",
+    "endShift": "Schicht beenden",
+    "endShiftTitle": "Beendet die Schicht und zeigt die Auswertung — Sie können zurück."
+  },
+  "aiActivity": {
+    "title": "Was die KI macht",
+    "decisions": "{{n}} Entscheidungen",
+    "replansCount": "{{n}} Umplanung(en)",
+    "sourceLine": "Plan aus: {{source}}",
+    "disruptions": "Störungen",
+    "replans": "Umplanungen",
+    "recent": "Zuletzt entschieden",
+    "upcoming": "Als nächstes geplant",
+    "empty": "Noch keine Planerentscheidungen. Starten Sie den autonomen Lauf — dann steht hier, was die KI entscheidet und wann sie umplant.",
+    "src": {
+      "search": "modellgeführte Suche",
+      "lines": "Baseline: Linienplan",
+      "avoidance": "Baseline: Konfliktvermeidung",
+      "noModels": "Fallback: keine Modelle installiert",
+      "unroutable": "kein Plan: nicht routbar"
+    },
+    "reason": {
+      "unknown": "Auslöser unbekannt",
+      "malfunction": "Störung an Zug {{train}}",
+      "manual": "Manuell ausgelöst",
+      "weights": "Zielvorgabe geändert"
+    },
+    "replanned": "{{reason}}: {{n}} Zug/Züge umgeplant",
+    "keptRejected": "{{reason}}: Plan behalten — die Simulation hat den Wechsel abgelehnt",
+    "keptNotBetter": "{{reason}}: Plan behalten (der Wechsel war nicht besser)",
+    "noBranch": "Zug {{train}}: kein befahrbarer Zweig",
+    "holdFor": "{{n}} min halten, ",
+    "viaNode": "Zug {{train}}: {{hold}}weiter über Knoten {{node}}",
+    "optionsChecked": "{{n}} Optionen geprüft",
+    "scoreDetail": "umplanen {{replan}} vs. weiterfahren {{carryOn}}"
+  },
+  "strategyReflection": {
+    "title": "Ihre Entscheidung",
+    "close": "Ohne Antwort schliessen",
+    "tookBefore": "Sie haben",
+    "tookAfter": "übernommen.",
+    "price": "Preis dafür:",
+    "noPrice": "Ohne messbaren Preis auf den anderen Achsen.",
+    "contradiction": "Bisher haben Sie meist {{was}} priorisiert, hier {{now}}. Lag das an dieser Lage — oder soll ich meine Annahme über Sie ändern?",
+    "consistent": "Passt zu Ihrem bisherigen Muster ({{axis}}).",
+    "whyNow": "Warum jetzt?",
+    "optional": "(optional)",
+    "ownReason": "✎ Eigener Grund",
+    "notePlaceholder": "In eigenen Worten …",
+    "asRule": "Als Regel merken",
+    "notTrue": "Trifft nicht zu",
+    "guard": "«Nur diesmal» wird bewusst nicht zur Regel — eine situative Entscheidung soll keine dauerhafte Präferenz werden.",
+    "chip": {
+      "disruption": "Störung im Netz",
+      "reserve": "Reserve aufbauen"
+    }
   }
 }

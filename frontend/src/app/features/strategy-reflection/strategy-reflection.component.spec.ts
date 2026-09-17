@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { OperatorModelService, OperatorProfile, ValueAxis } from '../../core/operator-model.service';
 import { LearningStore } from '../../core/learning-store.service';
 import { SessionStore } from '../../core/session.store';
@@ -33,7 +34,8 @@ describe('StrategyReflectionComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [StrategyReflectionComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(StrategyReflectionComponent);
     cmp = fixture.componentInstance;
@@ -127,7 +129,7 @@ describe('StrategyReflectionComponent', () => {
     expect(cmp.contradiction()).toEqual({ was: 'punctuality', now: 'connection' });
     const text = fixture.nativeElement.textContent as string;
     // Framed as a question, not a correction.
-    expect(text).toContain('soll ich meine Annahme über dich ändern?');
+    expect(text).toContain('should I change my assumption about you?');
   });
 
   it('confirms a choice that matches the profile instead of questioning it', () => {
@@ -137,7 +139,7 @@ describe('StrategyReflectionComponent', () => {
 
     expect(cmp.contradiction()).toBeNull();
     expect(cmp.consistent()).toBeTrue();
-    expect(fixture.nativeElement.textContent).toContain('Passt zu deinem bisherigen Muster');
+    expect(fixture.nativeElement.textContent).toContain('Fits the pattern so far');
   });
 
   it('stays quiet about patterns while the profile is too thin to claim one', () => {
@@ -147,7 +149,7 @@ describe('StrategyReflectionComponent', () => {
 
     expect(cmp.profileAxis()).toBeNull();
     expect(cmp.contradiction()).toBeNull();
-    expect(fixture.nativeElement.textContent).not.toContain('Bisher hast du');
+    expect(fixture.nativeElement.textContent).not.toContain('So far you have mostly prioritised');
   });
 
   it('offers reason chips and free text, like the override prompt does', () => {
@@ -155,9 +157,9 @@ describe('StrategyReflectionComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Warum jetzt?');
-    expect(text).toContain('Schützt Anschluss');
-    expect(text).toContain('Eigener Grund');
+    expect(text).toContain('Why now?');
+    expect(text).toContain('Protects connection');
+    expect(text).toContain('My own reason');
     // Optional on purpose: answering without a reason stays possible, it is just
     // weaker evidence.
     expect(text).toContain('optional');
@@ -176,15 +178,15 @@ describe('StrategyReflectionComponent', () => {
 
     const entry = store.decisionLog().at(-1)!;
     expect(entry.rationale).toContain('Anschlüsse halten');
-    expect(entry.rationale).toContain('Schützt Anschluss');
-    expect(entry.rationale).toContain('Störung im Netz');
+    expect(entry.rationale).toContain('Protects connection');
+    expect(entry.rationale).toContain('Disruption in the network');
     expect(entry.rationale).toContain('Umleitung über Nord war frei');
   });
 
-  it('keeps a chip label the axis mapping understands', () => {
-    // 'Schützt Anschluss' is the same label the override prompt uses, so
-    // RATIONALE_AXIS_BY_LABEL keeps resolving it to the connection axis.
-    expect(cmp.chips.map((c) => c.label)).toContain('Schützt Anschluss');
+  it('keeps a chip id the axis mapping understands', () => {
+    // The mapping is keyed by chip id, not by the label, because the label is
+    // translated (RATIONALE_AXIS_BY_ID → connection axis).
+    expect(cmp.chips.map((c) => c.id)).toContain('connection');
   });
 
   it('resets the reason after answering, so it cannot leak into the next choice', () => {

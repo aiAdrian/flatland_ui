@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { DirectorStrategy } from '../../core/api.service';
 import {
   OperatorModelService,
@@ -80,7 +81,8 @@ describe('StrategyOptionsComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [StrategyOptionsComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(StrategyOptionsComponent);
     cmp = fixture.componentInstance;

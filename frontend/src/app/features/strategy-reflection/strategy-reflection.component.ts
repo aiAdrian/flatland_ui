@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal } from '@angular/core';
 import { OperatorModelService, ValueAxis } from '../../core/operator-model.service';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { VALUE_AXIS_LABELS } from '../../core/reflection-moments';
 
@@ -28,19 +30,26 @@ import { VALUE_AXIS_LABELS } from '../../core/reflection-moments';
 @Component({
   selector: 'app-strategy-reflection',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './strategy-reflection.component.html',
   styleUrl: './strategy-reflection.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class StrategyReflectionComponent {
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private model = inject(OperatorModelService);
 
   readonly pending = computed(() => this.store.pendingStrategyReflection());
 
   axisLabel(axis: ValueAxis | null): string {
-    return axis ? VALUE_AXIS_LABELS[axis] : '—';
+    return axis
+      ? this.i18n.t(
+          `effect.${axis === 'stability' ? 'networkStability' : axis === 'connection' ? 'connections' : axis}`,
+          undefined,
+          VALUE_AXIS_LABELS[axis],
+        )
+      : '—';
   }
 
   /**
@@ -76,14 +85,14 @@ export class StrategyReflectionComponent {
    * option"). Labels are shared with the override prompt's vocabulary where they
    * overlap, so `RATIONALE_AXIS_BY_LABEL` keeps working on them.
    */
-  readonly chips: ReadonlyArray<{ id: string; label: string }> = [
-    { id: 'connection', label: 'Schützt Anschluss' },
-    { id: 'delay', label: 'Geringe Zusatzverspätung' },
-    { id: 'deadlock', label: 'Vermeide Deadlock' },
-    { id: 'disruption', label: 'Störung im Netz' },
-    { id: 'reserve', label: 'Reserve aufbauen' },
-    { id: 'critical', label: 'Kritische Lage' },
-    { id: 'experience', label: 'Erfahrungswert' },
+  readonly chips: ReadonlyArray<{ id: string; labelKey: string }> = [
+    { id: 'connection', labelKey: 'rationale.chip.connection' },
+    { id: 'delay', labelKey: 'rationale.chip.delay' },
+    { id: 'deadlock', labelKey: 'rationale.chip.deadlock' },
+    { id: 'disruption', labelKey: 'strategyReflection.chip.disruption' },
+    { id: 'reserve', labelKey: 'strategyReflection.chip.reserve' },
+    { id: 'critical', labelKey: 'rationale.chip.critical' },
+    { id: 'experience', labelKey: 'rationale.chip.experience' },
   ];
 
   readonly selected = signal<Set<string>>(new Set<string>());
@@ -116,7 +125,7 @@ export class StrategyReflectionComponent {
   private reasonText(): string {
     const parts = this.chips
       .filter((c) => this.selected().has(c.id))
-      .map((c) => c.label);
+      .map((c) => this.i18n.t(c.labelKey));
     const note = this.note().trim();
     if (note) parts.push(note);
     return parts.join('; ');

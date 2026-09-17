@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { LearningStore } from '../../core/learning-store.service';
 import { OperatorModelService, OperatorProfile } from '../../core/operator-model.service';
 import { SessionStore } from '../../core/session.store';
@@ -39,7 +40,8 @@ describe('ShiftReviewComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ShiftReviewComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(ShiftReviewComponent);
     cmp = fixture.componentInstance;

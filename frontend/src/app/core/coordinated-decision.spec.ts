@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/transloco-testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -30,7 +31,8 @@ describe('recordCoordinatedAction', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     store = TestBed.inject(SessionStore);
   });

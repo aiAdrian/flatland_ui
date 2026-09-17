@@ -1051,6 +1051,9 @@ export class SessionStore {
   submitRationale(payload: {
     rationale: string;
     response: 'yes' | 'once' | 'no';
+    /** The value axis the chosen reason chips stand for, if any. Stated by the
+     *  capture surface because the rationale text itself is translated. */
+    valueAxis?: DecisionValueAxis | null;
   }): void {
     const pending = this.pendingRationale();
     if (!pending) return;
@@ -1083,6 +1086,8 @@ export class SessionStore {
           ? {
               ...e,
               rationale: payload.rationale,
+              // Stated axis beats inferring one from translated text.
+              valueAxis: payload.valueAxis ?? e.valueAxis,
               preferenceHypothesis: hypothesis,
               hypothesisResponse: payload.response,
             }

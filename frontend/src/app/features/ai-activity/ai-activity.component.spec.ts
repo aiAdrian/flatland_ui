@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { DirectorActivity } from '../../core/api.service';
 import { SessionStore } from '../../core/session.store';
 import { AiActivityComponent } from './ai-activity.component';
@@ -28,7 +29,8 @@ describe('AiActivityComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AiActivityComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(AiActivityComponent);
     cmp = fixture.componentInstance;
@@ -52,19 +54,19 @@ describe('AiActivityComponent', () => {
     flush({ totalDecisions: 0, totalReplans: 0, source: null });
     fixture.detectChanges();
     expect(cmp.hasAnything()).toBeFalse();
-    expect(fixture.nativeElement.textContent).toContain('Starte den autonomen Lauf');
+    expect(fixture.nativeElement.textContent).toContain('Start the autonomous run');
   });
 
   it('names the plan provenance in plain words', () => {
     flush({ source: 'search' });
-    expect(cmp.sourceLabel()).toBe('modellgeführte Suche');
+    expect(cmp.sourceLabel()).toBe('model-guided search');
 
     // The remaining mappings are set directly: only one poll has fired, so a
     // second flush would have no request to answer.
     cmp.activity.set(activity({ source: 'avoidance (no models)' }));
-    expect(cmp.sourceLabel()).toBe('Fallback: keine Modelle installiert');
+    expect(cmp.sourceLabel()).toBe('fallback: no models installed');
     cmp.activity.set(activity({ source: 'lines' }));
-    expect(cmp.sourceLabel()).toBe('Baseline: Linienplan');
+    expect(cmp.sourceLabel()).toBe('baseline: line plan');
     cmp.activity.set(activity({ source: null }));
     expect(cmp.sourceLabel()).toBeNull();
   });
@@ -72,16 +74,16 @@ describe('AiActivityComponent', () => {
   it('reads a decision as what the AI did, including a hold', () => {
     expect(
       cmp.line({ kind: 'decision', step: 12, handle: 4, wait: 0, toNode: 91, optionCount: 10 }),
-    ).toBe('Zug 4: weiter über Knoten 91');
+    ).toBe('Train 4: on via node 91');
     expect(
       cmp.line({ kind: 'decision', step: 12, handle: 4, wait: 3, toNode: 91, optionCount: 10 }),
-    ).toBe('Zug 4: 3 min halten, weiter über Knoten 91');
-    expect(cmp.detail({ kind: 'decision', step: 1, optionCount: 10 })).toBe('10 Optionen geprüft');
+    ).toBe('Train 4: hold 3 min, on via node 91');
+    expect(cmp.detail({ kind: 'decision', step: 1, optionCount: 10 })).toBe('10 options checked');
   });
 
   it('reports a train the planner could not route', () => {
     const e = { kind: 'decision' as const, step: 8, handle: 2, stuck: true };
-    expect(cmp.line(e)).toBe('Zug 2: kein befahrbarer Zweig');
+    expect(cmp.line(e)).toBe('Train 2: no usable branch');
     // No "options weighed" claim when there was no viable branch.
     expect(cmp.detail(e)).toBeNull();
   });
@@ -114,12 +116,12 @@ describe('AiActivityComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Umplanungen');
-    expect(text).toContain('Störung an Zug 4');
+    expect(text).toContain('Re-plans');
+    expect(text).toContain('malfunction on train 4');
     // The backend's "until t=23" is the malfunction counter, not the sim step —
     // dropped so it cannot read as "ended 60 steps ago" next to t=85.
     expect(text).not.toContain('until t=');
-    expect(text).toContain('Simulation hat den Wechsel abgelehnt');
+    expect(text).toContain('simulation rejected the change');
     // The scores are the evidence for the verdict, not decoration.
     expect(text).toContain('0.080');
     expect(text).toContain('0.069');
@@ -128,22 +130,22 @@ describe('AiActivityComponent', () => {
   it('translates the re-plan trigger and passes unknown ones through', () => {
     expect(
       cmp.line({ kind: 'replan', step: 9, reason: 'malfunction on train 3 until t=16', verdict: 'research', changed: 2 }),
-    ).toBe('Störung an Zug 3: 2 Zug/Züge umgeplant');
+    ).toBe('malfunction on train 3: 2 train(s) re-planned');
     expect(
       cmp.line({ kind: 'replan', step: 9, reason: 'weights change', verdict: 'research', changed: 1 }),
-    ).toContain('Zielvorgabe geändert');
+    ).toContain('directive changed');
     expect(
       cmp.line({ kind: 'replan', step: 9, reason: 'something new', verdict: 'research', changed: 1 }),
     ).toContain('something new');
     expect(
       cmp.line({ kind: 'replan', step: 9, reason: null, verdict: 'research', changed: 1 }),
-    ).toContain('Auslöser unbekannt');
+    ).toContain('trigger unknown');
   });
 
   it('distinguishes a re-plan that replaced the plan from one that was vetoed', () => {
     expect(
       cmp.line({ kind: 'replan', step: 42, reason: 'malfunction', verdict: 'research', changed: 4 }),
-    ).toContain('4 Zug/Züge umgeplant');
+    ).toContain('4 train(s) re-planned');
     expect(
       cmp.line({
         kind: 'replan',
@@ -153,10 +155,10 @@ describe('AiActivityComponent', () => {
         gate: 'rollout-veto',
         changed: 0,
       }),
-    ).toContain('Simulation hat den Wechsel abgelehnt');
+    ).toContain('simulation rejected the change');
     expect(
       cmp.line({ kind: 'replan', step: 42, reason: 'malfunction', verdict: 'continue', changed: 0 }),
-    ).toContain('nicht besser');
+    ).toContain('no better');
   });
 
   it('shows disruptions as the trigger, only the real ones', () => {
@@ -183,8 +185,8 @@ describe('AiActivityComponent', () => {
     expect(cmp.recent().length).toBe(1);
     expect(cmp.upcoming().length).toBe(1);
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Zuletzt entschieden');
-    expect(text).toContain('Als nächstes geplant');
+    expect(text).toContain('Decided most recently');
+    expect(text).toContain('Planned next');
     expect(fixture.nativeElement.querySelectorAll('.aa-item--planned').length).toBe(1);
   });
 
@@ -225,11 +227,11 @@ describe('AiActivityComponent', () => {
   it('collapses without losing its polling', () => {
     flush({ recent: [{ kind: 'decision', step: 30, handle: 1, wait: 0, toNode: 5, optionCount: 8 }] });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Zuletzt entschieden');
+    expect(fixture.nativeElement.textContent).toContain('Decided most recently');
 
     cmp.toggleCollapsed();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('Zuletzt entschieden');
+    expect(fixture.nativeElement.textContent).not.toContain('Decided most recently');
     expect(cmp.recent().length).toBe(1);
   });
 });

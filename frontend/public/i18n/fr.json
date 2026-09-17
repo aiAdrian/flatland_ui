@@ -848,5 +848,105 @@
       "director": "Simulation de supervision — examinez une branche ; l’IA garde l’exécution selon la consigne."
     },
     "timetablePlan": "Plan horaire"
+  },
+  "forecast": {
+    "title": "Effet sur les 30 prochaines minutes",
+    "col": {
+      "now": "Maintenant",
+      "plus10": "+10 min",
+      "plus20": "+20 min",
+      "plus30": "+30 min"
+    },
+    "row": {
+      "conflict": "Conflit",
+      "connections": "Correspondances",
+      "networkLoad": "Charge du réseau"
+    },
+    "cell": {
+      "active": "actif",
+      "open": "ouvert",
+      "unclear": "incertain",
+      "resolving": "en résolution",
+      "resolved": "résolu",
+      "stable": "stable",
+      "atRisk": "menacées",
+      "kept": "tenues",
+      "lost": "perdues",
+      "rising": "en hausse",
+      "high": "élevée",
+      "low": "faible"
+    },
+    "horizonOk": "Fiable jusqu’à +{{n}} min · {{problems}} problème(s) ouvert(s)",
+    "horizonShort": "Fiable seulement jusqu’à {{horizon}} · {{problems}} problème(s) ouvert(s) — plus il y en a, plus l’avenir est incertain",
+    "horizonNow": "maintenant",
+    "note": "Projection fondée sur des règles, sans nouvelle simulation.",
+    "noteLong": "Projection fondée sur les écarts de KPI de cette option — les 30 prochaines minutes ne sont pas resimulées.",
+    "emptyTitle": "Effet sur 30 minutes",
+    "emptyText": "Choisissez une option dans le widget de stratégie (« Sur la carte » ou « Adopter ») pour voir sa prévision."
+  },
+  "directive": {
+    "running": "L’IA conduit",
+    "ready": "Prêt",
+    "active": "actifs",
+    "delayed": "en retard",
+    "malfunctions": "panne(s)",
+    "arrived": "arrivés",
+    "resume": "Reprendre",
+    "start": "Lancer la conduite autonome",
+    "endShift": "Terminer le service",
+    "endShiftTitle": "Termine le service et affiche le bilan — vous pouvez revenir."
+  },
+  "aiActivity": {
+    "title": "Ce que fait l’IA",
+    "decisions": "{{n}} décisions",
+    "replansCount": "{{n}} replanification(s)",
+    "sourceLine": "Plan issu de : {{source}}",
+    "disruptions": "Perturbations",
+    "replans": "Replanifications",
+    "recent": "Décidé en dernier",
+    "upcoming": "Prévu ensuite",
+    "empty": "Aucune décision du planificateur. Lancez la conduite autonome — vous verrez alors ce que l’IA décide et quand elle replanifie.",
+    "src": {
+      "search": "recherche guidée par modèle",
+      "lines": "référence : plan de lignes",
+      "avoidance": "référence : évitement de conflits",
+      "noModels": "repli : aucun modèle installé",
+      "unroutable": "aucun plan : non routable"
+    },
+    "reason": {
+      "unknown": "déclencheur inconnu",
+      "malfunction": "panne du train {{train}}",
+      "manual": "déclenché manuellement",
+      "weights": "consigne modifiée"
+    },
+    "replanned": "{{reason}} : {{n}} train(s) replanifié(s)",
+    "keptRejected": "{{reason}} : plan conservé — la simulation a rejeté le changement",
+    "keptNotBetter": "{{reason}} : plan conservé (le changement n’était pas meilleur)",
+    "noBranch": "Train {{train}} : aucune branche praticable",
+    "holdFor": "maintenir {{n}} min, ",
+    "viaNode": "Train {{train}} : {{hold}}poursuite via le nœud {{node}}",
+    "optionsChecked": "{{n}} options examinées",
+    "scoreDetail": "replanifier {{replan}} vs. poursuivre {{carryOn}}"
+  },
+  "strategyReflection": {
+    "title": "Votre décision",
+    "close": "Fermer sans répondre",
+    "tookBefore": "Vous avez adopté",
+    "tookAfter": ".",
+    "price": "Le prix à payer :",
+    "noPrice": "Sans prix mesurable sur les autres axes.",
+    "contradiction": "Jusqu’ici vous avez surtout privilégié {{was}}, ici {{now}}. Était-ce la situation — ou dois-je revoir mon hypothèse à votre sujet ?",
+    "consistent": "Correspond à votre schéma habituel ({{axis}}).",
+    "whyNow": "Pourquoi maintenant ?",
+    "optional": "(facultatif)",
+    "ownReason": "✎ Ma propre raison",
+    "notePlaceholder": "Dans vos propres mots…",
+    "asRule": "Retenir comme règle",
+    "notTrue": "Ne s’applique pas",
+    "guard": "« Juste cette fois » ne devient volontairement pas une règle — une décision ponctuelle ne doit pas devenir une préférence durable.",
+    "chip": {
+      "disruption": "Perturbation sur le réseau",
+      "reserve": "Constituer une réserve"
+    }
   }
 }
