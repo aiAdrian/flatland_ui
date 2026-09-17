@@ -97,6 +97,20 @@ def test_proposals_offer_plan_ai_and_human():
         assert {"done", "total", "delay", "deadlocks"} <= set(variant["system"])
 
 
+def test_variants_carry_comparable_metrics():
+    session = _forked_session()
+
+    response = get_proposals(session.id, handle=1, option="hold")
+
+    for variant in response["variants"]:
+        assert {"lateness", "time_in_network", "not_arrived"} <= set(variant["metrics"])
+    plan, human = response["variants"][0], response["variants"][-1]
+    # Holding this train indefinitely leaves it out at the horizon, which the
+    # metrics have to show rather than hide behind a comparable-looking sum.
+    assert human["metrics"]["not_arrived"] > plan["metrics"]["not_arrived"]
+    assert human["metrics"]["time_in_network"] > plan["metrics"]["time_in_network"]
+
+
 def test_branch_release_ends_a_hold():
     session = _forked_session()
     factory = _policy_factory_for_session(session)

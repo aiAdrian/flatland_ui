@@ -190,6 +190,17 @@ export interface WhatIfResult {
 /** What the operator can propose for one train in the Plan / KI / Mensch compare. */
 export type ProposalOption = 'hold' | 'hold_until_clear' | 'proceed' | 'reroute';
 
+/** The few numbers the three courses are compared on. Lower is better for all
+ *  three; `not_arrived` says when the other two are not comparable. */
+export interface ProposalMetrics {
+  /** Summed lateness against the timetable, arrived trains only. */
+  lateness: number;
+  /** Summed steps the trains are still running from now on. */
+  time_in_network: number;
+  /** Trains still out at the horizon. */
+  not_arrived: number;
+}
+
 /** One simulated course of the whole system: the plan running on, an AI replan,
  *  or the operator's choice. `train` is the selected train's own fate. */
 export interface ProposalVariant {
@@ -206,6 +217,8 @@ export interface ProposalVariant {
   score?: number;
   /** Human variant: the option (or `action:<int>`) behind it. */
   choice?: string;
+  /** System-wide numbers for the comparison bars. */
+  metrics?: ProposalMetrics;
 }
 
 /** `GET /session/{id}/proposals` — the Plan / KI / Mensch compare (widget B1). */

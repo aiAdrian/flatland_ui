@@ -275,3 +275,80 @@
   font-size: 11px;
   color: var(--sbb-color-granite);
 }
+
+/* Comparison bars: the three courses on the two numbers this simulation can
+   honestly carry. Scaled per axis, so a row is read within itself. */
+.pc-compare {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sbb-color-cloud);
+}
+
+.pc-compare-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sbb-color-granite);
+}
+
+.pc-compare-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.pc-axis {
+  margin-top: 6px;
+}
+
+.pc-axis-label {
+  display: block;
+  font-size: 11px;
+  color: var(--sbb-color-iron);
+  margin-bottom: 2px;
+}
+
+.pc-bar-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 34px;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}
+
+.pc-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sbb-color-cloud) 60%, transparent);
+  overflow: hidden;
+}
+
+.pc-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--app-whatif-plan);
+
+  &.is-ai {
+    background: var(--app-whatif-ai);
+  }
+
+  &.is-human {
+    background: var(--app-whatif-human);
+  }
+}
+
+.pc-bar-value {
+  text-align: right;
+  color: var(--sbb-color-charcoal);
+}
+
+/* "n. v." — the number exists but would mislead, so it is shown as withheld
+   rather than as a good score. */
+.pc-bar-value.is-void {
+  color: var(--sbb-color-granite);
+  font-style: italic;
+}

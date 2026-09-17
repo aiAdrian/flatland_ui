@@ -14,6 +14,27 @@ interface OptionChoice {
   hint: string;
 }
 
+/** One bar in the comparison: a course's value on one axis. `value` is null when
+ *  the number would not be comparable — a lateness sum over the trains that did
+ *  arrive looks *better* the more trains a course strands. */
+interface ComparisonBar {
+  id: string;
+  label: string;
+  value: number | null;
+  /** Share of the widest bar on this axis, so the axes stay comparable within
+   *  themselves rather than against each other. */
+  pct: number;
+}
+
+interface ComparisonAxis {
+  id: 'lateness' | 'time';
+  label: string;
+  unit: string;
+  bars: ComparisonBar[];
+}
+
+const VARIANT_LABEL: Record<string, string> = { plan: 'Plan', ai: 'KI', human: 'Mensch' };
+
 /**
  * Widget B1, second cut — **Plan / KI / Mensch**.
  *
@@ -283,6 +304,67 @@ export class ProposalCompareComponent implements OnDestroy {
   signed(value: number): string {
     return value > 0 ? `+${value}` : `${value}`;
   }
+
+  /**
+   * The courses side by side on the two numbers this simulation can honestly
+   * carry: summed lateness against the timetable, and summed time the trains
+   * are still in the network (the closest thing here to resource use — longer
+   * occupancy, more energy). Connections are deliberately absent: the corridor
+   * models no intermediate calls, so the figure would be the same everywhere.
+   *
+   * Lower is better on both, and the bars are scaled per axis.
+   */
+  readonly comparison = computed<ComparisonAxis[] | null>(() => {
+    const courses = [this.plan(), this.ai(), this.human()].filter(
+      (v): v is ProposalVariant => !!v?.metrics,
+    );
+    if (courses.length < 2) return null;
+
+    const axis = (
+      id: ComparisonAxis['id'],
+      label: string,
+      unit: string,
+      pick: (v: ProposalVariant) => number,
+      /** True where a stranded train makes this axis' number meaningless. */
+      voidedByStranded = false,
+    ): ComparisonAxis => {
+      const values = courses.map((v) =>
+        voidedByStranded && v.metrics!.not_arrived > 0 ? null : Math.max(0, pick(v)),
+      );
+      const max = Math.max(1, ...values.filter((x): x is number => x !== null));
+      return {
+        id,
+        label,
+        unit,
+        bars: courses.map((v, i) => ({
+          id: v.id,
+          label: VARIANT_LABEL[v.id] ?? v.id,
+          value: values[i],
+          pct: values[i] === null ? 0 : Math.round((values[i]! / max) * 100),
+        })),
+      };
+    };
+
+    return [
+      // Lateness counts only trains that arrived, so a course that strands one
+      // would otherwise win this axis by leaving its worst case out of the sum.
+      axis('lateness', 'Verspätung gegenüber Fahrplan', 'Schritte', (v) => v.metrics!.lateness, true),
+      // Time in the network already charges a stranded train the full horizon.
+      axis('time', 'Zeit im Netz', 'Schritte', (v) => v.metrics!.time_in_network),
+    ];
+  });
+
+  /** Says when the bars are not comparable, instead of letting them look it. */
+  readonly comparisonCaveat = computed(() => {
+    const stranded = [this.plan(), this.ai(), this.human()]
+      .filter((v): v is ProposalVariant => !!v?.metrics)
+      .filter((v) => v.metrics!.not_arrived > 0)
+      .map((v) => VARIANT_LABEL[v.id] ?? v.id);
+    if (stranded.length === 0) return null;
+    return stranded.length === 1
+      ? `Bei «${stranded[0]}» kommt mindestens ein Zug im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.`
+      : `Bei ${stranded.map((s) => `«${s}»`).join(' und ')} kommen Züge im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.`;
+  });
 
   /** Worse than the plan for this train — the template colours it, nothing more. */
   worseThanPlan(v: ProposalVariant): boolean {

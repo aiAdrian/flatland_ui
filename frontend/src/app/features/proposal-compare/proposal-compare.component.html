@@ -122,6 +122,35 @@
         }
       </div>
 
+      @if (comparison(); as axes) {
+        <section class="pc-compare">
+          <div class="pc-compare-head">Vergleich <span class="pc-compare-hint">weniger ist besser</span></div>
+          @for (axis of axes; track axis.id) {
+            <div class="pc-axis">
+              <span class="pc-axis-label">{{ axis.label }}</span>
+              @for (bar of axis.bars; track bar.id) {
+                <div class="pc-bar-row">
+                  <span class="pc-bar-name">{{ bar.label }}</span>
+                  <span class="pc-bar">
+                    <span class="pc-bar-fill"
+                          [class.is-plan]="bar.id === 'plan'"
+                          [class.is-ai]="bar.id === 'ai'"
+                          [class.is-human]="bar.id === 'human'"
+                          [style.width.%]="bar.pct"></span>
+                  </span>
+                  <span class="pc-bar-value" [class.is-void]="bar.value === null">
+                    {{ bar.value === null ? 'n. v.' : bar.value }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+          @if (comparisonCaveat(); as caveat) {
+            <p class="pc-caveat">{{ caveat }}</p>
+          }
+        </section>
+      }
+
       @if (r.ai_matches_plan) {
         <p class="pc-verdict">Die KI würde hier beim Plan bleiben: ihre beste Reihenfolge ändert keine Ankunft.</p>
       }

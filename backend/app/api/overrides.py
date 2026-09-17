@@ -358,6 +358,38 @@ def _arrivals(res) -> dict:
     return {h: o.get("arrival_step") for h, o in sorted(res.agent_outcomes.items())}
 
 
+def _variant_metrics(res, planned: dict, now: int, horizon: int) -> dict:
+    """The few numbers the three courses can be compared on.
+
+    - ``lateness``: summed minutes-late against the timetable, arrived trains
+      only. Early arrivals do not offset lateness — a train that gains time does
+      not repay the one that lost it.
+    - ``time_in_network``: summed steps the trains are still running from now on,
+      the closest thing this simulation has to resource use (longer occupancy,
+      more energy). Trains that never arrive count the full horizon.
+    - ``not_arrived``: trains still out at the horizon, which is what makes the
+      other two numbers incomparable if it differs between courses.
+    """
+    lateness = 0
+    time_in_network = 0
+    not_arrived = 0
+    for handle, outcome in res.agent_outcomes.items():
+        arrival = outcome.get("arrival_step")
+        if arrival is None:
+            not_arrived += 1
+            time_in_network += int(horizon)
+            continue
+        reference = planned.get(int(handle))
+        if reference is not None:
+            lateness += max(0, int(arrival) - int(reference))
+        time_in_network += max(0, int(arrival) - int(now))
+    return {
+        "lateness": int(lateness),
+        "time_in_network": int(time_in_network),
+        "not_arrived": int(not_arrived),
+    }
+
+
 def _human_course(env, handle: int, committed: dict, elapsed: int, action, option):
     """Overrides and release steps for the operator's choice, and its label."""
     overrides = dict(committed)
@@ -497,6 +529,7 @@ def get_proposals(
     plan_res = _branch_run(env, plan_factory, committed, horizon)
     variants = [_proposal_variant("plan", _baseline_source(session), plan_res, handle, planned)]
     variants[0]["score"] = _course_score(plan_res, planned)
+    variants[0]["metrics"] = _variant_metrics(plan_res, planned, elapsed, horizon)
 
     ranked = []
     for order, trainruns in replan_orders(env):
@@ -509,6 +542,7 @@ def get_proposals(
         variant = _proposal_variant("ai" if rank == 0 else f"ai-{rank + 1}", "pp_replan", res, handle, planned)
         variant["priority"] = order
         variant["score"] = score
+        variant["metrics"] = _variant_metrics(res, planned, elapsed, horizon)
         if rank == 0:
             variants.append(variant)
         else:
@@ -520,6 +554,7 @@ def get_proposals(
         variant = _proposal_variant("human", "operator", human_res, handle, planned)
         variant["choice"] = choice
         variant["score"] = _course_score(human_res, planned)
+        variant["metrics"] = _variant_metrics(human_res, planned, elapsed, horizon)
         variants.append(variant)
 
     return {
