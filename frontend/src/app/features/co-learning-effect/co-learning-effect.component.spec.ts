@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { OperatorModelService, OperatorProfile } from '../../core/operator-model.service';
 import { CoLearningEffectComponent } from './co-learning-effect.component';
 
@@ -30,7 +31,8 @@ describe('CoLearningEffectComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [CoLearningEffectComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(CoLearningEffectComponent);
     cmp = fixture.componentInstance;
@@ -63,9 +65,9 @@ describe('CoLearningEffectComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(cmp.confirmedCallout()).not.toBeNull();
-    expect(text).toContain('Anschluss');
+    expect(text).toContain('Connection');
     expect(text).toContain('Bei kritischem Anschluss bevorzugst du Halten.');
-    expect(text).toContain('Ranking-Nudge');
+    expect(text).toContain('ranking nudge');
   });
 
   it('does not show the callout for a hint that came only from statistics', () => {
@@ -102,7 +104,7 @@ describe('CoLearningEffectComponent', () => {
     expect(cmp.weightsDiffer()).toBeTrue();
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('2.2');
-    expect(text).toContain('Für Director übernehmen');
+    expect(text).toContain('Apply for Director');
   });
 
   it('shows the carried-over profile when the model is warm', () => {
@@ -122,15 +124,15 @@ describe('CoLearningEffectComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('2 früheren Session');
+    expect(text).toContain('2 earlier session(s)');
     expect(text).toContain('Connection-first');
     expect(text).toContain('71%');
   });
 
   it('maps value axes to German labels', () => {
-    expect(cmp.axisLabel('connection')).toBe('Anschluss');
-    expect(cmp.axisLabel('punctuality')).toBe('Pünktlichkeit');
-    expect(cmp.axisLabel('stability')).toBe('Netzstabilität');
+    expect(cmp.axisLabel('connection')).toBe('Connection');
+    expect(cmp.axisLabel('punctuality')).toBe('Punctuality');
+    expect(cmp.axisLabel('stability')).toBe('Network stability');
     expect(cmp.axisLabel(null)).toBe('—');
   });
 });

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
@@ -17,13 +18,14 @@ import {
   ValueAxis,
 } from '../../core/operator-model.service';
 import { SessionStore } from '../../core/session.store';
+import { LanguageService } from '../../core/i18n/language.service';
 
-/** German axis labels for the callout (the panel copy is German). */
-const AXIS_LABEL: Record<ValueAxis, string> = {
-  punctuality: 'Pünktlichkeit',
-  connection: 'Anschluss',
-  stability: 'Netzstabilität',
-  throughput: 'Durchsatz',
+/** Translation key per value axis named in the callout. */
+const AXIS_KEY: Record<ValueAxis, string> = {
+  punctuality: 'effect.punctuality',
+  connection: 'rec.metric.connection',
+  stability: 'effect.networkStability',
+  throughput: 'effect.throughput',
 };
 
 /**
@@ -45,7 +47,7 @@ const AXIS_LABEL: Record<ValueAxis, string> = {
 @Component({
   selector: 'app-co-learning-effect',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './co-learning-effect.component.html',
   styleUrl: './co-learning-effect.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -53,6 +55,7 @@ const AXIS_LABEL: Record<ValueAxis, string> = {
 export class CoLearningEffectComponent {
   private api = inject(ApiService);
   private store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   model = inject(OperatorModelService);
   /** Injected so the (root-scoped) bridge is instantiated and starts reporting
    *  the operator's decisions once a session runs. */
@@ -91,7 +94,7 @@ export class CoLearningEffectComponent {
   });
 
   axisLabel(axis: ValueAxis | null | undefined): string {
-    return axis ? AXIS_LABEL[axis] : '—';
+    return axis ? this.i18n.t(AXIS_KEY[axis]) : '—';
   }
 
   constructor() {

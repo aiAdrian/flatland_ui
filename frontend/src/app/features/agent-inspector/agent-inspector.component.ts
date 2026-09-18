@@ -1,4 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentDTO } from '../../core/models';
@@ -8,11 +10,13 @@ import { TrainActionService } from '../../core/dispatch/train-action.service';
 @Component({
   selector: 'app-agent-inspector',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './agent-inspector.component.html',
   styleUrl: './agent-inspector.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AgentInspectorComponent {
+  readonly i18n = inject(LanguageService);
   store = inject(SessionStore);
   private readonly identity = inject(TrainIdentityService);
 

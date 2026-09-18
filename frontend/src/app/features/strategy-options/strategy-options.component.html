@@ -1,19 +1,19 @@
 <div class="so">
 
   <div class="so-head">
-    <span class="so-title">Strategie wählen</span>
-    <span class="so-sub">Welches Ziel soll der autonome Plan verfolgen?</span>
+    <span class="so-title">{{ 'strategy.title' | transloco }}</span>
+    <span class="so-sub">{{ 'strategy.subtitle' | transloco }}</span>
 
     <!-- The deadline, diegetic rather than invented: the plan's next committed
          decision. Nothing expires — after that the AI simply acts on the goal
          currently set. -->
     @if (store.directorNextDecision(); as next) {
       <span class="so-deadline" [class.is-soon]="next.inSteps <= 3">
-        ⏳ Nächste KI-Entscheidung
+        {{ 'strategy.nextDecision' | transloco }}
         @if (next.handle !== null) {
-          (Zug {{ next.handle }})
+          {{ 'strategy.nextDecisionTrain' | transloco: { train: next.handle } }}
         }
-        in <strong>{{ next.inSteps }}</strong> Schritt(en) · t={{ next.step }}
+        {{ 'strategy.nextDecisionIn' | transloco: { n: next.inSteps, step: next.step } }}
       </span>
     }
 
@@ -21,19 +21,18 @@
          the run is going, where the automatic load deliberately holds back. -->
     <button type="button" class="so-refresh" (click)="load(true)" [disabled]="loading()">
       @if (loading()) {
-        Planung läuft …
+        {{ 'strategy.planning' | transloco }}
       } @else if (hasPlans()) {
-        Neu berechnen
+        {{ 'strategy.recompute' | transloco }}
       } @else {
-        Optionen berechnen
+        {{ 'strategy.computeOptions' | transloco }}
       }
     </button>
   </div>
 
   @if (simulating()) {
     <p class="so-note so-note--busy">
-      Zwei ganze Episoden werden durchgespielt (weiter wie bisher vs. dieses
-      Ziel, gleicher Störungsverlauf) — ~7&nbsp;s.
+      {{ 'strategy.simulatingNote' | transloco }}
     </p>
   } @else if (simulateError()) {
     <p class="so-note so-note--warn">{{ simulateError() }}</p>
@@ -41,8 +40,7 @@
 
   @if (unavailableReason() && !loading()) {
     <p class="so-note so-note--warn">
-      Keine Prognose: {{ unavailableReason() }} — die Kacheln wirken trotzdem,
-      sie setzen die Ziele des Planers.
+      {{ 'strategy.noForecast' | transloco: { reason: unavailableReason() } }}
     </p>
   }
 
@@ -53,32 +51,27 @@
          forecast. -->
     <p class="so-note so-note--busy">
       @if (phase() === 'first-plan') {
-        Erstplan wird berechnet (~10&nbsp;s) — danach die drei Strategien.
+        {{ 'strategy.firstPlan' | transloco }}
       } @else {
-        Jede Strategie wird als eigener Plan durchgerechnet (drei Varianten,
-        ~20&nbsp;s, auf Kopien) — die laufende Session bleibt unberührt.
-        Übernehmen geht schon jetzt.
+        {{ 'strategy.planningNote' | transloco }}
       }
     </p>
   } @else if (waitingForPause()) {
     <!-- Not a missing feature: a 20s forecast against a moving state is stale
          before it arrives, and it competes with the simulation for CPU. -->
     <p class="so-note so-note--warn">
-      Die Prognose rechne ich, sobald du pausierst — sie dauert ~20&nbsp;s, und
-      während der Fahrt wäre sie beim Eintreffen schon überholt. Ziele
-      übernehmen kannst du jederzeit.
+      {{ 'strategy.waitingForPause' | transloco }}
     </p>
   } @else if (stale()) {
     <p class="so-note so-note--warn">
-      Berechnet für Schritt {{ computedAtStep() }}, aktuell {{ store.elapsedSteps() }}
+      {{ 'strategy.stale' | transloco: { computed: computedAtStep(), current: store.elapsedSteps() } }}
       @if (store.playing()) {
-        — bei Pause rechne ich neu.
+        {{ 'strategy.staleRecompute' | transloco }}
       }
     </p>
   } @else if (allFocusesAgree()) {
     <p class="so-note so-note--agree">
-      Alle drei Ziele führen hier zum selben Plan — es gibt gerade keinen Zug,
-      der sie gegeneinander abwägt. Die Wahl greift erst am nächsten Konflikt.
+      {{ 'strategy.allAgree' | transloco }}
     </p>
   }
 
@@ -93,7 +86,7 @@
           <span class="so-ident">{{ tile.ident }}</span>
           <sbb-title level="4" visual-level="6" class="so-tile__title" [attr.title]="tile.copy.goal">{{ tile.copy.title }}</sbb-title>
           @if (tile.isActive) {
-            <span class="so-badge">Aktiv</span>
+            <span class="so-badge">{{ 'strategy.active' | transloco }}</span>
           }
         </div>
 
@@ -103,8 +96,7 @@
         @if (tile.isPreferred) {
           <p class="so-preferred" [attr.title]="tile.preferredWhy">
             <span class="so-preferred__mark" aria-hidden="true">◆</span>
-            Passt zu deiner gelernten Präferenz — {{ tile.preferredWhy }}.
-            Vorschlag, keine Vorauswahl.
+            {{ 'strategy.preferred' | transloco: { why: tile.preferredWhy } }}
           </p>
         }
 
@@ -147,32 +139,31 @@
             <!-- Counted from the divergence, the same source the map marks and
                  the look-ahead button use. -->
             @if (tile.changed === 0 && !tile.holds) {
-              Fährt jeden Zug wie der laufende Plan.
+              {{ 'strategy.unchanged' | transloco }}
             } @else {
               @if (tile.changed) {
-                Leitet {{ tile.changed }} Zug/Züge um.
+                {{ 'strategy.reroutes' | transloco: { n: tile.changed } }}
               }
               @if (tile.holds) {
-                {{ tile.holds }} warten statt umzufahren.
+                {{ 'strategy.holds' | transloco: { n: tile.holds } }}
               }
             }
             <!-- Names which of the four stability factors makes the product
                  small, instead of leaving a bare "0 %" unexplained. -->
             @if (tile.stabilityHint) {
-              <span class="so-nolever">Stabilität {{ tile.stabilityHint }}.</span>
+              <span class="so-nolever">{{ 'strategy.stabilityHint' | transloco: { hint: tile.stabilityHint } }}</span>
             }
             <!-- The portfolio guarantee, when it fires: the search found nothing
                  better than a baseline planner, so this is the obvious plan
                  rather than a considered one. -->
             @if (tile.fellBackTo) {
               <span class="so-nolever">
-                Der Planer nimmt hier {{ tile.fellBackTo }} — die Suche fand
-                nichts Besseres.
+                {{ 'strategy.fellBackTo' | transloco: { plan: tile.fellBackTo } }}
               </span>
             }
           </p>
         } @else if (waitingForPause()) {
-          <p class="so-changed">Prognose bei Pause.</p>
+          <p class="so-changed">{{ 'strategy.forecastOnPause' | transloco }}</p>
         } @else if (loading()) {
           <!-- A placeholder with the axis names, so the tile shows its shape
                while the numbers are computed instead of collapsing to nothing. -->
@@ -184,9 +175,9 @@
               </div>
             }
           </div>
-          <p class="so-changed">Prognose wird berechnet …</p>
+          <p class="so-changed">{{ 'strategy.forecastComputing' | transloco }}</p>
         } @else {
-          <p class="so-changed">Noch keine Prognose berechnet.</p>
+          <p class="so-changed">{{ 'strategy.noForecastYet' | transloco }}</p>
         }
 
         <!-- Measured, not scored. The planner's utilities can rank a focus the
@@ -197,36 +188,31 @@
         @if (tile.measured; as m) {
           <div class="so-sim" [class.is-null]="m.changesNothing">
             <span class="so-sim__title">
-              Nachgespielt bis Episodenende (ab Schritt {{ m.step }})
+              {{ 'strategy.replayedTitle' | transloco: { step: m.step } }}
             </span>
             @if (m.changesNothing) {
               <span class="so-sim__line">
-                Der Planer bleibt beim laufenden Plan — dieses Ziel ändert hier
-                nichts.
+                {{ 'strategy.changesNothing' | transloco }}
               </span>
             } @else {
               <span class="so-sim__line">
                 <span class="so-sim__kv" [class.is-good]="m.deltaDelay < 0"
                       [class.is-bad]="m.deltaDelay > 0">
-                  Verspätung {{ m.deltaDelay > 0 ? '+' : '' }}{{ m.deltaDelay }}
+                  {{ 'strategy.simDelay' | transloco: { delta: (m.deltaDelay > 0 ? '+' : '') + m.deltaDelay } }}
                 </span>
                 <span class="so-sim__kv" [class.is-good]="m.deltaArrived > 0"
                       [class.is-bad]="m.deltaArrived < 0">
-                  Ankünfte {{ m.deltaArrived > 0 ? '+' : '' }}{{ m.deltaArrived }}
-                  ({{ m.arrived }}/{{ m.trains }})
+                  {{ 'strategy.simArrivals' | transloco: { delta: (m.deltaArrived > 0 ? '+' : '') + m.deltaArrived, arrived: m.arrived, trains: m.trains } }}
                 </span>
                 <span class="so-sim__kv" [class.is-good]="m.deltaKept > 0"
                       [class.is-bad]="m.deltaKept < 0">
-                  Anschlüsse {{ m.deltaKept > 0 ? '+' : '' }}{{ m.deltaKept }}
-                  ({{ m.kept }}/{{ m.keptOf }})
+                  {{ 'strategy.simConnections' | transloco: { delta: (m.deltaKept > 0 ? '+' : '') + m.deltaKept, kept: m.kept, keptOf: m.keptOf } }}
                 </span>
               </span>
             }
             @if (m.contradictsScore) {
               <span class="so-sim__warn">
-                Achtung: die Simulation widerspricht der Bewertung oben. Die
-                Modelle schätzen umgeplante Strecken zu optimistisch ein — im
-                Zweifel gilt das Nachspielen.
+                {{ 'strategy.contradicts' | transloco }}
               </span>
             }
           </div>
@@ -247,25 +233,25 @@
                   [disabled]="tile.isActive || applying() !== null"
                   (click)="apply(tile)">
             @if (applying() === tile.strategy.id) {
-              Übernehme …
+              {{ 'strategy.applying' | transloco }}
             } @else if (tile.isActive) {
-              Übernommen
+              {{ 'strategy.applied' | transloco }}
             } @else {
-              Übernehmen
+              {{ 'strategy.apply' | transloco }}
             }
           </button>
           <!-- On request only: two whole episodes per click, ~7 s measured. -->
           <button type="button"
                   class="so-btn so-btn--sim"
                   [disabled]="!tile.strategy.plan || simulating() !== null"
-                  [attr.title]="'Spielt diese und die laufende Variante bis zum Episodenende durch (~7 s) und vergleicht das Ergebnis.'"
+                  [attr.title]="'strategy.simTitle' | transloco"
                   (click)="simulate(tile)">
             @if (simulating() === tile.strategy.id) {
-              Simuliere …
+              {{ 'strategy.simulating' | transloco }}
             } @else if (tile.measured) {
-              Neu simulieren
+              {{ 'strategy.resimulate' | transloco }}
             } @else {
-              Nachspielen
+              {{ 'strategy.replay' | transloco }}
             }
           </button>
         </div>

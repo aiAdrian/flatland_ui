@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, effect, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { ApiService } from '../../core/api.service';
 import { EventBusService } from '../../core/events/event-bus.service';
@@ -9,7 +10,7 @@ import { PolicyName } from '../../core/models';
 @Component({
   selector: 'app-scenario-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './scenario-panel.component.html',
   styleUrl: './scenario-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

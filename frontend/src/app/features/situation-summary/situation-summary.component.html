@@ -1,33 +1,33 @@
 <div class="situation">
   <div class="sit-head">
-    <sbb-title level="3" visual-level="5" class="panel-title">Situation</sbb-title>
-    <span class="sit-progress">{{ arrived() }}/{{ total() }} arrived</span>
+    <sbb-title level="3" visual-level="5" class="panel-title">{{ 'situation.title' | transloco }}</sbb-title>
+    <span class="sit-progress">{{ 'situation.arrived' | transloco: { n: arrived(), total: total() } }}</span>
   </div>
 
   <!-- HMI review: the run clock only existed in the footer, which reads
        as "I'll look when I have time". It belongs with the other numbers the
        operator actually watches. -->
   <div class="sit-clock">
-    <span class="sit-clock-label">Schritt</span>
+    <span class="sit-clock-label">{{ 'situation.step' | transloco }}</span>
     <span class="sit-clock-value">{{ store.elapsedSteps() }} / {{ store.maxSteps() }}</span>
   </div>
 
-  <div class="sit-bar" [attr.title]="arrivedPct() + '% arrived'">
+  <div class="sit-bar" [attr.title]="'situation.arrivedPct' | transloco: { pct: arrivedPct() }">
     <div class="sit-bar-fill" [style.width.%]="arrivedPct()"></div>
   </div>
 
   <div class="sit-grid">
     <div class="sit-cell">
       <span class="sit-num">{{ active() }}</span>
-      <span class="sit-lbl">active</span>
+      <span class="sit-lbl">{{ 'situation.active' | transloco }}</span>
     </div>
     <div class="sit-cell" [class.warn]="delayedCount() > 0">
       <span class="sit-num">{{ delayedCount() }}</span>
-      <span class="sit-lbl">delayed @if (totalDelay() > 0) { (+{{ totalDelay() }}) }</span>
+      <span class="sit-lbl">{{ 'situation.delayed' | transloco }} @if (totalDelay() > 0) { (+{{ totalDelay() }}) }</span>
     </div>
     <div class="sit-cell" [class.bad]="malfunctions() > 0">
       <span class="sit-num">{{ malfunctions() }}</span>
-      <span class="sit-lbl">malfunction{{ malfunctions() === 1 ? '' : 's' }}</span>
+      <span class="sit-lbl">{{ (malfunctions() === 1 ? 'situation.malfunctionOne' : 'situation.malfunctionMany') | transloco }}</span>
     </div>
   </div>
 </div>

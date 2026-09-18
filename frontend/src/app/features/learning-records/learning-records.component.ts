@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { TrainIdentityService } from '../../core/train-identity.service';
@@ -22,12 +24,13 @@ type MetricLevel = 'good' | 'fair' | 'low' | 'neutral';
 @Component({
   selector: 'app-learning-records',
   standalone: true,
-  imports: [CommonModule, MetricChipComponent, ScoreBadgeComponent, ReasoningListComponent],
+  imports: [TranslocoPipe, CommonModule, MetricChipComponent, ScoreBadgeComponent, ReasoningListComponent],
   templateUrl: './learning-records.component.html',
   styleUrl: './learning-records.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class LearningRecordsComponent {
+  private readonly i18n = inject(LanguageService);
   store = inject(SessionStore);
   private readonly identity = inject(TrainIdentityService);
 
@@ -79,6 +82,6 @@ export class LearningRecordsComponent {
     return r.once ? 'active' : 'recommended';
   }
   labelFor(r: LearningRecord): string {
-    return r.once ? 'Einmal' : 'Bestätigt';
+    return this.i18n.t(r.once ? 'records.once' : 'records.confirmed');
   }
 }

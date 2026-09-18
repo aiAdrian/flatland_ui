@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { SessionStore } from '../../core/session.store';
 import { DirectorDirectiveComponent } from './director-directive.component';
 
@@ -12,7 +13,8 @@ describe('DirectorDirectiveComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [DirectorDirectiveComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(DirectorDirectiveComponent);
     cmp = fixture.componentInstance;
@@ -40,9 +42,9 @@ describe('DirectorDirectiveComponent', () => {
     running(12);
     fixture.detectChanges();
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-    expect(text).toContain('1 aktiv');
-    expect(text).toContain('1 verspätet');
-    expect(text).toContain('1/2 angekommen');
+    expect(text).toContain('1 active');
+    expect(text).toContain('1 delayed');
+    expect(text).toContain('1/2 arrived');
   });
 
   it('offers no end-shift button before the run started', () => {
@@ -58,7 +60,7 @@ describe('DirectorDirectiveComponent', () => {
     fixture.detectChanges();
 
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.dir-end');
-    expect(btn.textContent).toContain('Schicht beenden');
+    expect(btn.textContent).toContain('End shift');
     btn.click();
 
     expect(store.shiftEnded()).toBeTrue();

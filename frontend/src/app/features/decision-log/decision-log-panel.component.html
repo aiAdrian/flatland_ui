@@ -1,8 +1,8 @@
 @if (embedded) {
   <div class="dl-panel dl-panel--embedded">
     <div class="dl-panel-head dl-panel-head--embedded">
-      <span class="panel-title" title="Jede Entscheidung dieser Session: wer entschieden hat, wann, wie lange, übernommen oder übersteuert.">
-        Entscheidungsprotokoll
+      <span class="panel-title" [attr.title]="'log.titleTooltip' | transloco">
+        {{ 'panels.decisionLog' | transloco }}
       </span>
       <span class="dl-count" [class.zero]="entries().length === 0">{{ entries().length }}</span>
     </div>
@@ -11,8 +11,8 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel dl-panel-lyne-panel dl-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header class="dl-panel-head">
-      <span class="lyne-panel-title panel-title" title="Jede Entscheidung dieser Session: wer entschieden hat, wann, wie lange, übernommen oder übersteuert.">
-        Entscheidungsprotokoll
+      <span class="lyne-panel-title panel-title" [attr.title]="'log.titleTooltip' | transloco">
+        {{ 'panels.decisionLog' | transloco }}
       </span>
       <span class="dl-count" [class.zero]="entries().length === 0">{{ entries().length }}</span>
     </sbb-expansion-panel-header>
@@ -27,32 +27,32 @@
     <!-- Summary readout: override rate + mean decision time directly readable. -->
     <div class="dl-summary">
       <span class="dl-sum-cell">
-        <span class="dl-sum-num">{{ humanCount() }}</span><span class="dl-sum-lbl">Mensch</span>
+        <span class="dl-sum-num">{{ humanCount() }}</span><span class="dl-sum-lbl">{{ 'log.human' | transloco }}</span>
       </span>
       <span class="dl-sum-cell">
-        <span class="dl-sum-num">{{ aiCount() }}</span><span class="dl-sum-lbl">KI</span>
+        <span class="dl-sum-num">{{ aiCount() }}</span><span class="dl-sum-lbl">{{ 'log.ai' | transloco }}</span>
       </span>
       <span class="dl-sum-cell">
-        <span class="dl-sum-num">{{ systemCount() }}</span><span class="dl-sum-lbl">System</span>
+        <span class="dl-sum-num">{{ systemCount() }}</span><span class="dl-sum-lbl">{{ 'log.system' | transloco }}</span>
       </span>
       <span class="dl-sum-cell">
         <span class="dl-sum-num">{{ overrideRate() === null ? '—' : overrideRate() + '%' }}</span>
-        <span class="dl-sum-lbl">übersteuert</span>
+        <span class="dl-sum-lbl">{{ 'log.overridden' | transloco }}</span>
       </span>
       <span class="dl-sum-cell">
         <span class="dl-sum-num">{{ meanDecisionMs() === null ? '—' : formatMs(meanDecisionMs()) }}</span>
-        <span class="dl-sum-lbl">Ø Entscheid</span>
+        <span class="dl-sum-lbl">{{ 'log.meanDecision' | transloco }}</span>
       </span>
     </div>
 
     @if (store.interactionMode() === 'director' && humanCount() > 0) {
       <div class="dl-director-note">
-        Sie haben {{ humanCount() }}× eingegriffen: Ausnahmen zu einer autonomen Steuerung.
+        {{ 'log.directorNote' | transloco: { n: humanCount() } }}
       </div>
     }
 
     @if (entries().length === 0) {
-      <p class="dl-empty">Noch keine Entscheidungen in dieser Session.</p>
+      <p class="dl-empty">{{ 'log.empty' | transloco }}</p>
     } @else {
       <ul class="dl-list">
         @for (e of entries(); track e.seq) {
@@ -71,7 +71,7 @@
             }
             <span class="dl-time">{{ formatMs(e.decisionTimeMs) }}</span>
             @if (e.aiSuggestion) {
-              <span class="dl-ai-sugg" title="KI-Vorschlag zum Zeitpunkt der Entscheidung">↳ {{ e.aiSuggestion }}</span>
+              <span class="dl-ai-sugg" [attr.title]="'log.aiSuggestionTitle' | transloco">↳ {{ e.aiSuggestion }}</span>
             }
           </li>
         }
@@ -80,10 +80,10 @@
 
     <div class="dl-actions">
       <button type="button" class="dl-btn" (click)="exportJson()" [disabled]="entries().length === 0">
-        JSON exportieren
+        {{ 'log.exportJson' | transloco }}
       </button>
       <button type="button" class="dl-btn dl-btn--ghost" (click)="clear()" [disabled]="entries().length === 0">
-        Leeren
+        {{ 'log.clear' | transloco }}
       </button>
     </div>
   }

@@ -1,3 +1,4 @@
+import { TranslocoPipe } from '@jsverse/transloco';
 import { CUSTOM_ELEMENTS_SCHEMA, Component, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -19,7 +20,7 @@ import { detectConflict, simulateBaseline } from '../../core/combined-actions-pa
 @Component({
   selector: 'app-problem-overview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './problem-overview.component.html',
   styleUrl: './problem-overview.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

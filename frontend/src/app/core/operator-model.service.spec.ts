@@ -1,6 +1,7 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/transloco-testing';
 import { OperatorModelService, OperatorProfile } from './operator-model.service';
 
 /** Minimal profile payload, shaped like the backend's `ProfileOut`. */
@@ -27,7 +28,8 @@ describe('OperatorModelService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     svc = TestBed.inject(OperatorModelService);
     http = TestBed.inject(HttpTestingController);

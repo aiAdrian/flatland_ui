@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import {
   ForecastSignals,
@@ -32,7 +34,7 @@ import {
 @Component({
   selector: 'app-strategy-forecast',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './strategy-forecast.component.html',
   styleUrl: './strategy-forecast.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -50,6 +52,7 @@ export class StrategyForecastComponent {
   private readonly _signals = signal<ForecastSignals | null>(null);
 
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
 
   private readonly isDirector = computed(() => this.store.interactionMode() === 'director');
 
@@ -100,8 +103,8 @@ export class StrategyForecastComponent {
   readonly noteText = computed(() => {
     if (this.derivedFrom) return this.derivedFrom;
     return this.activeSignals() !== null
-      ? 'Regelbasierte Projektion, keine Neusimulation.'
-      : 'Regelbasierte Projektion aus den KPI-Deltas dieser Option — keine Neusimulation der nächsten 30 Minuten.';
+      ? this.i18n.t('forecast.note')
+      : this.i18n.t('forecast.noteLong');
   });
 
   readonly hasData = computed(() => this.activeSignals() !== null || this.option() != null);

@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, effect, inject, signal } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { PanelInstance } from '../../core/layout/models/layout.models';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { InteractionMode } from '../../core/events/event-types';
 import { CENTER_VIEWS, CenterViewDef, centerViewByType } from './center-views';
@@ -38,6 +39,7 @@ const MODE_DEFAULT_VIEW: Record<InteractionMode, string> = {
 })
 export class ViewTabsComponent {
   private readonly store = inject(SessionStore);
+  readonly i18n = inject(LanguageService);
 
   @Input() embedded = false;
 

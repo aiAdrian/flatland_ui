@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { Component, HostBinding, Input, OnDestroy, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { ActionPackage, PackageContext, buildPackages } from '../../core/combined-actions/action-packages';
@@ -36,11 +38,12 @@ interface CombinedActionsBehavior {
 @Component({
   selector: 'app-combined-actions',
   standalone: true,
-  imports: [ActionCardComponent, TradeoffPlotComponent],
+  imports: [TranslocoPipe, ActionCardComponent, TradeoffPlotComponent],
   templateUrl: './combined-actions.component.html',
   styleUrl: './combined-actions.component.scss',
 })
 export class CombinedActionsComponent implements OnDestroy {
+  private readonly i18n = inject(LanguageService);
   @Input() embedded = false;
 
   @HostBinding('class.embedded')
@@ -105,11 +108,13 @@ export class CombinedActionsComponent implements OnDestroy {
       if (ai) {
         const min = variant.delayReductionMin - ai.delayReductionMin;
         const kept = variant.connectionsKept - ai.connectionsKept;
-        const delay = min === 0 ? 'same delay' : `${Math.abs(min)} min ${min > 0 ? 'more' : 'less'} saved`;
+        const delay = min === 0
+          ? this.i18n.t('ca.summary.sameDelay')
+          : this.i18n.t(min > 0 ? 'ca.summary.moreSaved' : 'ca.summary.lessSaved', { n: Math.abs(min) });
         const conn = kept === 0
-          ? 'same transfers'
-          : `${Math.abs(kept)} transfer${Math.abs(kept) === 1 ? '' : 's'} ${kept > 0 ? 'more' : 'fewer'} kept`;
-        return `${variant.label}: ${delay}, ${conn}`;
+          ? this.i18n.t('ca.summary.sameTransfers')
+          : this.i18n.t(kept > 0 ? 'ca.summary.moreKept' : 'ca.summary.fewerKept', { n: Math.abs(kept) });
+        return this.i18n.t('ca.summary.variant', { label: variant.label, delay, transfers: conn });
       }
     }
 
@@ -118,8 +123,8 @@ export class CombinedActionsComponent implements OnDestroy {
     // When one version wins on both axes there is no trade-off to summarise —
     // naming it twice read as a bug rather than as "this one simply leads".
     return fastest.label === cheapest.label
-      ? `${fastest.label} leads on both`
-      : `${fastest.label} saves most · ${cheapest.label} keeps most transfers`;
+      ? this.i18n.t('ca.summary.leadsBoth', { label: fastest.label })
+      : this.i18n.t('ca.summary.split', { fastest: fastest.label, cheapest: cheapest.label });
   });
 
   ngOnDestroy(): void {
@@ -144,21 +149,21 @@ export class CombinedActionsComponent implements OnDestroy {
           framing: 'recommended',
           editable: true,
           rank: true,
-          hint: 'Drag a train to fork a variant — map and ZWL show what it changes.',
+          hint: this.i18n.t('ca.hint.recommendation'),
         };
       case 'co-learning':
         return {
           framing: 'neutral',
           editable: true,
           rank: false,
-          hint: 'Three coordinated actions, presented neutrally. Reorder one and compare your variant with the AI’s.',
+          hint: this.i18n.t('ca.hint.coLearning'),
         };
       case 'director':
         return {
           framing: 'none',
           editable: false,
           rank: false,
-          hint: 'The AI is executing the marked action. Read-only — set the objective in Strategy Options.',
+          hint: this.i18n.t('ca.hint.director'),
         };
     }
   });
@@ -216,7 +221,12 @@ export class CombinedActionsComponent implements OnDestroy {
   readonly derivedPackages = computed<readonly ActionPackage[] | null>(() => {
     const handles = this.contentionHandles();
     if (!handles || !handles.length) return null;
-    return buildPackages(handles, (h) => this.identity.nameFor(h), this.packageCtx());
+    // Label and rationale follow the viewer's language; the order stays the model's.
+    return buildPackages(handles, (h) => this.identity.nameFor(h), this.packageCtx()).map((pkg) => ({
+      ...pkg,
+      label: this.i18n.t('ca.pkg.label', { id: pkg.id }),
+      rationale: this.i18n.t(`ca.pkg.${pkg.id}`, undefined, pkg.rationale),
+    }));
   });
 
   /** Recommendation mode ranks the AI's pick first; the other modes keep the
@@ -293,11 +303,11 @@ export class CombinedActionsComponent implements OnDestroy {
       (a) => !!a.is_malfunctioning || (a.malfunction_remaining ?? 0) > 0,
     ).length;
     const parts: string[] = [];
-    if (broken) parts.push(`${broken} Störung${broken === 1 ? '' : 'en'}`);
-    if (blocked) parts.push(`${blocked} Zug/Züge blockiert`);
-    if (contentions) parts.push(`${contentions} Konflikt${contentions === 1 ? '' : 'e'} voraus`);
+    if (broken) parts.push(this.i18n.t('ca.situation.disruptions', { n: broken }));
+    if (blocked) parts.push(this.i18n.t('ca.situation.blocked', { n: blocked }));
+    if (contentions) parts.push(this.i18n.t('ca.situation.contentions', { n: contentions }));
     const horizon = this.contentionHorizonMin();
-    if (horizon > 0) parts.push(`Blick ${horizon} min voraus`);
+    if (horizon > 0) parts.push(this.i18n.t('ca.situation.horizon', { n: horizon }));
     return parts.join(' · ');
   });
 
@@ -314,8 +324,8 @@ export class CombinedActionsComponent implements OnDestroy {
   /** The full provenance wording, shown on hover over the one-line note. */
   readonly provenanceDetail = computed(() =>
     this.bound()
-      ? 'The trains and the contention are real — derived from this session\'s live conflict forecast, and the transfers from its own timetable. The delay figures come from a deterministic model, not from the simulation. Point at an action to see it in the map and the ZWL.'
-      : 'No session contentions to build actions from yet. The panel shows packages once the forecast flags a contention ahead.',
+      ? this.i18n.t('ca.provenanceDetailBound')
+      : this.i18n.t('ca.provenanceDetailWaiting'),
   );
 
   handleFor(train: string): number | null {

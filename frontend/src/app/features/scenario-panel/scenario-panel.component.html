@@ -8,7 +8,7 @@
     [attr.expanded]="collapsed() ? null : ''"
   >
     <sbb-expansion-panel-header (click)="toggleCollapsed()">
-      <span class="lyne-panel-title">Scenarios</span>
+      <span class="lyne-panel-title">{{ 'scenarios.panelTitle' | transloco }}</span>
     </sbb-expansion-panel-header>
 
     <sbb-expansion-panel-content class="lyne-panel-content">
@@ -21,11 +21,11 @@
   <div class="scenario-panel">
 
     @if (store.isCoLearning() && store.scenarios().length > 0) {
-      <p class="scenario-neutral-hint">Options shown neutrally — compare and decide; none is marked “best”.</p>
+      <p class="scenario-neutral-hint">{{ 'scenarios.neutralHint' | transloco }}</p>
     }
 
     @if (store.scenarios().length === 0) {
-      <p class="empty">No scenarios available</p>
+      <p class="empty">{{ 'scenarios.empty' | transloco }}</p>
     } @else {
       <div class="scenarios">
         @for (s of rankedScenarios(); track s.id) {
@@ -40,9 +40,9 @@
               <sbb-title level="4" visual-level="6" class="title">{{ s.title }}</sbb-title>
               @if (showRecommendedFraming()) {
                 @if (s.isRecommended && !s.isBaseline) {
-                  <span class="badge recommended">Recommended</span>
+                  <span class="badge recommended">{{ 'scenarios.recommended' | transloco }}</span>
                 } @else if (s.tag === 'avoid') {
-                  <span class="badge avoid">Avoid</span>
+                  <span class="badge avoid">{{ 'scenarios.avoid' | transloco }}</span>
                 }
               }
             </div>
@@ -57,29 +57,29 @@
 
             <div class="kpi-strip">
               <span class="kpi-pill">
-                <span class="kpi-label">Done</span>
+                <span class="kpi-label">{{ 'scenarios.kpi.done' | transloco }}</span>
                 <span class="kpi-value">{{ s.kpis?.done ?? '–' }}/{{ totalAgents() }}</span>
               </span>
 
               <span class="kpi-pill" [class.bad]="(s.kpis?.deadlocks ?? 0) > 0">
-                <span class="kpi-label">Deadlock</span>
+                <span class="kpi-label">{{ 'scenarios.kpi.deadlock' | transloco }}</span>
                 <span class="kpi-value">
                   {{ s.kpis?.deadlocks ?? '–' }}
                 </span>
               </span>
 
               <span class="kpi-pill" [class.warn]="(s.kpis?.meanDelay ?? 0) > 5">
-                <span class="kpi-label">Delay</span>
+                <span class="kpi-label">{{ 'scenarios.kpi.delay' | transloco }}</span>
                 <span class="kpi-value">
                   {{ s.kpis?.meanDelay ?? '–' }}
                   @if ((s.kpis?.totalDelay ?? 0) > 0) {
-                    <span class="kpi-unit"> ({{ s.kpis?.totalDelay }} total)</span>
+                    <span class="kpi-unit"> {{ 'scenarios.kpi.total' | transloco: { n: s.kpis?.totalDelay } }}</span>
                   }
                 </span>
               </span>
 
               <span class="kpi-pill">
-                <span class="kpi-label">Steps</span>
+                <span class="kpi-label">{{ 'scenarios.kpi.steps' | transloco }}</span>
                 <span class="kpi-value">
                   {{ s.kpis?.episodeSteps ?? '–' }}
                 </span>
@@ -92,11 +92,11 @@
                   <button class="btn btn-confirm"
                           [disabled]="confirming() === s.id"
                           (click)="confirm(s)">
-                    {{ confirming() === s.id ? 'Switching…' : 'Switch to this policy' }}
+                    {{ (confirming() === s.id ? 'scenarios.switching' : 'scenarios.switchTo') | transloco }}
                   </button>
                 } @else {
                   <span class="auto-dispatch-disabled">
-                    Deaktiviert für Auto-Dispo
+                    {{ 'rec.autoDispatchOff' | transloco }}
                   </span>
                 }
               </div>

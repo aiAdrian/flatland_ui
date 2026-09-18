@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, effect, inject, signal, untracked } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
@@ -34,7 +36,8 @@ interface ComparisonAxis {
   bars: ComparisonBar[];
 }
 
-const VARIANT_LABEL: Record<string, string> = { plan: 'Plan', ai: 'KI', human: 'Mensch' };
+/** Translation keys for the three course names. */
+const VARIANT_LABEL: Record<string, string> = { plan: 'proposals.plan', ai: 'proposals.ai', human: 'proposals.human' };
 
 /**
  * Widget B1, second cut — **Plan / KI / Mensch**.
@@ -61,7 +64,7 @@ const VARIANT_LABEL: Record<string, string> = { plan: 'Plan', ai: 'KI', human: '
 @Component({
   selector: 'app-proposal-compare',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './proposal-compare.component.html',
   styleUrl: './proposal-compare.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -75,6 +78,7 @@ export class ProposalCompareComponent implements OnDestroy {
   }
 
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private api = inject(ApiService);
   private trainActions = inject(TrainActionService);
   private colors = inject(AgentColorService);
@@ -86,10 +90,11 @@ export class ProposalCompareComponent implements OnDestroy {
   private static readonly STOP = 4;
 
   readonly optionChoices: OptionChoice[] = [
-    { option: 'hold', label: 'Halten', hint: 'Der Zug bleibt stehen, bis Sie ihn wieder freigeben.' },
-    { option: 'hold_until_clear', label: 'Halten bis frei', hint: 'Der Zug wartet, bis die Stelle wieder frei ist, und fährt dann weiter.' },
-    { option: 'proceed', label: 'Weiterfahren', hint: 'Der Zug fährt ohne Eingriff weiter.' },
-    { option: 'reroute', label: 'Umleiten', hint: 'Der Zug nimmt an der nächsten Weiche den anderen Ast.' },
+    // label / hint are translation keys, resolved in the template.
+    { option: 'hold', label: 'proposals.option.hold', hint: 'proposals.option.holdHint' },
+    { option: 'hold_until_clear', label: 'proposals.option.holdUntilClear', hint: 'proposals.option.holdUntilClearHint' },
+    { option: 'proceed', label: 'proposals.option.proceed', hint: 'proposals.option.proceedHint' },
+    { option: 'reroute', label: 'proposals.option.reroute', hint: 'proposals.option.rerouteHint' },
   ];
 
   readonly chosenOption = computed(() => this.choice.current());
@@ -158,7 +163,7 @@ export class ProposalCompareComponent implements OnDestroy {
       error: (err) => {
         // The backend refuses an option it cannot offer (no reroute here) with
         // its own sentence — that is the useful answer, so show it.
-        this.failed.set(err?.error?.detail ?? 'Die Varianten konnten nicht gerechnet werden.');
+        this.failed.set(err?.error?.detail ?? this.i18n.t('proposals.computeFailed'));
         this.loading.set(false);
         this.store.whatIfPreview.set(null);
       },
@@ -222,7 +227,7 @@ export class ProposalCompareComponent implements OnDestroy {
       },
       error: (err) => {
         this.applying.set(null);
-        this.failed.set(err?.error?.detail ?? 'Die Variante konnte nicht übernommen werden.');
+        this.failed.set(err?.error?.detail ?? this.i18n.t('proposals.applyFailed'));
       },
     });
   }
@@ -242,7 +247,7 @@ export class ProposalCompareComponent implements OnDestroy {
     } else if (option === 'reroute') {
       const action = this.store.impact().find((i) => i.handle === handle)?.reroute_action;
       if (action == null) {
-        this.failed.set('Für diesen Zug gibt es hier keine Umleitung.');
+        this.failed.set(this.i18n.t('proposals.noReroute'));
         return;
       }
       this.trainActions.set(handle, action, 'proposals');
@@ -291,17 +296,18 @@ export class ProposalCompareComponent implements OnDestroy {
   /** "Hält bis frei" as the human column's heading, not the raw option id. */
   humanLabel(): string {
     const option = this.chosenOption();
-    return this.optionChoices.find((c) => c.option === option)?.label ?? 'Ihre Wahl';
+    const key = this.optionChoices.find((c) => c.option === option)?.label ?? 'proposals.humanSub';
+    return this.i18n.t(key);
   }
 
   /** Arrival as a sentence: the step and how far off the plan it is. */
   arrivalText(v: ProposalVariant): string {
     const arrival = v.train.arrival_step;
-    if (arrival == null) return 'kommt nicht an';
+    if (arrival == null) return this.i18n.t('proposals.notArriving');
     const delay = v.train.delay_vs_plan;
-    if (delay == null) return `Schritt ${arrival}`;
-    if (delay === 0) return `Schritt ${arrival} · nach Plan`;
-    return `Schritt ${arrival} · ${this.signed(delay)} gegenüber Plan`;
+    if (delay == null) return this.i18n.t('proposals.step', { n: arrival });
+    if (delay === 0) return this.i18n.t('proposals.stepOnPlan', { n: arrival });
+    return this.i18n.t('proposals.stepVsPlan', { n: arrival, delta: this.signed(delay) });
   }
 
   /** The order the AI would send the trains through, in train names. */
@@ -346,7 +352,7 @@ export class ProposalCompareComponent implements OnDestroy {
         unit,
         bars: courses.map((v, i) => ({
           id: v.id,
-          label: VARIANT_LABEL[v.id] ?? v.id,
+          label: VARIANT_LABEL[v.id] ? this.i18n.t(VARIANT_LABEL[v.id]) : v.id,
           value: values[i],
           pct: values[i] === null ? 0 : Math.round((values[i]! / max) * 100),
         })),
@@ -356,9 +362,9 @@ export class ProposalCompareComponent implements OnDestroy {
     return [
       // Lateness counts only trains that arrived, so a course that strands one
       // would otherwise win this axis by leaving its worst case out of the sum.
-      axis('lateness', 'Verspätung gegenüber Fahrplan', 'Schritte', (v) => v.metrics!.lateness, true),
+      axis('lateness', this.i18n.t('proposals.axis.lateness'), this.i18n.t('proposals.axis.unit'), (v) => v.metrics!.lateness, true),
       // Time in the network already charges a stranded train the full horizon.
-      axis('time', 'Zeit im Netz', 'Schritte', (v) => v.metrics!.time_in_network),
+      axis('time', this.i18n.t('proposals.axis.time'), this.i18n.t('proposals.axis.unit'), (v) => v.metrics!.time_in_network),
     ];
   });
 
@@ -367,11 +373,15 @@ export class ProposalCompareComponent implements OnDestroy {
     const stranded = [this.plan(), this.ai(), this.human()]
       .filter((v): v is ProposalVariant => !!v?.metrics)
       .filter((v) => v.metrics!.not_arrived > 0)
-      .map((v) => VARIANT_LABEL[v.id] ?? v.id);
+      .map((v) => (VARIANT_LABEL[v.id] ? this.i18n.t(VARIANT_LABEL[v.id]) : v.id));
     if (stranded.length === 0) return null;
     return stranded.length === 1
-      ? `Bei «${stranded[0]}» kommt mindestens ein Zug im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.`
-      : `Bei ${stranded.map((s) => `«${s}»`).join(' und ')} kommen Züge im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.`;
+      ? this.i18n.t('proposals.strandedOne', { name: stranded[0] })
+      : this.i18n.t('proposals.strandedMany', {
+          names: stranded
+            .map((name) => this.i18n.t('proposals.quoted', { name }))
+            .join(` ${this.i18n.t('proposals.and')} `),
+        });
   });
 
   /** Worse than the plan for this train — the template colours it, nothing more. */

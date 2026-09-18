@@ -2,15 +2,15 @@
   <div class="sv">
 
     <div class="sv-head">
-      <span class="sv-title">Schichtabschluss</span>
+      <span class="sv-title">{{ 'shift.title' | transloco }}</span>
       <span class="sv-sub">
-        {{ r.kpis.arrived }}/{{ r.kpis.total }} Züge am Ziel ({{ arrivedPct() }} %)
+        {{ 'shift.subtitle' | transloco: { arrived: r.kpis.arrived, total: r.kpis.total, pct: arrivedPct() } }}
       </span>
       <!-- Top right, where a way out belongs on a full screen. A review must not
            be a trap; only offered while the shift could actually go on. -->
       @if (canReopen()) {
         <button class="sv-btn sv-back" type="button" (click)="reopenShift()">
-          ← Zurück zur laufenden Schicht
+          {{ 'shift.back' | transloco }}
         </button>
       }
     </div>
@@ -21,27 +21,26 @@
     <!-- 1. Bilanz -->
     <div class="sv-kpis">
       <span class="sv-kpi">
-        <strong>{{ r.kpis.arrived }}/{{ r.kpis.total }}</strong> angekommen
+        <strong>{{ r.kpis.arrived }}/{{ r.kpis.total }}</strong> {{ 'shift.kpi.arrived' | transloco }}
       </span>
       <span class="sv-kpi" [class.warn]="r.kpis.delayed > 0">
-        <strong>{{ r.kpis.delayed }}</strong> verspätet
+        <strong>{{ r.kpis.delayed }}</strong> {{ 'shift.kpi.delayed' | transloco }}
       </span>
       <span class="sv-kpi">
-        <strong>{{ r.kpis.totalDelay }}</strong> Verspätung gesamt
+        <strong>{{ r.kpis.totalDelay }}</strong> {{ 'shift.kpi.totalDelay' | transloco }}
       </span>
       <span class="sv-kpi" [class.alert]="r.kpis.malfunctions > 0">
-        <strong>{{ r.kpis.malfunctions }}</strong> Störung(en) am Ende
+        <strong>{{ r.kpis.malfunctions }}</strong> {{ 'shift.kpi.malfunctions' | transloco }}
       </span>
     </div>
 
     @if (r.ai; as ai) {
       <p class="sv-line">
-        Die KI hat <strong>{{ ai.decisions }}</strong> Entscheidungen selbst
-        getroffen
+        {{ 'shift.aiDecided' | transloco: { n: ai.decisions } }}
         @if (ai.replans > 0) {
-          und <strong>{{ ai.replans }}</strong>× umgeplant
+          {{ 'shift.aiReplanned' | transloco: { n: ai.replans } }}
         }
-        — du hast <strong>{{ r.choices.length }}</strong>× das Ziel gesetzt.
+        {{ 'shift.youSetGoal' | transloco: { n: r.choices.length } }}
       </p>
     }
 
@@ -49,9 +48,7 @@
       <!-- A legitimate outcome, not an empty state: the shift ran without a
            single goal being set, and that is worth reporting as such. -->
       <p class="sv-note sv-note--warn">
-        Du hast in dieser Schicht kein Ziel gesetzt — die KI ist durchgehend auf
-        der Ausgangsvorgabe gefahren. Damit gibt es auch nichts, was ich über
-        deine Prioritäten lernen konnte.
+        {{ 'shift.unattended' | transloco }}
       </p>
     }
 
@@ -59,13 +56,13 @@
     @if (r.moments.length > 0) {
       <div class="sv-block">
         <span class="sv-block__title">
-          Worüber es sich zu sprechen lohnt ({{ r.moments.length }})
+          {{ 'shift.worthDiscussing' | transloco: { n: r.moments.length } }}
         </span>
         @for (m of r.moments; track m.entry.seq) {
           <div class="sv-moment">
             <div class="sv-moment__head">
               <span class="sv-badge">{{ caseLabel(m.caseType) }}</span>
-              <span class="sv-moment__step">Schritt {{ m.entry.simStep }}</span>
+              <span class="sv-moment__step">{{ 'shift.step' | transloco: { n: m.entry.simStep } }}</span>
               @if (m.axis) {
                 <span class="sv-moment__axis">{{ axisLabel(m.axis) }}</span>
               }
@@ -73,16 +70,15 @@
 
             @if (m.caseType === 'pattern_deviation' && m.expectedAxis) {
               <p class="sv-moment__text">
-                Hier hast du <strong>{{ axisLabel(m.axis) }}</strong> gewählt,
-                sonst meist <strong>{{ axisLabel(m.expectedAxis) }}</strong>.
+                {{ 'shift.deviation' | transloco: { chosen: axisLabel(m.axis), usual: axisLabel(m.expectedAxis) } }}
               </p>
             }
             @if (reasonOf(m.entry.rationale); as reason) {
-              <p class="sv-moment__text">Dein Grund: „{{ reason }}“</p>
+              <p class="sv-moment__text">{{ 'shift.yourReason' | transloco: { reason: reason } }}</p>
             }
             @if (m.entry.tradedAway) {
               <p class="sv-moment__text sv-moment__cost">
-                Preis: {{ m.entry.tradedAway }}
+                {{ 'shift.price' | transloco: { price: m.entry.tradedAway } }}
               </p>
             }
             @if (responseLabel(m.entry.hypothesisResponse); as label) {
@@ -92,7 +88,7 @@
             <!-- The scoring trace. The selection is a heuristic, so it has to be
                  arguable rather than trusted. -->
             <p class="sv-moment__why">
-              Ausgewählt weil: {{ m.reasons.join(' · ') }}
+              {{ 'shift.pickedBecause' | transloco: { reasons: reasonsOf(m) } }}
             </p>
           </div>
         }
@@ -102,34 +98,22 @@
     <!-- 2b. Der Plan, nachgespielt -->
     @if (predictedVsVerified(); as pv) {
       <div class="sv-block">
-        <span class="sv-block__title">Der Plan, nachgespielt</span>
+        <span class="sv-block__title">{{ 'shift.replayTitle' | transloco }}</span>
         <p class="sv-line">
-          Auf einer frischen Kopie derselben Episode — gleiche Gleise, gleicher
-          Fahrplan, gleiche Störungen — ergibt der Plan
-          <strong>{{ pv.verified.total_delay }}</strong> Verspätung,
-          @if (pv.verified.all_arrived) {
-            <strong>alle Züge am Ziel</strong>
-          } @else {
-            <strong>nicht alle Züge am Ziel</strong>
-          }
-          und <strong>{{ pv.verified.connections_kept }}/{{ pv.verified.connections_total }}</strong>
-          gehaltene Anschlüsse ({{ pv.verifiedConnectionPct }} %) über
-          {{ pv.verified.steps }} Schritte.
+          {{ 'shift.replayBefore' | transloco: { delay: pv.verified.total_delay } }}
+          <strong>{{ (pv.verified.all_arrived ? 'shift.allArrived' : 'shift.notAllArrived') | transloco }}</strong>
+          {{ 'shift.replayAfter' | transloco: { kept: pv.verified.connections_kept, total: pv.verified.connections_total, pct: pv.verifiedConnectionPct, steps: pv.verified.steps } }}
         </p>
         @if (pv.predictedConnectionPct !== null) {
           <p class="sv-note">
-            Die Modelle hatten für die Anschlüsse {{ pv.predictedConnectionPct }} %
-            angesetzt — der Suchwert ist ein gekappter geometrischer Mittelwert
-            und liegt bewusst tiefer als der Anteil, der zählt.
+            {{ 'shift.predicted' | transloco: { pct: pv.predictedConnectionPct } }}
             @if (pv.predictedStabilityPct !== null) {
-              Stabilität war mit {{ pv.predictedStabilityPct }} % bewertet.
+              {{ 'shift.predictedStability' | transloco: { pct: pv.predictedStabilityPct } }}
             }
           </p>
         }
         <p class="sv-note">
-          Nachgespielt wird der <em>zuletzt übernommene</em> Plan ab Schritt 0.
-          Das ist die Aussage „was leistet dieser Plan auf dieser Episode" — nicht
-          „so lief die Schicht ab", denn zwischendurch wurde umgeplant.
+          {{ 'shift.replayNote' | transloco }}
         </p>
       </div>
     }
@@ -139,7 +123,7 @@
 
     <!-- 3. Was die KI gelernt hat -->
     <div class="sv-block">
-      <span class="sv-block__title">Was ich über dich gelernt habe</span>
+      <span class="sv-block__title">{{ 'shift.learnedTitle' | transloco }}</span>
 
       @if (r.confirmed.length === 0) {
         @if (carriedLearnings().length > 0) {
@@ -147,25 +131,23 @@
                "noch keine Präferenz" over a carried-over rule would contradict
                the very badge on the tiles. -->
           <p class="sv-note">
-            In dieser Schicht hast du keine neue Präferenz bestätigt. Aus früheren
-            Schichten gilt weiterhin:
+            {{ 'shift.noNewCarried' | transloco }}
           </p>
           @for (lrn of carriedLearnings(); track lrn.statement) {
             <div class="sv-learn">
-              <span class="sv-badge sv-badge--confirmed">früher bestätigt</span>
+              <span class="sv-badge sv-badge--confirmed">{{ 'shift.confirmedEarlier' | transloco }}</span>
               <span>{{ lrn.statement }}</span>
             </div>
           }
         } @else {
           <p class="sv-note">
-            Noch keine bestätigte Präferenz. Ohne bestätigte Regel bleibt das
-            Ranking rein auf der KPI-Bewertung — ich rate nichts dazu.
+            {{ 'shift.noneConfirmed' | transloco }}
           </p>
         }
       } @else {
         @for (rec of r.confirmed; track rec.id) {
           <div class="sv-learn">
-            <span class="sv-badge sv-badge--confirmed">bestätigt</span>
+            <span class="sv-badge sv-badge--confirmed">{{ 'shift.confirmed' | transloco }}</span>
             <span>{{ rec.hypothesis }}</span>
           </div>
         }
@@ -174,88 +156,76 @@
       @if (valueProfile(); as vp) {
         @if (vp.dominant) {
           <p class="sv-line">
-            Muster: <strong>{{ vp.label }}</strong> ({{ vp.dominantPct }} % von
-            {{ vp.total }} bewussten
-            Entscheidungen{{ patternIsCarried() ? ' aus früheren Schichten' : '' }}).
+            {{ (patternIsCarried() ? 'shift.patternCarried' : 'shift.pattern') | transloco: { label: vp.label, pct: vp.dominantPct, n: vp.total } }}
           </p>
         }
       }
 
       @if (weights(); as w) {
         <p class="sv-line">
-          Daraus abgeleitete Zielgewichte — Pünktlichkeit <strong>{{ w.punctuality }}</strong>,
-          Anschlüsse <strong>{{ w.connections }}</strong>,
-          Stabilität <strong>{{ w.stability }}</strong>.
-          Sie gelten als Vorschlag, nicht als Regel.
+          {{ 'shift.weightsBefore' | transloco }} {{ 'effect.punctuality' | transloco }} <strong>{{ w.punctuality }}</strong>,
+          {{ 'effect.connections' | transloco }} <strong>{{ w.connections }}</strong>,
+          {{ 'effect.stability' | transloco }} <strong>{{ w.stability }}</strong>.
+          {{ 'shift.weightsAfter' | transloco }}
         </p>
       }
 
       @if (r.oneOffs.length > 0) {
         <!-- Deliberately listed apart: a one-off must never read as a rule. -->
         <p class="sv-note">
-          {{ r.oneOffs.length }} Entscheidung(en) hast du als Einzelfall markiert.
-          Die habe ich <em>nicht</em> gelernt — genau dafür ist die Option da.
+          {{ 'shift.oneOffs' | transloco: { n: r.oneOffs.length } }}
         </p>
       }
 
       @if (r.contradiction; as c) {
-        <p class="sv-note sv-note--question">🧠 {{ c.question }}</p>
+        <p class="sv-note sv-note--question">🧠 {{ contradictionQuestion(c) }}</p>
       }
     </div>
 
     <!-- 4. Übernahme in die nächste Schicht -->
     <div class="sv-block">
-      <span class="sv-block__title">Für die nächste Schicht</span>
+      <span class="sv-block__title">{{ 'shift.nextTitle' | transloco }}</span>
 
       @if (!hasCarryOver()) {
         <p class="sv-note">
-          Es gibt nichts zu übernehmen: ohne bewusste Entscheidung in dieser
-          Schicht habe ich keine Evidenz, die ich mitnehmen könnte.
+          {{ 'shift.nothingToCarry' | transloco }}
         </p>
       } @else {
         @switch (saveState()) {
           @case ('saved') {
             <p class="sv-saved">
-              ✓ Gespeichert. Deine Präferenzen gelten ab der nächsten Schicht als
-              <strong>Startvorschlag</strong> — Profil aus
-              {{ priorSessions() }} abgeschlossene(n) Schicht(en).
-              Die passende Kachel wird dort markiert; gesetzt wird sie nicht
-              automatisch.
+              {{ 'shift.saved' | transloco: { n: priorSessions() } }}
             </p>
           }
           @case ('error') {
             <p class="sv-note sv-note--warn">
-              Speichern hat nicht funktioniert. Nichts wurde übernommen — die
-              nächste Schicht startet unverändert.
+              {{ 'shift.saveError' | transloco }}
               <button class="sv-btn" type="button" (click)="savePreferences()">
-                Erneut versuchen
+                {{ 'shift.retry' | transloco }}
               </button>
             </p>
           }
           @default {
             <p class="sv-line">
-              {{ decisionsThisShift() }} Zielentscheidung(en) dieser Schicht
-              können in dein Langzeitprofil übernommen werden
+              {{ 'shift.canCarry' | transloco: { n: decisionsThisShift() } }}
               @if (wasWarm()) {
-                — es enthält bereits {{ priorSessions() }} frühere Schicht(en).
+                {{ 'shift.alreadyHas' | transloco: { n: priorSessions() } }}
               } @else {
-                — es ist bisher deine erste.
+                {{ 'shift.firstOne' | transloco }}
               }
             </p>
             <button class="sv-btn sv-btn--primary" type="button"
                     [disabled]="saveState() === 'saving'"
                     (click)="savePreferences()">
               @if (saveState() === 'saving') {
-                Speichere …
+                {{ 'shift.saving' | transloco }}
               } @else {
-                Präferenzen für die nächste Schicht speichern
+                {{ 'shift.save' | transloco }}
               }
             </button>
             <!-- Said before the click, not after: what is kept and what is not. -->
             <p class="sv-note">
-              Übernommen wird die gezählte Evidenz und die bestätigten Regeln.
-              Einzelfälle („nur diesmal“) und passive Zustimmungen bleiben außen
-              vor. Ohne Klick startet die nächste Schicht kalt.
+              {{ 'shift.saveNote' | transloco }}
             </p>
           }
         }
@@ -267,8 +237,7 @@
     </div><!-- /sv-cols -->
 
     <p class="sv-note sv-note--method">
-      Regelbasierte Auswertung aus dem Entscheidungsprotokoll dieser Schicht —
-      kein Sprachmodell, keine Interpretation über die gezeigten Zahlen hinaus.
+      {{ 'shift.method' | transloco }}
     </p>
   </div>
 }

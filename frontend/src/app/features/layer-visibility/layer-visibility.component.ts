@@ -1,4 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { EventBusService } from '../../core/events/event-bus.service';
 import { LayerVisibility } from '../../core/events/event-types';
@@ -11,6 +12,7 @@ import { LayerVisibility } from '../../core/events/event-types';
 @Component({
   selector: 'app-layer-visibility',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './layer-visibility.component.html',
   styleUrl: './layer-visibility.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

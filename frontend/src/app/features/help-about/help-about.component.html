@@ -1,34 +1,33 @@
 <div class="help-card">
   <div class="help-header">
     <div>
-      <sbb-title level="2" visual-level="3">Help &amp; About</sbb-title>
-      <p>Flatland Dispatcher — a Human-AI Teaming Playground</p>
+      <sbb-title level="2" visual-level="3">{{ 'help.title' | transloco }}</sbb-title>
+      <p>{{ 'help.subtitle' | transloco }}</p>
     </div>
-    <button class="help-close" type="button" aria-label="Close" (click)="close()">×</button>
+    <button class="help-close" type="button" [attr.aria-label]="'help.close' | transloco" (click)="close()">×</button>
   </div>
 
   <div class="help-tabs" role="tablist">
-    <button type="button" role="tab" [class.is-active]="tab() === 'about'" (click)="tab.set('about')">About</button>
-    <button type="button" role="tab" [class.is-active]="tab() === 'help'" (click)="tab.set('help')">Help</button>
+    <button type="button" role="tab" [class.is-active]="tab() === 'about'" (click)="tab.set('about')">{{ 'help.tab.about' | transloco }}</button>
+    <button type="button" role="tab" [class.is-active]="tab() === 'help'" (click)="tab.set('help')">{{ 'help.tab.help' | transloco }}</button>
   </div>
 
   @if (tab() === 'about') {
     <section class="help-body">
       <p>
-        An interactive HMI for railway dispatching experiments, part of
-        <strong>AI4REALNET</strong> (EU Horizon). It explores how a human
-        dispatcher and an AI agent can co-operate on the
-        <strong>Flatland</strong> railway simulation.
+        {{ 'help.about.before' | transloco }}
+        <strong>AI4REALNET</strong> {{ 'help.about.middle' | transloco }}
+        <strong>Flatland</strong> {{ 'help.about.after' | transloco }}
       </p>
 
-      <sbb-title level="3" visual-level="5">The three collaboration modes</sbb-title>
+      <sbb-title level="3" visual-level="5">{{ 'help.modesTitle' | transloco }}</sbb-title>
       <ul class="help-modes">
         @for (m of modes; track m.label) {
-          <li><strong>{{ m.label }}</strong> <span class="help-wp">{{ m.wp }}</span> — {{ m.description }}</li>
+          <li><strong>{{ m.label }}</strong> <span class="help-wp">{{ m.wp }}</span> — {{ 'mode.description.' + m.id | transloco }}</li>
         }
       </ul>
 
-      <sbb-title level="3" visual-level="5">Links</sbb-title>
+      <sbb-title level="3" visual-level="5">{{ 'help.links' | transloco }}</sbb-title>
       <ul class="help-links">
         <li><a href="https://ai4realnet.eu/" target="_blank" rel="noopener">ai4realnet.eu</a></li>
         <li><a href="https://www.flatland-association.org/" target="_blank" rel="noopener">Flatland</a></li>
@@ -37,30 +36,30 @@
     </section>
   } @else {
     <section class="help-body">
-      <sbb-title level="3" visual-level="5">Get started</sbb-title>
+      <sbb-title level="3" visual-level="5">{{ 'help.getStarted' | transloco }}</sbb-title>
       <ul>
-        <li><strong>New Session</strong> — set grid, agents and max steps, then dispatch.</li>
-        <li><strong>Guided Demo</strong> — solve one conflict in all three modes on the same environment.</li>
-        <li>Switch modes any time from the <strong>Mode</strong> menu in the header.</li>
+        <li><strong>{{ 'help.start.sessionLabel' | transloco }}</strong> {{ 'help.start.session' | transloco }}</li>
+        <li><strong>{{ 'help.start.demoLabel' | transloco }}</strong> {{ 'help.start.demo' | transloco }}</li>
+        <li>{{ 'help.start.switchBefore' | transloco }} <strong>{{ 'help.start.modeMenu' | transloco }}</strong> {{ 'help.start.switchAfter' | transloco }}</li>
       </ul>
 
-      <sbb-title level="3" visual-level="5">What you do in each mode</sbb-title>
+      <sbb-title level="3" visual-level="5">{{ 'help.eachMode' | transloco }}</sbb-title>
       <ul class="help-modes">
         @for (m of modes; track m.label) {
-          <li><strong>{{ m.label }}</strong> — {{ m.description }}</li>
+          <li><strong>{{ m.label }}</strong> — {{ 'mode.description.' + m.id | transloco }}</li>
         }
       </ul>
 
-      <sbb-title level="3" visual-level="5">Good to know</sbb-title>
+      <sbb-title level="3" visual-level="5">{{ 'help.goodToKnow' | transloco }}</sbb-title>
       <ul>
-        <li>The <strong>Impact</strong> panel flags decision moments; <strong>Scenarios</strong> and <strong>Recommendations</strong> offer alternatives.</li>
-        <li>Use the <strong>Layout Designer</strong> (app menu) to arrange and save your own panel layout.</li>
-        <li><strong>Esc</strong> closes dialogs and deselects the current train.</li>
+        <li>{{ 'help.know.impact' | transloco }}</li>
+        <li>{{ 'help.know.layout' | transloco }}</li>
+        <li>{{ 'help.know.esc' | transloco }}</li>
       </ul>
     </section>
   }
 
   <div class="help-actions">
-    <sbb-button (click)="close()">Close</sbb-button>
+    <sbb-button (click)="close()">{{ 'help.close' | transloco }}</sbb-button>
   </div>
 </div>

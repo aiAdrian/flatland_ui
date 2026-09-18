@@ -4,11 +4,11 @@
 <sbb-expansion-panel class="lyne-feature-panel co-learning-reflection-lyne-panel" color="white" size="s"
   [attr.expanded]="reflectionOpen() ? '' : null">
   <sbb-expansion-panel-header (click)="store.toggleReflectionRequested()">
-    <span class="lyne-panel-title">Co-Learning reflection</span>
+    <span class="lyne-panel-title">{{ 'reflection.title' | transloco }}</span>
     @if (showCalmNudge()) {
-      <span class="calm-nudge" title="Things have calmed down — a good moment to reflect">
+      <span class="calm-nudge" [attr.title]="'reflection.calmNudgeTitle' | transloco">
         <span class="calm-dot"></span>
-        reflect now?
+        {{ 'reflection.calmNudge' | transloco }}
       </span>
     }
   </sbb-expansion-panel-header>
@@ -22,8 +22,8 @@
 <ng-template #reflectionContent>
     <div class="reflection-panel">
       <div class="rp-head">
-        <sbb-title level="3" visual-level="5" class="panel-title">Co-Learning Reflection</sbb-title>
-        <span class="rp-phase" title="Kolb experiential learning — reflection phase">reflect</span>
+        <sbb-title level="3" visual-level="5" class="panel-title">{{ 'reflection.title' | transloco }}</sbb-title>
+        <span class="rp-phase" [attr.title]="'reflection.phaseTitle' | transloco">{{ 'reflection.phase' | transloco }}</span>
       </div>
 
       <!-- Workstream B Tier 1: "why?" prompt after a human override (deck slide 7).
@@ -36,15 +36,15 @@
            the whole shift. -->
       @if (moments().length > 0) {
         <div class="rp-section">
-          <span class="rp-mode" title="Supportive-AI mode: Mirroring">MR · worth reflecting on</span>
+          <span class="rp-mode" [attr.title]="'reflection.mirroringTitle' | transloco">{{ 'reflection.worthReflecting' | transloco }}</span>
           <ul class="moment-list">
             @for (m of moments(); track m.entry.seq) {
               <li class="moment">
-                <span class="moment-step">step {{ m.entry.simStep }}</span>
+                <span class="moment-step">{{ 'reflection.step' | transloco: { n: m.entry.simStep } }}</span>
                 <span class="moment-case">{{ caseLabel(m.caseType) }}</span>
                 @if (m.caseType === 'pattern_deviation') {
                   <span class="moment-detail">
-                    sonst {{ axisLabel(m.expectedAxis) }} → diesmal {{ axisLabel(m.axis) }}
+                    {{ 'reflection.otherwise' | transloco: { expected: axisLabel(m.expectedAxis), actual: axisLabel(m.axis) } }}
                   </span>
                 } @else if (m.entry.rationale) {
                   <span class="moment-detail">{{ m.entry.rationale }}</span>
@@ -53,31 +53,30 @@
             }
           </ul>
           <p class="moment-note">
-            Aus {{ store.decisionLog().length }} Entscheidungen ausgewählt — nach
-            Musterbruch, Override und Übergabe an die KI.
+            {{ 'reflection.momentNote' | transloco: { n: store.decisionLog().length } }}
           </p>
         </div>
       }
 
       <!-- Mirroring [MR]: the operator's own run, reflected back -->
       <div class="rp-section">
-        <span class="rp-mode" title="Supportive-AI mode: Mirroring">MR · your run</span>
+        <span class="rp-mode" [attr.title]="'reflection.mirroringTitle' | transloco">{{ 'reflection.yourRun' | transloco }}</span>
         <div class="recap">
           <div class="recap-cell">
             <span class="recap-num">{{ interventionCount() }}</span>
-            <span class="recap-lbl">intervention{{ interventionCount() === 1 ? '' : 's' }}</span>
+            <span class="recap-lbl">{{ (interventionCount() === 1 ? 'reflection.interventionOne' : 'reflection.interventionMany') | transloco }}</span>
           </div>
           <div class="recap-cell">
             <span class="recap-num">{{ overridesDespiteAi() }}</span>
-            <span class="recap-lbl">despite AI hint</span>
+            <span class="recap-lbl">{{ 'reflection.despiteAi' | transloco }}</span>
           </div>
           <div class="recap-cell">
             <span class="recap-num">{{ arrived() }}/{{ total() }}</span>
-            <span class="recap-lbl">arrived</span>
+            <span class="recap-lbl">{{ 'reflection.arrived' | transloco }}</span>
           </div>
           <div class="recap-cell" [class.warn]="totalDelay() > 0">
             <span class="recap-num">+{{ totalDelay() }}</span>
-            <span class="recap-lbl">total delay</span>
+            <span class="recap-lbl">{{ 'reflection.totalDelay' | transloco }}</span>
           </div>
         </div>
 
@@ -85,11 +84,11 @@
           <ul class="intervention-list">
             @for (e of interventions(); track e.timestamp) {
               <li class="intervention">
-                <span class="iv-step">step {{ e.step }}</span>
+                <span class="iv-step">{{ 'reflection.step' | transloco: { n: e.step } }}</span>
                 <span class="iv-body">
-                  {{ trainName(e.handle) }} → action {{ e.humanAction }}
+                  {{ 'reflection.action' | transloco: { train: trainName(e.handle), action: e.humanAction } }}
                   @if (e.aiSuggestion) {
-                    <span class="iv-ai" title="AI recommendation at that moment">vs AI: {{ e.aiSuggestion }}</span>
+                    <span class="iv-ai" [attr.title]="'reflection.vsAiTitle' | transloco">{{ 'reflection.vsAi' | transloco: { suggestion: e.aiSuggestion } }}</span>
                   }
                 </span>
               </li>
@@ -100,12 +99,12 @@
 
       <!-- Animation [AM] / Transparency [TP]: Socratic prompts -->
       <div class="rp-section">
-        <span class="rp-mode" title="Supportive-AI modes: Animation / Transparency">AM · reflect &amp; conceptualise</span>
+        <span class="rp-mode" [attr.title]="'reflection.animationTitle' | transloco">{{ 'reflection.conceptualise' | transloco }}</span>
         <div class="questions">
           @for (q of visibleQuestions(); track q.key) {
             <div class="question">
               <label class="q-text">
-                {{ q.text }}
+                {{ q.textKey | transloco: q.params }}
                 <span class="q-mode" [title]="modeLabel(q.mode)">{{ q.mode }}</span>
               </label>
               <textarea
@@ -113,7 +112,7 @@
                 rows="2"
                 [value]="answers()[q.key] || ''"
                 (input)="setAnswer(q.key, $any($event.target).value)"
-                placeholder="Add your notes…"></textarea>
+                [attr.placeholder]="'reflection.notePlaceholder' | transloco"></textarea>
             </div>
           }
         </div>
@@ -124,7 +123,7 @@
       <app-learning-records />
 
       <div class="actions">
-        <sbb-button size="m" (click)="close()">Done — reflect again later</sbb-button>
+        <sbb-button size="m" (click)="close()">{{ 'reflection.done' | transloco }}</sbb-button>
       </div>
     </div>
 </ng-template>

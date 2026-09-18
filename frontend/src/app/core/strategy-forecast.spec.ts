@@ -69,7 +69,7 @@ describe('buildStrategyForecast', () => {
     expect(fc.columns[2].confidence).toBe('unknown');
     fc.rows.forEach((r) => {
       expect(r.cells[3].level).toBe('unknown');
-      expect(r.cells[3].label).toBe('unklar');
+      expect(r.cells[3].label).toBe('forecast.cell.unclear');
     });
     // the near term stays readable
     expect(fc.rows[0].cells[0].level).not.toBe('unknown');
@@ -81,13 +81,13 @@ describe('buildStrategyForecast', () => {
       0,
     );
     const connections = fc.rows[1];
-    expect(connections.cells[2].label).toBe('verloren');
+    expect(connections.cells[2].label).toBe('forecast.cell.lost');
     expect(connections.cells[2].level).toBe('bad');
   });
 
   it('shows connections as kept when arrivals hold', () => {
     const fc = buildStrategyForecast(option(), 0);
-    expect(fc.rows[1].cells[1].label).toBe('gehalten');
+    expect(fc.rows[1].cells[1].label).toBe('forecast.cell.kept');
     expect(fc.rows[1].cells[1].level).toBe('good');
   });
 
@@ -96,7 +96,7 @@ describe('buildStrategyForecast', () => {
       option({ kpiDeltas: { totalDelay: 30, deadlocks: 0, done: 0, meanDelay: 4, episodeSteps: 0, episodeFinished: false } }),
       0,
     );
-    expect(fc.rows[2].cells[0].label).toBe('steigt');
+    expect(fc.rows[2].cells[0].label).toBe('forecast.cell.rising');
     expect(fc.rows[2].cells[3].level).toBe('bad');
   });
 
@@ -105,7 +105,7 @@ describe('buildStrategyForecast', () => {
       option({ kpiDeltas: { totalDelay: 0, deadlocks: 2, done: 0, meanDelay: 0, episodeSteps: 0, episodeFinished: false } }),
       0,
     );
-    expect(fc.rows[0].cells[2].label).toBe('offen');
+    expect(fc.rows[0].cells[2].label).toBe('forecast.cell.open');
   });
 
   it('survives a missing option', () => {
@@ -126,9 +126,9 @@ describe('buildStrategyForecast', () => {
     expect(signals).toEqual({ addsDelay: true, keepsConnections: true, addsRipple: false });
 
     const fc = buildForecastFromSignals(signals, 0);
-    expect(fc.rows[2].cells[0].label).toBe('steigt');
-    expect(fc.rows[1].cells[1].label).toBe('gehalten');
-    expect(fc.rows[0].cells[3].label).toBe('stabil');
+    expect(fc.rows[2].cells[0].label).toBe('forecast.cell.rising');
+    expect(fc.rows[1].cells[1].label).toBe('forecast.cell.kept');
+    expect(fc.rows[0].cells[3].label).toBe('forecast.cell.stable');
   });
 
   it('reads a focus that gives up stability as raising the knock-on risk', () => {
@@ -140,8 +140,8 @@ describe('buildStrategyForecast', () => {
     expect(signals).toEqual({ addsDelay: false, keepsConnections: false, addsRipple: true });
 
     const fc = buildForecastFromSignals(signals, 0);
-    expect(fc.rows[0].cells[2].label).toBe('offen');
-    expect(fc.rows[1].cells[2].label).toBe('verloren');
+    expect(fc.rows[0].cells[2].label).toBe('forecast.cell.open');
+    expect(fc.rows[1].cells[2].label).toBe('forecast.cell.lost');
   });
 
   it('treats an unchanged axis as no regression', () => {
@@ -158,6 +158,6 @@ describe('buildStrategyForecast', () => {
       3,
     );
     expect(fc.horizonMinutes).toBe(10);
-    expect(fc.rows[0].cells[3].label).toBe('unklar');
+    expect(fc.rows[0].cells[3].label).toBe('forecast.cell.unclear');
   });
 });

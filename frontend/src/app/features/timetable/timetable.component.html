@@ -1,18 +1,18 @@
 <div class="timetable">
   @if (rows().length === 0) {
-    <p class="tt-empty">No trains in this scenario.</p>
+    <p class="tt-empty">{{ 'timetable.empty' | transloco }}</p>
   } @else {
     <table class="tt-table">
       <thead>
         <tr>
-          <th class="tt-train">Train</th>
-          <th>From</th>
-          <th>To</th>
-          <th>Via</th>
-          <th class="tt-num">Dep</th>
-          <th class="tt-num">Arr</th>
-          <th>Now</th>
-          <th>Status</th>
+          <th class="tt-train">{{ 'timetable.col.train' | transloco }}</th>
+          <th>{{ 'timetable.col.from' | transloco }}</th>
+          <th>{{ 'timetable.col.to' | transloco }}</th>
+          <th>{{ 'timetable.col.via' | transloco }}</th>
+          <th class="tt-num">{{ 'timetable.col.dep' | transloco }}</th>
+          <th class="tt-num">{{ 'timetable.col.arr' | transloco }}</th>
+          <th>{{ 'timetable.col.now' | transloco }}</th>
+          <th>{{ 'timetable.col.status' | transloco }}</th>
         </tr>
       </thead>
       <tbody>

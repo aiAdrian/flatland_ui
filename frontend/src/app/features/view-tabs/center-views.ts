@@ -18,8 +18,10 @@ import { GoalAchievementPanelComponent } from '../../shared/layout/panels/goal-a
 export interface CenterViewDef {
   /** Panel `type` key (matches widget-catalog / panel-plugin-host). */
   type: string;
-  /** Short tab label. */
+  /** Short tab label — the English source, shown if `labelKey` has no translation. */
   label: string;
+  /** Translation key for the label (i18n plan, phase 3). */
+  labelKey?: string;
   component: Type<unknown>;
   inputs?: (ctx: { panel: PanelInstance | null }) => Record<string, unknown>;
 }
@@ -28,12 +30,13 @@ export const CENTER_VIEWS: CenterViewDef[] = [
   // Dispatcher vocabulary, asked for in the 2026-08-24 review: the network
   // view is the Streckenspiegel, the time-distance diagram is the ZWL. These
   // are the words the operators used; "Map"/"Marey" were ours.
-  { type: 'flatland-map', label: 'Streckenspiegel', component: FlatlandMapComponent },
-  { type: 'marey', label: 'ZWL', component: GraphicTimetableComponent },
-  { type: 'timetable', label: 'Fahrplan', component: TimetableComponent, inputs: () => ({ embedded: true }) },
+  { type: 'flatland-map', label: 'Streckenspiegel', labelKey: 'views.map', component: FlatlandMapComponent },
+  { type: 'marey', label: 'ZWL', labelKey: 'views.zwl', component: GraphicTimetableComponent },
+  { type: 'timetable', label: 'Fahrplan', labelKey: 'views.timetable', component: TimetableComponent, inputs: () => ({ embedded: true }) },
   {
     type: 'goal-achievement',
     label: 'Goal Achievement',
+    labelKey: 'views.goalAchievement',
     component: GoalAchievementPanelComponent,
     inputs: ({ panel }) => ({ embedded: true, panel }),
   },

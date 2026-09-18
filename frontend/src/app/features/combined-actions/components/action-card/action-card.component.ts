@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../../core/i18n/language.service';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { ActionPackage } from '../../../../core/combined-actions/action-packages';
 import { ImpactPrediction } from '../../../../core/combined-actions/impact-prediction';
@@ -58,11 +60,12 @@ export interface AppliedAction {
 @Component({
   selector: 'app-action-card',
   standalone: true,
-  imports: [TrainSequenceComponent, ImpactMetricsComponent],
+  imports: [TranslocoPipe, TrainSequenceComponent, ImpactMetricsComponent],
   templateUrl: './action-card.component.html',
   styleUrl: './action-card.component.scss',
 })
 export class ActionCardComponent implements OnInit, OnDestroy {
+  private readonly i18n = inject(LanguageService);
   @Input({ required: true }) pkg!: ActionPackage;
   @Input() framing: ActionFraming = 'recommended';
   /** False in Director: read-only supervision, no reorder and no Apply. */
@@ -195,7 +198,7 @@ export class ActionCardComponent implements OnInit, OnDestroy {
       const id = `v${this.variants().length + 1}`;
       const forked: ActionVersion = {
         id,
-        label: `Variant ${this.variants().length + 1}`,
+        label: this.i18n.t('ca.card.variant', { n: this.variants().length + 1 }),
         order: next,
         origin: 'human',
         prediction: this.aiVersion()?.prediction ?? null,
@@ -286,10 +289,9 @@ export class ActionCardComponent implements OnInit, OnDestroy {
     for (const train of current.order) {
       const shift = current.order.indexOf(train) - ai.order.indexOf(train);
       if (shift === 0) continue;
-      const places = Math.abs(shift) === 1 ? 'place' : 'places';
-      moves.push(`${train} ${Math.abs(shift)} ${places} ${shift < 0 ? 'earlier' : 'later'}`);
+      moves.push(this.i18n.t(shift < 0 ? 'ca.card.moveEarlier' : 'ca.card.moveLater', { train, n: Math.abs(shift) }));
     }
-    return moves.length ? `You moved ${moves.join(', ')}.` : '';
+    return moves.length ? this.i18n.t('ca.card.youMoved', { moves: moves.join(', ') }) : '';
   });
 
   /** Ask the predictor about the order now on version `id`. */
