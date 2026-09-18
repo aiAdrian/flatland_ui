@@ -1046,7 +1046,17 @@
     "axisScopeOf": "von {{n}}",
     "hypothesis": "Bei Zielkonflikten priorisieren Sie {{goal}}.",
     "hypothesisCost": "Bei Zielkonflikten priorisieren Sie {{goal}} — auch wenn es {{cost}} kostet.",
-    "points": "{{n}} Punkte {{axis}}"
+    "points": "{{n}} Punkte {{axis}}",
+    "focusInSentence": {
+      "punctuality": "Pünktlichkeit",
+      "connections": "Anschlüsse",
+      "stability": "Stabilität"
+    },
+    "focusLower": {
+      "punctuality": "Pünktlichkeit",
+      "connections": "Anschlüsse",
+      "stability": "Stabilität"
+    }
   },
   "shift": {
     "title": "Schichtabschluss",

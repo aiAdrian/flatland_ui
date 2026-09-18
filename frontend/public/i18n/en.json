@@ -1046,7 +1046,17 @@
     "axisScopeOf": "of {{n}}",
     "hypothesis": "When goals conflict, you prioritise {{goal}}.",
     "hypothesisCost": "When goals conflict, you prioritise {{goal}} — even when it costs {{cost}}.",
-    "points": "{{n}} points of {{axis}}"
+    "points": "{{n}} points of {{axis}}",
+    "focusInSentence": {
+      "punctuality": "punctuality",
+      "connections": "connections",
+      "stability": "stability"
+    },
+    "focusLower": {
+      "punctuality": "punctuality",
+      "connections": "connections",
+      "stability": "stability"
+    }
   },
   "shift": {
     "title": "Shift review",

@@ -891,7 +891,10 @@ export class StrategyOptionsComponent {
       .filter((a) => a.delta !== null && a.delta < 0)
       .sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0))[0];
     if (!worst) return null;
-    return this.i18n.t('strategy.points', { n: Math.abs(worst.delta!), axis: this.i18n.t(worst.label) });
+    return this.i18n.t('strategy.points', {
+      n: Math.abs(worst.delta!),
+      axis: this.i18n.t(`strategy.focusLower.${worst.focus}`),
+    });
   }
 
   /** Which preset (if any) matches the session's current dial ratio. Compared

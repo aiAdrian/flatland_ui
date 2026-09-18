@@ -1046,7 +1046,17 @@
     "axisScopeOf": "sur {{n}}",
     "hypothesis": "En cas de conflit d’objectifs, vous privilégiez {{goal}}.",
     "hypothesisCost": "En cas de conflit d’objectifs, vous privilégiez {{goal}} — même si cela coûte {{cost}}.",
-    "points": "{{n}} points de {{axis}}"
+    "points": "{{n}} points de {{axis}}",
+    "focusInSentence": {
+      "punctuality": "la ponctualité",
+      "connections": "les correspondances",
+      "stability": "la stabilité"
+    },
+    "focusLower": {
+      "punctuality": "ponctualité",
+      "connections": "correspondances",
+      "stability": "stabilité"
+    }
   },
   "shift": {
     "title": "Bilan de service",

@@ -86,7 +86,8 @@ export function strategyHypothesis(
   tradedAway: string | null,
   t: (key: string, params?: Record<string, unknown>) => string,
 ): string {
-  const goal = t(FOCUS_LABEL[focus]);
+  // The in-sentence form: lower case in English, with an article in French.
+  const goal = t(`strategy.focusInSentence.${focus}`);
   return tradedAway
     ? t('strategy.hypothesisCost', { goal, cost: tradedAway })
     : t('strategy.hypothesis', { goal });
