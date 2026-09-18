@@ -81,6 +81,37 @@ instead of prose.
 and the first thing every visitor sees. The first *German-inline* case to
 migrate is `shift-review`, which shows the EN-source-first step end to end.
 
+## Status — 2026-09-18
+
+All four phases are implemented: 1 083 keys, DE and FR at 100 % (`npm run
+i18n:coverage`). The French is a draft and needs a native reviewer before it
+is used with participants.
+
+**Phase 3 — how it was done.**
+- Panel titles are matched by their stock text (`core/i18n/panel-titles.ts`),
+  so a layout someone titled themselves keeps its title in every language.
+- Train action options and backend-authored labels are keyed by a stable id
+  (action int, package id, conflict window id); the text as sent is the
+  fallback.
+- Data-driven copy stores keys: `STRATEGY_COPY`, the forecast table, reason
+  chips, reflection prompts, moment scoring (`reasonKeys`).
+- The reason chips used to feed the preference model by matching their
+  German label text. The axis is now keyed by chip id and stated on the
+  decision entry (`RATIONALE_AXIS_BY_ID`); the old label table stays as the
+  fallback for decisions recorded before.
+- Component tests read the English source through `provideTranslocoTesting()`
+  (`src/app/testing/transloco-testing.ts`).
+
+**Left in English on purpose.** Internal tools (layout designer, galleries,
+builder, contribute), the questionnaires, the cell-inspection tooltips on map
+and ZWL, the plugin-host fallbacks for unmapped panels, the legacy welcome card
+inside the map, the Flatland state codes `MOVING / WAITING / DONE`, and the
+panels no mode offers (`director-weights`, `goal-achievement`, `kpi-filter`).
+
+**Stays in the language it was written in.** Tour-owned content, including the
+German interview tour and its debrief; backend-authored recommendation titles
+and what-if summaries; train service names.
+
 ## Do-not / risks
 
 - **Don't machine-translate study-facing copy unreviewed.** Intros, briefings and
