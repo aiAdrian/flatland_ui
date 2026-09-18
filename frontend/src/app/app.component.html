@@ -47,7 +47,7 @@
             [attr.aria-selected]="store.interactionMode() === m.id"
             [attr.aria-disabled]="store.demoActive() || null"
             [disabled]="store.demoActive()"
-            [title]="m.wp + ' — ' + m.description"
+            [title]="m.wp + ' — ' + ('mode.description.' + m.id | transloco)"
             (click)="store.setInteractionMode(m.id)">
             @switch (m.id) {
               @case ('recommendation') {

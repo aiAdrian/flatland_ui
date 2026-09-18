@@ -10,7 +10,12 @@
   "mode": {
     "recommendation": "Recommendation",
     "co-learning": "Co-Learning",
-    "director": "Director"
+    "director": "Director",
+    "description": {
+      "recommendation": "L’IA propose une option classée ; vous décidez.",
+      "co-learning": "L’IA propose des options neutres ; vous décidez et réfléchissez.",
+      "director": "L’IA conduit de façon autonome selon vos consignes ; vous supervisez."
+    }
   },
   "footer": {
     "mode": "mode",
@@ -639,7 +644,8 @@
     "reject": "Refuser",
     "rejectTitle": "Refuser cette modification",
     "autoDispatchOff": "Désactivé pour la répartition automatique",
-    "applyFailed": "Impossible d’appliquer la recommandation"
+    "applyFailed": "Impossible d’appliquer la recommandation",
+    "confCaption": "Certitude que cette option dépasse le cours actuel"
   },
   "inspector": {
     "noSelection": "Aucun train sélectionné",
@@ -1273,6 +1279,171 @@
     },
     "seq": {
       "slot": "{{train}}, position {{pos}} sur {{n}}. Déplacer avec Alt et les flèches."
+    }
+  },
+  "proposals": {
+    "titleTooltip": "Plan, proposition de l’IA et votre choix pour le train sélectionné, tous calculés aussi loin.",
+    "note": "Trois déroulements pour le train choisi : le plan sans intervention, la proposition de l’IA et votre choix. Rien n’est appliqué tant que vous n’en adoptez pas un.",
+    "empty": "Choisissez un train — sur la carte, dans l’horaire ou dans le panneau d’impact.",
+    "optionAria": "Votre option",
+    "noReroute": "Aucun détournement possible pour ce train ici.",
+    "loading": "Calcul des déroulements…",
+    "plan": "Plan",
+    "ai": "IA",
+    "human": "Humain",
+    "planSub": "sans intervention",
+    "aiSub": "replanifie tous les trains",
+    "humanSub": "votre choix",
+    "atDestination": "{{done}}/{{total}} trains à destination",
+    "taken": "✓ adopté",
+    "taking": "adoption…",
+    "keepPlan": "Garder le plan",
+    "takeAi": "Adopter le plan de l’IA",
+    "takeHuman": "Adopter « {{label}} »",
+    "order": "Ordre : {{order}}",
+    "placeholder": "Choisissez une option ci-dessus, nous calculerons alors votre déroulement.",
+    "compare": "Comparaison",
+    "lessIsBetter": "moins, c’est mieux",
+    "notAvailable": "n/d",
+    "aiMatchesPlan": "L’IA garderait ici le plan : son meilleur ordre ne change aucune arrivée.",
+    "hideAlternatives": "Masquer les autres ordres de l’IA",
+    "showAlternatives": "Autres ordres de l’IA ({{n}})",
+    "holdCaveat": "Dans le prototype, le train s’arrête ainsi ; vous le libérez vous-même dès que l’endroit est dégagé.",
+    "aiTakenCaveat": "Les trains suivent désormais le plan de l’IA. « Par rapport au plan » se mesure toujours à l’horaire d’origine.",
+    "option": {
+      "hold": "Maintenir",
+      "holdHint": "Le train reste à l’arrêt jusqu’à ce que vous le libériez.",
+      "holdUntilClear": "Maintenir jusqu’à libération",
+      "holdUntilClearHint": "Le train attend que l’endroit soit libre, puis repart.",
+      "proceed": "Poursuivre",
+      "proceedHint": "Le train continue sans intervention.",
+      "reroute": "Détourner",
+      "rerouteHint": "Le train prend l’autre branche au prochain aiguillage."
+    },
+    "computeFailed": "Les déroulements n’ont pas pu être calculés.",
+    "applyFailed": "Le déroulement n’a pas pu être adopté.",
+    "notArriving": "n’arrive pas",
+    "step": "Pas {{n}}",
+    "stepOnPlan": "Pas {{n}} · selon le plan",
+    "stepVsPlan": "Pas {{n}} · {{delta}} par rapport au plan",
+    "axis": {
+      "lateness": "Retard par rapport à l’horaire",
+      "time": "Temps dans le réseau",
+      "unit": "pas"
+    },
+    "strandedOne": "Avec « {{name}} », au moins un train n’arrive pas dans la période considérée — les chiffres ne sont que partiellement comparables.",
+    "strandedMany": "Avec {{names}}, des trains n’arrivent pas dans la période considérée — les chiffres ne sont que partiellement comparables.",
+    "and": "et",
+    "quoted": "« {{name}} »"
+  },
+  "zwl": {
+    "empty": "Sélectionnez un train pour voir sa trajectoire espace-temps.",
+    "resetView": "Réinitialiser la vue",
+    "resetZoom": "Centrer / réinitialiser le zoom",
+    "swapAxes": "Inverser les axes horizontal/vertical",
+    "now": "maint.",
+    "pinned": "Épinglé · Échap ou clic à côté pour fermer",
+    "clickToPin": "Cliquez sur la tuile pour l’épingler"
+  },
+  "map": {
+    "branchMark": "Le train {{train}} change d’itinéraire à partir d’ici — survolez pour l’afficher",
+    "holdMark": "Le train {{train}} attend ici {{n}} pas au lieu d’être détourné",
+    "agentTitle": "{{name}} (train {{train}}) : {{problems}}",
+    "released": "{{name}} — libéré en position {{rank}} de l’action",
+    "predicted": " · {{delta}} min prévues",
+    "clickToPin": "Cliquez sur la cellule pour l’épingler",
+    "optionsAria": "Options pour {{name}}",
+    "compareInPanel": "{{name}} · comparer dans le panneau",
+    "panUp": "Déplacer vers le haut",
+    "panLeft": "Déplacer vers la gauche",
+    "panRight": "Déplacer vers la droite",
+    "panDown": "Déplacer vers le bas",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "opacity": "Opacité des tuiles de voie",
+    "problem": {
+      "malfunctionLeft": "Perturbation — encore {{n}} pas",
+      "malfunction": "Perturbation",
+      "delay": "Retard {{n}}",
+      "blockedBy": "bloqué par le train {{train}} en ({{row}}, {{col}}) — y arrive dans {{eta}}, libre dans {{clears}}",
+      "blocking": "bloque le train {{trains}}"
+    }
+  },
+  "risk": {
+    "titleTooltip": "Quel crédit accorder à la sortie de l’IA — une confiance déclarée par le modèle et ce qui reste incertain (dispersion des alternatives). Pas encore calibrée.",
+    "level": {
+      "high": "élevé",
+      "medium": "moyen",
+      "low": "faible"
+    },
+    "empty": "Aucune sortie de l’IA à évaluer pour l’instant.",
+    "modelConfidence": "confiance déclarée par le modèle",
+    "aggregateConfidence": "confiance globale (politique)",
+    "band": "bande d’incertitude",
+    "bandWidth": {
+      "tight": "étroite",
+      "medium": "moyenne",
+      "wide": "large"
+    },
+    "notAvailable": "n/d",
+    "exception": "Événement de politique à faible confiance — point de reprise de l’autonomie ajustable. Envisagez de reprendre le contrôle manuel.",
+    "hideDetail": "Masquer le détail",
+    "whatUncertain": "Qu’est-ce qui est incertain ?",
+    "labelNote": "L’intitulé est « confiance déclarée par le modèle », pas « fiabilité » — pas encore calibrée sur des résultats.",
+    "accept": "Accepter",
+    "override": "Contredire",
+    "actionsHint": "enregistre la décision que vous prendriez avec cette fiabilité (instrument d’étude uniquement)",
+    "noOptions": "Aucune option à évaluer pour l’instant.",
+    "score": "score {{score}}",
+    "evidence": {
+      "for": "plaide pour",
+      "against": "plaide contre",
+      "mixed": "mitigé",
+      "none": "aucune dispersion"
+    },
+    "neutralNote": "Éléments neutres par option — pas de gagnant unique au score de confiance. Réfléchissez : quelle option prendriez-vous, et pourquoi ?",
+    "overtrust": "Indicateur de surconfiance",
+    "clear": "vider",
+    "reason": {
+      "disagree": "Les alternatives divergent sur le résultat (±{{pct}} %) — dispersion {{band}} sur {{n}} option(s).",
+      "ahead": "L’option devance le cours actuel de {{margin}}",
+      "behind": "L’option est en retrait de {{margin}} sur le cours actuel",
+      "priorOnly": " — aucune branche de comparaison, cela repose uniquement sur l’écart.",
+      "lowConfidence": "La confiance déclarée par le modèle est inférieure à 0,5 — examinez avant d’accepter.",
+      "noDispersion": "Aucun signal de dispersion disponible (moins de 2 alternatives)."
+    }
+  },
+  "help": {
+    "title": "Aide et à propos",
+    "subtitle": "Flatland Dispatcher — un terrain d’essai pour la collaboration humain-IA",
+    "close": "Fermer",
+    "tab": {
+      "about": "À propos",
+      "help": "Aide"
+    },
+    "about": {
+      "before": "Une IHM interactive pour des expériences de régulation ferroviaire, dans le cadre de",
+      "middle": "(EU Horizon). Elle explore comment un régulateur humain et un agent IA peuvent coopérer sur la",
+      "after": "simulation ferroviaire."
+    },
+    "modesTitle": "Les trois modes de collaboration",
+    "links": "Liens",
+    "getStarted": "Pour commencer",
+    "start": {
+      "session": "— définissez la grille, les trains et le nombre de pas, puis régulez.",
+      "sessionLabel": "Nouvelle session",
+      "demoLabel": "Démo guidée",
+      "demo": "— résolvez un conflit dans les trois modes, sur le même environnement.",
+      "switchBefore": "Changez de mode à tout moment depuis le menu",
+      "modeMenu": "Mode",
+      "switchAfter": "de l’en-tête."
+    },
+    "eachMode": "Ce que vous faites dans chaque mode",
+    "goodToKnow": "Bon à savoir",
+    "know": {
+      "impact": "Le panneau « Impact » signale les moments de décision ; « Scénarios » et « Recommandations » proposent des alternatives.",
+      "layout": "Utilisez le Layout Designer (menu de l’application) pour organiser et enregistrer votre propre disposition.",
+      "esc": "Échap ferme les dialogues et désélectionne le train actuel."
     }
   }
 }

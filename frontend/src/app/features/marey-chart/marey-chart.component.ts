@@ -1,3 +1,4 @@
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Component, CUSTOM_ELEMENTS_SCHEMA, computed, effect, inject, signal, ElementRef, viewChild, AfterViewInit, HostListener
 } from '@angular/core';
@@ -108,7 +109,7 @@ interface TopologyTile {
 @Component({
   selector: 'app-marey-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './marey-chart.component.html',
   styleUrls: ['./marey-chart.component.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

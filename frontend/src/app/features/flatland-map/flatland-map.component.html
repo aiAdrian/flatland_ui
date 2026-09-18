@@ -363,7 +363,7 @@
          [class.is-active]="mark.active"
          (mouseenter)="onBranchEnter(mark.handle)"
          (mouseleave)="onBranchLeave()">
-        <title>Zug {{ mark.handle }} fährt ab hier anders — zeigen: Maus draufhalten</title>
+        <title>{{ 'map.branchMark' | transloco: { train: mark.handle } }}</title>
         <circle
           class="branch-mark__hit"
           [attr.cx]="mark.x"
@@ -384,7 +384,7 @@
     <!-- A hold has no alternative route to draw: the difference is waiting. -->
     @for (hold of directorHoldMarks(); track hold.handle) {
       <g class="hold-mark">
-        <title>Zug {{ hold.handle }} wartet hier {{ hold.steps }} Schritt(e) statt umzufahren</title>
+        <title>{{ 'map.holdMark' | transloco: { train: hold.handle, n: hold.steps } }}</title>
         <circle
           class="hold-mark__dot"
           [attr.cx]="hold.x"
@@ -470,7 +470,7 @@
              here"; without this the operator had to guess which one. Native SVG
              <title> so it needs no tooltip machinery and no extra state. -->
         @if (hasAgentProblem(a)) {
-          <title>{{ identity.nameFor(a.handle) }} (Zug {{ a.handle }}): {{ agentProblemLines(a).join(' · ') }}</title>
+          <title>{{ 'map.agentTitle' | transloco: { name: identity.nameFor(a.handle), train: a.handle, problems: agentProblemLines(a).join(' · ') } }}</title>
         }
 
         <!-- Combined Actions (widget E1): dispatch rank + this train's share of
@@ -494,7 +494,7 @@
                 [attr.y]="agentY(a) - 24"
                 text-anchor="middle">{{ delta }}</text>
             }
-            <title>{{ identity.nameFor(a.handle) }} — released {{ rank }}. of the action{{ combinedActionDelta(a.handle) ? ' · ' + combinedActionDeltaLabel(a.handle) + ' min predicted' : '' }}</title>
+            <title>{{ 'map.released' | transloco: { name: identity.nameFor(a.handle), rank: rank } }}{{ combinedActionDelta(a.handle) ? ('map.predicted' | transloco: { delta: combinedActionDeltaLabel(a.handle) }) : '' }}</title>
           </g>
         }
 
@@ -526,7 +526,7 @@
          (click)="$event.stopPropagation()">
       <div class="tooltip-title">{{ mapTrajectoryTooltipTitle(tt) }}</div>
       <div class="tooltip-hint">
-        {{ tt.pinned ? 'Pinned · Esc or outside click to close' : 'Click cell to pin' }}
+        {{ (tt.pinned ? 'zwl.pinned' : 'map.clickToPin') | transloco }}
       </div>
 
       <div class="tooltip-row">
@@ -566,10 +566,10 @@
     <div
       class="map-train-options"
       role="group"
-      [attr.aria-label]="'Optionen für ' + t.name"
+      [attr.aria-label]="'map.optionsAria' | transloco: { name: t.name }"
       [style.left.%]="t.left"
       [style.top.%]="t.top">
-      <span class="map-train-options__name">{{ t.name }} · im Panel vergleichen</span>
+      <span class="map-train-options__name">{{ 'map.compareInPanel' | transloco: { name: t.name } }}</span>
       @for (c of trainOptionChoices; track c.option) {
         <button
           type="button"
@@ -578,7 +578,7 @@
           [disabled]="trainOptionDisabled(t.handle, c.option)"
           [title]="trainOptionDisabled(t.handle, c.option) ? 'Für diesen Zug gibt es hier keine Umleitung.' : 'Unter «Plan / KI / Mensch» durchrechnen'"
           (click)="chooseTrainOption(t.handle, c.option)">
-          {{ c.label }}
+          {{ c.label | transloco }}
         </button>
       }
     </div>
@@ -586,23 +586,23 @@
 
   <!-- Map Navigation Overlay (unten links) -->
   <div class="map-nav-overlay">
-    <button class="nav-btn nav-up" (click)="panStep(0, 1)" title="Pan up">↑</button>
-    <button class="nav-btn nav-left" (click)="panStep(1, 0)" title="Pan left">←</button>
-    <button class="nav-btn nav-center" (click)="resetPan()" title="Center / Reset zoom">⌂</button>
-    <button class="nav-btn nav-right" (click)="panStep(-1, 0)" title="Pan right">→</button>
-    <button class="nav-btn nav-down" (click)="panStep(0, -1)" title="Pan down">↓</button>
+    <button class="nav-btn nav-up" (click)="panStep(0, 1)" [attr.title]="'map.panUp' | transloco">↑</button>
+    <button class="nav-btn nav-left" (click)="panStep(1, 0)" [attr.title]="'map.panLeft' | transloco">←</button>
+    <button class="nav-btn nav-center" (click)="resetPan()" [attr.title]="'zwl.resetZoom' | transloco">⌂</button>
+    <button class="nav-btn nav-right" (click)="panStep(-1, 0)" [attr.title]="'map.panRight' | transloco">→</button>
+    <button class="nav-btn nav-down" (click)="panStep(0, -1)" [attr.title]="'map.panDown' | transloco">↓</button>
   </div>
 
   <!-- Zoom controls -->
   <div class="map-zoom-overlay">
-    <button class="nav-btn" (click)="zoomIn()" title="Zoom in">+</button>
+    <button class="nav-btn" (click)="zoomIn()" [attr.title]="'map.zoomIn' | transloco">+</button>
     <span class="zoom-value">{{ zoomPercent() }}%</span>
-    <button class="nav-btn" (click)="zoomOut()" title="Zoom out">−</button>
+    <button class="nav-btn" (click)="zoomOut()" [attr.title]="'map.zoomOut' | transloco">−</button>
   </div>
 
   <!-- Rail opacity control -->
   <div class="map-opacity-overlay">
-    <label class="opacity-label" title="Rail tiles opacity">
+    <label class="opacity-label" [attr.title]="'map.opacity' | transloco">
       <span class="opacity-icon">🛤</span>
       <input
         type="range"

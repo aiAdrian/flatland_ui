@@ -10,7 +10,12 @@
   "mode": {
     "recommendation": "Recommendation",
     "co-learning": "Co-Learning",
-    "director": "Director"
+    "director": "Director",
+    "description": {
+      "recommendation": "Die KI schlägt eine gewichtete Option vor; Sie entscheiden.",
+      "co-learning": "Die KI bietet neutrale Optionen; Sie entscheiden und reflektieren.",
+      "director": "Die KI fährt autonom nach Ihren Vorgaben; Sie beaufsichtigen."
+    }
   },
   "footer": {
     "mode": "Modus",
@@ -639,7 +644,8 @@
     "reject": "Ablehnen",
     "rejectTitle": "Diese Änderung ablehnen",
     "autoDispatchOff": "Deaktiviert für Auto-Dispo",
-    "applyFailed": "Empfehlung konnte nicht übernommen werden"
+    "applyFailed": "Empfehlung konnte nicht übernommen werden",
+    "confCaption": "Sicherheit, dass diese Option den aktuellen Kurs schlägt"
   },
   "inspector": {
     "noSelection": "Kein Zug ausgewählt",
@@ -1273,6 +1279,171 @@
     },
     "seq": {
       "slot": "{{train}}, Position {{pos}} von {{n}}. Mit Alt und Pfeiltasten verschieben."
+    }
+  },
+  "proposals": {
+    "titleTooltip": "Plan, KI-Vorschlag und Ihre Wahl für den ausgewählten Zug, alle gleich weit vorausgerechnet.",
+    "note": "Drei Verläufe für den gewählten Zug: der Plan ohne Eingriff, der Vorschlag der KI und Ihre Wahl. Nichts davon wird umgesetzt, bis Sie eine der drei Varianten übernehmen.",
+    "empty": "Wählen Sie einen Zug — auf der Karte, im Fahrplan oder im Impact-Panel.",
+    "optionAria": "Ihre Option",
+    "noReroute": "Für diesen Zug gibt es hier keine Umleitung.",
+    "loading": "Verläufe werden gerechnet…",
+    "plan": "Plan",
+    "ai": "KI",
+    "human": "Mensch",
+    "planSub": "ohne Eingriff",
+    "aiSub": "Neuplanung aller Züge",
+    "humanSub": "Ihre Wahl",
+    "atDestination": "{{done}}/{{total}} Züge am Ziel",
+    "taken": "✓ übernommen",
+    "taking": "wird übernommen…",
+    "keepPlan": "Plan behalten",
+    "takeAi": "KI-Plan übernehmen",
+    "takeHuman": "{{label}} übernehmen",
+    "order": "Reihenfolge: {{order}}",
+    "placeholder": "Wählen Sie oben eine Option, dann rechnen wir Ihren Verlauf.",
+    "compare": "Vergleich",
+    "lessIsBetter": "weniger ist besser",
+    "notAvailable": "n. v.",
+    "aiMatchesPlan": "Die KI würde hier beim Plan bleiben: ihre beste Reihenfolge ändert keine Ankunft.",
+    "hideAlternatives": "Weitere KI-Reihenfolgen ausblenden",
+    "showAlternatives": "Weitere KI-Reihenfolgen ({{n}})",
+    "holdCaveat": "Im Prototyp hält der Zug damit an; die Freigabe geben Sie selbst, sobald die Stelle frei ist.",
+    "aiTakenCaveat": "Die Züge fahren ab jetzt nach dem Plan der KI. «Gegenüber Plan» misst weiterhin am ursprünglichen Fahrplan.",
+    "option": {
+      "hold": "Halten",
+      "holdHint": "Der Zug bleibt stehen, bis Sie ihn wieder freigeben.",
+      "holdUntilClear": "Halten bis frei",
+      "holdUntilClearHint": "Der Zug wartet, bis die Stelle wieder frei ist, und fährt dann weiter.",
+      "proceed": "Weiterfahren",
+      "proceedHint": "Der Zug fährt ohne Eingriff weiter.",
+      "reroute": "Umleiten",
+      "rerouteHint": "Der Zug nimmt an der nächsten Weiche den anderen Ast."
+    },
+    "computeFailed": "Die Varianten konnten nicht gerechnet werden.",
+    "applyFailed": "Die Variante konnte nicht übernommen werden.",
+    "notArriving": "kommt nicht an",
+    "step": "Schritt {{n}}",
+    "stepOnPlan": "Schritt {{n}} · nach Plan",
+    "stepVsPlan": "Schritt {{n}} · {{delta}} gegenüber Plan",
+    "axis": {
+      "lateness": "Verspätung gegenüber Fahrplan",
+      "time": "Zeit im Netz",
+      "unit": "Schritte"
+    },
+    "strandedOne": "Bei «{{name}}» kommt mindestens ein Zug im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.",
+    "strandedMany": "Bei {{names}} kommen Züge im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.",
+    "and": "und",
+    "quoted": "«{{name}}»"
+  },
+  "zwl": {
+    "empty": "Wählen Sie einen Zug, um seinen Weg-Zeit-Verlauf zu sehen.",
+    "resetView": "Ansicht zurücksetzen",
+    "resetZoom": "Zentrieren / Zoom zurücksetzen",
+    "swapAxes": "Horizontale/vertikale Achse tauschen",
+    "now": "jetzt",
+    "pinned": "Fixiert · Esc oder Klick daneben schliesst",
+    "clickToPin": "Kachel anklicken zum Fixieren"
+  },
+  "map": {
+    "branchMark": "Zug {{train}} fährt ab hier anders — zeigen: Maus draufhalten",
+    "holdMark": "Zug {{train}} wartet hier {{n}} Schritt(e) statt umzufahren",
+    "agentTitle": "{{name}} (Zug {{train}}): {{problems}}",
+    "released": "{{name}} — als {{rank}}. der Massnahme freigegeben",
+    "predicted": " · {{delta}} min erwartet",
+    "clickToPin": "Zelle anklicken zum Fixieren",
+    "optionsAria": "Optionen für {{name}}",
+    "compareInPanel": "{{name}} · im Panel vergleichen",
+    "panUp": "Nach oben schieben",
+    "panLeft": "Nach links schieben",
+    "panRight": "Nach rechts schieben",
+    "panDown": "Nach unten schieben",
+    "zoomIn": "Vergrössern",
+    "zoomOut": "Verkleinern",
+    "opacity": "Deckkraft der Gleiskacheln",
+    "problem": {
+      "malfunctionLeft": "Störung — noch {{n}} Schritt(e)",
+      "malfunction": "Störung",
+      "delay": "Verspätung {{n}}",
+      "blockedBy": "blockiert von Zug {{train}} bei ({{row}}, {{col}}) — erreicht in {{eta}}, frei in {{clears}}",
+      "blocking": "blockiert Zug {{trains}}"
+    }
+  },
+  "risk": {
+    "titleTooltip": "Wie weit man der KI-Ausgabe trauen kann — eine vom Modell gemeldete Konfidenz plus das Unsichere (Streuung der Alternativen). Noch nicht kalibriert.",
+    "level": {
+      "high": "hoch",
+      "medium": "mittel",
+      "low": "niedrig"
+    },
+    "empty": "Zurzeit keine KI-Ausgabe zu beurteilen.",
+    "modelConfidence": "vom Modell gemeldete Konfidenz",
+    "aggregateConfidence": "Gesamtkonfidenz (Policy)",
+    "band": "Unsicherheitsband",
+    "bandWidth": {
+      "tight": "eng",
+      "medium": "mittel",
+      "wide": "weit"
+    },
+    "notAvailable": "n. v.",
+    "exception": "Policy-Ereignis mit niedriger Konfidenz — Übergabepunkt der anpassbaren Autonomie. Erwägen Sie, manuell zu übernehmen.",
+    "hideDetail": "Details ausblenden",
+    "whatUncertain": "Was ist unsicher?",
+    "labelNote": "Die Bezeichnung lautet «vom Modell gemeldete Konfidenz», nicht «Zuverlässigkeit» — noch nicht an Ergebnissen kalibriert.",
+    "accept": "Übernehmen",
+    "override": "Übersteuern",
+    "actionsHint": "erfasst die Entscheidung, die Sie bei dieser Zuverlässigkeit treffen würden (nur Studieninstrument)",
+    "noOptions": "Noch keine Optionen zu bewerten.",
+    "score": "Score {{score}}",
+    "evidence": {
+      "for": "spricht dafür",
+      "against": "spricht dagegen",
+      "mixed": "gemischt",
+      "none": "keine Streuung"
+    },
+    "neutralNote": "Neutrale Evidenz pro Option — kein Sieger nach Vertrauenswert. Überlegen Sie: Welche Option würden Sie nehmen, und warum?",
+    "overtrust": "Übervertrauens-Indikator",
+    "clear": "leeren",
+    "reason": {
+      "disagree": "Die Alternativen weichen im Ergebnis ab (±{{pct}} %) — Streuung {{band}} über {{n}} Option(en).",
+      "ahead": "Die Option liegt {{margin}} vor dem aktuellen Kurs",
+      "behind": "Die Option liegt {{margin}} hinter dem aktuellen Kurs",
+      "priorOnly": " — keine Vergleichszweige, das beruht allein auf dem Abstand.",
+      "lowConfidence": "Die vom Modell gemeldete Konfidenz liegt unter 0,5 — vor dem Übernehmen genau prüfen.",
+      "noDispersion": "Kein Streuungssignal verfügbar (weniger als 2 Alternativen)."
+    }
+  },
+  "help": {
+    "title": "Hilfe & Info",
+    "subtitle": "Flatland Dispatcher — ein Spielplatz für Mensch-KI-Teaming",
+    "close": "Schliessen",
+    "tab": {
+      "about": "Info",
+      "help": "Hilfe"
+    },
+    "about": {
+      "before": "Eine interaktive Bedienoberfläche für Experimente in der Bahndisposition, Teil von",
+      "middle": "(EU Horizon). Sie untersucht, wie eine Disponentin oder ein Disponent und ein KI-Agent auf der",
+      "after": "Bahnsimulation zusammenarbeiten können."
+    },
+    "modesTitle": "Die drei Zusammenarbeitsmodi",
+    "links": "Links",
+    "getStarted": "Erste Schritte",
+    "start": {
+      "session": "— Raster, Züge und maximale Schritte festlegen, dann disponieren.",
+      "sessionLabel": "Neue Session",
+      "demoLabel": "Geführte Demo",
+      "demo": "— einen Konflikt in allen drei Modi in derselben Umgebung lösen.",
+      "switchBefore": "Den Modus jederzeit über das",
+      "modeMenu": "Modus",
+      "switchAfter": "Menü in der Kopfzeile wechseln."
+    },
+    "eachMode": "Was Sie in jedem Modus tun",
+    "goodToKnow": "Gut zu wissen",
+    "know": {
+      "impact": "Das Panel «Auswirkung» markiert Entscheidungsmomente; «Szenarien» und «Empfehlungen» bieten Alternativen.",
+      "layout": "Mit dem Layout Designer (App-Menü) ordnen und speichern Sie Ihr eigenes Panel-Layout.",
+      "esc": "Esc schliesst Dialoge und hebt die Auswahl des aktuellen Zuges auf."
     }
   }
 }

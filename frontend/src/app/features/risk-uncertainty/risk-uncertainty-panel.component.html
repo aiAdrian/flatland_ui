@@ -1,11 +1,11 @@
 @if (embedded) {
   <div class="ru-panel ru-panel--embedded">
     <div class="ru-panel-head ru-panel-head--embedded">
-      <span class="panel-title" title="How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.">
-        Risk &amp; Uncertainty
+      <span class="panel-title" [attr.title]="'risk.titleTooltip' | transloco">
+        {{ 'panels.riskUncertainty' | transloco }}
       </span>
       <span class="ru-level-chip" [class.high]="level() === 'high'" [class.medium]="level() === 'medium'" [class.low]="level() === 'low'">
-        {{ level() }}
+        {{ 'risk.level.' + level() | transloco }}
       </span>
     </div>
 
@@ -14,11 +14,11 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel ru-panel-lyne-panel ru-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header class="ru-panel-head">
-      <span class="lyne-panel-title panel-title" title="How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.">
-        Risk &amp; Uncertainty
+      <span class="lyne-panel-title panel-title" [attr.title]="'risk.titleTooltip' | transloco">
+        {{ 'panels.riskUncertainty' | transloco }}
       </span>
       <span class="ru-level-chip" [class.high]="level() === 'high'" [class.medium]="level() === 'medium'" [class.low]="level() === 'low'">
-        {{ level() }}
+        {{ 'risk.level.' + level() | transloco }}
       </span>
     </sbb-expansion-panel-header>
 
@@ -30,29 +30,29 @@
 
 <ng-template #ruContent>
   @if (!hasData()) {
-    <p class="ru-empty">No AI output to assess right now.</p>
+    <p class="ru-empty">{{ 'risk.empty' | transloco }}</p>
   } @else {
     <!-- Recommendation / Director: a single reliability badge + band -->
     @if (modeBehavior().framing !== 'assessment') {
       <div class="ru-badge-row">
         <div class="ru-confidence" [class.high]="level() === 'high'" [class.medium]="level() === 'medium'" [class.low]="level() === 'low'">
           @if (primaryRecommendation(); as rec) {
-            <span class="ru-conf-label">model-reported confidence</span>
+            <span class="ru-conf-label">{{ 'risk.modelConfidence' | transloco }}</span>
             <span class="ru-conf-value">{{ rec.confidence | number: '1.0-2' }}</span>
           } @else if (aggregateConfidence(); as agg) {
-            <span class="ru-conf-label">aggregate confidence (policy)</span>
+            <span class="ru-conf-label">{{ 'risk.aggregateConfidence' | transloco }}</span>
             <span class="ru-conf-value">{{ agg | number: '1.0-2' }}</span>
           }
         </div>
 
         <div class="ru-band" [class.wide]="bandWidth() === 'wide'" [class.medium]="bandWidth() === 'medium'" [class.tight]="bandWidth() === 'tight'">
-          <span class="ru-band-label">uncertainty band</span>
+          <span class="ru-band-label">{{ 'risk.band' | transloco }}</span>
           <span class="ru-band-value">
             @if (bandWidth(); as bw) {
-              {{ bw }}
+              {{ 'risk.bandWidth.' + bw | transloco }}
               @if (dispersionPct(); as pct) { · ±{{ pct }}% }
             } @else {
-              n/a
+              {{ 'risk.notAvailable' | transloco }}
             }
           </span>
         </div>
@@ -60,13 +60,12 @@
 
       @if (directorException()) {
         <div class="ru-exception">
-          Low-confidence policy event — adjustable-autonomy handback point.
-          Consider taking manual control.
+          {{ 'risk.exception' | transloco }}
         </div>
       }
 
       <button type="button" class="ru-expand" (click)="toggleExpanded()">
-        {{ expanded() ? 'Hide detail' : 'What is uncertain?' }}
+        {{ (expanded() ? 'risk.hideDetail' : 'risk.whatUncertain') | transloco }}
       </button>
 
       @if (expanded()) {
@@ -75,7 +74,7 @@
             <li>{{ reason }}</li>
           }
           <li class="ru-reason-muted">
-            Label is “model-reported confidence”, not “reliability” — not yet calibrated against outcomes.
+            {{ 'risk.labelNote' | transloco }}
           </li>
         </ul>
       }
@@ -83,12 +82,12 @@
       @if (modeBehavior().interactive) {
         <div class="ru-actions">
           <button type="button" class="ru-btn ru-btn--accept" (click)="recordReliance('accept')">
-            Accept
+            {{ 'risk.accept' | transloco }}
           </button>
           <button type="button" class="ru-btn ru-btn--override" (click)="recordReliance('override')">
-            Override
+            {{ 'risk.override' | transloco }}
           </button>
-          <span class="ru-actions-hint">records the decision you’d make given this reliability (study instrument only)</span>
+          <span class="ru-actions-hint">{{ 'risk.actionsHint' | transloco }}</span>
         </div>
       }
     }
@@ -96,36 +95,36 @@
     <!-- Co-Learning: neutral per-option evidence (Evaluative AI) -->
     @if (modeBehavior().framing === 'assessment') {
       @if (optionReliabilities().length === 0) {
-        <p class="ru-empty">No options to evaluate yet.</p>
+        <p class="ru-empty">{{ 'risk.noOptions' | transloco }}</p>
       } @else {
         <ul class="ru-options">
           @for (opt of optionReliabilities(); track opt.id) {
             <li class="ru-option" [class.baseline]="opt.isBaseline">
               <span class="ru-opt-title">{{ opt.title }}</span>
               @if (opt.score !== null) {
-                <span class="ru-opt-score">score {{ opt.score | number: '1.0-2' }}</span>
+                <span class="ru-opt-score">{{ 'risk.score' | transloco: { score: (opt.score | number: '1.0-2') } }}</span>
               }
               <span class="ru-opt-evidence" [class.for]="opt.evidence === 'evidence for'" [class.against]="opt.evidence === 'evidence against'">
-                {{ opt.evidence }}
+                {{ evidenceLabel(opt.evidence) }}
               </span>
             </li>
           }
         </ul>
-        <p class="ru-reason-muted">Neutral per-option evidence — no single trust-score winner. Reflect: which option would you take, and why?</p>
+        <p class="ru-reason-muted">{{ 'risk.neutralNote' | transloco }}</p>
       }
     }
 
     <!-- Accountability readout (overtrust proxy) -->
     @if (overtrustProxy(); as proxy) {
       <div class="ru-proxy">
-        <span class="ru-proxy-title">Overtrust proxy</span>
+        <span class="ru-proxy-title">{{ 'risk.overtrust' | transloco }}</span>
         <span class="ru-proxy-row">
           low&amp;wide: {{ proxy.lowWide.overrideRate ?? '–' }}% override (n={{ proxy.lowWide.n }})
         </span>
         <span class="ru-proxy-row">
           high&amp;tight: {{ proxy.highTight.overrideRate ?? '–' }}% override (n={{ proxy.highTight.n }})
         </span>
-        <button type="button" class="ru-proxy-clear" (click)="clearRelianceEvents()">clear</button>
+        <button type="button" class="ru-proxy-clear" (click)="clearRelianceEvents()">{{ 'risk.clear' | transloco }}</button>
       </div>
     }
   }

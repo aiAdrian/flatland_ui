@@ -10,7 +10,12 @@
   "mode": {
     "recommendation": "Recommendation",
     "co-learning": "Co-Learning",
-    "director": "Director"
+    "director": "Director",
+    "description": {
+      "recommendation": "The AI suggests a ranked option; you decide.",
+      "co-learning": "The AI offers neutral options; you decide and reflect.",
+      "director": "The AI runs autonomously on your directives; you supervise."
+    }
   },
   "footer": {
     "mode": "mode",
@@ -639,7 +644,8 @@
     "reject": "Reject",
     "rejectTitle": "Decline this change",
     "autoDispatchOff": "Disabled for auto-dispatch",
-    "applyFailed": "Failed to apply recommendation"
+    "applyFailed": "Failed to apply recommendation",
+    "confCaption": "How sure the AI is that this option beats the current course"
   },
   "inspector": {
     "noSelection": "No train selected",
@@ -1273,6 +1279,171 @@
     },
     "seq": {
       "slot": "{{train}}, position {{pos}} of {{n}}. Move with Alt and the arrow keys."
+    }
+  },
+  "proposals": {
+    "titleTooltip": "Plan, AI proposal and your choice for the selected train, all computed equally far ahead.",
+    "note": "Three courses for the chosen train: the plan without intervention, the AI’s proposal and your choice. None of it is carried out until you take one of the three.",
+    "empty": "Choose a train — on the map, in the timetable or in the impact panel.",
+    "optionAria": "Your option",
+    "noReroute": "There is no reroute for this train here.",
+    "loading": "Computing the courses…",
+    "plan": "Plan",
+    "ai": "AI",
+    "human": "Human",
+    "planSub": "without intervention",
+    "aiSub": "re-plans all trains",
+    "humanSub": "your choice",
+    "atDestination": "{{done}}/{{total}} trains at their destination",
+    "taken": "✓ taken",
+    "taking": "taking it…",
+    "keepPlan": "Keep the plan",
+    "takeAi": "Take the AI plan",
+    "takeHuman": "Take “{{label}}”",
+    "order": "Order: {{order}}",
+    "placeholder": "Choose an option above, then we compute your course.",
+    "compare": "Comparison",
+    "lessIsBetter": "less is better",
+    "notAvailable": "n/a",
+    "aiMatchesPlan": "The AI would stay with the plan here: its best order changes no arrival.",
+    "hideAlternatives": "Hide further AI orders",
+    "showAlternatives": "Further AI orders ({{n}})",
+    "holdCaveat": "In the prototype the train stops with this; you give the release yourself once the spot is clear.",
+    "aiTakenCaveat": "The trains now run by the AI’s plan. “vs. plan” still measures against the original timetable.",
+    "option": {
+      "hold": "Hold",
+      "holdHint": "The train stays put until you release it again.",
+      "holdUntilClear": "Hold until clear",
+      "holdUntilClearHint": "The train waits until the spot is clear again, then carries on.",
+      "proceed": "Proceed",
+      "proceedHint": "The train carries on without intervention.",
+      "reroute": "Reroute",
+      "rerouteHint": "The train takes the other branch at the next switch."
+    },
+    "computeFailed": "The courses could not be computed.",
+    "applyFailed": "The course could not be taken.",
+    "notArriving": "does not arrive",
+    "step": "Step {{n}}",
+    "stepOnPlan": "Step {{n}} · on plan",
+    "stepVsPlan": "Step {{n}} · {{delta}} vs. plan",
+    "axis": {
+      "lateness": "Delay against the timetable",
+      "time": "Time in the network",
+      "unit": "steps"
+    },
+    "strandedOne": "With “{{name}}” at least one train does not arrive within the period considered — the figures are only partly comparable.",
+    "strandedMany": "With {{names}} trains do not arrive within the period considered — the figures are only partly comparable.",
+    "and": "and",
+    "quoted": "“{{name}}”"
+  },
+  "zwl": {
+    "empty": "Select a train to see its time–distance trajectory.",
+    "resetView": "Reset view",
+    "resetZoom": "Centre / reset zoom",
+    "swapAxes": "Swap horizontal/vertical axes",
+    "now": "now",
+    "pinned": "Pinned · Esc or click outside to close",
+    "clickToPin": "Click the tile to pin"
+  },
+  "map": {
+    "branchMark": "Train {{train}} takes a different route from here — hover to show it",
+    "holdMark": "Train {{train}} waits here {{n}} step(s) instead of taking another route",
+    "agentTitle": "{{name}} (train {{train}}): {{problems}}",
+    "released": "{{name}} — released {{rank}}. in the action",
+    "predicted": " · {{delta}} min predicted",
+    "clickToPin": "Click the cell to pin",
+    "optionsAria": "Options for {{name}}",
+    "compareInPanel": "{{name}} · compare in the panel",
+    "panUp": "Pan up",
+    "panLeft": "Pan left",
+    "panRight": "Pan right",
+    "panDown": "Pan down",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "opacity": "Rail tiles opacity",
+    "problem": {
+      "malfunctionLeft": "Disruption — {{n}} step(s) left",
+      "malfunction": "Disruption",
+      "delay": "Delay {{n}}",
+      "blockedBy": "blocked by train {{train}} at ({{row}}, {{col}}) — reaches it in {{eta}}, clear in {{clears}}",
+      "blocking": "blocking train {{trains}}"
+    }
+  },
+  "risk": {
+    "titleTooltip": "How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.",
+    "level": {
+      "high": "high",
+      "medium": "medium",
+      "low": "low"
+    },
+    "empty": "No AI output to assess right now.",
+    "modelConfidence": "model-reported confidence",
+    "aggregateConfidence": "aggregate confidence (policy)",
+    "band": "uncertainty band",
+    "bandWidth": {
+      "tight": "tight",
+      "medium": "medium",
+      "wide": "wide"
+    },
+    "notAvailable": "n/a",
+    "exception": "Low-confidence policy event — adjustable-autonomy handback point. Consider taking manual control.",
+    "hideDetail": "Hide detail",
+    "whatUncertain": "What is uncertain?",
+    "labelNote": "The label is “model-reported confidence”, not “reliability” — not yet calibrated against outcomes.",
+    "accept": "Accept",
+    "override": "Override",
+    "actionsHint": "records the decision you’d make given this reliability (study instrument only)",
+    "noOptions": "No options to evaluate yet.",
+    "score": "score {{score}}",
+    "evidence": {
+      "for": "evidence for",
+      "against": "evidence against",
+      "mixed": "mixed",
+      "none": "no dispersion"
+    },
+    "neutralNote": "Neutral per-option evidence — no single trust-score winner. Reflect: which option would you take, and why?",
+    "overtrust": "Overtrust proxy",
+    "clear": "clear",
+    "reason": {
+      "disagree": "Alternatives disagree on outcome (±{{pct}}%) — {{band}} spread across {{n}} option(s).",
+      "ahead": "The option is {{margin}} ahead of the current course",
+      "behind": "The option is {{margin}} behind the current course",
+      "priorOnly": " — no comparison branches, so this rests on the margin alone.",
+      "lowConfidence": "Model-reported confidence is below 0.5 — scrutinise before accepting.",
+      "noDispersion": "No dispersion signal available (fewer than 2 alternatives)."
+    }
+  },
+  "help": {
+    "title": "Help & About",
+    "subtitle": "Flatland Dispatcher — a Human-AI Teaming Playground",
+    "close": "Close",
+    "tab": {
+      "about": "About",
+      "help": "Help"
+    },
+    "about": {
+      "before": "An interactive HMI for railway dispatching experiments, part of",
+      "middle": "(EU Horizon). It explores how a human dispatcher and an AI agent can co-operate on the",
+      "after": "railway simulation."
+    },
+    "modesTitle": "The three collaboration modes",
+    "links": "Links",
+    "getStarted": "Get started",
+    "start": {
+      "session": "— set grid, agents and max steps, then dispatch.",
+      "sessionLabel": "New Session",
+      "demoLabel": "Guided Demo",
+      "demo": "— solve one conflict in all three modes on the same environment.",
+      "switchBefore": "Switch modes any time from the",
+      "modeMenu": "Mode",
+      "switchAfter": "menu in the header."
+    },
+    "eachMode": "What you do in each mode",
+    "goodToKnow": "Good to know",
+    "know": {
+      "impact": "The Impact panel flags decision moments; Scenarios and Recommendations offer alternatives.",
+      "layout": "Use the Layout Designer (app menu) to arrange and save your own panel layout.",
+      "esc": "Esc closes dialogs and deselects the current train."
     }
   }
 }

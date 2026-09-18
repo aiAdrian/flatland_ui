@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import {
   Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, untracked, viewChild, HostListener, AfterViewInit, OnDestroy
 } from '@angular/core';
@@ -98,6 +100,7 @@ interface DirectorPlanLine {
 @Component({
   selector: 'app-flatland-map',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './flatland-map.component.html',
   styleUrl: './flatland-map.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -158,14 +161,16 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
 
   private readonly tourContext = inject(TourContextService);
+  private readonly i18n = inject(LanguageService);
   private readonly proposalChoice = inject(ProposalChoiceService);
 
   /** The options the strip at the selected train offers — the proposals panel's. */
   readonly trainOptionChoices: { option: ProposalOption; label: string }[] = [
-    { option: 'hold', label: 'Halten' },
-    { option: 'hold_until_clear', label: 'Halten bis frei' },
-    { option: 'proceed', label: 'Weiterfahren' },
-    { option: 'reroute', label: 'Umleiten' },
+    // Translation keys, shared with the proposals panel the strip points to.
+    { option: 'hold', label: 'proposals.option.hold' },
+    { option: 'hold_until_clear', label: 'proposals.option.holdUntilClear' },
+    { option: 'proceed', label: 'proposals.option.proceed' },
+    { option: 'reroute', label: 'proposals.option.reroute' },
   ];
 
   /**
@@ -1871,12 +1876,12 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     if (this.isMalfunctioning(a)) {
       lines.push(
         remaining > 0
-          ? `Störung — noch ${remaining} Schritt(e)`
-          : 'Störung',
+          ? this.i18n.t('map.problem.malfunctionLeft', { n: remaining })
+          : this.i18n.t('map.problem.malfunction'),
       );
     }
     const delay = Number(a.delay ?? 0);
-    if (delay > 0) lines.push(`Verspätung ${delay}`);
+    if (delay > 0) lines.push(this.i18n.t('map.problem.delay', { n: delay }));
 
     // The impact analysis is the only place that knows the blocking relation —
     // both directions, because "who blocks me" and "whom do I block" are
@@ -1884,9 +1889,13 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     for (const item of this.store.impact()) {
       if (item.handle !== a.handle) continue;
       lines.push(
-        `blockiert von Zug ${item.blocked_by} bei ` +
-          `(${item.blocked_cell[0]}, ${item.blocked_cell[1]}) — ` +
-          `erreicht in ${item.eta_steps}, frei in ${item.clears_in_steps}`,
+        this.i18n.t('map.problem.blockedBy', {
+          train: item.blocked_by,
+          row: item.blocked_cell[0],
+          col: item.blocked_cell[1],
+          eta: item.eta_steps,
+          clears: item.clears_in_steps,
+        }),
       );
     }
     const blocked = this.store
@@ -1894,7 +1903,7 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       .filter((i) => i.blocked_by === a.handle)
       .map((i) => i.handle);
     if (blocked.length > 0) {
-      lines.push(`blockiert Zug ${blocked.join(', ')}`);
+      lines.push(this.i18n.t('map.problem.blocking', { trains: blocked.join(', ') }));
     }
     return lines;
   }

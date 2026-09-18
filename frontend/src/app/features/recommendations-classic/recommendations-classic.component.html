@@ -3,7 +3,7 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel recommendations-panel-lyne-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header>
-      <span class="lyne-panel-title">Recommendations</span>
+      <span class="lyne-panel-title">{{ 'panels.recommendations' | transloco }}</span>
     </sbb-expansion-panel-header>
 
     <sbb-expansion-panel-content class="lyne-panel-content">
@@ -16,7 +16,7 @@
   <div class="recommendations-panel">
 
     @if (store.recommendations().length === 0) {
-      <p class="empty">No active recommendations</p>
+      <p class="empty">{{ 'rec.empty' | transloco }}</p>
     } @else {
       <div class="recs">
         @for (r of store.recommendations(); track r.id) {
@@ -26,8 +26,8 @@
                (mouseenter)="previewOn(r)"
                (mouseleave)="previewOff(r)">
             <div class="rec-head">
-              <span class="ai-badge">AI</span>
-              <span class="confidence">Konfidenz {{ confidencePct(r) }}%</span>
+              <span class="ai-badge">{{ 'rec.ai' | transloco }}</span>
+              <span class="confidence">{{ 'rec.confidence' | transloco: { pct: confidencePct(r) } }}</span>
               @if (remaining(r) !== null) {
                 <span class="countdown">{{ remaining(r) }}s</span>
               }
@@ -36,7 +36,7 @@
             <sbb-title level="4" visual-level="6" class="title">{{ r.title }}</sbb-title>
 
             @if (previewable(r)) {
-              <p class="preview-hint">Hover zeigt die geänderte Route auf Karte & Marey</p>
+              <p class="preview-hint">{{ 'rec.preview.hintHover' | transloco }}</p>
             }
 
             <div class="conf-bar">
@@ -44,21 +44,21 @@
             </div>
             <!-- HMI review: the bare % was read as a fulfilment quota.
                  Say what it measures, right where it is shown. -->
-            <p class="conf-caption">Sicherheit, dass diese Option den aktuellen Kurs schlägt</p>
+            <p class="conf-caption">{{ 'rec.confCaption' | transloco }}</p>
 
             <div class="actions">
               @if (canAcceptRecommendation(r)) {
                 <button class="btn btn-accept" (click)="accept(r)">
-                  Accept
+                  {{ 'rec.accept' | transloco }}
                 </button>
               } @else {
                 <span class="auto-dispatch-disabled">
-                  Deaktiviert für Auto-Dispo
+                  {{ 'rec.autoDispatchOff' | transloco }}
                 </span>
               }
 
-              <button class="btn btn-reject" (click)="reject(r)" title="Decline this change">
-                Reject
+              <button class="btn btn-reject" (click)="reject(r)" [attr.title]="'rec.rejectTitle' | transloco">
+                {{ 'rec.reject' | transloco }}
               </button>
             </div>
           </div>
