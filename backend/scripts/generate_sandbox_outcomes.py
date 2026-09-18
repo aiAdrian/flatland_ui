@@ -188,7 +188,7 @@ def main() -> None:
         "kind": "experienced",
         "title": "{blocker} bleibt im Einspurabschnitt stehen",
         "situation": (
-            f"Der Vorfall aus Ihrer Schicht: {{blocker}} steht ab Schritt {tour_event['step']} für "
+            f"Der Vorfall aus deiner Schicht: {{blocker}} steht ab Schritt {tour_event['step']} für "
             f"{tour_event['delay_steps']} Schritte mitten im einspurigen Abschnitt, {{affected}} folgt auf demselben Gleis."
         ),
     }, {

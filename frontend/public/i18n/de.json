@@ -12,9 +12,9 @@
     "co-learning": "Co-Learning",
     "director": "Director",
     "description": {
-      "recommendation": "Die KI schlägt eine gewichtete Option vor; Sie entscheiden.",
-      "co-learning": "Die KI bietet neutrale Optionen; Sie entscheiden und reflektieren.",
-      "director": "Die KI fährt autonom nach Ihren Vorgaben; Sie beaufsichtigen."
+      "recommendation": "Die KI schlägt eine gewichtete Option vor; du entscheidest.",
+      "co-learning": "Die KI bietet neutrale Optionen; du entscheidest und reflektierst.",
+      "director": "Die KI fährt autonom nach deinen Vorgaben; du beaufsichtigst."
     }
   },
   "footer": {
@@ -33,8 +33,8 @@
   },
   "welcome": {
     "subtitle": "Ein Spielplatz für Mensch-KI-Teaming",
-    "desc": "Erkunden Sie, wie Disponentinnen und Disponenten gemeinsam mit agentischer KI auf der Flatland-Bahnsimulation arbeiten.",
-    "doorsAria": "Wie möchten Sie starten?",
+    "desc": "Erkunde, wie Disponentinnen und Disponenten gemeinsam mit agentischer KI auf der Flatland-Bahnsimulation arbeiten.",
+    "doorsAria": "Wie möchtest du starten?",
     "door": {
       "introduction": {
         "title": "Einführung",
@@ -69,7 +69,7 @@
     "hint": {
       "gridCap": "Hier begrenzt, damit eine neue Session auf der kostenlosen Hardware der gehosteten Demo flüssig läuft. Mehr nötig? Session Properties → Basic erlaubt bis {{max}}.",
       "maxSteps": "Maximale Simulationslänge. Höher = gründlichere What-if-Prognosen, aber langsamer.",
-      "grid": "Begrenzt für einen flüssigen Lauf auf der kostenlosen Hardware der gehosteten Demo — für ein grösseres Raster oder mehr Züge öffnen Sie nach dem Start <strong>Session Properties</strong> (Zahnrad, Tab <em>Basic</em>)."
+      "grid": "Begrenzt für einen flüssigen Lauf auf der kostenlosen Hardware der gehosteten Demo — für ein grösseres Raster oder mehr Züge öffnest du nach dem Start <strong>Session Properties</strong> (Zahnrad, Tab <em>Basic</em>)."
     },
     "tour": {
       "modeOne": "{{count}} Modus",
@@ -79,7 +79,7 @@
       "noSurvey": "ohne Umfrage"
     },
     "experimentsNote": "Erste Version. Angeboten werden nur Szenarien mit fertigem Plan, damit ein Lauf reproduzierbar ist. Teilnehmer-IDs und eine ausbalancierte Modus-Reihenfolge fehlen noch — das ist die Experiment-Entität im Plan.",
-    "planNote": "<strong>Plan</strong> — dieses Szenario bringt einen fertigen Plan mit. Die Züge folgen ihm ab dem ersten Schritt genau; was Sie übersteuern, verlässt den Plan und wird dann von der KI gefahren.",
+    "planNote": "<strong>Plan</strong> — dieses Szenario bringt einen fertigen Plan mit. Die Züge folgen ihm ab dem ersten Schritt genau; was du übersteuerst, verlässt den Plan und wird dann von der KI gefahren.",
     "disturbances": {
       "legend": "Störungen",
       "hint": "Geskriptete Ereignisse zu festen Schritten. Beliebig kombinierbar — keine Auswahl ist der ungestörte Referenzlauf."
@@ -90,9 +90,9 @@
       "experiment": "Experiment starten"
     },
     "summary": {
-      "tour": "Sie starten die Tour «{{name}}»: {{modes}}, etwa {{minutes}} Min.",
-      "experiment": "Sie starten {{condition}} auf {{network}}, {{disturbances}}.",
-      "build": "Sie starten {{network}} mit {{layout}}, Modus {{mode}}.",
+      "tour": "Du startest die Tour «{{name}}»: {{modes}}, etwa {{minutes}} Min.",
+      "experiment": "Du startest {{condition}} auf {{network}}, {{disturbances}}.",
+      "build": "Du startest {{network}} mit {{layout}}, Modus {{mode}}.",
       "disturbanceOne": "1 Störung",
       "disturbanceMany": "{{count}} Störungen",
       "noDisturbances": "ohne Störungen (Referenzlauf)",
@@ -122,8 +122,8 @@
       "stepOf": "von",
       "whatHappens": "Was passiert",
       "focusView": "Wohin schauen",
-      "yourRole": "Ihre Rolle",
-      "control": "Was Sie steuern können",
+      "yourRole": "Deine Rolle",
+      "control": "Was du steuern kannst",
       "watchFor": "Worauf achten",
       "goal": "Ziel",
       "start": "Szenario starten",
@@ -132,10 +132,10 @@
     "recommendation": {
       "wp": "WP 3.1",
       "title": "Recommendation",
-      "tagline": "Die KI schlägt vor, Sie entscheiden.",
+      "tagline": "Die KI schlägt vor, du entscheidest.",
       "whatHappens": "Während die Züge fahren, achtet die KI auf Konflikte. Tritt einer auf, schlägt sie eine bevorzugte Lösung mit einem Konfidenzwert vor.",
-      "focusView": "Die Karte — Sie handeln bei jedem Konflikt dort, wo er entsteht; die Empfehlungskarte rechts ist der Lösungsvorschlag der KI.",
-      "yourRole": "Sie behalten die Verantwortung — übernehmen Sie den Vorschlag der KI oder entscheiden Sie anders.",
+      "focusView": "Die Karte — du handelst bei jedem Konflikt dort, wo er entsteht; die Empfehlungskarte rechts ist der Lösungsvorschlag der KI.",
+      "yourRole": "Du behältst die Verantwortung — übernimm den Vorschlag der KI oder entscheide anders.",
       "control": {
         "0": "Den vorgeschlagenen Policy-Wechsel der KI annehmen oder ablehnen",
         "1": "Die nächste Entscheidung eines einzelnen Zuges selbst übersteuern"
@@ -149,12 +149,12 @@
     "co-learning": {
       "wp": "WP 3.3",
       "title": "Co-Learning",
-      "tagline": "Neutrale Optionen, Sie entscheiden und reflektieren.",
+      "tagline": "Neutrale Optionen, du entscheidest und reflektierst.",
       "whatHappens": "Die gleiche Art von Situation — aber diesmal bevorzugt die KI keine Option. Sie legt die Möglichkeiten neutral dar.",
-      "focusView": "Die Karte — vergleichen Sie Ihre eigene Aktion (blau) mit dem Plan der KI (gelb) direkt dort, wo die Züge fahren; der What-if-Vergleich rechts vertieft das. Die Reflexion öffnet sich separat, wenn Sie so weit sind.",
-      "yourRole": "Sie wählen frei; jede Entscheidung wird festgehalten. Danach reflektieren Sie, was Sie getan haben — und erhalten auch die Sicht der KI darauf.",
+      "focusView": "Die Karte — vergleiche deine eigene Aktion (blau) mit dem Plan der KI (gelb) direkt dort, wo die Züge fahren; der What-if-Vergleich rechts vertieft das. Die Reflexion öffnet sich separat, wenn du so weit bist.",
+      "yourRole": "Du wählst frei; jede Entscheidung wird festgehalten. Danach reflektierst du, was du getan hast — und erhältst auch die Sicht der KI darauf.",
       "control": {
-        "0": "Frei zwischen neutralen Optionen wählen — nichts ist für Sie gewichtet",
+        "0": "Frei zwischen neutralen Optionen wählen — nichts ist für dich gewichtet",
         "1": "Die Entscheidung eines einzelnen Zuges selbst übersteuern",
         "2": "Jederzeit während des Laufs «Reflect now» auslösen"
       },
@@ -162,15 +162,15 @@
         "0": "Keine Rangfolge und keine Markierungen bei den Optionen",
         "1": "Eine «Reflect now»-Option wird im Verlauf verfügbar und öffnet sich von selbst, sobald eine Entscheidung abgeschlossen ist"
       },
-      "goal": "Die gleiche Aufgabe — hier geht es aber darum, was Sie über die Situation und über die Zusammenarbeit mit der KI lernen."
+      "goal": "Die gleiche Aufgabe — hier geht es aber darum, was du über die Situation und über die Zusammenarbeit mit der KI lernst."
     },
     "director": {
       "wp": "WP 3.4",
       "title": "Director",
-      "tagline": "Sie setzen das Ziel, die KI handelt.",
-      "whatHappens": "Sie wählen das Ziel des Plans. Die KI disponiert dann jeden Zug selbständig und plant neu, wenn sich die Lage ändert.",
-      "focusView": "Die drei Strategie-Kacheln über der Karte. «Auf Karte» zeichnet den Plan gestrichelt ein — so sehen Sie, was ein Ziel verändert, bevor Sie es übernehmen.",
-      "yourRole": "Sie überwachen das Ziel, nicht die Züge. Sie steuern, indem Sie ändern, worauf der Plan optimiert.",
+      "tagline": "Du setzt das Ziel, die KI handelt.",
+      "whatHappens": "Du wählst das Ziel des Plans. Die KI disponiert dann jeden Zug selbständig und plant neu, wenn sich die Lage ändert.",
+      "focusView": "Die drei Strategie-Kacheln über der Karte. «Auf Karte» zeichnet den Plan gestrichelt ein — so siehst du, was ein Ziel verändert, bevor du es übernimmst.",
+      "yourRole": "Du überwachst das Ziel, nicht die Züge. Du steuerst, indem du änderst, worauf der Plan optimiert.",
       "control": {
         "0": "Das Ziel wählen: Verspätung, Anschlüsse oder Stabilität",
         "1": "Vor dem Übernehmen auf der Karte ansehen und nachspielen",
@@ -182,7 +182,7 @@
         "1": "Die Prognose: was das Ziel bringt und was es kostet",
         "2": "Gestrichelte Routen nach einer Vorschau"
       },
-      "goal": "Sehen, wie gut die KI autonom arbeitet — und bemerken, wo es Sie drängt einzugreifen."
+      "goal": "Sehen, wie gut die KI autonom arbeitet — und bemerken, wo es dich drängt einzugreifen."
     }
   },
   "complete": {
@@ -412,8 +412,8 @@
     "conflictsOnlyTitle": "Züge, die in einem Konflikt stecken (blockiert, blockierend oder gestört)",
     "filtered": "gefiltert — {{n}} Züge insgesamt",
     "resumesIn": "{{type}} — fährt in {{n}} Schritt(en) weiter",
-    "myOverride": "Ihr gesetzter Eingriff — erneut klicken hebt ihn auf",
-    "myOverrideShort": "Ihr gesetzter Eingriff",
+    "myOverride": "Dein gesetzter Eingriff — erneut klicken hebt ihn auf",
+    "myOverrideShort": "Dein gesetzter Eingriff",
     "setOverride": "Als Eingriff für diesen Zug setzen",
     "aiRecommendation": "Empfehlung der KI für diesen Zug",
     "aiRecommendationShort": "Empfehlung der KI"
@@ -465,7 +465,7 @@
     },
     "next": "Nächste: {{cell}}",
     "overrideOnRight": "Eingriff im Zug-Detail rechts",
-    "redHint": "rot = Ihr gesetzter Eingriff · erneut klicken hebt ihn auf",
+    "redHint": "rot = dein gesetzter Eingriff · erneut klicken hebt ihn auf",
     "readyTitle": "Abfahrbereit",
     "latestArrivalTitle": "Späteste planmässige Ankunft (Simulationsschritt)",
     "earliestDepartureTitle": "Früheste planmässige Abfahrt (Simulationsschritt)",
@@ -478,7 +478,7 @@
     "latestArrival": "Späteste Ankunft: {{target}}",
     "slackTooltip": "Noch {{n}} Schritt(e) Puffer bis zur spätesten Ankunft ({{target}})",
     "lateTooltip": "{{n}} Schritt(e) über der spätesten Ankunft ({{target}})",
-    "emptyBefore": "Klicken Sie in der Toolbar auf",
+    "emptyBefore": "Klicke in der Toolbar auf",
     "emptyAfter": ", um zu starten."
   },
   "table": {
@@ -498,8 +498,8 @@
       "done": "angekommen"
     },
     "hint": {
-      "recommended": "★ = Empfehlung der KI für diesen Zug · rot = Ihr gesetzter Eingriff",
-      "neutral": "Optionen gleichwertig — Sie entscheiden zuerst · rot = Ihr gesetzter Eingriff"
+      "recommended": "★ = Empfehlung der KI für diesen Zug · rot = dein gesetzter Eingriff",
+      "neutral": "Optionen gleichwertig — du entscheidest zuerst · rot = dein gesetzter Eingriff"
     },
     "msg": {
       "disruption": "Störung, noch {{n}}",
@@ -649,7 +649,7 @@
   },
   "inspector": {
     "noSelection": "Kein Zug ausgewählt",
-    "noSelectionText": "Fahren Sie über einen Zug oder wählen Sie einen auf der Karte oder in der Zugliste.",
+    "noSelectionText": "Fahre über einen Zug oder wähle einen auf der Karte oder in der Zugliste.",
     "clearSelection": "Auswahl aufheben",
     "resumesIn": "— fährt in {{n}} Schritt(en) weiter",
     "atStep": "(bei Schritt {{n}})",
@@ -665,7 +665,7 @@
     "system": "System",
     "overridden": "übersteuert",
     "meanDecision": "Ø Entscheid",
-    "directorNote": "Sie haben {{n}}× eingegriffen: Ausnahmen zu einer autonomen Steuerung.",
+    "directorNote": "Du hast {{n}}× eingegriffen: Ausnahmen zu einer autonomen Steuerung.",
     "empty": "Noch keine Entscheidungen in dieser Session.",
     "aiSuggestionTitle": "KI-Vorschlag zum Zeitpunkt der Entscheidung",
     "exportJson": "JSON exportieren",
@@ -685,7 +685,7 @@
   },
   "rationale": {
     "title": "Warum diese Entscheidung?",
-    "aria": "Warum haben Sie übersteuert?",
+    "aria": "Warum hast du übersteuert?",
     "close": "Schliessen",
     "insteadOfAi": "statt KI: {{suggestion}}",
     "reasonsAria": "Gründe",
@@ -706,10 +706,10 @@
     }
   },
   "effect": {
-    "calloutBefore": "Weil Sie mir das bestätigt haben, gewichte ich",
+    "calloutBefore": "Weil du mir das bestätigt hast, gewichte ich",
     "calloutAfter": "jetzt höher.",
     "note": "Ranking-Nudge, keine harte Regel.",
-    "derived": "Aus Ihren Entscheidungen abgeleitet",
+    "derived": "Aus deinen Entscheidungen abgeleitet",
     "punctuality": "Pünktlichkeit",
     "connections": "Anschlüsse",
     "stability": "Stabilität",
@@ -734,7 +734,7 @@
     "empty": "Zurzeit ist kein Zug betroffen.",
     "heldOne": "Ein Zug wartet",
     "heldMany": "{{n}} Züge warten",
-    "heldText": "— bis Sie entscheiden. Das übrige Netz fährt weiter.",
+    "heldText": "— bis du entscheidest. Das übrige Netz fährt weiter.",
     "summaryOne": "Ein Zug betroffen · eine Massnahme nötig",
     "summaryMany": "{{n}} Züge betroffen · {{n}} Massnahmen nötig",
     "held": "wartet",
@@ -749,12 +749,12 @@
     "measures": "Mögliche Massnahmen",
     "measureHold": "Halten",
     "measureHoldOrReroute": "Halten oder Umleiten",
-    "handoff": "Entscheiden Sie unter «Plan / KI / Mensch».",
+    "handoff": "Entscheide unter «Plan / KI / Mensch».",
     "autonomous": "Die KI erledigt das autonom",
     "recommendedTag": "Empfohlen",
     "notAvailable": "n/v",
     "simulating": "simuliere …",
-    "countdown": "Die KI entscheidet in {{n}} s, wenn Sie es nicht tun",
+    "countdown": "Die KI entscheidet in {{n}} s, wenn du es nicht tust",
     "severity": {
       "high": "hoch",
       "medium": "mittel",
@@ -768,7 +768,7 @@
     "phase": "reflektieren",
     "phaseTitle": "Kolb-Lernzyklus — Phase der Reflexion",
     "worthReflecting": "MR · zum Reflektieren",
-    "yourRun": "MR · Ihr Lauf",
+    "yourRun": "MR · Dein Lauf",
     "conceptualise": "AM · reflektieren & einordnen",
     "mirroringTitle": "Supportive-AI-Modus: Mirroring",
     "animationTitle": "Supportive-AI-Modi: Animation / Transparenz",
@@ -783,15 +783,15 @@
     "action": "{{train}} → Aktion {{action}}",
     "vsAi": "vs. KI: {{suggestion}}",
     "vsAiTitle": "KI-Empfehlung in diesem Moment",
-    "notePlaceholder": "Ihre Notizen …",
+    "notePlaceholder": "Deine Notizen …",
     "done": "Fertig — später weiter reflektieren",
     "q": {
-      "cuesIntervened": "Sie haben {{n}}× eingegriffen. Welche Signale haben Sie dazu gebracht?",
-      "cuesNone": "Sie haben die KI laufen lassen, ohne einzugreifen. Welche Signale haben Sie beobachtet?",
+      "cuesIntervened": "Du hast {{n}}× eingegriffen. Welche Signale haben dich dazu gebracht?",
+      "cuesNone": "Du hast die KI laufen lassen, ohne einzugreifen. Welche Signale hast du beobachtet?",
       "expected": "Wo ist das Ergebnis anders ausgefallen als erwartet — und warum?",
-      "rule": "Welche Wenn-dann-Regel würden Sie für eine ähnliche Lage ableiten?",
-      "trust": "Wann haben Sie der KI vertraut und wann übersteuert? Was war ausschlaggebend?",
-      "success": "Woran würden Sie messen, ob dieser Lauf gut gelaufen ist?"
+      "rule": "Welche Wenn-dann-Regel würdest du für eine ähnliche Lage ableiten?",
+      "trust": "Wann hast du der KI vertraut und wann übersteuert? Was war ausschlaggebend?",
+      "success": "Woran würdest du messen, ob dieser Lauf gut gelaufen ist?"
     },
     "mode": {
       "MR": "Mirroring",
@@ -809,11 +809,11 @@
     }
   },
   "whatif": {
-    "titleTooltip": "Formulieren Sie eine eigene Massnahme für den gewählten Zug und vergleichen Sie die simulierte Zukunft mit dem Plan der KI.",
-    "empty": "Wählen Sie einen Zug (Karte, Liste oder Auswirkung), um Ihren Plan mit der KI zu vergleichen.",
+    "titleTooltip": "Formuliere eine eigene Massnahme für den gewählten Zug und vergleiche die simulierte Zukunft mit dem Plan der KI.",
+    "empty": "Wähle einen Zug (Karte, Liste oder Auswirkung), um deinen Plan mit der KI zu vergleichen.",
     "proposeAria": "Massnahme vorschlagen",
     "loading": "Simuliere beide Zukünfte …",
-    "failed": "Dieser Zweig liess sich nicht simulieren. Versuchen Sie eine andere Massnahme.",
+    "failed": "Dieser Zweig liess sich nicht simulieren. Versuche eine andere Massnahme.",
     "thisTrain": "Dieser Zug",
     "myPlan": "Mein Plan",
     "arrives": "Kommt an",
@@ -849,9 +849,9 @@
       "director": "Plan der KI (autonom)"
     },
     "note": {
-      "recommendation": "Vergleichen Sie Ihre Massnahme mit dem aktuellen Kurs der KI.",
-      "coLearning": "Formulieren Sie eine eigene Massnahme und vergleichen Sie sie mit der KI — keine ist als «richtig» markiert.",
-      "director": "Was-wäre-wenn zur Aufsicht — prüfen Sie einen Zweig; die Ausführung bleibt unter der Vorgabe bei der KI."
+      "recommendation": "Vergleiche deine Massnahme mit dem aktuellen Kurs der KI.",
+      "coLearning": "Formuliere eine eigene Massnahme und vergleiche sie mit der KI — keine ist als «richtig» markiert.",
+      "director": "Was-wäre-wenn zur Aufsicht — prüfe einen Zweig; die Ausführung bleibt unter der Vorgabe bei der KI."
     },
     "timetablePlan": "Fahrplan"
   },
@@ -888,7 +888,7 @@
     "note": "Regelbasierte Projektion, keine Neusimulation.",
     "noteLong": "Regelbasierte Projektion aus den KPI-Deltas dieser Option — keine Neusimulation der nächsten 30 Minuten.",
     "emptyTitle": "Wirkung über 30 Minuten",
-    "emptyText": "Wählen Sie im Strategie-Widget eine Option («Auf Karte» oder «Übernehmen»), um ihre Prognose zu sehen."
+    "emptyText": "Wähle im Strategie-Widget eine Option («Auf Karte» oder «Übernehmen»), um ihre Prognose zu sehen."
   },
   "directive": {
     "running": "KI fährt",
@@ -900,7 +900,7 @@
     "resume": "Fortsetzen",
     "start": "Autonomen Lauf starten",
     "endShift": "Schicht beenden",
-    "endShiftTitle": "Beendet die Schicht und zeigt die Auswertung — Sie können zurück."
+    "endShiftTitle": "Beendet die Schicht und zeigt die Auswertung — du kannst zurück."
   },
   "aiActivity": {
     "title": "Was die KI macht",
@@ -911,7 +911,7 @@
     "replans": "Umplanungen",
     "recent": "Zuletzt entschieden",
     "upcoming": "Als nächstes geplant",
-    "empty": "Noch keine Planerentscheidungen. Starten Sie den autonomen Lauf — dann steht hier, was die KI entscheidet und wann sie umplant.",
+    "empty": "Noch keine Planerentscheidungen. Starte den autonomen Lauf — dann steht hier, was die KI entscheidet und wann sie umplant.",
     "src": {
       "search": "modellgeführte Suche",
       "lines": "Baseline: Linienplan",
@@ -935,14 +935,14 @@
     "scoreDetail": "umplanen {{replan}} vs. weiterfahren {{carryOn}}"
   },
   "strategyReflection": {
-    "title": "Ihre Entscheidung",
+    "title": "Deine Entscheidung",
     "close": "Ohne Antwort schliessen",
-    "tookBefore": "Sie haben",
+    "tookBefore": "Du hast",
     "tookAfter": "übernommen.",
     "price": "Preis dafür:",
     "noPrice": "Ohne messbaren Preis auf den anderen Achsen.",
-    "contradiction": "Bisher haben Sie meist {{was}} priorisiert, hier {{now}}. Lag das an dieser Lage — oder soll ich meine Annahme über Sie ändern?",
-    "consistent": "Passt zu Ihrem bisherigen Muster ({{axis}}).",
+    "contradiction": "Bisher hast du meist {{was}} priorisiert, hier {{now}}. Lag das an dieser Lage — oder soll ich meine Annahme über dich ändern?",
+    "consistent": "Passt zu deinem bisherigen Muster ({{axis}}).",
     "whyNow": "Warum jetzt?",
     "optional": "(optional)",
     "ownReason": "✎ Eigener Grund",
@@ -993,12 +993,12 @@
     "noForecast": "Keine Prognose: {{reason}} — die Kacheln wirken trotzdem, sie setzen die Ziele des Planers.",
     "firstPlan": "Erstplan wird berechnet (~10 s) — danach die drei Strategien.",
     "planningNote": "Jede Strategie wird als eigener Plan durchgerechnet (drei Varianten, ~20 s, auf Kopien) — die laufende Session bleibt unberührt. Übernehmen geht schon jetzt.",
-    "waitingForPause": "Die Prognose rechne ich, sobald Sie pausieren — sie dauert ~20 s, und während der Fahrt wäre sie beim Eintreffen schon überholt. Ziele übernehmen können Sie jederzeit.",
+    "waitingForPause": "Die Prognose rechne ich, sobald du pausierst — sie dauert ~20 s, und während der Fahrt wäre sie beim Eintreffen schon überholt. Ziele übernehmen kannst du jederzeit.",
     "stale": "Berechnet für Schritt {{computed}}, aktuell {{current}}",
     "staleRecompute": "— bei Pause rechne ich neu.",
     "allAgree": "Alle drei Ziele führen hier zum selben Plan — es gibt gerade keinen Zug, der sie gegeneinander abwägt. Die Wahl greift erst am nächsten Konflikt.",
     "active": "Aktiv",
-    "preferred": "Passt zu Ihrer gelernten Präferenz — {{why}}. Vorschlag, keine Vorauswahl.",
+    "preferred": "Passt zu deiner gelernten Präferenz — {{why}}. Vorschlag, keine Vorauswahl.",
     "unchanged": "Fährt jeden Zug wie der laufende Plan.",
     "reroutes": "Leitet {{n}} Zug/Züge um.",
     "holds": "{{n}} warten statt umzufahren.",
@@ -1027,7 +1027,7 @@
     "planFailed": "Strategien konnten nicht geplant werden.",
     "previewUnchanged": "Dieses Ziel fährt jeden Zug wie der laufende Plan — der Klick zeigt diesen Plan.",
     "previewComputing": "Die Umleitung wird gerade berechnet.",
-    "previewPause": "Pausieren Sie den Lauf — dann wird die Umleitung berechnet und hier anklickbar.",
+    "previewPause": "Pausiere den Lauf — dann wird die Umleitung berechnet und hier anklickbar.",
     "previewNoPlan": "Erst «Optionen berechnen» — ohne Plan gibt es keine Route zu zeigen.",
     "previewNoRoute": "Für dieses Ziel liegt keine Route vor.",
     "limitedBy": "begrenzt durch {{factor}} ({{value}})",
@@ -1039,13 +1039,13 @@
     },
     "directPlan": "den direkten Linienplan (ohne Konfliktbetrachtung)",
     "avoidancePlan": "den Ausweichplan (Konflikte umgangen, ohne Suche)",
-    "confirmedByYou": "Von Ihnen bestätigt: «{{statement}}»",
+    "confirmedByYou": "Von dir bestätigt: «{{statement}}»",
     "deliberateWithShifts": "{{n}} bewusste Entscheidungen, davon {{shifts}} abgeschlossene Schicht(en)",
     "deliberate": "{{n}} bewusste Entscheidungen",
-    "shareOfDecisions": "{{pct}} % Ihrer Entscheidungen ({{base}})",
+    "shareOfDecisions": "{{pct}} % deiner Entscheidungen ({{base}})",
     "axisScopeOf": "von {{n}}",
-    "hypothesis": "Bei Zielkonflikten priorisieren Sie {{goal}}.",
-    "hypothesisCost": "Bei Zielkonflikten priorisieren Sie {{goal}} — auch wenn es {{cost}} kostet.",
+    "hypothesis": "Bei Zielkonflikten priorisierst du {{goal}}.",
+    "hypothesisCost": "Bei Zielkonflikten priorisierst du {{goal}} — auch wenn es {{cost}} kostet.",
     "points": "{{n}} Punkte {{axis}}",
     "focusInSentence": {
       "punctuality": "Pünktlichkeit",
@@ -1070,12 +1070,12 @@
     },
     "aiDecided": "Die KI hat {{n}} Entscheidungen selbst getroffen",
     "aiReplanned": "und {{n}}× umgeplant",
-    "youSetGoal": "— Sie haben {{n}}× das Ziel gesetzt.",
-    "unattended": "Sie haben in dieser Schicht kein Ziel gesetzt — die KI ist durchgehend auf der Ausgangsvorgabe gefahren. Damit gibt es auch nichts, was ich über Ihre Prioritäten lernen konnte.",
+    "youSetGoal": "— du hast {{n}}× das Ziel gesetzt.",
+    "unattended": "Du hast in dieser Schicht kein Ziel gesetzt — die KI ist durchgehend auf der Ausgangsvorgabe gefahren. Damit gibt es auch nichts, was ich über deine Prioritäten lernen konnte.",
     "worthDiscussing": "Worüber es sich zu sprechen lohnt ({{n}})",
     "step": "Schritt {{n}}",
-    "deviation": "Hier haben Sie {{chosen}} gewählt, sonst meist {{usual}}.",
-    "yourReason": "Ihr Grund: «{{reason}}»",
+    "deviation": "Hier hast du {{chosen}} gewählt, sonst meist {{usual}}.",
+    "yourReason": "Dein Grund: «{{reason}}»",
     "price": "Preis: {{price}}",
     "pickedBecause": "Ausgewählt weil: {{reasons}}",
     "response": {
@@ -1091,8 +1091,8 @@
     "predicted": "Die Modelle hatten für die Anschlüsse {{pct}} % angesetzt — der Suchwert ist ein gekappter geometrischer Mittelwert und liegt bewusst tiefer als der Anteil, der zählt.",
     "predictedStability": "Stabilität war mit {{pct}} % bewertet.",
     "replayNote": "Nachgespielt wird der zuletzt übernommene Plan ab Schritt 0. Das ist die Aussage «was leistet dieser Plan auf dieser Episode» — nicht «so lief die Schicht ab», denn zwischendurch wurde umgeplant.",
-    "learnedTitle": "Was ich über Sie gelernt habe",
-    "noNewCarried": "In dieser Schicht haben Sie keine neue Präferenz bestätigt. Aus früheren Schichten gilt weiterhin:",
+    "learnedTitle": "Was ich über dich gelernt habe",
+    "noNewCarried": "In dieser Schicht hast du keine neue Präferenz bestätigt. Aus früheren Schichten gilt weiterhin:",
     "confirmedEarlier": "früher bestätigt",
     "noneConfirmed": "Noch keine bestätigte Präferenz. Ohne bestätigte Regel bleibt das Ranking rein auf der KPI-Bewertung — ich rate nichts dazu.",
     "confirmed": "bestätigt",
@@ -1100,16 +1100,16 @@
     "patternCarried": "Muster: {{label}} ({{pct}} % von {{n}} bewussten Entscheidungen aus früheren Schichten)",
     "weightsBefore": "Daraus abgeleitete Zielgewichte —",
     "weightsAfter": "Sie gelten als Vorschlag, nicht als Regel.",
-    "oneOffs": "{{n}} Entscheidung(en) haben Sie als Einzelfall markiert. Die habe ich nicht gelernt — genau dafür ist die Option da.",
-    "contradiction": "Sie haben {{firstCount}}× {{first}} und {{secondCount}}× {{second}} priorisiert. Was war in der Lage anders — oder hängt es von etwas ab, das ich noch nicht kenne?",
+    "oneOffs": "{{n}} Entscheidung(en) hast du als Einzelfall markiert. Die habe ich nicht gelernt — genau dafür ist die Option da.",
+    "contradiction": "Du hast {{firstCount}}× {{first}} und {{secondCount}}× {{second}} priorisiert. Was war in der Lage anders — oder hängt es von etwas ab, das ich noch nicht kenne?",
     "nextTitle": "Für die nächste Schicht",
     "nothingToCarry": "Es gibt nichts zu übernehmen: ohne bewusste Entscheidung in dieser Schicht habe ich keine Evidenz, die ich mitnehmen könnte.",
-    "saved": "✓ Gespeichert. Ihre Präferenzen gelten ab der nächsten Schicht als Startvorschlag — Profil aus {{n}} abgeschlossenen Schicht(en). Die passende Kachel wird dort markiert; gesetzt wird sie nicht automatisch.",
+    "saved": "✓ Gespeichert. Deine Präferenzen gelten ab der nächsten Schicht als Startvorschlag — Profil aus {{n}} abgeschlossenen Schicht(en). Die passende Kachel wird dort markiert; gesetzt wird sie nicht automatisch.",
     "saveError": "Speichern hat nicht funktioniert. Nichts wurde übernommen — die nächste Schicht startet unverändert.",
     "retry": "Erneut versuchen",
-    "canCarry": "{{n}} Zielentscheidung(en) dieser Schicht können in Ihr Langzeitprofil übernommen werden",
+    "canCarry": "{{n}} Zielentscheidung(en) dieser Schicht können in dein Langzeitprofil übernommen werden",
     "alreadyHas": "— es enthält bereits {{n}} frühere Schicht(en).",
-    "firstOne": "— es ist bisher Ihre erste.",
+    "firstOne": "— es ist bisher deine erste.",
     "saving": "Speichere …",
     "save": "Präferenzen für die nächste Schicht speichern",
     "saveNote": "Übernommen wird die gezählte Evidenz und die bestätigten Regeln. Einzelfälle («nur diesmal») und passive Zustimmungen bleiben aussen vor. Ohne Klick startet die nächste Schicht kalt.",
@@ -1129,9 +1129,9 @@
   "ca": {
     "title": "Kombinierte Massnahmen",
     "hint": {
-      "recommendation": "Ziehen Sie einen Zug, um eine Variante abzuzweigen — Karte und ZWL zeigen, was sich ändert.",
-      "coLearning": "Drei koordinierte Massnahmen, neutral dargestellt. Ordnen Sie eine um und vergleichen Sie Ihre Variante mit der der KI.",
-      "director": "Die KI führt die markierte Massnahme aus. Nur Ansicht — das Ziel setzen Sie in den Strategieoptionen."
+      "recommendation": "Ziehe einen Zug, um eine Variante abzuzweigen — Karte und ZWL zeigen, was sich ändert.",
+      "coLearning": "Drei koordinierte Massnahmen, neutral dargestellt. Ordne eine um und vergleiche deine Variante mit der der KI.",
+      "director": "Die KI führt die markierte Massnahme aus. Nur Ansicht — das Ziel setzt du in den Strategieoptionen."
     },
     "plotShow": "Diagramm Anschlüsse/Verspätung zeigen",
     "plotHide": "Diagramm Anschlüsse/Verspätung ausblenden",
@@ -1140,7 +1140,7 @@
     "calmHint": "Die Vorschläge erscheinen bei einer Störung.",
     "provenanceBound": "Modellierte Werte, keine Simulationsergebnisse ⓘ",
     "provenanceWaiting": "Wartet auf einen echten Konflikt ⓘ",
-    "provenanceDetailBound": "Die Züge und der Konflikt sind echt — abgeleitet aus der laufenden Konfliktprognose dieser Session, die Anschlüsse aus ihrem eigenen Fahrplan. Die Verspätungswerte stammen aus einem deterministischen Modell, nicht aus der Simulation. Zeigen Sie auf eine Massnahme, um sie auf Karte und ZWL zu sehen.",
+    "provenanceDetailBound": "Die Züge und der Konflikt sind echt — abgeleitet aus der laufenden Konfliktprognose dieser Session, die Anschlüsse aus ihrem eigenen Fahrplan. Die Verspätungswerte stammen aus einem deterministischen Modell, nicht aus der Simulation. Zeige auf eine Massnahme, um sie auf Karte und ZWL zu sehen.",
     "provenanceDetailWaiting": "Noch keine Konflikte in dieser Session, aus denen sich Massnahmen bilden lassen. Das Panel zeigt Pakete, sobald die Prognose einen Konflikt voraus meldet.",
     "summary": {
       "sameDelay": "gleiche Verspätung",
@@ -1169,7 +1169,7 @@
       "recommended": "Von der KI empfohlen",
       "aiExecuting": "KI führt aus",
       "humanModified": "Vom Menschen geändert",
-      "keepAria": "Welche Version behalten Sie?",
+      "keepAria": "Welche Version behältst du?",
       "keep": "Behalten",
       "ai": "KI",
       "variant": "Variante {{n}}",
@@ -1181,7 +1181,7 @@
       "apply": "Übernehmen",
       "moveEarlier": "{{train}} {{n}} Platz/Plätze früher",
       "moveLater": "{{train}} {{n}} Platz/Plätze später",
-      "youMoved": "Sie haben {{moves}} verschoben."
+      "youMoved": "Du hast {{moves}} verschoben."
     },
     "chip": {
       "movedEarlier": "{{n}} früher als im Vorschlag der KI",
@@ -1197,17 +1197,17 @@
       "delay": "Verspätung",
       "transfersTitle": "Geplante Anschlüsse, die diese Reihenfolge hält — die zweite Achse des Zielkonflikts",
       "transfers": "{{kept}}/{{total}} Anschlüsse",
-      "you": "Sie −{{n}}′",
+      "you": "Du −{{n}}′",
       "transfersDelta": "({{delta}} Anschlüsse)"
     },
     "plot": {
-      "you": "Sie",
+      "you": "Du",
       "aria": "Gebrochene geplante Anschlüsse gegen die erwartete Verspätungsreduktion, ein Punkt pro Massnahmenversion",
       "axisTransfers": "↑ gehaltene Anschlüsse",
       "axisDelay": "mehr Verspätung eingespart →",
       "tradeLabel": "{{min}}′ / {{broken}} Anschlüsse",
       "aiProposal": "Vorschlag der KI",
-      "yourVariant": "Ihre Variante",
+      "yourVariant": "Deine Variante",
       "pointDetail": "{{label}} · {{origin}} · −{{min}} Min. · {{kept}} von {{total}} Anschlüssen gehalten",
       "sameDelay": "gleich viel Verspätung eingespart",
       "moreDelay": "{{n}} Min. mehr Verspätung eingespart",
@@ -1215,8 +1215,8 @@
       "sameTransfers": "gleich viele Anschlüsse gehalten",
       "fewerTransfers": "{{n}} Anschluss/Anschlüsse weniger gehalten",
       "moreTransfers": "{{n}} Anschluss/Anschlüsse mehr gehalten",
-      "arrow": "Ihre Variante von {{pkg}}: {{delay}}, {{transfers}}.",
-      "pointHint": "Zeigen Sie auf einen Punkt für seine Werte."
+      "arrow": "Deine Variante von {{pkg}}: {{delay}}, {{transfers}}.",
+      "pointHint": "Zeige auf einen Punkt für seine Werte."
     }
   },
   "cap": {
@@ -1292,10 +1292,10 @@
     }
   },
   "proposals": {
-    "titleTooltip": "Plan, KI-Vorschlag und Ihre Wahl für den ausgewählten Zug, alle gleich weit vorausgerechnet.",
-    "note": "Drei Verläufe für den gewählten Zug: der Plan ohne Eingriff, der Vorschlag der KI und Ihre Wahl. Nichts davon wird umgesetzt, bis Sie eine der drei Varianten übernehmen.",
-    "empty": "Wählen Sie einen Zug — auf der Karte, im Fahrplan oder im Impact-Panel.",
-    "optionAria": "Ihre Option",
+    "titleTooltip": "Plan, KI-Vorschlag und deine Wahl für den ausgewählten Zug, alle gleich weit vorausgerechnet.",
+    "note": "Drei Verläufe für den gewählten Zug: der Plan ohne Eingriff, der Vorschlag der KI und deine Wahl. Nichts davon wird umgesetzt, bis du eine der drei Varianten übernimmst.",
+    "empty": "Wähle einen Zug — auf der Karte, im Fahrplan oder im Impact-Panel.",
+    "optionAria": "Deine Option",
     "noReroute": "Für diesen Zug gibt es hier keine Umleitung.",
     "loading": "Verläufe werden gerechnet…",
     "plan": "Plan",
@@ -1303,7 +1303,7 @@
     "human": "Mensch",
     "planSub": "ohne Eingriff",
     "aiSub": "Neuplanung aller Züge",
-    "humanSub": "Ihre Wahl",
+    "humanSub": "Deine Wahl",
     "atDestination": "{{done}}/{{total}} Züge am Ziel",
     "taken": "✓ übernommen",
     "taking": "wird übernommen…",
@@ -1311,18 +1311,18 @@
     "takeAi": "KI-Plan übernehmen",
     "takeHuman": "{{label}} übernehmen",
     "order": "Reihenfolge: {{order}}",
-    "placeholder": "Wählen Sie oben eine Option, dann rechnen wir Ihren Verlauf.",
+    "placeholder": "Wähle oben eine Option, dann rechnen wir deinen Verlauf.",
     "compare": "Vergleich",
     "lessIsBetter": "weniger ist besser",
     "notAvailable": "n. v.",
     "aiMatchesPlan": "Die KI würde hier beim Plan bleiben: ihre beste Reihenfolge ändert keine Ankunft.",
     "hideAlternatives": "Weitere KI-Reihenfolgen ausblenden",
     "showAlternatives": "Weitere KI-Reihenfolgen ({{n}})",
-    "holdCaveat": "Im Prototyp hält der Zug damit an; die Freigabe geben Sie selbst, sobald die Stelle frei ist.",
+    "holdCaveat": "Im Prototyp hält der Zug damit an; die Freigabe gibst du selbst, sobald die Stelle frei ist.",
     "aiTakenCaveat": "Die Züge fahren ab jetzt nach dem Plan der KI. «Gegenüber Plan» misst weiterhin am ursprünglichen Fahrplan.",
     "option": {
       "hold": "Halten",
-      "holdHint": "Der Zug bleibt stehen, bis Sie ihn wieder freigeben.",
+      "holdHint": "Der Zug bleibt stehen, bis du ihn wieder freigibst.",
       "holdUntilClear": "Halten bis frei",
       "holdUntilClearHint": "Der Zug wartet, bis die Stelle wieder frei ist, und fährt dann weiter.",
       "proceed": "Weiterfahren",
@@ -1347,7 +1347,7 @@
     "quoted": "«{{name}}»"
   },
   "zwl": {
-    "empty": "Wählen Sie einen Zug, um seinen Weg-Zeit-Verlauf zu sehen.",
+    "empty": "Wähle einen Zug, um seinen Weg-Zeit-Verlauf zu sehen.",
     "resetView": "Ansicht zurücksetzen",
     "resetZoom": "Zentrieren / Zoom zurücksetzen",
     "swapAxes": "Horizontale/vertikale Achse tauschen",
@@ -1396,13 +1396,13 @@
       "wide": "weit"
     },
     "notAvailable": "n. v.",
-    "exception": "Policy-Ereignis mit niedriger Konfidenz — Übergabepunkt der anpassbaren Autonomie. Erwägen Sie, manuell zu übernehmen.",
+    "exception": "Policy-Ereignis mit niedriger Konfidenz — Übergabepunkt der anpassbaren Autonomie. Erwäge, manuell zu übernehmen.",
     "hideDetail": "Details ausblenden",
     "whatUncertain": "Was ist unsicher?",
     "labelNote": "Die Bezeichnung lautet «vom Modell gemeldete Konfidenz», nicht «Zuverlässigkeit» — noch nicht an Ergebnissen kalibriert.",
     "accept": "Übernehmen",
     "override": "Übersteuern",
-    "actionsHint": "erfasst die Entscheidung, die Sie bei dieser Zuverlässigkeit treffen würden (nur Studieninstrument)",
+    "actionsHint": "erfasst die Entscheidung, die du bei dieser Zuverlässigkeit treffen würdest (nur Studieninstrument)",
     "noOptions": "Noch keine Optionen zu bewerten.",
     "score": "Score {{score}}",
     "evidence": {
@@ -1411,7 +1411,7 @@
       "mixed": "gemischt",
       "none": "keine Streuung"
     },
-    "neutralNote": "Neutrale Evidenz pro Option — kein Sieger nach Vertrauenswert. Überlegen Sie: Welche Option würden Sie nehmen, und warum?",
+    "neutralNote": "Neutrale Evidenz pro Option — kein Sieger nach Vertrauenswert. Überlege: Welche Option würdest du nehmen, und warum?",
     "overtrust": "Übervertrauens-Indikator",
     "clear": "leeren",
     "reason": {
@@ -1448,11 +1448,11 @@
       "modeMenu": "Modus",
       "switchAfter": "Menü in der Kopfzeile wechseln."
     },
-    "eachMode": "Was Sie in jedem Modus tun",
+    "eachMode": "Was du in jedem Modus tust",
     "goodToKnow": "Gut zu wissen",
     "know": {
       "impact": "Das Panel «Auswirkung» markiert Entscheidungsmomente; «Szenarien» und «Empfehlungen» bieten Alternativen.",
-      "layout": "Mit dem Layout Designer (App-Menü) ordnen und speichern Sie Ihr eigenes Panel-Layout.",
+      "layout": "Mit dem Layout Designer (App-Menü) ordnest und speicherst du dein eigenes Panel-Layout.",
       "esc": "Esc schliesst Dialoge und hebt die Auswahl des aktuellen Zuges auf."
     }
   }

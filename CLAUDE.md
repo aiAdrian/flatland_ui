@@ -158,7 +158,7 @@ around them stays ours.
   every string is a key in `frontend/public/i18n/{en,de,fr}.json` (English is the
   fallback). Logic compares ids, never displayed labels. Internal tools and the
   questionnaires stay English; tour-owned content keeps its own language. German
-  in Swiss spelling with formal *Sie*; French drafts need a native reviewer. Full
+  in Swiss spelling, addressing the user with informal *du*; French drafts need a native reviewer. Full
   rule: `docs/reference/frontend-lyne-conventions.md` §5.
 - Keep existing tests green (`backend/tests/`); add coverage for new backend gating.
 

@@ -116,7 +116,9 @@ menu under *Language*. Plan and reasoning: [`i18n-strategy.md`](../plans/i18n-st
   Flatland state codes. **Questionnaires** stay as they are until the validated
   source (`AI4REALNET/hmisurveys`) offers more languages.
 - **Tour-owned content keeps its own language** (e.g. the German interview tour).
-- **Style:** German in Swiss spelling (*ss*, not *ß*), formal *Sie*, «…» quotes.
+- **Style:** German in Swiss spelling (*ss*, not *ß*), informal *du* (the user is
+  addressed as *du* everywhere, tours included — decided 2026-09-18), «…» quotes.
+  Keep *Sie* only where it is the third person (the AI, a module, a project).
   French with a space before `:` `;` `?` `!` and « … » quotes. Machine or AI
   drafts need a native reviewer before participants see them — the French is
   such a draft today.

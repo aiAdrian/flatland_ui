@@ -41,7 +41,7 @@ export class TourGuideComponent {
   );
 
   readonly afterLiveHint =
-    'Alle Schritte während der Fahrt sind erlebt. Beenden Sie die Schicht: danach folgen Schichtbilanz, Event-Simulation und was die KI gelernt hat.';
+    'Alle Schritte während der Fahrt sind erlebt. Beende die Schicht: danach folgen Schichtbilanz, Event-Simulation und was die KI gelernt hat.';
 
   readonly groups = computed<GuideGroup[]>(() => {
     const groups: GuideGroup[] = [];

@@ -91,7 +91,7 @@ export function buildPreferenceHypothesis(
   }
   const conn = ctx.connectionCritical ? 'kritischem Anschluss' : 'stabilem Anschluss';
   const delay = ctx.lowDelay ? 'geringer Zusatzverspätung' : 'höherer Zusatzverspätung';
-  const ripple = ctx.lowRipple ? 'niedrigem Ripple-Risiko' : 'erhöhtem Ripple-Risiko';
+  const ripple = ctx.lowRipple ? 'geringer Folgewirkung' : 'stärkerer Folgewirkung';
   return `Bei ${conn}, ${delay} und ${ripple} bevorzugst du ${strategyLabel}.`;
 }
 

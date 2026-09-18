@@ -41,9 +41,9 @@
           </div>
 
           <div class="db-block">
-            <span class="db-block__title">Ihre Eingriffe ({{ interventions().length }})</span>
+            <span class="db-block__title">Deine Eingriffe ({{ interventions().length }})</span>
             @if (interventions().length === 0) {
-              <p class="db-note">Sie haben in dieser Schicht nicht selbst eingegriffen.</p>
+              <p class="db-note">Du hast in dieser Schicht nicht selbst eingegriffen.</p>
             } @else {
               <ul class="db-list">
                 @for (i of interventions(); track i.seq) {
@@ -61,7 +61,7 @@
               </ul>
             }
             @if (systemHolds() > 0) {
-              <p class="db-note">Das System hat {{ systemHolds() }}× vorsorglich einen Zug angehalten, bis Sie entschieden haben.</p>
+              <p class="db-note">Das System hat {{ systemHolds() }}× vorsorglich einen Zug angehalten, bis du entschieden hast.</p>
             }
           </div>
 
@@ -89,8 +89,8 @@
     @case ('event-simulation') {
       <section class="db-section">
         <p class="db-lead">
-          In der Sandbox spielen Sie einen Vorfall ausserhalb des Betriebs nochmals durch, mit einer anderen Entscheidung,
-          und sehen, was sie bewirkt hätte. Ebenso üben Sie Hochrisiko-Fälle, die Sie noch nie erlebt haben.
+          In der Sandbox spielst du einen Vorfall ausserhalb des Betriebs nochmals durch, mit einer anderen Entscheidung,
+          und siehst, was sie bewirkt hätte. Ebenso übst du Hochrisiko-Fälle, die du noch nie erlebt hast.
         </p>
 
         @for (c of sandbox.cases; track c.id) {
@@ -109,7 +109,7 @@
                   <div class="db-variant__head">
                     <span class="db-variant__label">{{ fill(v.label) }}</span>
                     @if (isUserChoice(c, v)) {
-                      <span class="db-mine">Ihre Wahl</span>
+                      <span class="db-mine">Deine Wahl</span>
                     }
                   </div>
                   <p class="db-variant__desc">{{ fill(v.description) }}</p>
@@ -119,7 +119,7 @@
                       <span><strong>+{{ v.totalDelayVsPlan }}</strong> Schritte Verspätung gegenüber Fahrplan</span>
                     } @else {
                       <!-- A sum over the trains that did arrive would read as the better outcome. -->
-                      <span class="db-late">Verspätung nicht vergleichbar: {{ v.total - v.arrived }} Zug/Züge kommen nicht an</span>
+                      <span class="db-late">Verspätung nicht vergleichbar: {{ v.total - v.arrived === 1 ? 'ein Zug kommt' : (v.total - v.arrived) + ' Züge kommen' }} nicht an</span>
                     }
                   </div>
                   <ul class="db-trains">
@@ -144,7 +144,7 @@
 
         <p class="db-concept">
           Vorberechnet mit dem Simulator auf derselben Episode, nicht erfunden: gleicher Fahrplan, gleiche Störung, gleiche
-          Haltelogik. Im Endausbau spielen Sie die Varianten in der Sandbox selbst durch.
+          Haltelogik. Im Endausbau spielst du die Varianten in der Sandbox selbst durch.
         </p>
       </section>
     }
@@ -152,7 +152,7 @@
     @case ('ai-learns') {
       <section class="db-section">
         <p class="db-lead">
-          Die KI lernt aus den Gründen, die Sie bestätigt haben. Einzelfälle («Nur diesmal») werden nicht zur Regel.
+          Die KI lernt aus den Gründen, die du bestätigt hast. Einzelfälle («Nur diesmal») werden nicht zur Regel.
         </p>
 
         <div class="db-block">
