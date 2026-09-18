@@ -87,6 +87,42 @@ Lyne components are web components, so:
   (`info` / `success` / `warning` / `error` / `pending` / …) instead of colouring
   a badge by hand.
 
+## 5. Languages — EN source, DE and FR translations (hard rule)
+
+The interface speaks English, German and French; the viewer picks one in the
+menu under *Language*. Plan and reasoning: [`i18n-strategy.md`](../plans/i18n-strategy.md).
+
+- **English is the source and the fallback.** Write new copy in English first.
+  A key missing in `de` or `fr` renders in English — never as a raw key.
+- **No inline user-facing text** in the start screen, tours, the working screen
+  and its widgets, or the shell. Every string goes through a key:
+  templates use `{{ 'ns.key' | transloco: { … } }}`, TypeScript uses
+  `LanguageService.t(key, params, fallback)`. Add the key to
+  `frontend/public/i18n/en.json`, `de.json` and `fr.json` together, then check
+  `npm run i18n:coverage`.
+- **Keys** are namespaced by feature and English-descriptive
+  (`strategy.copy.punctuality.title`, `shift.saveNote`). Data-driven copy
+  (tile copy, prompts, chips) stores keys, not prose.
+- **Content with a stable id** — policies, scenario presets, disturbances,
+  backend notifications, action options — is keyed by that id; the text as
+  sent stays the fallback.
+- **Logic never depends on displayed text.** Compare ids, keys or enum values,
+  not labels: a label changes with the language. (The reason chips once fed the
+  preference model by matching German text — now keyed by chip id.)
+- **Plurals and sentences are whole keys** with parameters, not strings glued
+  together, so each language can order the words itself.
+- **Out of scope, stays English:** internal tools (layout designer, galleries,
+  infrastructure builder, contribute), debug/log text, cell-inspection tooltips,
+  Flatland state codes. **Questionnaires** stay as they are until the validated
+  source (`AI4REALNET/hmisurveys`) offers more languages.
+- **Tour-owned content keeps its own language** (e.g. the German interview tour).
+- **Style:** German in Swiss spelling (*ss*, not *ß*), formal *Sie*, «…» quotes.
+  French with a space before `:` `;` `?` `!` and « … » quotes. Machine or AI
+  drafts need a native reviewer before participants see them — the French is
+  such a draft today.
+- **Tests** that assert on rendered text use `provideTranslocoTesting()`
+  (`frontend/src/app/testing/transloco-testing.ts`) and assert the English source.
+
 ## What we deliberately left out
 
 - **Accessibility** rules from the upstream skill are intentionally not enforced

@@ -17,6 +17,12 @@ Key rules:
 - Register new Lyne elements via side-effect import in `frontend/src/main.ts` and
   add `CUSTOM_ELEMENTS_SCHEMA` to the standalone component that uses them.
 
+- **No inline user-facing text.** English is the source; every string in the
+  start screen, tours, working screen, widgets and shell is a key in
+  `frontend/public/i18n/{en,de,fr}.json` (`| transloco` in templates,
+  `LanguageService.t()` in TypeScript). Never branch on a displayed label.
+  Internal tools and questionnaires stay English.
+
 The colour rule is enforced by stylelint: `cd frontend && npm run lint:styles`.
 
 See the conventions doc for the full list. Project overview lives in
