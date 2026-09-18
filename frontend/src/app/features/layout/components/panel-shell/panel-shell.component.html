@@ -7,7 +7,7 @@
     [attr.data-panel-zone]="panel.zone"
   >
     <div class="layout-panel-shell__header layout-panel-shell__header--canvas">
-      <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ panel.title }}</span>
+      <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ i18n.panelTitle(panel) }}</span>
     </div>
 
     <div class="layout-panel-shell__body layout-panel-shell__body--canvas">
@@ -27,10 +27,10 @@
   >
     <sbb-expansion-panel-header (click)="toggleExpanded()">
       <div class="layout-panel-shell__header">
-        <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ panel.title }}</span>
+        <span class="layout-panel-shell__title" [attr.title]="moduleHint()">{{ i18n.panelTitle(panel) }}</span>
 
         @if (panel.hidden) {
-          <span class="layout-panel-shell__meta">Hidden</span>
+          <span class="layout-panel-shell__meta">{{ 'panels.hidden' | transloco }}</span>
         }
       </div>
     </sbb-expansion-panel-header>

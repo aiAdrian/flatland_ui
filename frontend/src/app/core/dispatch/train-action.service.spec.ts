@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { SessionStore } from '../session.store';
 import { AgentDTO, SessionInfo, SessionState } from '../models';
 import { TrainActionService } from './train-action.service';
@@ -15,7 +16,8 @@ describe('TrainActionService — the single doorway for acting on a train', () =
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     svc = TestBed.inject(TrainActionService);
     store = TestBed.inject(SessionStore);

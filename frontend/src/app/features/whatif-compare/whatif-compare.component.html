@@ -1,8 +1,8 @@
 @if (embedded) {
   <div class="wic wic--embedded">
     <div class="wic-head wic-head--embedded">
-      <span class="panel-title" title="Formulate your own action for the selected train and compare its simulated future with the AI's plan.">
-        What-if Compare
+      <span class="panel-title" [attr.title]="'whatif.titleTooltip' | transloco">
+        {{ 'panels.whatifCompare' | transloco }}
       </span>
     </div>
     <ng-container [ngTemplateOutlet]="wicContent"></ng-container>
@@ -10,8 +10,8 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel wic" color="white" size="s" expanded>
     <sbb-expansion-panel-header class="wic-head">
-      <span class="lyne-panel-title panel-title" title="Formulate your own action for the selected train and compare its simulated future with the AI's plan.">
-        What-if Compare
+      <span class="lyne-panel-title panel-title" [attr.title]="'whatif.titleTooltip' | transloco">
+        {{ 'panels.whatifCompare' | transloco }}
       </span>
     </sbb-expansion-panel-header>
     <sbb-expansion-panel-content class="lyne-panel-content">
@@ -21,82 +21,82 @@
 }
 
 <ng-template #wicContent>
-  <p class="wic-note">{{ modeBehavior().note }}</p>
+  <p class="wic-note">{{ modeBehavior().noteKey | transloco }}</p>
 
   @if (targetHandle() == null) {
-    <p class="wic-empty">Select a train (map, roster, or impact) to compare your plan against the AI.</p>
+    <p class="wic-empty">{{ 'whatif.empty' | transloco }}</p>
   } @else {
     <div class="wic-target">
       <span class="wic-dot" [style.background]="targetColor()"></span>
       <span class="wic-target-label">{{ targetLabel() }}</span>
     </div>
 
-    <div class="wic-actions" role="group" aria-label="Propose an action">
+    <div class="wic-actions" role="group" [attr.aria-label]="'whatif.proposeAria' | transloco">
       @for (c of actionChoices; track c.action) {
         <button type="button"
                 class="wic-action"
                 [class.is-chosen]="isChosen(c.action)"
                 (click)="choose(c.action)">
-          {{ c.label }}
+          {{ c.labelKey | transloco }}
         </button>
       }
     </div>
 
     @if (loading()) {
-      <p class="wic-loading">Simulating both futures…</p>
+      <p class="wic-loading">{{ 'whatif.loading' | transloco }}</p>
     } @else if (failed()) {
-      <p class="wic-empty">Could not simulate this branch. Try another action.</p>
+      <p class="wic-empty">{{ 'whatif.failed' | transloco }}</p>
     } @else if (result(); as r) {
       <!-- PRIMARY: the selected train's own fate ("local action").
            My plan (blue) vs AI plan (yellow): arrives? delay? deadlock? -->
       @if (r.train; as t) {
         <section class="wic-primary">
-          <div class="wic-section-label">This train</div>
+          <div class="wic-section-label">{{ 'whatif.thisTrain' | transloco }}</div>
           <div class="wic-compare">
             <!-- AI plan (yellow) -->
             <div class="wic-col wic-col--ai">
               <div class="wic-col-head">{{ baselineLabel(r) }}</div>
               <dl class="wic-kpis">
-                <div><dt>Arrives</dt><dd>{{ t.baseline.arrived ? '✓ yes' : '✗ no' }}</dd></div>
+                <div><dt>{{ 'whatif.arrives' | transloco }}</dt><dd>{{ (t.baseline.arrived ? 'whatif.yes' : 'whatif.no') | transloco }}</dd></div>
                 <div>
-                  <dt>Arrival</dt>
+                  <dt>{{ 'whatif.arrival' | transloco }}</dt>
                   <dd>
                     @if (t.baseline.arrival_step != null) {
-                      step {{ t.baseline.arrival_step }}
+                      {{ 'whatif.atStep' | transloco: { n: t.baseline.arrival_step } }}
                       @if (t.baseline.delay_vs_plan != null) {
-                        <span class="wic-unit">{{ signedDelta(t.baseline.delay_vs_plan) }} vs plan</span>
+                        <span class="wic-unit">{{ 'whatif.vsPlan' | transloco: { delta: signedDelta(t.baseline.delay_vs_plan) } }}</span>
                       }
                     } @else {
                       —
                     }
                   </dd>
                 </div>
-                <div><dt>Delay</dt><dd>{{ t.baseline.delay }}<span class="wic-unit">steps</span></dd></div>
-                <div><dt>Deadlock</dt><dd>{{ t.baseline.deadlocked ? 'yes' : 'no' }}</dd></div>
+                <div><dt>{{ 'whatif.delay' | transloco }}</dt><dd>{{ t.baseline.delay }}<span class="wic-unit">{{ 'whatif.stepsUnit' | transloco }}</span></dd></div>
+                <div><dt>{{ 'whatif.deadlock' | transloco }}</dt><dd>{{ (t.baseline.deadlocked ? 'whatif.plainYes' : 'whatif.plainNo') | transloco }}</dd></div>
               </dl>
             </div>
 
             <!-- My plan (blue) -->
             <div class="wic-col wic-col--human">
-              <div class="wic-col-head">My plan</div>
+              <div class="wic-col-head">{{ 'whatif.myPlan' | transloco }}</div>
               <dl class="wic-kpis">
                 <div>
-                  <dt>Arrives</dt>
-                  <dd>{{ t.branch.arrived ? '✓ yes' : '✗ no' }}
+                  <dt>{{ 'whatif.arrives' | transloco }}</dt>
+                  <dd>{{ (t.branch.arrived ? 'whatif.yes' : 'whatif.no') | transloco }}
                     @if (trainArrivesChanged(t)) {
                       <span class="wic-delta" [class.good]="t.branch.arrived && !t.baseline.arrived" [class.bad]="!t.branch.arrived && t.baseline.arrived">
-                        {{ t.branch.arrived ? '▲ arrives' : '▼ no arrival' }}
+                        {{ (t.branch.arrived ? 'whatif.deltaArrives' : 'whatif.deltaNoArrival') | transloco }}
                       </span>
                     }
                   </dd>
                 </div>
                 <div>
-                  <dt>Arrival</dt>
+                  <dt>{{ 'whatif.arrival' | transloco }}</dt>
                   <dd>
                     @if (t.branch.arrival_step != null) {
-                      step {{ t.branch.arrival_step }}
+                      {{ 'whatif.atStep' | transloco: { n: t.branch.arrival_step } }}
                       @if (t.branch.delay_vs_plan != null) {
-                        <span class="wic-unit">{{ signedDelta(t.branch.delay_vs_plan) }} vs plan</span>
+                        <span class="wic-unit">{{ 'whatif.vsPlan' | transloco: { delta: signedDelta(t.branch.delay_vs_plan) } }}</span>
                       }
                       @if (arrivalDelta(t); as d) {
                         <span class="wic-delta" [class.good]="d < 0" [class.bad]="d > 0">
@@ -109,8 +109,8 @@
                   </dd>
                 </div>
                 <div>
-                  <dt>Delay</dt>
-                  <dd>{{ t.branch.delay }}<span class="wic-unit">steps</span>
+                  <dt>{{ 'whatif.delay' | transloco }}</dt>
+                  <dd>{{ t.branch.delay }}<span class="wic-unit">{{ 'whatif.stepsUnit' | transloco }}</span>
                     @if (trainDelayDelta(t) !== 0) {
                       <span class="wic-delta" [class.good]="trainDelayDelta(t) < 0" [class.bad]="trainDelayDelta(t) > 0">
                         {{ deltaArrow(trainDelayDelta(t)) }}{{ signedDelta(trainDelayDelta(t)) }}
@@ -119,11 +119,11 @@
                   </dd>
                 </div>
                 <div>
-                  <dt>Deadlock</dt>
-                  <dd>{{ t.branch.deadlocked ? 'yes' : 'no' }}
+                  <dt>{{ 'whatif.deadlock' | transloco }}</dt>
+                  <dd>{{ (t.branch.deadlocked ? 'whatif.plainYes' : 'whatif.plainNo') | transloco }}
                     @if (trainDeadlockChanged(t)) {
                       <span class="wic-delta" [class.good]="!t.branch.deadlocked && t.baseline.deadlocked" [class.bad]="t.branch.deadlocked && !t.baseline.deadlocked">
-                        {{ t.branch.deadlocked ? '▼ deadlock' : '▲ avoids' }}
+                        {{ (t.branch.deadlocked ? 'whatif.deltaDeadlock' : 'whatif.deltaAvoids') | transloco }}
                       </span>
                     }
                   </dd>
@@ -137,10 +137,10 @@
       <!-- SECONDARY: system-wide effect ("global effect"), kept smaller.
            done/total, delay, deadlocks — the original system KPIs. -->
       <section class="wic-secondary">
-        <div class="wic-section-label">System effect</div>
+        <div class="wic-section-label">{{ 'whatif.systemEffect' | transloco }}</div>
         <dl class="wic-system-kpis">
           <div>
-            <dt>Arrived</dt>
+            <dt>{{ 'whatif.arrivedCount' | transloco }}</dt>
             <dd>{{ r.branch.done }}/{{ r.branch.total }}
               @if (r.delta.done !== 0) {
                 <span class="wic-delta" [class.good]="r.delta.done > 0" [class.bad]="r.delta.done < 0">
@@ -150,7 +150,7 @@
             </dd>
           </div>
           <div>
-            <dt>Delay</dt>
+            <dt>{{ 'whatif.delay' | transloco }}</dt>
             <dd>{{ r.branch.delay }}
               @if (r.delta.delay !== 0) {
                 <span class="wic-delta" [class.good]="r.delta.delay < 0" [class.bad]="r.delta.delay > 0">
@@ -160,7 +160,7 @@
             </dd>
           </div>
           <div>
-            <dt>Deadlocks</dt>
+            <dt>{{ 'whatif.deadlocks' | transloco }}</dt>
             <dd>{{ r.branch.deadlocks }}
               @if (r.delta.deadlocks !== 0) {
                 <span class="wic-delta" [class.good]="r.delta.deadlocks < 0" [class.bad]="r.delta.deadlocks > 0">
@@ -176,12 +176,12 @@
 
       @if (modeBehavior().canCommit) {
         @if (committed()) {
-          <p class="wic-committed">✓ My plan committed as an override.</p>
+          <p class="wic-committed">{{ 'whatif.committed' | transloco }}</p>
         } @else {
-          <button type="button" class="wic-commit" (click)="commit()">Commit my plan</button>
+          <button type="button" class="wic-commit" (click)="commit()">{{ 'whatif.commit' | transloco }}</button>
         }
       } @else {
-        <p class="wic-readonly">Read-only in Director — the AI keeps actuation.</p>
+        <p class="wic-readonly">{{ 'whatif.readonly' | transloco }}</p>
       }
     }
   }

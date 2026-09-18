@@ -1214,3 +1214,56 @@
 .ca-rank--earlier .ca-rank__delta {
   fill: var(--app-positive);
 }
+
+/* Option strip at the selected train (interview tour). Anchored above and to the
+   right of the train, so the train itself stays visible and clickable. */
+.map-train-options {
+  position: absolute;
+  z-index: 11;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  max-width: 260px;
+  padding: 5px 6px;
+  transform: translate(14px, calc(-100% - 14px));
+  background: var(--sbb-color-white);
+  border: 1px solid var(--app-colearning-accent);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sbb-color-black) 18%, transparent);
+  pointer-events: auto;
+}
+
+.map-train-options__name {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sbb-color-charcoal);
+}
+
+.map-train-options__btn {
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-white);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 999px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--app-whatif-human);
+  }
+
+  &.is-chosen {
+    color: var(--app-whatif-human);
+    background: color-mix(in srgb, var(--app-whatif-human) 12%, transparent);
+    border-color: var(--app-whatif-human);
+    font-weight: 600;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}

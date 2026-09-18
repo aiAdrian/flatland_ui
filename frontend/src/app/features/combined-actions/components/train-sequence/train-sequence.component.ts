@@ -1,3 +1,4 @@
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Component,
   ElementRef,
@@ -29,7 +30,7 @@ import { trainCategory } from '../../../../core/combined-actions/action-packages
 @Component({
   selector: 'app-train-sequence',
   standalone: true,
-  imports: [TrainChipComponent],
+  imports: [TranslocoPipe, TrainChipComponent],
   templateUrl: './train-sequence.component.html',
   styleUrl: './train-sequence.component.scss',
 })

@@ -3,7 +3,7 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel agents-table-lyne-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header>
-      <span class="lyne-panel-title">Trains — Dispositionstabelle</span>
+      <span class="lyne-panel-title">{{ 'table.title' | transloco }}</span>
     </sbb-expansion-panel-header>
 
     <sbb-expansion-panel-content class="lyne-panel-content">
@@ -16,7 +16,7 @@
   <div class="agents-table">
 
     @if (!store.state()) {
-      <p class="empty">Keine aktive Session.</p>
+      <p class="empty">{{ 'train.noSession' | transloco }}</p>
     } @else {
 
       <div class="table-head">
@@ -26,13 +26,13 @@
           [class.active]="conflictsOnly()"
           [attr.aria-pressed]="conflictsOnly()"
           [disabled]="conflictCount() === 0 && !conflictsOnly()"
-          title="Züge, die in einem Konflikt stecken (blockiert, blockierend oder gestört)"
+          [attr.title]="'train.conflictsOnlyTitle' | transloco"
           (click)="toggleConflictsOnly()">
-          Nur Konflikte ({{ conflictCount() }})
+          {{ 'train.conflictsOnly' | transloco: { n: conflictCount() } }}
         </button>
 
         @if (conflictsOnly()) {
-          <span class="head-hint">gefiltert — {{ totalCount() }} Züge insgesamt</span>
+          <span class="head-hint">{{ 'train.filtered' | transloco: { n: totalCount() } }}</span>
         }
 
         @if (modeBehavior().hint) {
@@ -46,13 +46,13 @@
         <table class="disposition">
           <thead>
             <tr>
-              <th scope="col" class="col-status">Status</th>
-              <th scope="col" class="col-train">Zug</th>
-              <th scope="col" class="col-message">Meldung</th>
-              <th scope="col" class="col-schedule">Soll</th>
-              <th scope="col" class="col-slack">Puffer</th>
-              <th scope="col" class="col-switch">Nächste Weiche</th>
-              <th scope="col" class="col-actions">Aktion</th>
+              <th scope="col" class="col-status">{{ 'table.col.status' | transloco }}</th>
+              <th scope="col" class="col-train">{{ 'table.col.train' | transloco }}</th>
+              <th scope="col" class="col-message">{{ 'table.col.message' | transloco }}</th>
+              <th scope="col" class="col-schedule">{{ 'table.col.schedule' | transloco }}</th>
+              <th scope="col" class="col-slack">{{ 'table.col.slack' | transloco }}</th>
+              <th scope="col" class="col-switch">{{ 'table.col.nextSwitch' | transloco }}</th>
+              <th scope="col" class="col-actions">{{ 'table.col.action' | transloco }}</th>
             </tr>
           </thead>
 
@@ -68,8 +68,8 @@
                   <span class="status-label">{{ row.statusLabel }}</span>
                   @if (row.malfunctionSteps !== null) {
                     <span class="disruption-badge"
-                          [title]="store.malfunctionTypeLabel(row.agent) + ' — fährt in ' + row.malfunctionSteps + ' Schritt(en) weiter'">
-                      Störung {{ row.malfunctionSteps }}
+                          [title]="'train.resumesIn' | transloco: { type: store.malfunctionTypeLabel(row.agent), n: row.malfunctionSteps }">
+                      {{ 'train.disruption' | transloco: { n: row.malfunctionSteps } }}
                     </span>
                   }
                 </td>
@@ -115,9 +115,9 @@
                           [class.is-mine]="opt.isMine"
                           [class.is-ai]="opt.isAiRecommended"
                           [title]="opt.isMine
-                            ? 'Dein gesetzter Eingriff'
-                            : (opt.isAiRecommended ? 'Empfehlung der KI für diesen Zug' : '')">
-                          {{ opt.label }}@if (opt.isAiRecommended) {<span class="ai-star" aria-label="Empfehlung der KI"> ★</span>}
+                            ? ('train.myOverrideShort' | transloco)
+                            : (opt.isAiRecommended ? ('train.aiRecommendation' | transloco) : '')">
+                          {{ i18n.actionLabel(opt) }}@if (opt.isAiRecommended) {<span class="ai-star" [attr.aria-label]="'train.aiRecommendationShort' | transloco"> ★</span>}
                         </span>
                       } @else {
                       <button
@@ -126,12 +126,12 @@
                         [class.is-mine]="opt.isMine"
                         [class.is-ai]="opt.isAiRecommended"
                         [title]="opt.isMine
-                          ? 'Dein gesetzter Eingriff — nochmal klicken hebt ihn auf'
+                          ? ('train.myOverride' | transloco)
                           : (opt.isAiRecommended
-                              ? 'Empfehlung der KI für diesen Zug'
-                              : 'Als Eingriff für diesen Zug setzen')"
+                              ? ('train.aiRecommendation' | transloco)
+                              : ('train.setOverride' | transloco))"
                         (click)="onAction(row.handle, opt.action)">
-                        {{ opt.label }}@if (opt.isAiRecommended) {<span class="ai-star" aria-label="Empfehlung der KI"> ★</span>}
+                        {{ i18n.actionLabel(opt) }}@if (opt.isAiRecommended) {<span class="ai-star" [attr.aria-label]="'train.aiRecommendationShort' | transloco"> ★</span>}
                       </button>
                       }
                     }
@@ -144,9 +144,9 @@
               <tr>
                 <td class="empty-row" colspan="7">
                   @if (conflictsOnly()) {
-                    Kein Zug steckt gerade in einem Konflikt.
+                    {{ 'table.emptyConflicts' | transloco }}
                   } @else {
-                    Keine Züge.
+                    {{ 'table.empty' | transloco }}
                   }
                 </td>
               </tr>

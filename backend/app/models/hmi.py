@@ -1,5 +1,5 @@
 """HMI-Mock-Models fuer Notifications, Scenarios, Recommendations."""
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel
 
 
@@ -19,6 +19,12 @@ class AppNotification(BaseModel):
     message: str
     timestamp: int               # elapsed_steps when raised
     relatedElement: Optional[RelatedElement] = None
+    # i18n (docs/plans/i18n-strategy.md, phase 4): a stable code plus the values
+    # the sentence needs, so the frontend can word the notification in the
+    # viewer's language. Additive — `title`/`message` stay the English text and
+    # remain the fallback for clients, and for codes a language does not cover.
+    code: Optional[str] = None
+    params: Optional[Dict[str, Union[str, int, float]]] = None
 
 
 class KpiDelta(BaseModel):

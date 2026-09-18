@@ -8,10 +8,12 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { AgentDTO } from '../../core/models';
+import { LanguageService } from '../../core/i18n/language.service';
 
 /**
  * Trains — v2 · Dispositionstabelle.
@@ -62,7 +64,7 @@ export interface TrainRow {
 @Component({
   selector: 'app-agents-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './agents-table.component.html',
   styleUrl: './agents-table.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -80,6 +82,7 @@ export class AgentsTableComponent {
   }
 
   readonly store = inject(SessionStore);
+  readonly i18n = inject(LanguageService);
   private readonly colors = inject(AgentColorService);
   private readonly trainActions = inject(TrainActionService);
 
@@ -92,12 +95,12 @@ export class AgentsTableComponent {
       case 'recommended':
         return {
           markAiPlan: true,
-          hint: '★ = Empfehlung der KI für diesen Zug · rot = dein gesetzter Eingriff',
+          hint: this.i18n.t('table.hint.recommended'),
         };
       case 'neutral':
         return {
           markAiPlan: false,
-          hint: 'Optionen gleichwertig — du entscheidest zuerst · rot = dein gesetzter Eingriff',
+          hint: this.i18n.t('table.hint.neutral'),
         };
       case 'none':
         return { markAiPlan: false, hint: '' };
@@ -162,10 +165,10 @@ export class AgentsTableComponent {
       handle: a.handle,
       color: this.colors.getColor(a.handle, this.isSelected(a.handle) ? 'focus' : 'default'),
       group,
-      statusLabel: STATUS_LABEL[group],
+      statusLabel: this.i18n.t(`table.status.${group}`),
       malfunctionSteps: malfunctioning ? (a.malfunction_remaining ?? 0) : null,
       message: this._messageFor(a, malfunctioning, impact),
-      scheduleLabel: waiting ? 'Abf.' : 'Ank.',
+      scheduleLabel: this.i18n.t(waiting ? 'train.dep' : 'train.arr'),
       scheduleValue: String((waiting ? a.earliest_departure : a.latest_arrival) ?? '–'),
       slack: this._slack(a, waiting),
       slackLate: !waiting && (a.time_to_deadline ?? 0) < 0,
@@ -234,17 +237,17 @@ export class AgentsTableComponent {
       // "Remaining Steps" in the review sketch was this countdown. A true
       // steps-to-next-decision-point field does not exist in the DTO and is
       // flagged in the spec rather than invented here.
-      parts.push(`Störung, noch ${a.malfunction_remaining ?? 0}`);
+      parts.push(this.i18n.t('table.msg.disruption', { n: a.malfunction_remaining ?? 0 }));
     }
 
     const blocked = impact.find((i) => i.handle === a.handle);
     if (blocked) {
-      parts.push(`blockiert durch Zug ${blocked.blocked_by} · frei in ${blocked.clears_in_steps}`);
+      parts.push(this.i18n.t('table.msg.blockedBy', { train: blocked.blocked_by, n: blocked.clears_in_steps }));
     }
 
     const blocking = impact.filter((i) => i.blocked_by === a.handle).map((i) => i.handle);
     if (blocking.length) {
-      parts.push(`blockiert Zug ${blocking.join(', ')}`);
+      parts.push(this.i18n.t('table.msg.blocking', { trains: blocking.join(', ') }));
     }
 
     return parts.join(' · ');
@@ -254,11 +257,11 @@ export class AgentsTableComponent {
     if (waiting) {
       const eta = a.eta_to_depart;
       if (eta == null) return '–';
-      return eta === 0 ? 'jetzt' : `in ${eta}`;
+      return eta === 0 ? this.i18n.t('train.now') : this.i18n.t('train.inSteps', { n: eta });
     }
     const t = a.time_to_deadline;
     if (t == null) return '–';
-    return t >= 0 ? `noch ${t}` : `+${-t} spät`;
+    return t >= 0 ? this.i18n.t('train.slackLeft', { n: t }) : this.i18n.t('train.late', { n: -t });
   }
 
   private _groupOf(a: AgentDTO): RowGroup {
@@ -274,9 +277,3 @@ export class AgentsTableComponent {
 const STOP_ACTION = 4;
 
 const GROUP_ORDER: Record<RowGroup, number> = { moving: 0, waiting: 1, done: 2 };
-
-const STATUS_LABEL: Record<RowGroup, string> = {
-  moving: 'unterwegs',
-  waiting: 'wartet',
-  done: 'angekommen',
-};

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/transloco-testing';
 import { AgentColorService } from './agent-color.service';
 import { TRAIN_TYPES } from './agent-color.types';
 
@@ -6,7 +7,8 @@ describe('AgentColorService', () => {
   let svc: AgentColorService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [...provideTranslocoTesting()],});
     svc = TestBed.inject(AgentColorService);
   });
 

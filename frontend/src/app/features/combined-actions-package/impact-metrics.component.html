@@ -1,12 +1,12 @@
 @if (current(); as m) {
   <div class="im" [class.is-updating]="status === 'updating'">
     @if (status === 'updating') {
-      <span class="im-pending">Simulation läuft …</span>
+      <span class="im-pending">{{ 'cap.metrics.running' | transloco }}</span>
     } @else {
       <span class="im-primary">
         <span class="im-arrow" aria-hidden="true">↓</span>
         <span class="im-minutes">{{ m.totalDelayReduction }}</span>
-        <span class="im-unit">min Verspätung</span>
+        <span class="im-unit">{{ 'cap.metrics.unit' | transloco }}</span>
       </span>
 
       @if (delta(); as d) {
@@ -15,13 +15,12 @@
     }
 
     <span class="im-meta">
-      {{ baselineDelay }} → {{ m.totalDelay }} min gesamt · Konfidenz
-      {{ confidenceLabel() }}
+      {{ 'cap.metrics.meta' | transloco: { from: baselineDelay, to: m.totalDelay, confidence: confidenceLabel() } }}
     </span>
 
     @if (modified && ai(); as aiM) {
       <span class="im-compare">
-        KI: −{{ aiM.totalDelayReduction }} min · jetzt: −{{ m.totalDelayReduction }} min
+        {{ 'cap.metrics.compare' | transloco: { ai: aiM.totalDelayReduction, now: m.totalDelayReduction } }}
       </span>
     }
   </div>

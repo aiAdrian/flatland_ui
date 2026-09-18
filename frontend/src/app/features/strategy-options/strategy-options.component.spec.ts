@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { DirectorStrategy } from '../../core/api.service';
 import {
   OperatorModelService,
@@ -80,7 +81,8 @@ describe('StrategyOptionsComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [StrategyOptionsComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(StrategyOptionsComponent);
     cmp = fixture.componentInstance;
@@ -145,16 +147,16 @@ describe('StrategyOptionsComponent', () => {
     }
   }
 
-  it('renders three tiles labelled A/B/C with German focus titles', () => {
+  it('renders three tiles labelled A/B/C with their focus titles', () => {
     flushStrategies();
     fixture.detectChanges();
 
     const tiles = cmp.tiles();
     expect(tiles.map((t) => t.ident)).toEqual(['A', 'B', 'C']);
     expect(tiles.map((t) => t.copy.title)).toEqual([
-      'Verspätung minimieren',
-      'Anschlüsse halten',
-      'Stabilität maximieren',
+      'Minimise delay',
+      'Keep connections',
+      'Maximise stability',
     ]);
   });
 
@@ -254,7 +256,7 @@ describe('StrategyOptionsComponent', () => {
     fixture.detectChanges();
 
     expect(cmp.allFocusesAgree()).toBeTrue();
-    expect(fixture.nativeElement.textContent).toContain('selben Plan');
+    expect(fixture.nativeElement.textContent).toContain('the same plan');
   });
 
   it('does not claim agreement when a focus reroutes trains', () => {
@@ -298,8 +300,8 @@ describe('StrategyOptionsComponent', () => {
 
     const connections = cmp.tiles()[0].axes.find((a) => a.focus === 'connections')!;
     expect(connections.pct).toBe(38);
-    expect(connections.scope).toBe('von 35');
-    expect(fixture.nativeElement.textContent).toContain('von 35');
+    expect(connections.scope).toBe('of 35');
+    expect(fixture.nativeElement.textContent).toContain('of 35');
   });
 
   it('names the factor that limits stability instead of leaving a bare 0 %', () => {
@@ -325,8 +327,8 @@ describe('StrategyOptionsComponent', () => {
     fixture.detectChanges();
 
     // 0.007 → 1 %; the sub-percent case has its own test below.
-    expect(cmp.tiles()[0].stabilityHint).toBe('begrenzt durch Deadlock-Risiko (1 %)');
-    expect(fixture.nativeElement.textContent).toContain('Deadlock-Risiko');
+    expect(cmp.tiles()[0].stabilityHint).toBe('limited by deadlock risk (1 %)');
+    expect(fixture.nativeElement.textContent).toContain('deadlock risk');
   });
 
   it('does not round a sub-percent bottleneck down to "0 %"', () => {
@@ -453,8 +455,8 @@ describe('StrategyOptionsComponent', () => {
     const pending = store.pendingStrategyReflection()!;
     expect(pending.axis).toBe('connection');
     expect(pending.tradedAway).not.toBeNull();
-    expect(pending.tradedAway).not.toContain('Anschlüsse');
-    expect(pending.hypothesis).not.toContain('Anschlüsse kostet');
+    expect(pending.tradedAway).not.toContain('Connections');
+    expect(pending.hypothesis).not.toContain('points of Connections');
   });
 
   it('reports no price when only the goal own axis regressed', () => {
@@ -493,7 +495,7 @@ describe('StrategyOptionsComponent', () => {
     fixture.detectChanges();
 
     const outlook = store.directorFocusOutlook();
-    expect(outlook?.subject).toBe('B · Anschlüsse halten');
+    expect(outlook?.subject).toBe('B · Keep connections');
     // 90/40/70 against 95/40/90: worse punctuality, connections held, less
     // stability headroom.
     expect(outlook?.signals).toEqual({
@@ -550,8 +552,8 @@ describe('StrategyOptionsComponent', () => {
     });
     expect(cmp.tiles()[0].previewPaths).toBeNull();
     // The map draws no marks; the button then offers the plan instead of nothing.
-    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('wie der laufende Plan');
-    expect(cmp.previewLabel(cmp.tiles()[0])).toBe('Plan auf Karte');
+    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('like the current plan');
+    expect(cmp.previewLabel(cmp.tiles()[0])).toBe('Plan on the map');
   });
 
   it('counts the rerouted trains from the divergence, not from the re-plan list', () => {
@@ -573,9 +575,9 @@ describe('StrategyOptionsComponent', () => {
     expect(cmp.tiles()[0].changed).toBe(1);
     expect(cmp.tiles()[0].holds).toBe(1);
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-    expect(text).toContain('Leitet 1 Zug/Züge um');
-    expect(text).toContain('1 warten statt umzufahren');
-    expect(text).not.toContain('Leitet 8');
+    expect(text).toContain('Reroutes 1 train(s)');
+    expect(text).toContain('1 wait instead of taking another route');
+    expect(text).not.toContain('Reroutes 8');
   });
 
   it('still puts something on the map when a focus deviates nowhere', () => {
@@ -595,7 +597,7 @@ describe('StrategyOptionsComponent', () => {
     const tile = cmp.tiles()[0];
     expect(tile.previewPaths).toBeNull();
     expect(tile.fullPaths).not.toBeNull();
-    expect(cmp.previewLabel(tile)).toBe('Plan auf Karte');
+    expect(cmp.previewLabel(tile)).toBe('Plan on the map');
 
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.so-btn--preview');
     expect(btn.hasAttribute('disabled')).toBeFalse();
@@ -628,16 +630,16 @@ describe('StrategyOptionsComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(cmp.tiles()[0].fellBackTo).toContain('Linienplan');
+    expect(cmp.tiles()[0].fellBackTo).toContain('line plan');
     expect(cmp.tiles()[1].fellBackTo).toBeNull();
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-    expect(text).toContain('die Suche fand nichts Besseres');
+    expect(text).toContain('the search found nothing better');
   });
 
   it('stays quiet when the search won', () => {
     flushStrategies();
     expect(cmp.tiles().every((t) => t.fellBackTo === null)).toBeTrue();
-    expect(fixture.nativeElement.textContent).not.toContain('nichts Besseres');
+    expect(fixture.nativeElement.textContent).not.toContain('nothing better');
   });
 
   it('says the tile text and the button agree on what is shown', () => {
@@ -650,8 +652,8 @@ describe('StrategyOptionsComponent', () => {
     });
     fixture.detectChanges();
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-    expect(text).toContain('Fährt jeden Zug wie der laufende Plan');
-    expect(text).toContain('Plan auf Karte');
+    expect(text).toContain('Runs every train like the current plan');
+    expect(text).toContain('Plan on the map');
   });
 
   it('keeps promising the map while the answer is still being computed', () => {
@@ -660,7 +662,7 @@ describe('StrategyOptionsComponent', () => {
     fixture.detectChanges();
     // Unplanned is not the same as "no difference"; claiming the latter here
     // would be a finding the component does not have.
-    expect(cmp.previewLabel(cmp.tiles()[0])).toBe('Auf Karte');
+    expect(cmp.previewLabel(cmp.tiles()[0])).toBe('On the map');
   });
 
   it('recognises agreement through the divergence as well', () => {
@@ -725,7 +727,7 @@ describe('StrategyOptionsComponent', () => {
     expect(cmp.tiles()[0].previewPaths).toBeNull();
     // No routes at all either, so there is genuinely nothing to draw.
     expect(cmp.tiles()[0].fullPaths).toBeNull();
-    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('keine Route vor');
+    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('No route is available');
 
     cmp.togglePreview(cmp.tiles()[0]);
     expect(store.directorPreviewStrategyId()).toBeNull();
@@ -850,7 +852,7 @@ describe('StrategyOptionsComponent', () => {
 
   it('explains a preview button it has to disable', () => {
     flushStrategies({ strategies: THREE.map((s) => ({ ...s, plan: null, paths: null })) });
-    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('Optionen berechnen');
+    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('Compute options');
   });
 
   it('does not force a first plan while the run is already producing one', () => {
@@ -888,9 +890,9 @@ describe('StrategyOptionsComponent', () => {
     http.expectNone((r) => r.url.endsWith('/director/strategies'));
 
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-    expect(text).toContain('sobald du pausierst');
-    expect(text).toContain('Ziele übernehmen kannst du jederzeit');
-    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('Pausiere den Lauf');
+    expect(text).toContain('as soon as you pause');
+    expect(text).toContain('You can apply a goal at any time');
+    expect(cmp.previewBlockedReason(cmp.tiles()[0])).toContain('Pause the run');
   });
 
   it('computes anyway when the operator asks explicitly', () => {
@@ -997,10 +999,10 @@ describe('StrategyOptionsComponent', () => {
       expect(m.changesNothing).toBeFalse();
 
       const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-      expect(text).toContain('Nachgespielt bis Episodenende (ab Schritt 12)');
-      expect(text).toContain('Verspätung -118');
-      expect(text).toContain('Ankünfte +2 (3/6)');
-      expect(text).toContain('Anschlüsse +2 (8/17)');
+      expect(text).toContain('Replayed to the end of the episode (from step 12)');
+      expect(text).toContain('Delay -118');
+      expect(text).toContain('Arrivals +2 (3/6)');
+      expect(text).toContain('Connections +2 (8/17)');
       // Only the tile that was simulated says anything.
       expect(cmp.tiles()[0].measured).toBeNull();
     });
@@ -1014,7 +1016,7 @@ describe('StrategyOptionsComponent', () => {
       fixture.detectChanges();
 
       expect(cmp.tiles()[1].measured!.changesNothing).toBeTrue();
-      expect(fixture.nativeElement.textContent).toContain('bleibt beim laufenden Plan');
+      expect(fixture.nativeElement.textContent).toContain('stays with the running plan');
     });
 
     it('names it when the simulation contradicts the score', () => {
@@ -1033,8 +1035,8 @@ describe('StrategyOptionsComponent', () => {
 
       expect(cmp.tiles()[0].measured!.contradictsScore).toBeTrue();
       const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-      expect(text).toContain('widerspricht der Bewertung');
-      expect(text).toContain('im Zweifel gilt das Nachspielen');
+      expect(text).toContain('contradicts the assessment');
+      expect(text).toContain('when in doubt, the replay counts');
     });
 
     it('drops a simulation once the state it was taken from moved on', () => {
@@ -1068,7 +1070,7 @@ describe('StrategyOptionsComponent', () => {
 
       expect(cmp.tiles()[0].measured).toBeNull();
       expect(cmp.simulating()).toBeNull();
-      expect(fixture.nativeElement.textContent).toContain('Simulation ist fehlgeschlagen');
+      expect(fixture.nativeElement.textContent).toContain('simulation failed');
     });
   });
 
@@ -1089,11 +1091,11 @@ describe('StrategyOptionsComponent', () => {
 
       expect(cmp.tiles().filter((t) => t.isPreferred).map((t) => t.ident)).toEqual(['B']);
       const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-      expect(text).toContain('Passt zu deiner gelernten Präferenz');
+      expect(text).toContain('Fits the preference you taught me');
       // The evidence travels with the mark, and it stays a proposal.
       expect(text).toContain('75 %');
-      expect(text).toContain('2 abgeschlossene Schicht(en)');
-      expect(text).toContain('keine Vorauswahl');
+      expect(text).toContain('2 completed shift(s)');
+      expect(text).toContain('not a preselection');
     });
 
     it('leaves the order of the tiles alone', () => {
@@ -1119,7 +1121,7 @@ describe('StrategyOptionsComponent', () => {
       fixture.detectChanges();
 
       expect(cmp.tiles().filter((t) => t.isPreferred).map((t) => t.ident)).toEqual(['C']);
-      expect(fixture.nativeElement.textContent).toContain('Von dir bestätigt');
+      expect(fixture.nativeElement.textContent).toContain('Confirmed by you');
     });
 
     it('marks nothing on a single decision', () => {
@@ -1141,7 +1143,7 @@ describe('StrategyOptionsComponent', () => {
     it('marks nothing without a profile', () => {
       flushStrategies();
       expect(cmp.preferred()).toBeNull();
-      expect(fixture.nativeElement.textContent).not.toContain('gelernten Präferenz');
+      expect(fixture.nativeElement.textContent).not.toContain('preference you taught me');
     });
   });
 });

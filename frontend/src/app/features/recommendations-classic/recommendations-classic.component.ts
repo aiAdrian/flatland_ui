@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
@@ -15,7 +17,7 @@ import { PolicyName } from '../../core/models';
 @Component({
   selector: 'app-recommendations-classic',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './recommendations-classic.component.html',
   styleUrl: './recommendations-classic.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -29,6 +31,7 @@ export class RecommendationsClassicComponent implements OnDestroy {
   }
 
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   api = inject(ApiService);
   bus = inject(EventBusService);
 
@@ -235,7 +238,7 @@ export class RecommendationsClassicComponent implements OnDestroy {
         this.dismiss(r);
       },
       error: (err) => {
-        console.warn('Failed to apply recommendation', err);
+        console.warn(this.i18n.t('rec.applyFailed'), err);
       },
     });
   }

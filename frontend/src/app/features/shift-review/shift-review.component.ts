@@ -13,7 +13,9 @@ import { AgentDTO } from '../../core/models';
 import { OperatorModelService, ValueAxis } from '../../core/operator-model.service';
 import { SessionStore } from '../../core/session.store';
 import { ReflectionCaseType, REFLECTION_CASE_LABELS, VALUE_AXIS_LABELS } from '../../core/reflection-moments';
-import { ShiftKpis, buildShiftReview, statedReason } from '../../core/shift-review';
+import { ShiftContradiction, ShiftKpis, buildShiftReview, statedReason } from '../../core/shift-review';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 
 /**
  * Director shift review — the end-of-shift evaluation this mode did not have.
@@ -34,16 +36,25 @@ import { ShiftKpis, buildShiftReview, statedReason } from '../../core/shift-revi
  *
  * No LLM: every sentence is a template over measured values.
  */
+/** Translation key per value axis. */
+const AXIS_KEY: Record<ValueAxis, string> = {
+  punctuality: 'effect.punctuality',
+  connection: 'effect.connections',
+  stability: 'effect.networkStability',
+  throughput: 'effect.throughput',
+};
+
 @Component({
   selector: 'app-shift-review',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './shift-review.component.html',
   styleUrl: './shift-review.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ShiftReviewComponent {
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private model = inject(OperatorModelService);
   private api = inject(ApiService);
 
@@ -195,23 +206,37 @@ export class ShiftReviewComponent {
   }
 
   caseLabel(caseType: ReflectionCaseType): string {
-    return REFLECTION_CASE_LABELS[caseType];
+    return this.i18n.t(`reflection.case.${caseType}`, undefined, REFLECTION_CASE_LABELS[caseType]);
   }
 
   axisLabel(axis: ValueAxis | null): string {
-    return axis ? VALUE_AXIS_LABELS[axis] : '—';
+    return axis ? this.i18n.t(AXIS_KEY[axis], undefined, VALUE_AXIS_LABELS[axis]) : '—';
   }
 
   /** The operator's own words for a moment, without the bookkeeping prefix. */
+  /** The open question for two competing priorities, in the viewer's language
+   *  (core/shift-review.ts keeps a German copy for its own tests). */
+  contradictionQuestion(c: ShiftContradiction): string {
+    const [first, second] = c.axes;
+    return this.i18n.t('shift.contradiction', {
+      first: this.axisLabel(first.axis),
+      firstCount: first.count,
+      second: this.axisLabel(second.axis),
+      secondCount: second.count,
+    });
+  }
+
+  /** Why a moment was picked, in the viewer's language. */
+  reasonsOf(m: { reasonKeys: string[] }): string {
+    return m.reasonKeys.map((k) => this.i18n.t(k)).join(' · ');
+  }
+
   reasonOf(rationale?: string): string | null {
     return statedReason(rationale);
   }
 
   responseLabel(response?: 'yes' | 'once' | 'no' | null): string | null {
-    if (response === 'yes') return 'als Regel bestätigt';
-    if (response === 'once') return 'nur dieses Mal';
-    if (response === 'no') return 'als Präferenz verneint';
-    return null;
+    return response ? this.i18n.t(`shift.response.${response}`) : null;
   }
 
   /**

@@ -6,10 +6,32 @@ import { ValueAxis } from './operator-model.service';
  * evidence we have for Co-Learning Level B (`docs/plans/co-learning-direction.md`):
  * when the operator says *why*, that beats inferring it from KPI deltas.
  *
- * Keys are the reason-chip labels from
- * `features/rationale-capture/rationale-capture.component.ts`; the store only
- * carries the joined label string (`DecisionLogEntry.rationale`), so we match on
- * labels. Keep in sync with that component's `chips`.
+ * Keyed by the reason-chip **ids** from
+ * `features/rationale-capture/rationale-capture.component.ts`, which the capture
+ * surface passes along with the rationale. The ids do not change with the
+ * viewer's language, while the labels do (i18n plan, phase 3).
+ */
+export const RATIONALE_AXIS_BY_ID: Readonly<Record<string, ValueAxis>> = {
+  connection: 'connection',
+  delay: 'punctuality',
+  ripple: 'stability',
+  deadlock: 'stability',
+  // 'critical' / 'experience' / 'other' carry no axis on purpose: they say
+  // *that* it mattered, not which trade-off was chosen.
+};
+
+/** The axis a set of chosen reason chips is evidence for; first match wins. */
+export function valueAxisFromRationaleIds(ids?: readonly string[] | null): ValueAxis | null {
+  for (const id of ids ?? []) {
+    const axis = RATIONALE_AXIS_BY_ID[id];
+    if (axis) return axis;
+  }
+  return null;
+}
+
+/**
+ * German chip labels as they were worded before the interface had languages.
+ * Kept so decisions recorded then still resolve to their axis.
  */
 export const RATIONALE_AXIS_BY_LABEL: ReadonlyArray<readonly [string, ValueAxis]> = [
   ['Schützt Anschluss', 'connection'],

@@ -96,17 +96,30 @@ export class TourDebriefComponent {
 
   readonly sandbox = SANDBOX_OUTCOMES;
 
-  /** The interviewee's last own decision on a train, to mark it among the variants. */
-  private lastActionOn(handle: number): DecisionAction | null {
-    const own = this.interventions().filter((i) => i.handle === handle);
-    return own.length > 0 ? own[own.length - 1].action : null;
+  /**
+   * Which sandbox variant the interviewee actually played, read from what
+   * happened rather than from the last button pressed. A hold that was never
+   * released is "hold without release"; a hold followed by a release is "hold,
+   * then release". Both start as a 'hold' in the log, so the last action alone
+   * cannot tell them apart — it marked "hold, then release" for a train that
+   * was still standing when the shift ended.
+   */
+  private playedVariantOn(handle: number): string | null {
+    const own = this.interventions()
+      .filter((i) => i.handle === handle)
+      .map((i) => i.action);
+    if (own.length === 0) return null;
+    const last = own[own.length - 1];
+    if (last === 'reroute') return 'reroute';
+    if (last === 'hold') return 'hold-no-release';
+    if (last === 'proceed') return own.includes('hold') ? 'hold-release' : 'proceed';
+    return null;
   }
 
   isUserChoice(sandboxCase: SandboxCase, variant: SandboxVariant): boolean {
     return (
       sandboxCase.kind === 'experienced' &&
-      variant.matchesAction !== null &&
-      variant.matchesAction === this.lastActionOn(sandboxCase.decisionHandle)
+      variant.id === this.playedVariantOn(sandboxCase.decisionHandle)
     );
   }
 

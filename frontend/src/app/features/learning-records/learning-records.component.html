@@ -1,7 +1,7 @@
 @if (records().length > 0) {
   <section class="lr">
     <div class="lr-head">
-      <span class="lr-title">Lern-Karten</span>
+      <span class="lr-title">{{ 'records.title' | transloco }}</span>
       <span class="lr-count">{{ records().length }}</span>
     </div>
 
@@ -15,7 +15,7 @@
             @if (r.handle >= 0) {
               <span class="lr-card__train">{{ trainName(r.handle) }}</span>
             } @else {
-              <span class="lr-card__train">Gesamtplan</span>
+              <span class="lr-card__train">{{ 'log.wholePlan' | transloco }}</span>
             }
           </div>
           <app-score-badge
@@ -28,15 +28,15 @@
 
         @if (hasContext(r)) {
           <div class="lr-card__metrics">
-            <app-metric-chip label="Verspätung" [value]="delayMetric(r).value" [level]="delayMetric(r).level" />
-            <app-metric-chip label="Anschluss" [value]="connectionMetric(r).value" [level]="connectionMetric(r).level" />
-            <app-metric-chip label="Folgewirkung" [value]="rippleMetric(r).value" [level]="rippleMetric(r).level" />
+            <app-metric-chip [label]="'rec.metric.delay' | transloco" [value]="delayMetric(r).value" [level]="delayMetric(r).level" />
+            <app-metric-chip [label]="'rec.metric.connection' | transloco" [value]="connectionMetric(r).value" [level]="connectionMetric(r).level" />
+            <app-metric-chip [label]="'rec.metric.ripple' | transloco" [value]="rippleMetric(r).value" [level]="rippleMetric(r).level" />
           </div>
         }
 
         @if (reasoningFor(r).length > 0) {
           <div class="lr-card__why">
-            <span class="lr-card__why-label">Warum</span>
+            <span class="lr-card__why-label">{{ 'records.why' | transloco }}</span>
             <app-reasoning-list [items]="reasoningFor(r)" />
           </div>
         }

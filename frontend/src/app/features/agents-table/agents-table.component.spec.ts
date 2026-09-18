@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { SessionStore } from '../../core/session.store';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { AgentDTO, SessionState } from '../../core/models';
@@ -56,7 +57,8 @@ describe('AgentsTableComponent — Trains v2 (Dispositionstabelle)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AgentsTableComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(AgentsTableComponent);
     cmp = fixture.componentInstance;
@@ -92,7 +94,7 @@ describe('AgentsTableComponent — Trains v2 (Dispositionstabelle)', () => {
     store.interactionMode.set('co-learning');
     const row = cmp.rows().find((r) => r.handle === 0)!;
     expect(row.options.every((o) => !o.isAiRecommended)).toBeTrue();
-    expect(cmp.modeBehavior().hint).toContain('gleichwertig');
+    expect(cmp.modeBehavior().hint).toContain('Options are equal');
   });
 
   it('never invents a recommendation for a train the AI said nothing about', () => {
@@ -131,18 +133,18 @@ describe('AgentsTableComponent — Trains v2 (Dispositionstabelle)', () => {
 
   it('says what is going on in one phrase, from the impact analysis', () => {
     const blocked = cmp.rows().find((r) => r.handle === 0)!;
-    expect(blocked.message).toContain('blockiert durch Zug 1');
-    expect(blocked.message).toContain('frei in 12');
+    expect(blocked.message).toContain('blocked by train 1');
+    expect(blocked.message).toContain('clear in 12');
 
     const blocker = cmp.rows().find((r) => r.handle === 1)!;
-    expect(blocker.message).toContain('Störung, noch 12');
-    expect(blocker.message).toContain('blockiert Zug 0');
+    expect(blocker.message).toContain('Disruption, 12 left');
+    expect(blocker.message).toContain('blocking train 0');
   });
 
   it('reads slack as time in hand, and lateness as lateness', () => {
-    expect(cmp.rows().find((r) => r.handle === 0)!.slack).toBe('noch 40');
+    expect(cmp.rows().find((r) => r.handle === 0)!.slack).toBe('40 left');
     const late = cmp.rows().find((r) => r.handle === 1)!;
-    expect(late.slack).toBe('+19 spät');
+    expect(late.slack).toBe('+19 late');
     expect(late.slackLate).toBeTrue();
   });
 

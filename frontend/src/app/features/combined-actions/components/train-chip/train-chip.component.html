@@ -13,7 +13,7 @@
     <span
       class="chip__shift"
       [class.chip__shift--earlier]="shift < 0"
-      [attr.title]="(shift < 0 ? 'Moved ' + -shift + ' earlier' : 'Moved ' + shift + ' later') + ' than the AI proposal'"
+      [attr.title]="(shift < 0 ? 'ca.chip.movedEarlier' : 'ca.chip.movedLater') | transloco: { n: shift < 0 ? -shift : shift }"
     >{{ shiftLabel }}</span>
   }
 </span>

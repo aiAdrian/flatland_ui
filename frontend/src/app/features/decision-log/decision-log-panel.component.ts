@@ -1,18 +1,21 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { LanguageService } from '../../core/i18n/language.service';
 import { DecisionAction, DecisionLogEntry, DecisionOwner } from '../../core/decision-log';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainIdentityService } from '../../core/train-identity.service';
 
-const ACTION_LABEL: Record<DecisionAction, string> = {
-  hold: 'Halten',
-  proceed: 'Weiterfahren',
-  reroute: 'Umleiten',
-  accept: 'Übernommen',
-  override: 'Übersteuert',
-  dismiss: 'Verworfen',
-  strategy: 'Ziel gesetzt',
+/** Translation key per logged action (i18n plan, phase 3). */
+const ACTION_KEY: Record<DecisionAction, string> = {
+  hold: 'log.action.hold',
+  proceed: 'log.action.proceed',
+  reroute: 'log.action.reroute',
+  accept: 'log.verb.accepted',
+  override: 'log.verb.override',
+  dismiss: 'log.verb.rejected',
+  strategy: 'log.verb.directive',
 };
 
 /**
@@ -41,7 +44,7 @@ const ACTION_LABEL: Record<DecisionAction, string> = {
 @Component({
   selector: 'app-decision-log-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './decision-log-panel.component.html',
   styleUrl: './decision-log-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -55,19 +58,22 @@ export class DecisionLogPanelComponent {
   }
 
   readonly store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private readonly colors = inject(AgentColorService);
   private readonly identity = inject(TrainIdentityService);
 
   trainName(handle: number): string {
-    return handle < 0 ? 'Gesamtplan' : this.identity.nameFor(handle);
+    return handle < 0 ? this.i18n.t('log.wholePlan') : this.identity.nameFor(handle);
   }
 
   actionLabel(action: DecisionAction): string {
-    return ACTION_LABEL[action] ?? action;
+    const key = ACTION_KEY[action];
+    return key ? this.i18n.t(key, undefined, action) : action;
   }
 
   verbLabel(verb: 'accept' | 'override' | '—'): string {
-    return verb === 'accept' ? 'übernommen' : verb === 'override' ? 'übersteuert' : verb;
+    if (verb === '—') return verb;
+    return this.i18n.t(verb === 'accept' ? 'log.verb.accepted' : 'log.verb.override');
   }
 
   /** Newest-first view of the rolling log (cap 200 for the strip). */
@@ -121,7 +127,7 @@ export class DecisionLogPanelComponent {
   }
 
   ownerLabel(owner: DecisionOwner): string {
-    return owner === 'human' ? 'Mensch' : owner === 'ai' ? 'KI' : 'System';
+    return this.i18n.t(owner === 'human' ? 'log.human' : owner === 'ai' ? 'log.ai' : 'log.system');
   }
 
   /** Accept vs. override (derived): a human entry whose action differs from the

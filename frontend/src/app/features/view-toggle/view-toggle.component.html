@@ -1,16 +1,16 @@
 @if (store.session()) {
   <div class="view-toggle">
-    <span class="label">View</span>
+    <span class="label">{{ 'views.toggle.label' | transloco }}</span>
     <sbb-checkbox-group orientation="horizontal" size="s">
       <sbb-checkbox
         [checked]="store.showMap()"
         (change)="toggleMap()">
-        Map
+        {{ 'views.toggle.map' | transloco }}
       </sbb-checkbox>
       <sbb-checkbox
         [checked]="store.showMarey()"
         (change)="toggleMarey()">
-        Marey
+        {{ 'views.toggle.marey' | transloco }}
       </sbb-checkbox>
     </sbb-checkbox-group>
   </div>

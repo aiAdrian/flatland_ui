@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, HostBinding, Input, computed, effect, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
@@ -42,7 +44,7 @@ import { Recommendation, ScenarioOption } from '../../core/events/event-types';
 @Component({
   selector: 'app-risk-uncertainty-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './risk-uncertainty-panel.component.html',
   styleUrl: './risk-uncertainty-panel.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -56,6 +58,7 @@ export class RiskUncertaintyPanelComponent {
   }
 
   readonly store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
 
   /** Expanded detail (the "what is uncertain and why" drill-down). */
   readonly expanded = signal<boolean>(false);
@@ -138,27 +141,25 @@ export class RiskUncertaintyPanelComponent {
     const pct = this.dispersionPct();
     const band = this.bandWidth();
     if (pct !== null && band) {
-      out.push(`Alternatives disagree on outcome (±${pct}%) — ${band} spread across ${this.alternatives().length} option(s).`);
+      out.push(this.i18n.t('risk.reason.disagree', { pct, band: this.i18n.t(`risk.bandWidth.${band}`), n: this.alternatives().length }));
     }
     // Since the HMI review the backend ships the evidence behind the
     // number (recommendation_generator.estimate_confidence), so the drill-down
     // can name it instead of restating the number.
     const rec = this.primaryRecommendation();
     if (rec?.margin != null) {
-      const lead = rec.margin >= 0 ? 'ahead of' : 'behind';
+      const key = rec.margin >= 0 ? 'risk.reason.ahead' : 'risk.reason.behind';
       out.push(
-        `Option is ${Math.abs(rec.margin).toFixed(2)} ${lead} the current course`
-        + (rec.confidenceBasis === 'prior-only'
-          ? ' — no comparison branches, so this rests on the margin alone.'
-          : '.'),
+        this.i18n.t(key, { margin: Math.abs(rec.margin).toFixed(2) })
+        + (rec.confidenceBasis === 'prior-only' ? this.i18n.t('risk.reason.priorOnly') : '.'),
       );
     }
     const conf = rec?.confidence ?? this.aggregateConfidence();
     if (conf !== null && conf < 0.5) {
-      out.push('Model-reported confidence is below 0.5 — scrutinise before accepting.');
+      out.push(this.i18n.t('risk.reason.lowConfidence'));
     }
     if (out.length === 0) {
-      out.push('No dispersion signal available (fewer than 2 alternatives).');
+      out.push(this.i18n.t('risk.reason.noDispersion'));
     }
     return out;
   });
@@ -202,6 +203,18 @@ export class RiskUncertaintyPanelComponent {
     const band = this.bandWidth();
     return (conf !== null && conf < 0.5) || band === 'wide';
   });
+
+  /** The evidence verdict in the viewer's language; the value itself stays
+   *  English because the template's styling and the study log key on it. */
+  evidenceLabel(evidence: string): string {
+    const key: Record<string, string> = {
+      'evidence for': 'risk.evidence.for',
+      'evidence against': 'risk.evidence.against',
+      mixed: 'risk.evidence.mixed',
+      'no dispersion': 'risk.evidence.none',
+    };
+    return key[evidence] ? this.i18n.t(key[evidence]) : evidence;
+  }
 
   // ── Accountability instrumentation (spec §5) ──────────────────────────
   // First cut: local capture only. The operator states accept/override given

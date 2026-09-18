@@ -16,7 +16,7 @@ export const SANDBOX_OUTCOMES: SandboxOutcomes = {
       "id": "experienced-single-track",
       "kind": "experienced",
       "title": "{T0} bleibt im Einspurabschnitt stehen",
-      "situation": "Der Vorfall aus Ihrer Schicht: {T0} steht ab Schritt 28 für 12 Schritte mitten im einspurigen Abschnitt, {T1} folgt auf demselben Gleis.",
+      "situation": "Der Vorfall aus deiner Schicht: {T0} steht ab Schritt 28 für 12 Schritte mitten im einspurigen Abschnitt, {T1} folgt auf demselben Gleis.",
       "decisionHandle": 1,
       "decisionStep": 28,
       "variants": [

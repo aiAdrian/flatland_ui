@@ -7,17 +7,19 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { SessionStore } from '../../core/session.store';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
 import { AgentDTO } from '../../core/models';
+import { LanguageService } from '../../core/i18n/language.service';
 
 type AgentGroup = 'MOVING' | 'WAITING' | 'DONE';
 
 @Component({
   selector: 'app-left-sidebar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './left-sidebar.component.html',
   styleUrl: './left-sidebar.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -30,6 +32,7 @@ export class LeftSidebarComponent {
   @Input() viewOnly = false;
 
   store = inject(SessionStore);
+  readonly i18n = inject(LanguageService);
   private agentColors = inject(AgentColorService);
   /** Acting on a train goes through the dispatch seam, never straight to the
    *  store — see core/dispatch/train-action.service.ts. */
@@ -237,17 +240,17 @@ export class LeftSidebarComponent {
   formatDeadlineDelta(a: AgentDTO): string {
     const t = a.time_to_deadline;
     if (t === null || t === undefined) return '–';
-    if (t >= 0) return `noch ${t}`;   // slack left before latest arrival
-    return `+${-t} spät`;             // past the latest arrival
+    if (t >= 0) return this.i18n.t('train.slackLeft', { n: t });   // slack left before latest arrival
+    return this.i18n.t('train.late', { n: -t });                   // past the latest arrival
   }
 
   deadlineTooltip(a: AgentDTO): string {
     const t = a.time_to_deadline;
     const target = a.latest_arrival ?? '–';
-    if (t === null || t === undefined) return `Späteste Ankunft: ${target}`;
+    if (t === null || t === undefined) return this.i18n.t('roster.latestArrival', { target });
     return t >= 0
-      ? `Noch ${t} Schritt(e) Puffer bis zur spätesten Ankunft (${target})`
-      : `${-t} Schritt(e) über der spätesten Ankunft (${target})`;
+      ? this.i18n.t('roster.slackTooltip', { n: t, target })
+      : this.i18n.t('roster.lateTooltip', { n: -t, target });
   }
 
   /** True when one of the offered actions is the override currently set on this
@@ -261,7 +264,7 @@ export class LeftSidebarComponent {
   formatEta(a: AgentDTO): string {
     const eta = a.eta_to_depart;
     if (eta === null || eta === undefined) return '–';
-    if (eta === 0) return 'now';
-    return `in ${eta}`;
+    if (eta === 0) return this.i18n.t('train.now');
+    return this.i18n.t('train.inSteps', { n: eta });
   }
 }

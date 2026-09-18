@@ -2,19 +2,19 @@
   <div class="sr">
     <div class="sr-head">
       <span class="sr-icon" aria-hidden="true">🧠</span>
-      <span class="sr-title">Deine Entscheidung</span>
-      <button class="sr-close" type="button" (click)="dismiss()" aria-label="Ohne Antwort schließen">
+      <span class="sr-title">{{ 'strategyReflection.title' | transloco }}</span>
+      <button class="sr-close" type="button" (click)="dismiss()" [attr.aria-label]="'strategyReflection.close' | transloco">
         ✕
       </button>
     </div>
 
     <!-- Mirroring: the choice with its price, from the planner's own delta. -->
     <p class="sr-mirror">
-      Du hast <strong>{{ p.ident }} · {{ p.title }}</strong> übernommen.
+      {{ 'strategyReflection.tookBefore' | transloco }} <strong>{{ p.ident }} · {{ p.title }}</strong> {{ 'strategyReflection.tookAfter' | transloco }}
       @if (p.tradedAway) {
-        Preis dafür: <span class="sr-cost">{{ p.tradedAway }}</span>.
+        {{ 'strategyReflection.price' | transloco }} <span class="sr-cost">{{ p.tradedAway }}</span>.
       } @else {
-        Ohne messbaren Preis auf den anderen Achsen.
+        {{ 'strategyReflection.noPrice' | transloco }}
       }
     </p>
 
@@ -22,13 +22,11 @@
       <!-- Said as a question. A profile that silently overwrites itself teaches
            nothing, and one deviation is not a new preference. -->
       <p class="sr-note sr-note--contradiction">
-        Bisher hast du meist <strong>{{ axisLabel(c.was) }}</strong> priorisiert,
-        hier <strong>{{ axisLabel(c.now) }}</strong>. Lag das an dieser Lage —
-        oder soll ich meine Annahme über dich ändern?
+        {{ 'strategyReflection.contradiction' | transloco: { was: axisLabel(c.was), now: axisLabel(c.now) } }}
       </p>
     } @else if (consistent()) {
       <p class="sr-note">
-        Passt zu deinem bisherigen Muster ({{ axisLabel(profileAxis()) }}).
+        {{ 'strategyReflection.consistent' | transloco: { axis: axisLabel(profileAxis()) } }}
       </p>
     }
 
@@ -36,7 +34,7 @@
          that made it right — the condition half of a learnable preference.
          Optional: answering without a reason is allowed, just weaker evidence. -->
     <div class="sr-why">
-      <span class="sr-why__label">Warum jetzt? <em>(optional)</em></span>
+      <span class="sr-why__label">{{ 'strategyReflection.whyNow' | transloco }} <em>{{ 'strategyReflection.optional' | transloco }}</em></span>
       <div class="sr-chips">
         @for (chip of chips; track chip.id) {
           <button type="button"
@@ -44,17 +42,17 @@
                   [class.is-on]="isSelected(chip.id)"
                   [attr.aria-pressed]="isSelected(chip.id)"
                   (click)="toggleChip(chip.id)">
-            {{ chip.label }}
+            {{ chip.labelKey | transloco }}
           </button>
         }
         <button type="button" class="sr-chip sr-chip--note" (click)="toggleNote()">
-          ✎ Eigener Grund
+          {{ 'strategyReflection.ownReason' | transloco }}
         </button>
       </div>
       @if (noteOpen()) {
         <textarea class="sr-note"
                   rows="2"
-                  placeholder="In eigenen Worten …"
+                  [attr.placeholder]="'strategyReflection.notePlaceholder' | transloco"
                   [value]="note()"
                   (input)="setNote($any($event.target).value)"></textarea>
       }
@@ -64,17 +62,16 @@
 
     <div class="sr-actions">
       <button class="sr-btn sr-btn--yes" type="button" (click)="answer('yes')">
-        Als Regel merken
+        {{ 'strategyReflection.asRule' | transloco }}
       </button>
       <button class="sr-btn" type="button" (click)="answer('once')">
-        Nur diesmal
+        {{ 'rationale.once' | transloco }}
       </button>
-      <button class="sr-btn" type="button" (click)="answer('no')">Trifft nicht zu</button>
+      <button class="sr-btn" type="button" (click)="answer('no')">{{ 'strategyReflection.notTrue' | transloco }}</button>
     </div>
 
     <p class="sr-guard">
-      „Nur diesmal“ wird bewusst <em>nicht</em> zur Regel — eine situative
-      Entscheidung soll keine dauerhafte Präferenz werden.
+      {{ 'strategyReflection.guard' | transloco }}
     </p>
   </div>
 }

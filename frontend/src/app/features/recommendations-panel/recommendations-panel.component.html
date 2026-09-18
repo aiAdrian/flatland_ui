@@ -3,7 +3,7 @@
 } @else {
   <sbb-expansion-panel class="lyne-feature-panel recommendations-panel-lyne-panel" color="white" size="s" expanded>
     <sbb-expansion-panel-header>
-      <span class="lyne-panel-title">Recommendations</span>
+      <span class="lyne-panel-title">{{ 'panels.recommendations' | transloco }}</span>
     </sbb-expansion-panel-header>
 
     <sbb-expansion-panel-content class="lyne-panel-content">
@@ -22,15 +22,15 @@
     <app-rationale-capture />
 
     @if (strategyCards().length === 0) {
-      <p class="empty">No active recommendations</p>
+      <p class="empty">{{ 'rec.empty' | transloco }}</p>
     } @else {
       <!-- HMI review: the bare "27%" was read as an "Erfüllungsquote".
            Score and confidence are two different numbers; name both once here
            rather than leaving the operator to guess per card. -->
       <p class="metric-legend">
-        <strong>Score</strong> = Ergebnisgüte der Option (gewichtete KPIs) ·
-        <strong>Konfidenz</strong> = wie sicher die KI ist, dass die Option den
-        <em>aktuellen</em> Kurs schlägt
+        <strong>{{ 'rec.legend.score' | transloco }}</strong> {{ 'rec.legend.scoreText' | transloco }} ·
+        <strong>{{ 'rec.legend.confidence' | transloco }}</strong> {{ 'rec.legend.confidenceBefore' | transloco }}
+        <em>{{ 'rec.legend.current' | transloco }}</em> {{ 'rec.legend.confidenceAfter' | transloco }}
       </p>
 
       <div class="strategy-grid">
@@ -51,19 +51,19 @@
               <app-score-badge
                 [score]="card.score"
                 [state]="card.isRecommended ? 'recommended' : (card.isActive ? 'active' : 'neutral')"
-                [label]="card.isActive ? (card.isRecommended ? 'Active · Recommended' : 'Active') : (card.isRecommended ? 'Recommended' : '')" />
+                [label]="card.isActive ? (card.isRecommended ? ('rec.badge.activeRecommended' | transloco) : ('rec.badge.active' | transloco)) : (card.isRecommended ? ('rec.badge.recommended' | transloco) : '')" />
             </div>
 
             <div class="option-card__metrics">
-              <app-metric-chip label="Delay" [value]="card.metrics.delay.value" [level]="card.metrics.delay.level" />
-              <app-metric-chip label="Connection" [value]="card.metrics.connection.value" [level]="card.metrics.connection.level" />
-              <app-metric-chip label="Ripple Risk" [value]="card.metrics.ripple.value" [level]="card.metrics.ripple.level" />
+              <app-metric-chip [label]="'rec.metric.delay' | transloco" [value]="card.metrics.delay.value" [level]="card.metrics.delay.level" />
+              <app-metric-chip [label]="'rec.metric.connection' | transloco" [value]="card.metrics.connection.value" [level]="card.metrics.connection.level" />
+              <app-metric-chip [label]="'rec.metric.ripple' | transloco" [value]="card.metrics.ripple.value" [level]="card.metrics.ripple.level" />
             </div>
 
             <div class="option-card__meta">
-              <span class="ai-badge">AI</span>
+              <span class="ai-badge">{{ 'rec.ai' | transloco }}</span>
               <span class="confidence" [class]="'conf-' + confidenceLevel(card.rec)">
-                Konfidenz {{ confidencePct(card.rec) }}%
+                {{ 'rec.confidence' | transloco: { pct: confidencePct(card.rec) } }}
               </span>
               @if (remaining(card.rec) !== null) {
                 <span class="countdown">{{ remaining(card.rec) }}s</span>
@@ -76,7 +76,7 @@
 
             @if (card.isRecommended && card.reasons.length > 0) {
               <div class="option-card__why">
-                <span class="why-heading">Why this option</span>
+                <span class="why-heading">{{ 'rec.why.heading' | transloco }}</span>
                 <app-reasoning-list [items]="card.reasons" />
                 <!-- Co-Learning effect (Workstream B Tier 1): now reflects the
                      actual count of confirmed preferences instead of the old
@@ -84,9 +84,9 @@
                      Tier 2 (docs/plans/workstream-b-rationale-capture.md). -->
                 <p class="colearning-hint">
                   @if (store.confirmedPreferenceCount() > 0) {
-                    Berücksichtigt {{ store.confirmedPreferenceCount() }} bestätigte Präferenz(en) — Ranking-Nudge, keine harte Regel.
+                    {{ 'rec.colearning.withPrefs' | transloco: { n: store.confirmedPreferenceCount() } }}
                   } @else {
-                    Ranking beruht noch rein auf der KPI-Bewertung (bestätigte Präferenzen fehlen noch).
+                    {{ 'rec.colearning.noPrefs' | transloco }}
                   }
                 </p>
               </div>
@@ -102,16 +102,16 @@
                         [attr.aria-pressed]="isPinned(card.rec)"
                         (click)="togglePin(card.rec)">
                   @if (isPinned(card.rec)) {
-                    Vorausschau fixiert
+                    {{ 'rec.preview.pinned' | transloco }}
                   } @else {
-                    Vorausschau fixieren
+                    {{ 'rec.preview.pin' | transloco }}
                   }
                 </button>
                 <p class="preview-hint">
                   @if (isPinned(card.rec)) {
-                    Umleitung bleibt auf Karte &amp; Marey sichtbar
+                    {{ 'rec.preview.hintPinned' | transloco }}
                   } @else {
-                    Hover zeigt die geänderte Route auf Karte &amp; Marey
+                    {{ 'rec.preview.hintHover' | transloco }}
                   }
                 </p>
               </div>
@@ -120,16 +120,16 @@
             <div class="actions">
               @if (canAcceptRecommendation(card.rec)) {
                 <button class="btn btn-accept" (click)="accept(card.rec)">
-                  Accept
+                  {{ 'rec.accept' | transloco }}
                 </button>
               } @else {
                 <span class="auto-dispatch-disabled">
-                  Deaktiviert für Auto-Dispo
+                  {{ 'rec.autoDispatchOff' | transloco }}
                 </span>
               }
 
-              <button class="btn btn-reject" (click)="reject(card.rec)" title="Decline this change">
-                Reject
+              <button class="btn btn-reject" (click)="reject(card.rec)" [attr.title]="'rec.rejectTitle' | transloco">
+                {{ 'rec.reject' | transloco }}
               </button>
             </div>
           </div>

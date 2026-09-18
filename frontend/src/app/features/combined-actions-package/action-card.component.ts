@@ -1,3 +1,4 @@
+import { TranslocoPipe } from '@jsverse/transloco';
 import {
   CUSTOM_ELEMENTS_SCHEMA,
   Component,
@@ -43,7 +44,7 @@ import { CaPkgTrainSequenceComponent } from './train-sequence.component';
 @Component({
   selector: 'app-ca-pkg-card',
   standalone: true,
-  imports: [CommonModule, CaPkgTrainSequenceComponent, CaPkgImpactMetricsComponent],
+  imports: [TranslocoPipe, CommonModule, CaPkgTrainSequenceComponent, CaPkgImpactMetricsComponent],
   templateUrl: './action-card.component.html',
   styleUrl: './action-card.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -155,8 +156,9 @@ export class CaPkgActionCardComponent {
     const ai = this._ai();
     if (!ai) return [];
     const out: string[] = [];
-    if (ai.recommended) out.push('Empfohlen von KI');
-    if (this.modified()) out.push('Vom Dispatcher geändert');
+    // Translation keys; the template resolves them.
+    if (ai.recommended) out.push('cap.card.recommended');
+    if (this.modified()) out.push('cap.card.modified');
     return out;
   });
 

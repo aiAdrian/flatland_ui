@@ -1,24 +1,24 @@
 @if (pending(); as p) {
-  <div class="rc" role="dialog" aria-label="Why did you override?">
+  <div class="rc" role="dialog" [attr.aria-label]="'rationale.aria' | transloco">
     <div class="rc-head">
-      <span class="rc-title">Warum diese Entscheidung?</span>
-      <button type="button" class="rc-close" (click)="dismiss()" title="Schließen">×</button>
+      <span class="rc-title">{{ 'rationale.title' | transloco }}</span>
+      <button type="button" class="rc-close" (click)="dismiss()" [attr.title]="'rationale.close' | transloco">×</button>
     </div>
 
     <p class="rc-context">
       {{ trainName(p.handle) }} → <strong>{{ strategyLabel() }}</strong>
       @if (p.aiSuggestion) {
-        <span class="rc-vs"> statt AI: {{ p.aiSuggestion }}</span>
+        <span class="rc-vs"> {{ 'rationale.insteadOfAi' | transloco: { suggestion: p.aiSuggestion } }}</span>
       }
     </p>
 
-    <div class="rc-chips" role="group" aria-label="Gründe">
+    <div class="rc-chips" role="group" [attr.aria-label]="'rationale.reasonsAria' | transloco">
       @for (c of chips; track c.id) {
         <button type="button"
                 class="rc-chip"
                 [class.is-selected]="isSelected(c.id)"
                 (click)="toggleChip(c.id)">
-          {{ c.label }}
+          {{ c.labelKey | transloco }}
         </button>
       }
     </div>
@@ -27,26 +27,26 @@
               rows="2"
               [value]="note()"
               (input)="note.set($any($event.target).value)"
-              placeholder="Eigene Notiz (optional)…"></textarea>
+              [attr.placeholder]="'rationale.notePlaceholder' | transloco"></textarea>
 
     <div class="rc-hypothesis">
-      <span class="rc-hypothesis-label">Präferenz-Hypothese</span>
+      <span class="rc-hypothesis-label">{{ 'rationale.hypothesisLabel' | transloco }}</span>
       <p class="rc-hypothesis-text">{{ hypothesis() }}</p>
     </div>
 
     <div class="rc-actions">
       <button type="button" class="rc-btn rc-btn--yes" [disabled]="!canSubmit()" (click)="submit('yes')">
-        Ja, als Regel
+        {{ 'rationale.yes' | transloco }}
       </button>
       <button type="button" class="rc-btn rc-btn--once" [disabled]="!canSubmit()" (click)="submit('once')">
-        Nur diesmal
+        {{ 'rationale.once' | transloco }}
       </button>
       <button type="button" class="rc-btn rc-btn--no" (click)="submit('no')">
-        Nein
+        {{ 'rationale.no' | transloco }}
       </button>
     </div>
     <p class="rc-hint">
-      „Nur diesmal“ bleibt eine Einmal-Entscheidung und wird nicht zur Regel.
+      {{ 'rationale.hint' | transloco }}
     </p>
   </div>
 }

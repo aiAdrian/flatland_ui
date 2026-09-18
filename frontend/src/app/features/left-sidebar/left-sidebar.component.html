@@ -1,12 +1,12 @@
 <div class="sidebar-content">
   @if (store.session(); as s) {
 @if (!store.state()) {
-<sbb-title level="3" visual-level="5" class="section-title">Agents</sbb-title>
-<div class="empty-mini">waiting for state...</div>
+<sbb-title level="3" visual-level="5" class="section-title">{{ 'roster.title' | transloco }}</sbb-title>
+<div class="empty-mini">{{ 'roster.waitingForState' | transloco }}</div>
 }
 @if (store.state()) {
 <sbb-title level="3" visual-level="5" class="section-title">
-        Agents ({{ activeCount() }} / {{ totalCount() }})
+        {{ 'roster.titleCount' | transloco: { active: activeCount(), total: totalCount() } }}
       </sbb-title>
 
       <!-- HMI review: "Alle Züge oder nur die mit Konflikt?" -->
@@ -17,28 +17,28 @@
           [class.active]="conflictsOnly()"
           [attr.aria-pressed]="conflictsOnly()"
           [disabled]="conflictCount() === 0 && !conflictsOnly()"
-          title="Züge, die in einem Konflikt stecken (blockiert, blockierend oder gestört)"
+          [attr.title]="'train.conflictsOnlyTitle' | transloco"
           (click)="toggleConflictsOnly()">
-          Nur Konflikte ({{ conflictCount() }})
+          {{ 'train.conflictsOnly' | transloco: { n: conflictCount() } }}
         </button>
         @if (conflictsOnly()) {
-          <span class="filter-hint">gefiltert — {{ totalCount() }} Züge insgesamt</span>
+          <span class="filter-hint">{{ 'train.filtered' | transloco: { n: totalCount() } }}</span>
         }
       </div>
 
       <!-- HMI review: "arr 112 = erwartete Ankunftszeit in Minuten?", "−80 = ?",
            "Rot 0 = ?". Said once here so the rows can stay scannable. -->
       <p class="agent-key">
-        <strong>Ank./Abf.</strong> planmässiger Simulationsschritt ·
-        <strong>noch N</strong> Puffer bis dahin (<strong>+N spät</strong> = darüber) ·
-        <strong>Störung N</strong> Restdauer der Störung
+        <strong>{{ 'roster.key.arrDep' | transloco }}</strong> {{ 'roster.key.arrDepText' | transloco }} ·
+        <strong>{{ 'roster.key.left' | transloco }}</strong> {{ 'roster.key.leftText' | transloco }} (<strong>{{ 'roster.key.late' | transloco }}</strong> {{ 'roster.key.lateText' | transloco }}) ·
+        <strong>{{ 'roster.key.disruption' | transloco }}</strong> {{ 'roster.key.disruptionText' | transloco }}
       </p>
 
       <!-- ─── MOVING (always open) ────────────────────────────── -->
       <div class="agent-group">
         <div class="group-header group-moving">
           <span class="group-label">MOVING</span>
-          <span class="group-sub">unterwegs</span>
+          <span class="group-sub">{{ 'roster.group.moving' | transloco }}</span>
           <span class="group-count">{{ movingAgents().length }} / {{ totalCount() }}</span>
         </div>
 
@@ -55,28 +55,28 @@
 
               <div class="agent-header">
                 <span class="agent-dot" [style.background]="agentColor(a.handle)"></span>
-                <span class="agent-name">Train {{ a.handle }}</span>
+                <span class="agent-name">{{ 'train.name' | transloco: { n: a.handle } }}</span>
 
                 @if (isMalfunctioning(a)) {
-                  <span class="resume-badge" title="{{ store.malfunctionTypeLabel(a) }} — fährt in {{ a.malfunction_remaining }} Schritt(en) weiter">
-                    Störung {{ a.malfunction_remaining }}
+                  <span class="resume-badge" [attr.title]="'train.resumesIn' | transloco: { type: store.malfunctionTypeLabel(a), n: a.malfunction_remaining }">
+                    {{ 'train.disruption' | transloco: { n: a.malfunction_remaining } }}
                   </span>
                 }
 
                 @if (a.state === 'READY_TO_DEPART') {
-                  <span class="agent-state state-outside" title="Ready to depart">
+                  <span class="agent-state state-outside" [attr.title]="'roster.readyTitle' | transloco">
                     READY → {{ formatEta(a) }}
                   </span>
                 } @else {
-                  <span class="agent-mid" title="Späteste planmässige Ankunft (Simulationsschritt)">
-                    Ank. {{ a.latest_arrival ?? '–' }}
+                  <span class="agent-mid" [attr.title]="'roster.latestArrivalTitle' | transloco">
+                    {{ 'train.arr' | transloco }} {{ a.latest_arrival ?? '–' }}
                   </span>
                 }
 
                 <span
                   class="deadline-badge"
                   [style]="deadlineBadgeStyle(a)"
-                  title="{{ deadlineTooltip(a) }}">
+                  [attr.title]="deadlineTooltip(a)">
                   {{ formatDeadlineDelta(a) }}
                 </span>
               </div>
@@ -98,22 +98,22 @@
                        stays visible; setting the override moved to the Agent
                        Inspector on the right, where the zone rule puts it. -->
                   <div class="agent-actions agent-actions--view">
-                    <span class="actions-label">Next: {{ nd.cell_type }}</span>
-                    <span class="actions-hint">Eingriff im Agent Inspector rechts</span>
+                    <span class="actions-label">{{ 'roster.next' | transloco: { cell: nd.cell_type } }}</span>
+                    <span class="actions-hint">{{ 'roster.overrideOnRight' | transloco }}</span>
                   </div>
                 } @else {
                 <div class="agent-actions" (click)="$event.stopPropagation()">
-                  <span class="actions-label">Next: {{ nd.cell_type }}</span>
+                  <span class="actions-label">{{ 'roster.next' | transloco: { cell: nd.cell_type } }}</span>
                   <div class="action-buttons">
                     @for (opt of nd.options; track opt.action) {
                       <button
                         class="action-btn"
                         [class.override]="isOverrideOption(a.handle, opt.action)"
                         [title]="isOverrideOption(a.handle, opt.action)
-                          ? 'Dein gesetzter Eingriff — nochmal klicken hebt ihn auf'
-                          : 'Als Eingriff für diesen Zug setzen'"
+                          ? ('train.myOverride' | transloco)
+                          : ('train.setOverride' | transloco)"
                         (click)="onActionClick(a.handle, opt.action, isOverrideOption(a.handle, opt.action))">
-                        {{ opt.label }}
+                        {{ i18n.actionLabel(opt) }}
                       </button>
                     }
                   </div>
@@ -122,7 +122,7 @@
                        Red marks the override this operator has already set on
                        this train — a toggle, not a barrier. -->
                   @if (hasOverrideOption(a)) {
-                    <span class="actions-hint">rot = dein gesetzter Eingriff · nochmal klicken hebt ihn auf</span>
+                    <span class="actions-hint">{{ 'roster.redHint' | transloco }}</span>
                   }
                 </div>
                 }
@@ -130,7 +130,7 @@
             </div>
           }
           @if (movingAgents().length === 0) {
-            <div class="empty-mini">no trains active</div>
+            <div class="empty-mini">{{ 'roster.noneActive' | transloco }}</div>
           }
         </div>
       </div>
@@ -141,7 +141,7 @@
           class="group-header group-waiting clickable"
           (click)="toggleGroup('WAITING')">
           <span class="group-label">WAITING</span>
-          <span class="group-sub">noch nicht abgefahren</span>
+          <span class="group-sub">{{ 'roster.group.waiting' | transloco }}</span>
           <span class="group-count">{{ waitingAgents().length }} / {{ totalCount() }}</span>
           <span class="caret" [class.collapsed]="collapsed().WAITING">▾</span>
         </div>
@@ -158,22 +158,22 @@
               (click)="toggleSelect(a.handle)">
                 <div class="agent-header">
                   <span class="agent-dot" [style.background]="agentColor(a.handle)"></span>
-                  <span class="agent-name">Train {{ a.handle }}</span>
+                  <span class="agent-name">{{ 'train.name' | transloco: { n: a.handle } }}</span>
                   @if (isMalfunctioning(a)) {
                     <span class="malfunction-indicator agent-malfunction"
-                          title="Malfunction: {{ a.malfunction_remaining }} step(s) remaining">!</span>
+                          [attr.title]="'roster.malfunctionTitle' | transloco: { n: a.malfunction_remaining }">!</span>
                   }
-                  <span class="agent-mid" title="Früheste planmässige Abfahrt (Simulationsschritt)">
-                    Abf. {{ a.earliest_departure ?? '–' }}
+                  <span class="agent-mid" [attr.title]="'roster.earliestDepartureTitle' | transloco">
+                    {{ 'train.dep' | transloco }} {{ a.earliest_departure ?? '–' }}
                   </span>
-                  <span class="countdown-badge" title="Schritte bis zur frühesten Abfahrt">
+                  <span class="countdown-badge" [attr.title]="'roster.stepsToDepartureTitle' | transloco">
                     {{ formatEta(a) }}
                   </span>
                 </div>
               </div>
             }
             @if (waitingAgents().length === 0) {
-              <div class="empty-mini">none waiting</div>
+              <div class="empty-mini">{{ 'roster.noneWaiting' | transloco }}</div>
             }
           </div>
         }
@@ -185,7 +185,7 @@
           class="group-header group-done clickable"
           (click)="toggleGroup('DONE')">
           <span class="group-label">DONE</span>
-          <span class="group-sub">am Ziel angekommen</span>
+          <span class="group-sub">{{ 'roster.group.done' | transloco }}</span>
           <span class="group-count">{{ doneAgents().length }} / {{ totalCount() }}</span>
           <span class="caret" [class.collapsed]="collapsed().DONE">▾</span>
         </div>
@@ -202,24 +202,24 @@
               (click)="toggleSelect(a.handle)">
                 <div class="agent-header">
                   <span class="agent-dot" [style.background]="agentColor(a.handle)"></span>
-                  <span class="agent-name">Train {{ a.handle }}</span>
+                  <span class="agent-name">{{ 'train.name' | transloco: { n: a.handle } }}</span>
                   @if (isMalfunctioning(a)) {
                     <span class="malfunction-indicator agent-malfunction"
-                          title="Malfunction: {{ a.malfunction_remaining }} step(s) remaining">!</span>
+                          [attr.title]="'roster.malfunctionTitle' | transloco: { n: a.malfunction_remaining }">!</span>
                   }
-                  <span class="agent-mid" title="Späteste planmässige Ankunft (Simulationsschritt)">
-                    Ank. {{ a.latest_arrival ?? '–' }}
+                  <span class="agent-mid" [attr.title]="'roster.latestArrivalTitle' | transloco">
+                    {{ 'train.arr' | transloco }} {{ a.latest_arrival ?? '–' }}
                   </span>
                   @if (isOverdue(a)) {
-                    <span class="delay-badge">+{{ a.delay }} delay</span>
+                    <span class="delay-badge">{{ 'roster.delay' | transloco: { n: a.delay } }}</span>
                   } @else {
-                    <span class="ontime-badge">on time</span>
+                    <span class="ontime-badge">{{ 'train.onTime' | transloco }}</span>
                   }
                 </div>
               </div>
             }
             @if (doneAgents().length === 0) {
-              <div class="empty-mini">none arrived yet</div>
+              <div class="empty-mini">{{ 'roster.noneArrived' | transloco }}</div>
             }
           </div>
         }
@@ -229,8 +229,8 @@
   } @else {
     <div class="empty-state">
       <span class="empty-icon">▦</span>
-      <p class="empty-title">Keine aktive Session</p>
-      <p class="empty-desc">Klicke <strong>+ New Session</strong> in der Toolbar um zu starten.</p>
+      <p class="empty-title">{{ 'train.noSession' | transloco }}</p>
+      <p class="empty-desc">{{ 'roster.emptyBefore' | transloco }} <strong>+ New Session</strong> {{ 'roster.emptyAfter' | transloco }}</p>
     </div>
   }
 </div>

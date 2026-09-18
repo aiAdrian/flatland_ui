@@ -7,6 +7,7 @@ import {
   LearningStore,
   RationaleContext,
   buildPreferenceHypothesis,
+  strategyLabelForAction,
 } from './learning-store.service';
 import { ActionInt, AgentDTO, SessionInfo, SessionState } from './models';
 import {
@@ -476,7 +477,8 @@ export class GalleryFixtureService {
       hasScenario: true,
       scenarioTitle: 'Umleiten über Weiche 5',
     };
-    const hypothesis = buildPreferenceHypothesis(ctx, 'Halten');
+    // Internal tool: English, the source language.
+    const hypothesis = buildPreferenceHypothesis(ctx, strategyLabelForAction(4));
     return [
       {
         id: 'gallery-lr-1',

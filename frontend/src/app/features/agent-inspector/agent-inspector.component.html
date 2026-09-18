@@ -4,45 +4,45 @@
       <span class="ao-dot" [style.background]="agentColor(a.handle)"></span>
       <span class="ao-title">{{ trainName(a.handle) }}</span>
       @if (isMalfunctioning(a)) {
-        <span class="ao-malf" title="Malfunction: {{ a.malfunction_remaining }} step(s) remaining">!</span>
+        <span class="ao-malf" [attr.title]="'roster.malfunctionTitle' | transloco: { n: a.malfunction_remaining }">!</span>
       }
       <span class="ao-state state-{{ a.state }}">{{ a.state }}</span>
-      <button class="ao-close" type="button" aria-label="Clear selection" (click)="clearSelection()">×</button>
+      <button class="ao-close" type="button" [attr.aria-label]="'inspector.clearSelection' | transloco" (click)="clearSelection()">×</button>
     </div>
 
     @if (isMalfunctioning(a)) {
       <div class="ao-malf-banner">
         <span class="ao-malf-ico">!</span>
         <span class="ao-malf-text">
-          <strong>{{ store.malfunctionTypeLabel(a) }}</strong> — resumes in
-          {{ a.malfunction_remaining }} step{{ a.malfunction_remaining === 1 ? '' : 's' }}
-          <span class="ao-malf-at">(at step {{ resumeStep(a) }})</span>
+          <strong>{{ store.malfunctionTypeLabel(a) }}</strong>
+          {{ 'inspector.resumesIn' | transloco: { n: a.malfunction_remaining } }}
+          <span class="ao-malf-at">{{ 'inspector.atStep' | transloco: { n: resumeStep(a) } }}</span>
         </span>
       </div>
     }
 
     <div class="ao-facts">
       <span class="ao-fact">
-        @if (a.position) { @ ({{ a.position[0] }}, {{ a.position[1] }}) } @else { off-map }
+        @if (a.position) { @ ({{ a.position[0] }}, {{ a.position[1] }}) } @else { {{ 'inspector.offMap' | transloco }} }
       </span>
-      <span class="ao-fact" title="Destination">→ ({{ a.target[0] }}, {{ a.target[1] }})</span>
+      <span class="ao-fact" [attr.title]="'inspector.destination' | transloco">→ ({{ a.target[0] }}, {{ a.target[1] }})</span>
       @if (a.delay > 0) {
-        <span class="ao-fact warn">+{{ a.delay }} delay</span>
+        <span class="ao-fact warn">{{ 'roster.delay' | transloco: { n: a.delay } }}</span>
       } @else {
-        <span class="ao-fact ok">on time</span>
+        <span class="ao-fact ok">{{ 'train.onTime' | transloco }}</span>
       }
     </div>
 
     @if (a.next_decision; as nd) {
       <div class="ao-actions">
-        <span class="ao-actions-label">Next ({{ nd.cell_type }})</span>
+        <span class="ao-actions-label">{{ 'inspector.next' | transloco: { cell: nd.cell_type } }}</span>
         <div class="ao-buttons">
           @for (opt of nd.options; track opt.action) {
             <button
               class="ao-btn"
               [class.override]="isOverrideOption(a.handle, opt.action)"
               (click)="onActionClick(a.handle, opt.action, isOverrideOption(a.handle, opt.action))">
-              {{ opt.label }}
+              {{ i18n.actionLabel(opt) }}
             </button>
           }
         </div>
@@ -58,12 +58,12 @@
   >
     <div class="ao-empty">
       <div class="ao-empty__icon" aria-hidden="true">ⓘ</div>
-      <div class="ao-empty__title">No train selected</div>
+      <div class="ao-empty__title">{{ 'inspector.noSelection' | transloco }}</div>
       <div class="ao-empty__text">
-        Hover over a train or select one on the map or in the Agents list.
+        {{ 'inspector.noSelectionText' | transloco }}
       </div>
       <div class="ao-empty__hint">
-        The Agent Inspector will then show position, destination, status and available actions.
+        {{ 'inspector.noSelectionHint' | transloco }}
       </div>
     </div>
   </div>

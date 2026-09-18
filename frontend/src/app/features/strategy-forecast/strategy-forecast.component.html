@@ -1,7 +1,7 @@
 @if (hasData()) {
   <div class="sf">
     <div class="sf-head">
-      <span class="sf-title">Wirkung über die nächsten 30 Minuten</span>
+      <span class="sf-title">{{ 'forecast.title' | transloco }}</span>
       <span class="sf-option">{{ subjectLabel() }}</span>
     </div>
 
@@ -10,7 +10,7 @@
         <tr>
           <th class="sf-rowhead"></th>
           @for (c of forecast().columns; track c.label) {
-            <th class="sf-col" [attr.data-conf]="c.confidence">{{ c.label }}</th>
+            <th class="sf-col" [attr.data-conf]="c.confidence">{{ c.label | transloco }}</th>
           }
         </tr>
       </thead>
@@ -19,11 +19,11 @@
           <tr>
             <td class="sf-rowhead">
               <span class="sf-icon" aria-hidden="true">{{ row.icon }}</span>
-              {{ row.label }}
+              {{ row.label | transloco }}
             </td>
             @for (cell of row.cells; track $index) {
               <td class="sf-cell">
-                <span class="sf-chip" [attr.data-level]="cell.level">{{ cell.label }}</span>
+                <span class="sf-chip" [attr.data-level]="cell.level">{{ cell.label | transloco }}</span>
               </td>
             }
           </tr>
@@ -33,13 +33,11 @@
 
     <p class="sf-horizon" [class.ok]="horizonOk()">
       @if (horizonOk()) {
-        Belastbar bis +{{ forecast().horizonMinutes }} min ·
-        {{ openProblems() }} offene Problem(e)
+        {{ 'forecast.horizonOk' | transloco: { n: forecast().horizonMinutes, problems: openProblems() } }}
       } @else {
-        Belastbar nur bis
-        {{ forecast().horizonMinutes === 0 ? 'jetzt' : '+' + forecast().horizonMinutes + ' min' }}
-        · {{ openProblems() }} offene Problem(e) — mehr Offenes macht die Zukunft
-        unsicherer
+        {{ 'forecast.horizonShort' | transloco: {
+             horizon: forecast().horizonMinutes === 0 ? ('forecast.horizonNow' | transloco) : '+' + forecast().horizonMinutes + ' min',
+             problems: openProblems() } }}
       }
     </p>
 
@@ -47,8 +45,7 @@
   </div>
 } @else if (awaitingStrategy()) {
   <p class="sf-empty">
-    <strong>Wirkung über 30 Minuten</strong><br />
-    Wähle im Strategie-Widget eine Option („Auf Karte“ oder „Übernehmen“), um
-    ihre Prognose zu sehen.
+    <strong>{{ 'forecast.emptyTitle' | transloco }}</strong><br />
+    {{ 'forecast.emptyText' | transloco }}
   </p>
 }

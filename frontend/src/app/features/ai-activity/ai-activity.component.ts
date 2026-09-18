@@ -9,6 +9,8 @@ import {
   signal,
 } from '@angular/core';
 import { ApiService, DirectorActivity, DirectorActivityEntry } from '../../core/api.service';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 
 /**
@@ -36,13 +38,14 @@ import { SessionStore } from '../../core/session.store';
 @Component({
   selector: 'app-ai-activity',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './ai-activity.component.html',
   styleUrl: './ai-activity.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AiActivityComponent implements OnDestroy {
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private api = inject(ApiService);
 
   readonly activity = signal<DirectorActivity | null>(null);
@@ -126,15 +129,15 @@ export class AiActivityComponent implements OnDestroy {
     if (!s) return null;
     switch (s) {
       case 'search':
-        return 'modellgeführte Suche';
+        return this.i18n.t('aiActivity.src.search');
       case 'lines':
-        return 'Baseline: Linienplan';
+        return this.i18n.t('aiActivity.src.lines');
       case 'avoidance':
-        return 'Baseline: Konfliktvermeidung';
+        return this.i18n.t('aiActivity.src.avoidance');
       case 'avoidance (no models)':
-        return 'Fallback: keine Modelle installiert';
+        return this.i18n.t('aiActivity.src.noModels');
       case 'unroutable':
-        return 'kein Plan: nicht routbar';
+        return this.i18n.t('aiActivity.src.unroutable');
       default:
         return s;
     }
@@ -151,11 +154,11 @@ export class AiActivityComponent implements OnDestroy {
    * verbatim instead of being guessed at.
    */
   private reasonLabel(reason?: string | null): string {
-    if (!reason) return 'Auslöser unbekannt';
+    if (!reason) return this.i18n.t('aiActivity.reason.unknown');
     const malfunction = /^malfunction on train (\d+)/i.exec(reason);
-    if (malfunction) return `Störung an Zug ${malfunction[1]}`;
-    if (reason === 'manual') return 'Manuell ausgelöst';
-    if (reason === 'weights change') return 'Zielvorgabe geändert';
+    if (malfunction) return this.i18n.t('aiActivity.reason.malfunction', { train: malfunction[1] });
+    if (reason === 'manual') return this.i18n.t('aiActivity.reason.manual');
+    if (reason === 'weights change') return this.i18n.t('aiActivity.reason.weights');
     return reason;
   }
 
@@ -164,18 +167,18 @@ export class AiActivityComponent implements OnDestroy {
     if (e.kind === 'replan') {
       const reason = this.reasonLabel(e.reason);
       if (e.verdict === 'research') {
-        return `${reason}: ${e.changed} Zug/Züge umgeplant`;
+        return this.i18n.t('aiActivity.replanned', { reason, n: e.changed });
       }
       if (e.gate === 'rollout-veto') {
-        return `${reason}: Plan behalten — die Simulation hat den Wechsel abgelehnt`;
+        return this.i18n.t('aiActivity.keptRejected', { reason });
       }
-      return `${reason}: Plan behalten (der Wechsel war nicht besser)`;
+      return this.i18n.t('aiActivity.keptNotBetter', { reason });
     }
     if (e.stuck) {
-      return `Zug ${e.handle}: kein befahrbarer Zweig`;
+      return this.i18n.t('aiActivity.noBranch', { train: e.handle });
     }
-    const hold = e.wait && e.wait > 0 ? `${e.wait} min halten, ` : '';
-    return `Zug ${e.handle}: ${hold}weiter über Knoten ${e.toNode}`;
+    const hold = e.wait && e.wait > 0 ? this.i18n.t('aiActivity.holdFor', { n: e.wait }) : '';
+    return this.i18n.t('aiActivity.viaNode', { train: e.handle, hold, node: e.toNode });
   }
 
   /**
@@ -188,10 +191,10 @@ export class AiActivityComponent implements OnDestroy {
       const r = e.scoreResearch;
       const c = e.scoreContinue;
       if (r == null || c == null) return null;
-      return `umplanen ${r.toFixed(3)} vs. weiterfahren ${c.toFixed(3)}`;
+      return this.i18n.t('aiActivity.scoreDetail', { replan: r.toFixed(3), carryOn: c.toFixed(3) });
     }
     if (e.stuck || !e.optionCount) return null;
-    return `${e.optionCount} Optionen geprüft`;
+    return this.i18n.t('aiActivity.optionsChecked', { n: e.optionCount });
   }
 
   isHold(e: DirectorActivityEntry): boolean {

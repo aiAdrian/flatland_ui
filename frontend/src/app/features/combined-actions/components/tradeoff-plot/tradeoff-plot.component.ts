@@ -1,4 +1,6 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../../core/i18n/language.service';
+import { Component, Input, computed, signal, inject } from '@angular/core';
 
 /** One action version on the transfers ↔ delay plane. */
 export interface TradeoffPoint {
@@ -65,10 +67,12 @@ interface TradeArrow {
 @Component({
   selector: 'app-tradeoff-plot',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './tradeoff-plot.component.html',
   styleUrl: './tradeoff-plot.component.scss',
 })
 export class TradeoffPlotComponent {
+  private readonly i18n = inject(LanguageService);
   /** Signal-backed: `plotted` is a `computed`, and a computed over a plain
    *  `@Input` field never invalidates — the plot would keep drawing whatever it
    *  saw on its first render and a new variant would never appear. */
@@ -244,7 +248,13 @@ export class TradeoffPlotComponent {
   readonly readout = computed<string>(() => {
     const point = this.hoveredPoint();
     if (point) {
-      return `${point.label} · ${point.origin === 'ai' ? 'AI proposal' : 'your variant'} · −${point.delayReductionMin} min · ${point.connectionsKept} of ${point.connectionsTotal} transfers kept`;
+      return this.i18n.t('ca.plot.pointDetail', {
+        label: point.label,
+        origin: this.i18n.t(point.origin === 'ai' ? 'ca.plot.aiProposal' : 'ca.plot.yourVariant'),
+        min: point.delayReductionMin,
+        kept: point.connectionsKept,
+        total: point.connectionsTotal,
+      });
     }
     const arrow = this.arrows()[0];
     if (arrow) {
@@ -252,15 +262,15 @@ export class TradeoffPlotComponent {
       // half the people who see it; "1 min less delay saved" cannot.
       const delay =
         arrow.deltaMin === 0
-          ? 'the same delay saved'
-          : `${Math.abs(arrow.deltaMin)} min ${arrow.deltaMin > 0 ? 'more' : 'less'} delay saved`;
+          ? this.i18n.t('ca.plot.sameDelay')
+          : this.i18n.t(arrow.deltaMin > 0 ? 'ca.plot.moreDelay' : 'ca.plot.lessDelay', { n: Math.abs(arrow.deltaMin) });
       const n = Math.abs(arrow.deltaBroken);
       const transfers =
         arrow.deltaBroken === 0
-          ? 'the same transfers kept'
-          : `${n} transfer${n === 1 ? '' : 's'} ${arrow.deltaBroken > 0 ? 'fewer' : 'more'} kept`;
-      return `Your variant of ${arrow.packageId}: ${delay}, ${transfers}.`;
+          ? this.i18n.t('ca.plot.sameTransfers')
+          : this.i18n.t(arrow.deltaBroken > 0 ? 'ca.plot.fewerTransfers' : 'ca.plot.moreTransfers', { n });
+      return this.i18n.t('ca.plot.arrow', { pkg: arrow.packageId, delay, transfers });
     }
-    return 'Point at a dot for its figures.';
+    return this.i18n.t('ca.plot.pointHint');
   });
 }

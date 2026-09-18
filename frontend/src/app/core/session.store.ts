@@ -33,6 +33,7 @@ import {
 } from './events/event-types';
 import { ForecastSignals } from './strategy-forecast';
 import { WebSocketService } from './websocket.service';
+import { LanguageService } from './i18n/language.service';
 import {
   LearningRecord,
   LearningStore,
@@ -116,6 +117,8 @@ export class SessionStore {
   private api = inject(ApiService);
   private ws = inject(WebSocketService);
   private learning = inject(LearningStore);
+  /** Malfunction type labels are shown in the viewer's language. */
+  private i18n = inject(LanguageService);
 
   readonly session = signal<SessionInfo | null>(null);
   readonly state = signal<SessionState | null>(null);
@@ -644,20 +647,20 @@ export class SessionStore {
 
   /** Synthetic operational malfunction types (AI4REALNET D4.1 taxonomy A). */
   private static readonly DEMO_MALFUNCTION_TYPES = [
-    'Track blockage',
-    'Switch failure',
-    'Signal failure',
-    'Overhead-power failure',
+    'trackBlockage',
+    'switchFailure',
+    'signalFailure',
+    'powerFailure',
   ];
 
   /** Label for a malfunctioning train's disruption type (see demoMalfunctionTypes). */
   malfunctionTypeLabel(agent: AgentDTO): string {
     const real = (agent as any)?.malfunction_type;
     if (typeof real === 'string' && real) return real;
-    if (!this.demoMalfunctionTypes()) return 'Train breakdown';
+    if (!this.demoMalfunctionTypes()) return this.i18n.t('malfunction.breakdown');
     const types = SessionStore.DEMO_MALFUNCTION_TYPES;
     const idx = ((agent.handle % types.length) + types.length) % types.length;
-    return `${types[idx]} (demo)`;
+    return this.i18n.t('malfunction.demo', { type: this.i18n.t(`malfunction.types.${types[idx]}`) });
   }
 
   /** True when this train is disrupted, by whichever field the backend used. */
@@ -1048,13 +1051,20 @@ export class SessionStore {
   submitRationale(payload: {
     rationale: string;
     response: 'yes' | 'once' | 'no';
+    /** The value axis the chosen reason chips stand for, if any. Stated by the
+     *  capture surface because the rationale text itself is translated. */
+    valueAxis?: DecisionValueAxis | null;
   }): void {
     const pending = this.pendingRationale();
     if (!pending) return;
 
+    // In the operator's language: shown on the prompt, then kept on the record.
+    const t = (key: string, params?: Record<string, string>, fallback?: string) =>
+      this.i18n.t(key, params, fallback);
     const hypothesis = buildPreferenceHypothesis(
       pending.context,
-      strategyLabelForAction(pending.action),
+      strategyLabelForAction(pending.action, t),
+      t,
     );
 
     // Patch the CoLearningEntry this override produced (Co-Learning mode only).
@@ -1080,6 +1090,8 @@ export class SessionStore {
           ? {
               ...e,
               rationale: payload.rationale,
+              // Stated axis beats inferring one from translated text.
+              valueAxis: payload.valueAxis ?? e.valueAxis,
               preferenceHypothesis: hypothesis,
               hypothesisResponse: payload.response,
             }
@@ -1095,7 +1107,7 @@ export class SessionStore {
         mode: pending.mode,
         handle: pending.handle,
         action: pending.action,
-        strategyLabel: strategyLabelForAction(pending.action),
+        strategyLabel: strategyLabelForAction(pending.action, t),
         rationale: payload.rationale,
         hypothesis,
         response: payload.response,

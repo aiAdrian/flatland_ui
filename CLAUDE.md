@@ -153,6 +153,13 @@ around them stays ours.
   opportunistically when you touch a file. Full frontend/Lyne rules:
   `docs/reference/frontend-lyne-conventions.md` (also mirrored for other AI tools
   in `AGENTS.md` and `.github/copilot-instructions.md`).
+- **Languages: English source, German and French translations.** No inline
+  user-facing text in the start screen, tours, working screen, widgets or shell —
+  every string is a key in `frontend/public/i18n/{en,de,fr}.json` (English is the
+  fallback). Logic compares ids, never displayed labels. Internal tools and the
+  questionnaires stay English; tour-owned content keeps its own language. German
+  in Swiss spelling, addressing the user with informal *du*; French drafts need a native reviewer. Full
+  rule: `docs/reference/frontend-lyne-conventions.md` §5.
 - Keep existing tests green (`backend/tests/`); add coverage for new backend gating.
 
 ## Consortium deliverables — D3.1 and D3.2 are public (checked 2026-08-19)

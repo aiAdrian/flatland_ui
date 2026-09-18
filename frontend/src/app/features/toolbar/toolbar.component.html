@@ -2,18 +2,18 @@
   @if (store.session()) {
     @if (store.playing()) {
       <sbb-button size="m" (click)="togglePlay()" icon-name="pause-small">
-        Pause
+        {{ 'toolbar.pause' | transloco }}
       </sbb-button>
     } @else {
       <sbb-button size="m" (click)="togglePlay()"
                   [attr.disabled]="store.episodeDone() ? '' : null"
                   icon-name="play-small">
-        Play
+        {{ 'toolbar.play' | transloco }}
       </sbb-button>
     }
 
     <div class="speed-control">
-      <label>Simulation speed</label>
+      <label>{{ 'toolbar.speed' | transloco }}</label>
       <input
         type="range"
         min="1"
@@ -22,7 +22,7 @@
         [value]="speed()"
         (input)="onSpeedChange($event)"
         class="slider" />
-      <span class="speed-value">{{ speed() }} step{{ speed() > 1 ? 's' : '' }}</span>
+      <span class="speed-value">{{ (speed() > 1 ? 'toolbar.stepsMany' : 'toolbar.stepsOne') | transloco: { n: speed() } }}</span>
 </div>
 
     <!-- Step-Buttons nur sichtbar wenn NICHT Playing -->
@@ -31,22 +31,22 @@
 
       <sbb-secondary-button size="s" (click)="step(1)"
         [attr.disabled]="(store.loading() || store.episodeDone()) ? '' : null">
-        Step 1
+        {{ 'toolbar.step' | transloco: { n: 1 } }}
       </sbb-secondary-button>
       <sbb-secondary-button size="s" (click)="step(10)"
         [attr.disabled]="(store.loading() || store.episodeDone()) ? '' : null">
-        Step 10
+        {{ 'toolbar.step' | transloco: { n: 10 } }}
       </sbb-secondary-button>
       <sbb-secondary-button size="s" (click)="step(50)"
         [attr.disabled]="(store.loading() || store.episodeDone()) ? '' : null">
-        Step 50
+        {{ 'toolbar.step' | transloco: { n: 50 } }}
       </sbb-secondary-button>
     }
 
     @if (selectablePolicies().length > 0) {
       <sbb-divider orientation="vertical"></sbb-divider>
 
-      <span class="label">Policy</span>
+      <span class="label">{{ 'toolbar.policy' | transloco }}</span>
       <!-- `[selected]` per option rather than `[value]` on the select: the
            option list can grow after the value is bound (a planned scenario
            adds its plan policy once the session exists), and the browser
@@ -56,8 +56,8 @@
         class="policy-select"
         (change)="onPolicyChange($event)">
         @for (p of selectablePolicies(); track p.id) {
-          <option [value]="p.id" [title]="p.description" [selected]="p.id === policy()">
-            {{ p.label }}
+          <option [value]="p.id" [title]="i18n.policyDescription(p)" [selected]="p.id === policy()">
+            {{ i18n.policyLabel(p) }}
           </option>
         }
       </select>
@@ -68,7 +68,7 @@
   <div class="spacer"></div>
 
   @if (store.episodeDone()) {
-    <span class="episode-status" role="status" aria-live="polite">Episode finished</span>
+    <span class="episode-status" role="status" aria-live="polite">{{ 'toolbar.episodeFinished' | transloco }}</span>
   }
 
   @if (store.loading()) {
@@ -76,7 +76,7 @@
     @let elapsed = store.state()?.elapsed_steps ?? 0;
     @let stepsLeft = target !== null ? target - elapsed : 0;
     @if (stepsLeft > 1) {
-      <span class="step-countdown" title="Steps remaining">{{ stepsLeft }}</span>
+      <span class="step-countdown" [attr.title]="'toolbar.stepsRemaining' | transloco">{{ stepsLeft }}</span>
     } @else {
       <sbb-loading-indicator-circle size="s"></sbb-loading-indicator-circle>
     }
@@ -89,7 +89,7 @@
   @if (store.session() && demoActive) {
     <sbb-divider orientation="vertical"></sbb-divider>
     <sbb-secondary-button size="s" (click)="requestFinishDemoMode()">
-      {{ demoSurvey ? (demoIsLast ? 'Finish & survey' : 'Finish mode & survey →') : (demoIsLast ? 'Finish tour' : 'Next mode →') }}
+      {{ (demoSurvey ? (demoIsLast ? 'toolbar.finishSurvey' : 'toolbar.finishModeSurvey') : (demoIsLast ? 'toolbar.finishTour' : 'toolbar.nextMode')) | transloco }}
     </sbb-secondary-button>
   }
 </div>

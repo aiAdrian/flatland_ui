@@ -20,6 +20,7 @@ export type ForecastLevel = 'good' | 'fair' | 'bad' | 'unknown';
 export type ForecastConfidence = 'high' | 'medium' | 'lower' | 'unknown';
 
 export interface ForecastCell {
+  /** Translation key; the text lives in the translation files (i18n phase 3). */
   label: string;
   level: ForecastLevel;
 }
@@ -68,6 +69,9 @@ export function reliableColumns(openProblems: number): number {
 }
 
 const cell = (label: string, level: ForecastLevel): ForecastCell => ({ label, level });
+
+/** Forecast wording is keyed, so the same table reads in any language. */
+const K = (name: string) => `forecast.cell.${name}`;
 
 /**
  * Count what is currently open and unresolved: deadlocks the option leaves
@@ -131,38 +135,38 @@ export function buildForecastFromSignals(
   const { addsDelay, keepsConnections, addsRipple } = signals;
 
   const columns: ForecastColumn[] = [
-    { label: 'Jetzt', confidence: 'high' },
-    { label: '+10 min', confidence: 'high' },
-    { label: '+20 min', confidence: 'medium' },
-    { label: '+30 min', confidence: 'lower' },
+    { label: 'forecast.col.now', confidence: 'high' },
+    { label: 'forecast.col.plus10', confidence: 'high' },
+    { label: 'forecast.col.plus20', confidence: 'medium' },
+    { label: 'forecast.col.plus30', confidence: 'lower' },
   ];
 
   // Row 1 — the conflict this option resolves.
   const conflictRow: ForecastRow = {
     icon: '⚠️',
-    label: 'Konflikt',
+    label: 'forecast.row.conflict',
     cells: addsRipple
-      ? [cell('aktiv', 'bad'), cell('aktiv', 'bad'), cell('offen', 'fair'), cell('unklar', 'fair')]
-      : [cell('aktiv', 'bad'), cell('löst sich', 'fair'), cell('gelöst', 'good'), cell('stabil', 'good')],
+      ? [cell(K('active'), 'bad'), cell(K('active'), 'bad'), cell(K('open'), 'fair'), cell(K('unclear'), 'fair')]
+      : [cell(K('active'), 'bad'), cell(K('resolving'), 'fair'), cell(K('resolved'), 'good'), cell(K('stable'), 'good')],
   };
 
   // Row 2 — the primary goal: are the connections kept?
   const goalRow: ForecastRow = {
     icon: '🔗',
-    label: 'Anschlüsse',
+    label: 'forecast.row.connections',
     cells: keepsConnections
-      ? [cell('gefährdet', 'bad'), cell('gehalten', 'good'), cell('gehalten', 'good'), cell('gehalten', 'good')]
-      : [cell('gefährdet', 'bad'), cell('gefährdet', 'bad'), cell('verloren', 'bad'), cell('verloren', 'bad')],
+      ? [cell(K('atRisk'), 'bad'), cell(K('kept'), 'good'), cell(K('kept'), 'good'), cell(K('kept'), 'good')]
+      : [cell(K('atRisk'), 'bad'), cell(K('atRisk'), 'bad'), cell(K('lost'), 'bad'), cell(K('lost'), 'bad')],
   };
 
   // Row 3 — the side effect: delay / network load.
   const sideRow: ForecastRow = {
     icon: '🌊',
     // Short on purpose: this table has to survive in a 333px column.
-    label: 'Netzlast',
+    label: 'forecast.row.networkLoad',
     cells: addsDelay
-      ? [cell('steigt', 'fair'), cell('steigt', 'fair'), cell('hoch', 'bad'), cell('hoch', 'bad')]
-      : [cell('niedrig', 'good'), cell('niedrig', 'good'), cell('niedrig', 'good'), cell('stabil', 'good')],
+      ? [cell(K('rising'), 'fair'), cell(K('rising'), 'fair'), cell(K('high'), 'bad'), cell(K('high'), 'bad')]
+      : [cell(K('low'), 'good'), cell(K('low'), 'good'), cell(K('low'), 'good'), cell(K('stable'), 'good')],
   };
 
   const rows = [conflictRow, goalRow, sideRow];
@@ -171,7 +175,7 @@ export function buildForecastFromSignals(
   const reliable = reliableColumns(openProblems);
   for (let i = reliable; i < columns.length; i++) {
     columns[i].confidence = 'unknown';
-    for (const row of rows) row.cells[i] = cell('unklar', 'unknown');
+    for (const row of rows) row.cells[i] = cell(K('unclear'), 'unknown');
   }
 
   return {

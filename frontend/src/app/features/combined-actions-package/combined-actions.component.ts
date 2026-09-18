@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { CUSTOM_ELEMENTS_SCHEMA, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -26,12 +28,13 @@ import { CaPkgActionCardComponent } from './action-card.component';
 @Component({
   selector: 'app-combined-actions-package',
   standalone: true,
-  imports: [CommonModule, CaPkgActionCardComponent],
+  imports: [TranslocoPipe, CommonModule, CaPkgActionCardComponent],
   templateUrl: './combined-actions.component.html',
   styleUrl: './combined-actions.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CombinedActionsPackageComponent {
+  private readonly i18n = inject(LanguageService);
   private readonly store = inject(SessionStore);
 
   /** Computed once: the conflict is a fixture, so re-running would change nothing. */
@@ -101,6 +104,12 @@ export class CombinedActionsPackageComponent {
     this.store.combinedActionHandles.set(new Set(handles));
   }
 
+  /** The conflict window's place name in the viewer's language. */
+  windowLocation(): string {
+    const w = this.window();
+    return this.i18n.t(`cap.window.${w.id}.location`, undefined, w.location);
+  }
+
   clearFocus(): void {
     this._focusedId.set(null);
     this.store.combinedActionHandles.set(new Set());
@@ -130,7 +139,7 @@ export class CombinedActionsPackageComponent {
       // What the operator saw, not the internal candidate id: the card is
       // headed by how many trains the action steers, and `cand_2_1` in a log
       // strip reads as a leaked identifier rather than as a decision.
-      label: `${metrics.controlledTrains} Züge gesteuert · ${event.evaluated.action.strategy}`,
+      label: this.i18n.t('cap.logLabel', { n: metrics.controlledTrains, strategy: event.evaluated.action.strategy }),
       aiOrder: [...(aiOrder ?? event.evaluated.action.sequence)],
       appliedOrder: [...event.evaluated.action.sequence],
       handles: event.evaluated.action.sequence

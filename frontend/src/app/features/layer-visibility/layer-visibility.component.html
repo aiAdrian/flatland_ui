@@ -1,13 +1,13 @@
 <div class="layer-visibility">
-  <span class="lv-label">Layers</span>
+  <span class="lv-label">{{ 'layers.label' | transloco }}</span>
   <div class="layers">
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().grid" [attr.aria-pressed]="store.layerVisibility().grid" (click)="toggle('grid')">Grid</button>
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().nextDecisions" [attr.aria-pressed]="store.layerVisibility().nextDecisions" (click)="toggle('nextDecisions')">Decisions</button>
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().agentTrajectory" [attr.aria-pressed]="store.layerVisibility().agentTrajectory" (click)="toggle('agentTrajectory')">Trajectory</button>
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().trajectoryCellInfo" [attr.aria-pressed]="store.layerVisibility().trajectoryCellInfo" (click)="toggle('trajectoryCellInfo')">Cell info</button>
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().switches" [attr.aria-pressed]="store.layerVisibility().switches" (click)="toggle('switches')">Switches</button>
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().signals" [attr.aria-pressed]="store.layerVisibility().signals" (click)="toggle('signals')">Signals</button>
-    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().stations" [attr.aria-pressed]="store.layerVisibility().stations" (click)="toggle('stations')">Stations</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().grid" [attr.aria-pressed]="store.layerVisibility().grid" (click)="toggle('grid')">{{ 'layers.grid' | transloco }}</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().nextDecisions" [attr.aria-pressed]="store.layerVisibility().nextDecisions" (click)="toggle('nextDecisions')">{{ 'layers.decisions' | transloco }}</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().agentTrajectory" [attr.aria-pressed]="store.layerVisibility().agentTrajectory" (click)="toggle('agentTrajectory')">{{ 'layers.trajectory' | transloco }}</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().trajectoryCellInfo" [attr.aria-pressed]="store.layerVisibility().trajectoryCellInfo" (click)="toggle('trajectoryCellInfo')">{{ 'layers.cellInfo' | transloco }}</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().switches" [attr.aria-pressed]="store.layerVisibility().switches" (click)="toggle('switches')">{{ 'layers.switches' | transloco }}</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().signals" [attr.aria-pressed]="store.layerVisibility().signals" (click)="toggle('signals')">{{ 'layers.signals' | transloco }}</button>
+    <button type="button" class="layer-chip" [class.on]="store.layerVisibility().stations" [attr.aria-pressed]="store.layerVisibility().stations" (click)="toggle('stations')">{{ 'layers.stations' | transloco }}</button>
   </div>
 
   <button
@@ -16,39 +16,39 @@
     [class.on]="legendOpen()"
     [attr.aria-expanded]="legendOpen()"
     (click)="toggleLegend()">
-    Legende
+    {{ 'layers.legend' | transloco }}
   </button>
 
   @if (legendOpen()) {
-    <div class="legend-popover" role="group" aria-label="Kartenlegende">
+    <div class="legend-popover" role="group" [attr.aria-label]="'layers.legendAria' | transloco">
       <ul class="legend-list">
         <li>
           <span class="swatch swatch--train"></span>
-          <span><strong>Zug</strong> — die Farbe identifiziert den Zug, gleich in Liste, Karte und Marey</span>
+          <span><strong>{{ 'layers.item.train' | transloco }}</strong> — {{ 'layers.item.trainText' | transloco }}</span>
         </li>
         <li>
           <span class="swatch swatch--disruption"></span>
-          <span><strong>Roter Ring mit „!"</strong> — dieser Zug hat eine Störung</span>
+          <span><strong>{{ 'layers.item.disruption' | transloco }}</strong> — {{ 'layers.item.disruptionText' | transloco }}</span>
         </li>
         <li>
           <span class="swatch swatch--decision"></span>
-          <span><strong>Decisions</strong> — nächster Entscheidungspunkt; die Pills daneben sind die wählbaren Aktionen (dieselben wie in der Agents-Liste)</span>
+          <span><strong>{{ 'layers.decisions' | transloco }}</strong> — {{ 'layers.item.decisionText' | transloco }}</span>
         </li>
         <li>
           <span class="swatch swatch--switch"></span>
-          <span><strong>Switches</strong> — Weiche</span>
+          <span><strong>{{ 'layers.switches' | transloco }}</strong> — {{ 'layers.item.switchText' | transloco }}</span>
         </li>
         <li>
           <span class="swatch swatch--signal"></span>
-          <span><strong>Signals</strong> — Signal an einer Verzweigung</span>
+          <span><strong>{{ 'layers.signals' | transloco }}</strong> — {{ 'layers.item.signalText' | transloco }}</span>
         </li>
         <li>
           <span class="swatch swatch--station"></span>
-          <span><strong>Stations</strong> — Station (S1, S2, …)</span>
+          <span><strong>{{ 'layers.stations' | transloco }}</strong> — {{ 'layers.item.stationText' | transloco }}</span>
         </li>
         <li>
           <span class="swatch swatch--grid"></span>
-          <span><strong>Grid</strong> — Zellraster zur Orientierung</span>
+          <span><strong>{{ 'layers.grid' | transloco }}</strong> — {{ 'layers.item.gridText' | transloco }}</span>
         </li>
       </ul>
     </div>

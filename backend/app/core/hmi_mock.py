@@ -83,6 +83,8 @@ def generate_notifications(session_id: str, step: int) -> List[AppNotification]:
             message="All agents have reached their target.",
             timestamp=step,
             relatedElement=None,
+            code="episode.finished",
+            params={},
         ))
 
     overrides = override_manager.get_all(session_id)
@@ -107,12 +109,15 @@ def generate_notifications(session_id: str, step: int) -> List[AppNotification]:
                 message=f"Train {h} is malfunctioning ({mf_steps} steps remaining).",
                 timestamp=step,
                 relatedElement=RelatedElement(kind="train", id=aid),
+                code="train.malfunction",
+                params={"train": h, "steps": mf_steps},
             ))
 
         # 3) Override active
         if h in overrides:
             action = overrides[h]
             label = {1: "LEFT", 2: "FORWARD", 3: "RIGHT"}.get(int(action), str(action))
+            direction = {1: "left", 2: "forward", 3: "right"}.get(int(action), str(action))
             out.append(AppNotification(
                 id=f"n_{step}_ov_{h}",
                 kind="warning",
@@ -120,6 +125,8 @@ def generate_notifications(session_id: str, step: int) -> List[AppNotification]:
                 message=f"Train {h}: operator override {label} pending.",
                 timestamp=step,
                 relatedElement=RelatedElement(kind="train", id=aid),
+                code="train.overridePending",
+                params={"train": h, "direction": direction},
             ))
 
         # 4) Decision pending (<=5 cells)
@@ -142,6 +149,14 @@ def generate_notifications(session_id: str, step: int) -> List[AppNotification]:
                     ),
                     timestamp=step,
                     relatedElement=RelatedElement(kind="train", id=aid),
+                    code="train.decisionPending",
+                    params={
+                        "train": h,
+                        "cell": str(kind).lower(),
+                        "row": -1 if pos[0] is None else int(pos[0]),
+                        "col": -1 if pos[1] is None else int(pos[1]),
+                        "distance": dist,
+                    },
                 ))
 
     # Add short-lived event notifications (e.g. override impact alerts).

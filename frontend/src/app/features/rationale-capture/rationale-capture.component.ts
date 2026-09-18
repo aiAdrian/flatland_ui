@@ -1,13 +1,17 @@
 import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
+import { LanguageService } from '../../core/i18n/language.service';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { buildPreferenceHypothesis, strategyLabelForAction } from '../../core/learning-store.service';
+import { valueAxisFromRationaleIds } from '../../core/operator-value-axis';
 
 /** One selectable structured "why" chip (LLM-free first cut). */
 interface ReasonChip {
   id: string;
-  label: string;
+  /** Translation key; the label itself lives in the translation files. */
+  labelKey: string;
 }
 
 /**
@@ -26,13 +30,17 @@ interface ReasonChip {
 @Component({
   selector: 'app-rationale-capture',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './rationale-capture.component.html',
   styleUrl: './rationale-capture.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class RationaleCaptureComponent {
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
+  /** The hypothesis and the action label follow the language like every string here. */
+  private readonly t = (key: string, params?: Record<string, string>, fallback?: string) =>
+    this.i18n.t(key, params, fallback);
   private readonly identity = inject(TrainIdentityService);
 
   trainName(handle: number): string {
@@ -41,13 +49,13 @@ export class RationaleCaptureComponent {
 
   /** Structured reasons (dispatching trade-offs + experience). Multi-select. */
   readonly chips: ReasonChip[] = [
-    { id: 'connection', label: 'Schützt Anschluss' },
-    { id: 'delay', label: 'Geringe Zusatzverspätung' },
-    { id: 'ripple', label: 'Niedriges Ripple-Risiko' },
-    { id: 'deadlock', label: 'Vermeide Deadlock' },
-    { id: 'critical', label: 'Kritische Lage' },
-    { id: 'experience', label: 'Erfahrungswert' },
-    { id: 'other', label: 'Sonstiges' },
+    { id: 'connection', labelKey: 'rationale.chip.connection' },
+    { id: 'delay', labelKey: 'rationale.chip.delay' },
+    { id: 'ripple', labelKey: 'rationale.chip.ripple' },
+    { id: 'deadlock', labelKey: 'rationale.chip.deadlock' },
+    { id: 'critical', labelKey: 'rationale.chip.critical' },
+    { id: 'experience', labelKey: 'rationale.chip.experience' },
+    { id: 'other', labelKey: 'rationale.chip.other' },
   ];
 
   /** Selected chip ids. */
@@ -62,12 +70,12 @@ export class RationaleCaptureComponent {
   readonly hypothesis = computed(() => {
     const p = this.pending();
     if (!p) return '';
-    return buildPreferenceHypothesis(p.context, strategyLabelForAction(p.action));
+    return buildPreferenceHypothesis(p.context, strategyLabelForAction(p.action, this.t), this.t);
   });
 
   strategyLabel(): string {
     const p = this.pending();
-    return p ? strategyLabelForAction(p.action) : '';
+    return p ? strategyLabelForAction(p.action, this.t) : '';
   }
 
   toggleChip(id: string): void {
@@ -86,7 +94,7 @@ export class RationaleCaptureComponent {
   private rationaleText(): string {
     const chips = this.chips
       .filter((c) => this.selected().has(c.id))
-      .map((c) => c.label);
+      .map((c) => this.i18n.t(c.labelKey));
     const note = this.note().trim();
     if (note) chips.push(note);
     return chips.join('; ');
@@ -103,7 +111,13 @@ export class RationaleCaptureComponent {
     // 'no' may proceed without a rationale (rejecting the hypothesis is itself
     // the answer); for 'yes'/'once' require a reason.
     if (response !== 'no' && !this.canSubmit()) return;
-    this.store.submitRationale({ rationale: this.rationaleText(), response });
+    this.store.submitRationale({
+      rationale: this.rationaleText(),
+      // The axis comes from the chip ids, not from their text: the text is
+      // translated, the ids are not.
+      valueAxis: valueAxisFromRationaleIds([...this.selected()]),
+      response,
+    });
     this._reset();
   }
 

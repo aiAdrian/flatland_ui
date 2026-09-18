@@ -13,7 +13,9 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { PanelInstance } from '../../../../core/layout';
+import { LanguageService } from '../../../../core/i18n/language.service';
 import { TourContextService } from '../../../../core/demo/tour-context.service';
 import { TourGuideService } from '../../../../core/demo/tour-guide.service';
 import { PanelPluginHostComponent } from '../panel-plugin-host/panel-plugin-host.component';
@@ -21,7 +23,7 @@ import { PanelPluginHostComponent } from '../panel-plugin-host/panel-plugin-host
 @Component({
   selector: 'app-panel-shell',
   standalone: true,
-  imports: [PanelPluginHostComponent],
+  imports: [PanelPluginHostComponent, TranslocoPipe],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './panel-shell.component.html',
   styleUrl: './panel-shell.component.scss',
@@ -30,6 +32,7 @@ export class PanelShellComponent implements OnChanges {
   @Input({ required: true }) panel!: PanelInstance;
 
   private readonly tour = inject(TourContextService);
+  readonly i18n = inject(LanguageService);
 
   colearningModule(): string | null {
     return this.tour.moduleFor(this.panel?.type);
@@ -39,7 +42,7 @@ export class PanelShellComponent implements OnChanges {
    *  stands for. Replaces the chip the header used to carry. */
   moduleHint(): string | null {
     const module = this.colearningModule();
-    return module ? `Co-Learning-Modul: ${module} · Entwurf, nicht final` : null;
+    return module ? this.i18n.t('panels.moduleHint', { module }) : null;
   }
 
   private readonly guide = inject(TourGuideService);

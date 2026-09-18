@@ -1,14 +1,14 @@
 <div class="marey-shell">
   @if (pathCells().length === 0) {
     <div class="marey-empty">
-      <p>Select an agent to see its time–distance trajectory.</p>
+      <p>{{ 'zwl.empty' | transloco }}</p>
     </div>
   } @else {
     <div class="marey-layout">
 
       <!-- Cell 1×1: Reset -->
       <div class="cell-reset">
-        <button class="nav-btn" title="Reset view" (click)="resetPan()">⌂</button>
+        <button class="nav-btn" [attr.title]="'zwl.resetView' | transloco" (click)="resetPan()">⌂</button>
       </div>
 
       <!-- Cell 1×2: Topology header -->
@@ -211,11 +211,11 @@
         @if (axesSwapped()) {
           <line [attr.x1]="nowCoord()" [attr.x2]="nowCoord()"
                 [attr.y1]="PAD.top"    [attr.y2]="H - PAD.bottom" />
-          <text [attr.x]="nowCoord() + 4" [attr.y]="PAD.top - 4">now</text>
+          <text [attr.x]="nowCoord() + 4" [attr.y]="PAD.top - 4">{{ 'zwl.now' | transloco }}</text>
         } @else {
           <line [attr.x1]="PAD.left" [attr.x2]="W - PAD.right"
                 [attr.y1]="nowCoord()" [attr.y2]="nowCoord()" />
-          <text [attr.x]="W - PAD.right + 4" [attr.y]="nowCoord() + 4">now</text>
+          <text [attr.x]="W - PAD.right + 4" [attr.y]="nowCoord() + 4">{{ 'zwl.now' | transloco }}</text>
         }
       </g>
 
@@ -259,8 +259,8 @@
     <!-- Zoom overlay (above pan-cross) -->
     <!-- Swap-axes overlay: where flatland-map has its opacity slider -->
     <div class="map-swap-overlay">
-        <button title="Center / Reset zoom" class="nav-btn" (click)="resetZoom()">⌂</button>
-        <button title="Swap horizontal/vertical axes" class="nav-btn"
+        <button [attr.title]="'zwl.resetZoom' | transloco" class="nav-btn" (click)="resetZoom()">⌂</button>
+        <button [attr.title]="'zwl.swapAxes' | transloco" class="nav-btn"
                 [class.active]="axesSwapped()" (click)="swapAxes()">⇄</button>
       </div>
       </div><!-- /cell-marey -->
@@ -328,7 +328,7 @@
         {{ topologyHumanLabel(tt.tile) }}
       </div>
       <div class="tooltip-hint">
-        {{ tt.pinned ? 'Pinned · Esc or outside click to close' : 'Click tile to pin' }}
+        {{ (tt.pinned ? 'zwl.pinned' : 'zwl.clickToPin') | transloco }}
       </div>
 
       <div class="tooltip-row">

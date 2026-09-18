@@ -1,14 +1,14 @@
 <div class="intro">
   <div class="intro-card">
-    <span class="intro-step done">Guided demo complete</span>
+    <span class="intro-step done">{{ 'complete.step' | transloco }}</span>
 
-    <span class="intro-wp">All 3 modes done</span>
-    <sbb-title level="2" visual-level="3" class="intro-title">Thanks for taking part</sbb-title>
-    <p class="intro-tagline">Recommendation → Co-Learning → Director — surveys saved per mode.</p>
+    <span class="intro-wp">{{ modesDone() }}</span>
+    <sbb-title level="2" visual-level="3" class="intro-title">{{ 'complete.title' | transloco }}</sbb-title>
+    <p class="intro-tagline">{{ tagline() }}</p>
 
     <div class="intro-actions">
-      <sbb-button size="l" (click)="restart.emit()">Restart</sbb-button>
-      <sbb-transparent-button size="m" (click)="exit.emit()">Exit demo</sbb-transparent-button>
+      <sbb-button size="l" (click)="restart.emit()">{{ 'complete.restart' | transloco }}</sbb-button>
+      <sbb-transparent-button size="m" (click)="exit.emit()">{{ 'complete.exit' | transloco }}</sbb-transparent-button>
     </div>
   </div>
 </div>

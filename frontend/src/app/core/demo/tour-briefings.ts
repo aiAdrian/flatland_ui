@@ -139,7 +139,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         id: 'detect',
         loop: 'operational',
         title: 'Konflikt erkennen',
-        hint: 'Starten Sie mit «Play» und beobachten Sie die Strecke. Nach einer knappen halben Minute bleibt ein Zug im Einspurabschnitt stehen, und das TMS meldet die Störung links.',
+        hint: 'Starte mit «Play» und beobachte die Strecke. Nach einer knappen halben Minute bleibt ein Zug im Einspurabschnitt stehen, und das TMS meldet die Störung links.',
       },
       {
         id: 'assess',
@@ -155,27 +155,27 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         module: true,
         panelType: 'proposal-compare',
         title: 'Alternativen',
-        hint: 'Neu: Die KI bietet Optionen an, ohne eine zu empfehlen. Unter «Plan / KI / Mensch» sehen Sie vorab, was der Plan, der KI-Vorschlag und Ihre eigene Wahl für den Zug bedeuten.',
+        hint: 'Neu: Die KI bietet Optionen an, ohne eine zu empfehlen. Unter «Plan / KI / Mensch» siehst du vorab, was der Plan, der KI-Vorschlag und deine eigene Wahl für den Zug bedeuten.',
       },
       {
         id: 'decide',
         loop: 'operational',
         panelType: 'proposal-compare',
         title: 'Entscheiden',
-        hint: 'Wählen Sie unter «Plan / KI / Mensch» eine Option für den betroffenen Zug und übernehmen Sie sie.',
+        hint: 'Wähle unter «Plan / KI / Mensch» eine Option für den betroffenen Zug und übernimm sie.',
       },
       {
         id: 'execute',
         loop: 'operational',
         title: 'Umsetzen',
-        hint: 'Das TMS setzt Ihre Wahl um. Lassen Sie die Simulation weiterlaufen.',
+        hint: 'Das TMS setzt deine Wahl um. Lass die Simulation weiterlaufen.',
       },
       {
         id: 'reflect',
         loop: 'learning',
         module: true,
         title: 'Reflexion',
-        hint: 'Neu: Nach Ihrer Entscheidung hält die Simulation an und fragt nach Ihrem Grund. Wählen Sie einen Grund, danach «Ja, als Regel» oder «Nur diesmal».',
+        hint: 'Neu: Nach deiner Entscheidung hält die Simulation an und fragt nach deinem Grund. Wähle einen Grund, danach «Ja, als Regel» oder «Nur diesmal».',
       },
       {
         id: 'shift-summary',
@@ -198,7 +198,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         loop: 'learning',
         module: true,
         title: 'KI lernt',
-        hint: 'Neu: Die KI übernimmt bestätigte Gründe in ihr Modell. Nach der Schicht sehen Sie das als Lern-Karte.',
+        hint: 'Neu: Die KI übernimmt bestätigte Gründe in ihr Modell. Nach der Schicht siehst du das als Lern-Karte.',
       },
     ],
     // Panels that belong to the Co-Learning extension: they carry the violet
@@ -206,7 +206,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     // overview — the panels themselves are no longer labelled.
     moduleBadges: {
       impact: 'Risiko- und Auswirkungsanalyse',
-      'proposal-compare': 'Auswirkungsanalyse: Plan, KI-Vorschlag und Ihre Wahl',
+      'proposal-compare': 'Auswirkungsanalyse: Plan, KI-Vorschlag und deine Wahl',
       'decision-log': 'Grundlage für Reflexion und Lernen',
     },
     modeIntros: {
@@ -214,36 +214,36 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         mode: 'co-learning',
         wp: 'Co-Learning · Walensee',
         title: 'Eine Störung am Einspurabschnitt',
-        tagline: 'Die KI zeigt Auswirkungen und Optionen. Sie entscheiden und lernen daraus.',
+        tagline: 'Die KI zeigt Auswirkungen und Optionen. Du entscheidest und lernst daraus.',
         whatHappens:
-          'Strecke Pfäffikon SZ–Chur am Walensee, von Ziegelbrücke bis Walenstadt, mit einem einspurigen Abschnitt. Drei Züge fahren nach Fahrplan. Nach einer knappen halben Minute bleibt ein Zug mitten im Einspurabschnitt stehen, und der Zug dahinter läuft auf ihn auf. Wie es weitergeht, entscheiden Sie.',
+          'Strecke Pfäffikon SZ–Chur am Walensee, von Ziegelbrücke bis Walenstadt, mit einem einspurigen Abschnitt. Drei Züge fahren nach Fahrplan. Nach einer knappen halben Minute bleibt ein Zug mitten im Einspurabschnitt stehen, und der Zug dahinter läuft auf ihn auf. Wie es weitergeht, entscheidest du.',
         focusView:
-          'In der Mitte Streckenspiegel und Zeit-Weg-Linien (ZWL) als Tabs, darunter der Fahrplan. Den Streckenspiegel ziehen Sie mit der Maus seitlich, mit dem Mausrad zoomen Sie. Rechts liegen die Co-Learning-Module.',
+          'In der Mitte Streckenspiegel und Zeit-Weg-Linien (ZWL) als Tabs, darunter der Fahrplan. Den Streckenspiegel ziehst du mit der Maus seitlich, mit dem Mausrad zoomst du. Rechts liegen die Co-Learning-Module.',
         yourRole:
-          'Sie disponieren. Die KI rankt nichts und empfiehlt nichts: Sie wählen selbst, vergleichen danach mit einer Alternative und denken über Ihre Entscheidung nach.',
+          'Du disponierst. Die KI rankt nichts und empfiehlt nichts: Du wählst selbst, vergleichst danach mit einer Alternative und denkst über deine Entscheidung nach.',
         whatYouCanControl: [
           'Die Simulation starten, pausieren oder schrittweise laufen lassen',
           'Für einen betroffenen Zug eine Option wählen',
-          'Unter «Plan / KI / Mensch» vorab vergleichen: Plan, KI-Vorschlag und Ihre eigene Wahl',
+          'Unter «Plan / KI / Mensch» vorab vergleichen: Plan, KI-Vorschlag und deine eigene Wahl',
           'Nach einer Entscheidung den Grund angeben, als Regel oder nur für diesmal',
         ],
         watchFor: [
           'Panels mit dem Zeichen «Co-Learning» sind die neue Erweiterung. Alles andere steht für das TMS als Ganzes.',
           'Optionen erscheinen ohne Ranking und ohne «empfohlen»',
-          'Blau steht für Ihre Entscheidung, gelb für die Variante der KI',
+          'Blau steht für deine Entscheidung, gelb für die Variante der KI',
           'Oben führt ein Leitfaden durch die neun Schritte. Das jeweils nächste Modul wird hervorgehoben.',
         ],
         goal:
-          'Es geht nicht um die perfekte Disposition, sondern um ein Gefühl dafür, was die Module leisten, als Grundlage für Ihre Schätzung.',
+          'Es geht nicht um die perfekte Disposition, sondern um ein Gefühl dafür, was die Module leisten, als Grundlage für deine Schätzung.',
         note: PROTOTYPE_DISCLAIMER,
         labels: {
           stepPrefix: 'Modus',
           stepOf: 'von',
           whatHappens: 'Was passiert',
-          focusView: 'Wohin Sie schauen',
-          yourRole: 'Ihre Rolle',
-          control: 'Was Sie tun können',
-          watchFor: 'Worauf Sie achten',
+          focusView: 'Wohin du schaust',
+          yourRole: 'Deine Rolle',
+          control: 'Was du tun kannst',
+          watchFor: 'Worauf du achtest',
           goal: 'Ziel',
           start: 'Szenario starten',
           exit: 'Tour beenden',
@@ -268,11 +268,11 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
             'Wir schätzen Kosten und Nutzen einer solchen Erweiterung ab. Einsatzdaten gibt es noch nicht (Reifegrad TRL 3–4). Deshalb fragen wir Fachpersonen nach Bandbreiten statt nach Einzelwerten. Die Werte fliessen in eine Monte-Carlo-Simulation, die zeigt, wie wahrscheinlich sich die Erweiterung über zehn Jahre lohnt.',
         },
         {
-          heading: 'Was wir von Ihnen brauchen',
+          heading: 'Was wir von dir brauchen',
           items: [
             'Pro Kosten- oder Nutzenposition drei Werte: Maximum, Minimum, wahrscheinlichster Wert',
-            'Bezug ist ein ausgereiftes, eingeführtes System (TRL 9), nicht der Prototyp, den Sie gleich sehen',
-            'Angaben in Personenmonaten oder CHF, je nachdem, was Ihnen leichter fällt',
+            'Bezug ist ein ausgereiftes, eingeführtes System (TRL 9), nicht der Prototyp, den du gleich siehst',
+            'Angaben in Personenmonaten oder CHF, je nachdem, was dir leichter fällt',
             'Eine breite Spanne ist eine gültige Antwort, wenn die Unsicherheit gross ist',
           ],
         },
@@ -289,14 +289,14 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         {
           heading: 'Die Simulation',
           body:
-            'Sie sehen die Bahnsimulation Flatland: ein Gitter mit Zügen, Weichen und Haltepunkten, bewusst vereinfacht. Keine Signale, keine Fahrdynamik, ein Zeitschritt statt Sekunden und Minuten. Das genügt, um Konflikte, Auswirkungen und Entscheidungen erlebbar zu machen — Fahrzeiten oder Kapazitäten lassen sich damit nicht rechnen.',
+            'Du siehst die Bahnsimulation Flatland: ein Gitter mit Zügen, Weichen und Haltepunkten, bewusst vereinfacht. Keine Signale, keine Fahrdynamik, ein Zeitschritt statt Sekunden und Minuten. Das genügt, um Konflikte, Auswirkungen und Entscheidungen erlebbar zu machen — Fahrzeiten oder Kapazitäten lassen sich damit nicht rechnen.',
         },
         {
           heading: 'Wer entscheidet was',
           items: [
             'TMS: plant den Fahrplan und passt ihn bei Störungen mit seinem eigenen Optimierungsalgorithmus an. Der Fahrplan ist dabei nur das Gerüst aus Ankunfts- und Haltezeiten, die Route bleibt beweglich.',
             'Co-Learning-KI: schaut auf die konkrete Situation und schlägt lokale Abweichungen vor — etwa, wer zuerst durch den Einspurabschnitt fährt. Gedacht ist dafür ein MARL-Ansatz, also mehrere lernende Agenten über dem Hauptalgorithmus. Im Prototyp rechnet an dieser Stelle noch ein klassischer Planungsalgorithmus, kein gelernter Agent.',
-            'Mensch: Sie entscheiden als Fachperson. Ihre Entscheidung und Ihre Begründung fliessen zurück — daraus lernt die KI, und langfristig verbessert das den Hauptalgorithmus.',
+            'Mensch: Du entscheidest als Fachperson. Deine Entscheidung und deine Begründung fliessen zurück — daraus lernt die KI, und langfristig verbessert das den Hauptalgorithmus.',
           ],
         },
         {
@@ -304,7 +304,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           body:
             'Der Playground ist ein Forschungsprototyp auf der Bahnsimulation Flatland, kein Produkt. Die neuen Co-Learning-Module tragen ein violettes Zeichen «Co-Learning», alles andere steht für das TMS als Ganzes. ' +
             PROTOTYPE_DISCLAIMER +
-            ' Die Übersicht am Ende zeigt, was Sie erlebt haben und was nur skizziert ist.',
+            ' Die Übersicht am Ende zeigt, was du erlebt hast und was nur skizziert ist.',
         },
       ],
       proceedLabel: 'Weiter zur Tour',
@@ -407,7 +407,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         concept: 'Konzept',
       },
       estimationReminder:
-        'Bitte schätzen Sie für ein ausgereiftes, eingeführtes System (TRL 9), nicht für diesen Prototyp: Maximum, Minimum, wahrscheinlichster Wert.',
+        'Bitte schätze für ein ausgereiftes, eingeführtes System (TRL 9), nicht für diesen Prototyp: Maximum, Minimum, wahrscheinlichster Wert.',
       disclaimer: PROTOTYPE_DISCLAIMER,
       sources: 'Grundlagen: Hamouche et al. (2026), Mussi et al. (2025), Bessa et al. (2026), AI4REALNET.',
     },

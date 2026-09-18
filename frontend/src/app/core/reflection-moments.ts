@@ -37,6 +37,9 @@ export interface ReflectionMoment {
   caseType: ReflectionCaseType;
   /** Human-readable scoring trace, so the selection stays explainable. */
   reasons: string[];
+  /** The same trace as translation keys (`moment.reason.*`), one per entry in
+   *  `reasons`, for surfaces that follow the viewer's language. */
+  reasonKeys: string[];
   /** The value axis the operator expressed, when they named one. */
   axis: ValueAxis | null;
   /** The axis their earlier decisions in comparable situations suggested. */
@@ -119,43 +122,51 @@ export function scoreMoment(
 
   let score = 0;
   const reasons: string[] = [];
+  const reasonKeys: string[] = [];
   let caseType: ReflectionCaseType = 'passive_accept';
 
   if (expectedAxis && axis && axis !== expectedAxis) {
     score += 5;
     reasons.push('Weicht vom eigenen Muster ab (+5)');
+    reasonKeys.push('moment.reason.pattern_deviation');
     caseType = 'pattern_deviation';
   }
   if (entry.accountableOwner === 'human' && entry.action === 'override') {
     score += 4;
     reasons.push('Override der KI-Empfehlung (+4)');
+    reasonKeys.push('moment.reason.override');
     if (caseType === 'passive_accept') caseType = 'override';
   }
   if (entry.accountableOwner === 'ai') {
     score += 3;
     reasons.push('Der KI überlassen (+3)');
+    reasonKeys.push('moment.reason.deferred_to_ai');
     if (caseType === 'passive_accept') caseType = 'deferred_to_ai';
   }
   if (entry.hypothesisResponse === 'yes') {
     score += 3;
     reasons.push('Als Präferenz bestätigt (+3)');
+    reasonKeys.push('moment.reason.confirmed_preference');
     if (caseType === 'passive_accept') caseType = 'confirmed_preference';
   }
   if (entry.hypothesisResponse === 'once') {
     score += 2;
     reasons.push('Bewusst als Einzelfall markiert (+2)');
+    reasonKeys.push('moment.reason.one_off');
     if (caseType === 'passive_accept') caseType = 'one_off';
   }
   if (entry.rationale) {
     score += 2;
     reasons.push('Grund angegeben (+2)');
+    reasonKeys.push('moment.reason.reasoned');
     if (caseType === 'passive_accept') caseType = 'reasoned';
   }
   if (score === 0) {
     reasons.push('Stille Zustimmung (+0)');
+    reasonKeys.push('moment.reason.passive_accept');
   }
 
-  return { entry, score, caseType, reasons, axis, expectedAxis };
+  return { entry, score, caseType, reasons, reasonKeys, axis, expectedAxis };
 }
 
 /**

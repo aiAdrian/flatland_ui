@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/transloco-testing';
 import { SessionStore } from '../../core/session.store';
 import { Recommendation, ScenarioOption } from '../../core/events/event-types';
 import { RecommendationsPanelComponent } from './recommendations-panel.component';
@@ -31,7 +32,8 @@ describe('RecommendationsPanelComponent look-ahead pinning', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [RecommendationsPanelComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        ...provideTranslocoTesting(), provideHttpClient(), provideHttpClientTesting()],
     });
     fixture = TestBed.createComponent(RecommendationsPanelComponent);
     cmp = fixture.componentInstance;
@@ -110,9 +112,9 @@ describe('RecommendationsPanelComponent look-ahead pinning', () => {
       dispersion: 0.18,
       confidenceBasis: 'ensemble-margin',
     });
-    expect(note).toContain('0.26 besser');
+    expect(note).toContain('0.26 better');
     expect(note).toContain('0.18');
-    expect(note).toContain('nicht kalibriert');
+    expect(note).toContain('not calibrated');
   });
 
   it('says so when an option is behind the current course', () => {
@@ -123,8 +125,8 @@ describe('RecommendationsPanelComponent look-ahead pinning', () => {
       dispersion: 0.55,
       confidenceBasis: 'ensemble-margin',
     });
-    expect(note).toContain('0.09 schlechter');
-    expect(note).toContain('weit auseinander');
+    expect(note).toContain('0.09 worse');
+    expect(note).toContain('lie far apart');
   });
 
   it('flags a missing ensemble instead of implying one', () => {
@@ -134,7 +136,7 @@ describe('RecommendationsPanelComponent look-ahead pinning', () => {
       margin: 0.1,
       confidenceBasis: 'prior-only',
     });
-    expect(note).toContain('keine Vergleichsvarianten');
+    expect(note).toContain('no comparison variants');
   });
 
   it('falls back to the utility score, not the confidence, for the card score', () => {

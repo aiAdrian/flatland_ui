@@ -1,4 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Output, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { INTERACTION_MODES } from '../../core/interaction-modes';
 
 /**
@@ -10,6 +11,7 @@ import { INTERACTION_MODES } from '../../core/interaction-modes';
 @Component({
   selector: 'app-help-about',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './help-about.component.html',
   styleUrl: './help-about.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

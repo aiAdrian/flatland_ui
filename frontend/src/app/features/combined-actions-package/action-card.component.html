@@ -12,15 +12,15 @@
       <!-- Reordering never changes *which* trains are controlled, only their
            order, so this count comes from the proposal and is always present. -->
       <span class="ac-ident">{{ aiAction.metrics.controlledTrains }}</span>
-      <span class="ac-summary">Züge gesteuert</span>
+      <span class="ac-summary">{{ 'cap.card.steered' | transloco }}</span>
       @for (badge of badges(); track badge) {
         <span
           class="ac-badge"
-          [class.ac-badge--human]="badge === 'Vom Dispatcher geändert'"
-        >{{ badge }}</span>
+          [class.ac-badge--human]="badge === 'cap.card.modified'"
+        >{{ badge | transloco }}</span>
       }
       @if (showingOnMap) {
-        <span class="ac-badge ac-badge--map">auf der Karte</span>
+        <span class="ac-badge ac-badge--map">{{ 'cap.card.onMap' | transloco }}</span>
       }
     </header>
 
@@ -49,16 +49,16 @@
         [attr.aria-expanded]="reviewOpen()"
         (click)="toggleReview()"
       >
-        {{ reviewOpen() ? '▾' : '▸' }} Auswirkungen ansehen
+        {{ reviewOpen() ? '▾' : '▸' }} {{ 'cap.card.seeImpact' | transloco }}
         <span class="ac-review-count">
-          {{ evaluated.metrics.affectedTrains }} Züge betroffen
+          {{ 'cap.card.affected' | transloco: { n: evaluated.metrics.affectedTrains } }}
         </span>
       </button>
 
       @if (reviewOpen() && status() === 'ready') {
         <div class="ac-review">
           <div class="ac-review__group">
-            <span class="ac-review__label">Gesteuert</span>
+            <span class="ac-review__label">{{ 'cap.card.steeredGroup' | transloco }}</span>
             @for (row of controlledImpacts(); track row.train) {
               <span class="ac-row">
                 <span class="ac-row__train">{{ row.train }}</span>
@@ -74,7 +74,7 @@
           @if (sideEffects().length > 0) {
             <div class="ac-review__group">
               <span class="ac-review__label">
-                Nicht gesteuert, aber betroffen
+                {{ 'cap.card.sideEffects' | transloco }}
               </span>
               @for (row of sideEffects(); track row.train) {
                 <span class="ac-row">
@@ -91,7 +91,7 @@
 
           @if (evaluated.metrics.unchanged.length > 0) {
             <p class="ac-review__rest">
-              Unberührt: {{ evaluated.metrics.unchanged.join(', ') }}
+              {{ 'cap.card.untouched' | transloco: { trains: evaluated.metrics.unchanged.join(', ') } }}
             </p>
           }
         </div>
@@ -107,8 +107,8 @@
       [attr.aria-expanded]="planOpen()"
       (click)="togglePlan()"
     >
-      {{ planOpen() ? '▾' : '▸' }} Umleitung im Detail
-      <span class="ac-review-count">{{ plan().length }} Züge in der Reihenfolge</span>
+      {{ planOpen() ? '▾' : '▸' }} {{ 'cap.card.planDetail' | transloco }}
+      <span class="ac-review-count">{{ 'cap.card.inOrder' | transloco: { n: plan().length } }}</span>
     </button>
 
     @if (planOpen() && status() === 'ready') {
@@ -118,17 +118,17 @@
             <span class="ac-plan__train">{{ step.train }}</span>
             <span class="ac-plan__what">
               @if (step.command === 'proceed') {
-                fährt zuerst durch den Abschnitt
+                {{ 'cap.card.goesFirst' | transloco }}
               } @else {
-                hält, bis {{ step.after }} frei ist
+                {{ 'cap.card.holdsUntil' | transloco: { train: step.after } }}
                 @if (step.waitMinutes > 0) {
-                  · wartet {{ step.waitMinutes }} min
+                  {{ 'cap.card.waits' | transloco: { n: step.waitMinutes } }}
                 }
               }
               @if (step.role === 'controlled') {
-                <span class="ac-plan__tag">gesteuert</span>
+                <span class="ac-plan__tag">{{ 'cap.card.tagSteered' | transloco }}</span>
               } @else {
-                <span class="ac-plan__tag ac-plan__tag--baseline">nach Fahrplan</span>
+                <span class="ac-plan__tag ac-plan__tag--baseline">{{ 'cap.card.tagTimetable' | transloco }}</span>
               }
             </span>
             <span
@@ -143,24 +143,24 @@
 
     <footer class="ac-actions">
       @if (isConfirmed()) {
-        <span class="ac-applied" role="status">Diese Maßnahme ist gewählt</span>
+        <span class="ac-applied" role="status">{{ 'cap.card.isChosen' | transloco }}</span>
         <button type="button" class="ac-btn" (click)="revoke()">
-          Auswahl aufheben
+          {{ 'cap.card.revoke' | transloco }}
         </button>
       } @else if (isLocked()) {
-        <span class="ac-locked">Eine andere Maßnahme ist gewählt</span>
+        <span class="ac-locked">{{ 'cap.card.otherChosen' | transloco }}</span>
       } @else if (isArmed()) {
         <!-- The second press. Deliberately worded as a question: the first press
              was interest, this one is the commitment. -->
-        <span class="ac-arm-question">Diese Maßnahme übernehmen?</span>
+        <span class="ac-arm-question">{{ 'cap.card.armQuestion' | transloco }}</span>
         <button
           type="button"
           class="ac-btn ac-btn--apply"
           (click)="confirmFinal()"
         >
-          Endgültig bestätigen
+          {{ 'cap.card.confirmFinal' | transloco }}
         </button>
-        <button type="button" class="ac-btn" (click)="cancelArm()">Abbrechen</button>
+        <button type="button" class="ac-btn" (click)="cancelArm()">{{ 'cap.card.cancel' | transloco }}</button>
       } @else {
         <button
           type="button"
@@ -168,7 +168,7 @@
           [disabled]="!modified()"
           (click)="reset()"
         >
-          Zurücksetzen
+          {{ 'cap.card.reset' | transloco }}
         </button>
         <button
           type="button"
@@ -176,7 +176,7 @@
           [disabled]="status() === 'updating'"
           (click)="arm()"
         >
-          Bestätigen
+          {{ 'cap.card.confirm' | transloco }}
         </button>
       }
     </footer>

@@ -1,8 +1,12 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import {
   Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, computed, effect, inject, signal, untracked, viewChild, HostListener, AfterViewInit, OnDestroy
 } from '@angular/core';
 import { SessionStore } from '../../core/session.store';
 import { TourContextService } from '../../core/demo/tour-context.service';
+import { ProposalChoiceService } from '../../core/proposals/proposal-choice.service';
+import { ProposalOption } from '../../core/events/event-types';
 import { TrainIdentityService } from '../../core/train-identity.service';
 import { AgentColorService } from '../../core/agent-color.service';
 import { TrainActionService } from '../../core/dispatch/train-action.service';
@@ -96,6 +100,7 @@ interface DirectorPlanLine {
 @Component({
   selector: 'app-flatland-map',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './flatland-map.component.html',
   styleUrl: './flatland-map.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -156,6 +161,54 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
 
   private readonly tourContext = inject(TourContextService);
+  private readonly i18n = inject(LanguageService);
+  private readonly proposalChoice = inject(ProposalChoiceService);
+
+  /** The options the strip at the selected train offers — the proposals panel's. */
+  readonly trainOptionChoices: { option: ProposalOption; label: string }[] = [
+    // Translation keys, shared with the proposals panel the strip points to.
+    { option: 'hold', label: 'proposals.option.hold' },
+    { option: 'hold_until_clear', label: 'proposals.option.holdUntilClear' },
+    { option: 'proceed', label: 'proposals.option.proceed' },
+    { option: 'reroute', label: 'proposals.option.reroute' },
+  ];
+
+  /**
+   * Where to put the option strip for the selected train, in percent of the map,
+   * or null when there is none to show.
+   *
+   * Only in a tour whose Plan / KI / Mensch panel decides (`assessmentOnly`):
+   * picking on the map asks that panel to simulate the option, so without the
+   * panel the strip would ask nobody. HTML over the SVG rather than SVG shapes,
+   * because the corridor is shown at about 0.4 scale and map-unit text would be
+   * a few pixels tall. The viewBox is matched to the SVG's aspect ratio, so a
+   * map coordinate maps linearly onto the element.
+   */
+  readonly trainOptions = computed(() => {
+    if (!this.tourContext.assessmentOnly()) return null;
+    const handle = this.store.selectedHandle();
+    if (handle == null) return null;
+    const agent = this.agents().find((a) => a.handle === handle);
+    if (!agent?.position) return null;
+    const [x, y, w, h] = this.viewBox().split(' ').map(Number);
+    if (!(w > 0 && h > 0)) return null;
+    const left = ((this.agentX(agent) - x) / w) * 100;
+    const top = ((this.agentY(agent) - y) / h) * 100;
+    if (left < 0 || left > 100 || top < 0 || top > 100) return null;
+    return { handle, name: this.identity.nameFor(handle), left, top };
+  });
+
+  chooseTrainOption(handle: number, option: ProposalOption): void {
+    this.proposalChoice.choose(handle, option);
+  }
+
+  isTrainOptionChosen(option: ProposalOption): boolean {
+    return this.proposalChoice.current() === option;
+  }
+
+  trainOptionDisabled(handle: number, option: ProposalOption): boolean {
+    return option === 'reroute' && !this.proposalChoice.rerouteAvailable(handle);
+  }
   /** Set once the tour's column focus is applied, so steps and user zoom keep it. */
   private readonly focusApplied = signal(false);
 
@@ -1823,12 +1876,12 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     if (this.isMalfunctioning(a)) {
       lines.push(
         remaining > 0
-          ? `Störung — noch ${remaining} Schritt(e)`
-          : 'Störung',
+          ? this.i18n.t('map.problem.malfunctionLeft', { n: remaining })
+          : this.i18n.t('map.problem.malfunction'),
       );
     }
     const delay = Number(a.delay ?? 0);
-    if (delay > 0) lines.push(`Verspätung ${delay}`);
+    if (delay > 0) lines.push(this.i18n.t('map.problem.delay', { n: delay }));
 
     // The impact analysis is the only place that knows the blocking relation —
     // both directions, because "who blocks me" and "whom do I block" are
@@ -1836,9 +1889,13 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     for (const item of this.store.impact()) {
       if (item.handle !== a.handle) continue;
       lines.push(
-        `blockiert von Zug ${item.blocked_by} bei ` +
-          `(${item.blocked_cell[0]}, ${item.blocked_cell[1]}) — ` +
-          `erreicht in ${item.eta_steps}, frei in ${item.clears_in_steps}`,
+        this.i18n.t('map.problem.blockedBy', {
+          train: item.blocked_by,
+          row: item.blocked_cell[0],
+          col: item.blocked_cell[1],
+          eta: item.eta_steps,
+          clears: item.clears_in_steps,
+        }),
       );
     }
     const blocked = this.store
@@ -1846,7 +1903,7 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
       .filter((i) => i.blocked_by === a.handle)
       .map((i) => i.handle);
     if (blocked.length > 0) {
-      lines.push(`blockiert Zug ${blocked.join(', ')}`);
+      lines.push(this.i18n.t('map.problem.blocking', { trains: blocked.join(', ') }));
     }
     return lines;
   }

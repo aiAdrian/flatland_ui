@@ -72,8 +72,21 @@ export interface LearningRecord {
 
 /** German strategy label for a Flatland action id (mirrors `actionLabelFor`
  *  semantics: STOP_MOVING=4 → hold; 1/2/3 → reroute). */
-export function strategyLabelForAction(action: number): string {
-  return action === 4 ? 'Halten' : 'Umleiten';
+/**
+ * Translate hook with the `LanguageService.t` shape: key, params, English
+ * fallback. The hypothesis is prose shown to the operator and kept on the
+ * learning record, so it has to follow the language like every other string.
+ */
+export type Translate = (key: string, params?: Record<string, string>, fallback?: string) => string;
+
+/** No translator: the English source, which every key carries as its fallback. */
+const SOURCE: Translate = (_key, params, fallback = '') =>
+  fallback.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, name: string) => params?.[name] ?? '');
+
+export function strategyLabelForAction(action: number, t: Translate = SOURCE): string {
+  return action === 4
+    ? t('proposals.option.hold', undefined, 'Hold')
+    : t('proposals.option.reroute', undefined, 'Reroute');
 }
 
 /**
@@ -85,14 +98,26 @@ export function strategyLabelForAction(action: number): string {
 export function buildPreferenceHypothesis(
   ctx: RationaleContext,
   strategyLabel: string,
+  t: Translate = SOURCE,
 ): string {
+  const strategy = strategyLabel;
   if (!ctx.hasScenario) {
-    return `Bei dieser Situation bevorzugst du ${strategyLabel} (Hypothese — Kontext unbekannt).`;
+    return t('hypothesis.unknown', { strategy }, 'In this situation you prefer {{strategy}} (hypothesis — context unknown).');
   }
-  const conn = ctx.connectionCritical ? 'kritischem Anschluss' : 'stabilem Anschluss';
-  const delay = ctx.lowDelay ? 'geringer Zusatzverspätung' : 'höherer Zusatzverspätung';
-  const ripple = ctx.lowRipple ? 'niedrigem Ripple-Risiko' : 'erhöhtem Ripple-Risiko';
-  return `Bei ${conn}, ${delay} und ${ripple} bevorzugst du ${strategyLabel}.`;
+  const conn = ctx.connectionCritical
+    ? t('hypothesis.conn.critical', undefined, 'a critical connection')
+    : t('hypothesis.conn.stable', undefined, 'a stable connection');
+  const delay = ctx.lowDelay
+    ? t('hypothesis.delay.low', undefined, 'little added delay')
+    : t('hypothesis.delay.high', undefined, 'more added delay');
+  const ripple = ctx.lowRipple
+    ? t('hypothesis.ripple.low', undefined, 'a small knock-on effect')
+    : t('hypothesis.ripple.high', undefined, 'a larger knock-on effect');
+  return t(
+    'hypothesis.template',
+    { conn, delay, ripple, strategy },
+    'With {{conn}}, {{delay}} and {{ripple}}, you prefer {{strategy}}.',
+  );
 }
 
 @Injectable({ providedIn: 'root' })

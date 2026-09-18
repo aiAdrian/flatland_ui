@@ -1,46 +1,44 @@
-<section class="po" aria-label="Aktuelles Problem">
+<section class="po" [attr.aria-label]="'cap.problem.title' | transloco">
   <header class="po-head">
     <span class="po-badge" aria-hidden="true">!</span>
-    <span class="po-title">Aktuelles Problem</span>
+    <span class="po-title">{{ 'cap.problem.title' | transloco }}</span>
   </header>
 
-  <p class="po-where">{{ window().location }}</p>
-  <p class="po-why">{{ window().reason }}</p>
+  <p class="po-where">{{ 'cap.window.' + window().id + '.location' | transloco }}</p>
+  <p class="po-why">{{ 'cap.window.' + window().id + '.reason' | transloco }}</p>
 
   <div class="po-kpis">
     <span class="po-kpi">
       <span class="po-kpi__value">{{ baseline().totalDelay }}</span>
-      <span class="po-kpi__label">min Verspätung ohne Eingriff</span>
+      <span class="po-kpi__label">{{ 'cap.problem.delayLabel' | transloco }}</span>
     </span>
     <span class="po-kpi">
       <span class="po-kpi__value">{{ trainsLate() }} / {{ rows().length }}</span>
-      <span class="po-kpi__label">Züge verspätet</span>
+      <span class="po-kpi__label">{{ 'cap.problem.lateLabel' | transloco }}</span>
     </span>
     <span class="po-kpi">
       <span class="po-kpi__value">{{ window().horizonMinutes }}</span>
-      <span class="po-kpi__label">min Horizont</span>
+      <span class="po-kpi__label">{{ 'cap.problem.horizonLabel' | transloco }}</span>
     </span>
   </div>
 
   @if (worst(); as w) {
     <p class="po-worst">
-      Am stärksten betroffen: <strong>{{ w.train }}</strong> mit
-      {{ w.delay }} min — steht als {{ w.position }}. in der Reihenfolge hinter
-      allen längeren Zügen.
+      {{ 'cap.problem.worst' | transloco: { train: w.train, delay: w.delay, pos: w.position } }}
     </p>
   }
 
   <!-- The queue as the timetable would run it. This is the thing the actions
        below rearrange, so it has to be visible to judge them. -->
   <table class="po-table">
-    <caption class="po-caption">Reihenfolge nach Fahrplan</caption>
+    <caption class="po-caption">{{ 'cap.problem.caption' | transloco }}</caption>
     <thead>
       <tr>
         <th scope="col">#</th>
-        <th scope="col">Zug</th>
-        <th scope="col">bringt mit</th>
-        <th scope="col">belegt</th>
-        <th scope="col">Verspätung</th>
+        <th scope="col">{{ 'cap.problem.col.train' | transloco }}</th>
+        <th scope="col">{{ 'cap.problem.col.brings' | transloco }}</th>
+        <th scope="col">{{ 'cap.problem.col.occupies' | transloco }}</th>
+        <th scope="col">{{ 'cap.problem.col.delay' | transloco }}</th>
       </tr>
     </thead>
     <tbody>

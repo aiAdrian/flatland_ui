@@ -18,6 +18,8 @@ import {
   DirectorWeights,
   DirectorWhatIf,
 } from '../../core/api.service';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { SessionStore } from '../../core/session.store';
 import { OperatorModelService } from '../../core/operator-model.service';
 import {
@@ -60,15 +62,20 @@ function displayPct(
 }
 
 const SAFETY_FACTOR_LABEL: Record<string, string> = {
-  slack: 'Puffer',
-  deadlock: 'Deadlock-Risiko',
-  track: 'Gleisbelegung',
-  cascade: 'Folgekonflikte',
+  slack: 'strategy.factor.slack',
+  deadlock: 'strategy.factor.deadlock',
+  track: 'strategy.factor.track',
+  cascade: 'strategy.factor.cascade',
 };
 
 /** The weakest of the four stability factors — the one that makes the product
  *  small. Null when nothing stands out or the figures are missing. */
-function limitingFactorHint(reported?: DirectorReportedFigures | null): string | null {
+type Translate = (key: string, params?: Record<string, unknown>) => string;
+
+function limitingFactorHint(
+  reported: DirectorReportedFigures | null | undefined,
+  t: Translate,
+): string | null {
   const safety = reported?.safety;
   if (!safety) return null;
   const entries = Object.entries(safety).filter(
@@ -81,7 +88,7 @@ function limitingFactorHint(reported?: DirectorReportedFigures | null): string |
   // Rounding 0.007 to "0 %" makes the diagnosis look like a placeholder; below
   // one percent the honest statement is that it is under one percent.
   const shown = value < 0.005 ? '<1 %' : `${Math.round(value * 100)} %`;
-  return `begrenzt durch ${SAFETY_FACTOR_LABEL[key] ?? key} (${shown})`;
+  return t('strategy.limitedBy', { factor: t(SAFETY_FACTOR_LABEL[key] ?? key), value: shown });
 }
 
 /**
@@ -273,10 +280,10 @@ export interface StrategyTile {
   fellBackTo: string | null;
 }
 
-/** German names for the planners `DirectorPlan.source` can name (§3.7). */
+/** Translation keys for the planners `DirectorPlan.source` can name (§3.7). */
 const PLAN_SOURCE_LABEL: Record<string, string> = {
-  lines: 'den direkten Linienplan (ohne Konfliktbetrachtung)',
-  avoidance: 'den Ausweichplan (Konflikte umgangen, ohne Suche)',
+  lines: 'strategy.directPlan',
+  avoidance: 'strategy.avoidancePlan',
 };
 
 /**
@@ -288,9 +295,10 @@ const PLAN_SOURCE_LABEL: Record<string, string> = {
  * searched for — the operator should know that the option is "the obvious plan",
  * not a considered one.
  */
-function fallbackLabel(plan: DirectorStrategy['plan']): string | null {
+function fallbackLabel(plan: DirectorStrategy['plan'], t: Translate): string | null {
   if (!plan) return null;
-  return PLAN_SOURCE_LABEL[plan.source] ?? null;
+  const key = PLAN_SOURCE_LABEL[plan.source];
+  return key ? t(key) : null;
 }
 
 /**
@@ -310,6 +318,7 @@ const MIN_EVIDENCE_FOR_PREFERRED = 3;
 
 function preferredFocus(
   profile: ReturnType<OperatorModelService['profile']>,
+  t: Translate,
 ): { focus: DirectorFocus; why: string } | null {
   if (!profile) return null;
 
@@ -317,7 +326,7 @@ function preferredFocus(
   if (confirmed) {
     const focus = FOCUS_BY_VALUE_AXIS[confirmed.targetValue];
     if (focus) {
-      return { focus, why: `Von dir bestätigt: „${confirmed.statement}“` };
+      return { focus, why: t('strategy.confirmedByYou', { statement: confirmed.statement }) };
     }
   }
 
@@ -328,9 +337,9 @@ function preferredFocus(
   const shifts = profile.priorSessions;
   const base =
     shifts > 0
-      ? `${vp.total} bewusste Entscheidungen, davon ${shifts} abgeschlossene Schicht(en)`
-      : `${vp.total} bewusste Entscheidungen`;
-  return { focus, why: `${vp.dominantPct} % deiner Entscheidungen (${base})` };
+      ? t('strategy.deliberateWithShifts', { n: vp.total, shifts })
+      : t('strategy.deliberate', { n: vp.total });
+  return { focus, why: t('strategy.shareOfDecisions', { pct: vp.dominantPct, base }) };
 }
 
 /**
@@ -356,13 +365,14 @@ function preferredFocus(
 @Component({
   selector: 'app-strategy-options',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './strategy-options.component.html',
   styleUrl: './strategy-options.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class StrategyOptionsComponent {
   store = inject(SessionStore);
+  private readonly i18n = inject(LanguageService);
   private api = inject(ApiService);
   private model = inject(OperatorModelService);
 
@@ -455,7 +465,7 @@ export class StrategyOptionsComponent {
       stability: subject.plan!.utilities.stability - current.utilities.stability,
     };
     this.store.directorFocusOutlook.set({
-      subject: `${subject.ident} · ${STRATEGY_COPY[subject.focus].title}`,
+      subject: `${subject.ident} · ${this.i18n.t(STRATEGY_COPY[subject.focus].title)}`,
       signals: signalsFromFocusDelta(delta),
     });
   });
@@ -475,7 +485,7 @@ export class StrategyOptionsComponent {
    * the warm start: without it a saved preference had no effect the operator
    * could see at the next shift.
    */
-  readonly preferred = computed(() => preferredFocus(this.model.profile()));
+  readonly preferred = computed(() => preferredFocus(this.model.profile(), (k, p) => this.i18n.t(k, p)));
 
   /**
    * Simulated outcomes per focus id, on request only.
@@ -497,7 +507,7 @@ export class StrategyOptionsComponent {
     return this.strategies().map((s) => ({
       strategy: s,
       ident: s.ident,
-      copy: STRATEGY_COPY[s.focus],
+      copy: this._copyFor(s.focus),
       axes: FOCUS_ORDER.map((focus) => {
         const pct = s.plan ? displayPct(focus, s.plan.utilities, s.plan.reported) : null;
         const base = current
@@ -505,21 +515,24 @@ export class StrategyOptionsComponent {
           : null;
         return {
           focus,
-          label: FOCUS_LABEL[focus],
+          label: this.i18n.t(FOCUS_LABEL[focus]),
           pct,
           delta: pct !== null && base !== null ? pct - base : null,
           isFocus: focus === s.focus,
-          hint: focus === 'stability' ? limitingFactorHint(s.plan?.reported) : null,
+          hint:
+            focus === 'stability'
+              ? limitingFactorHint(s.plan?.reported, (k, p) => this.i18n.t(k, p))
+              : null,
           scope:
             focus === 'connections' && s.plan?.reported?.connectionCount
-              ? `von ${s.plan.reported.connectionCount}`
+              ? this.i18n.t('strategy.axisScopeOf', { n: s.plan.reported.connectionCount })
               : null,
         };
       }),
       changed: divergingTrains(s)?.reroutes ?? null,
       holds: divergingTrains(s)?.holds ?? null,
       focusPct: s.plan ? displayPct(s.focus, s.plan.utilities, s.plan.reported) : null,
-      stabilityHint: limitingFactorHint(s.plan?.reported),
+      stabilityHint: limitingFactorHint(s.plan?.reported, (k, p) => this.i18n.t(k, p)),
       previewPaths: reroutePaths(s),
       fullPaths: drawablePaths(s),
       isActive: active === s.focus,
@@ -527,7 +540,7 @@ export class StrategyOptionsComponent {
       isPreferred: preferred?.focus === s.focus,
       preferredWhy: preferred?.focus === s.focus ? preferred.why : null,
       measured: measured[s.id] ?? null,
-      fellBackTo: fallbackLabel(s.plan),
+      fellBackTo: fallbackLabel(s.plan, (k, p) => this.i18n.t(k, p)),
     }));
   });
 
@@ -551,7 +564,7 @@ export class StrategyOptionsComponent {
       error: () => {
         this.simulating.set(null);
         this.simulateError.set(
-          'Die Simulation ist fehlgeschlagen — es bleiben die Modellwerte oben.',
+          this.i18n.t('strategy.simFailed'),
         );
       },
     });
@@ -598,17 +611,28 @@ export class StrategyOptionsComponent {
    * A, whose plan often equals the one already driving) landed on what looked
    * like a broken button. The label now states the fact instead.
    */
+  /** The tile's copy in the viewer's language (the records hold keys). */
+  private _copyFor(focus: DirectorFocus): StrategyCopy {
+    const copy = STRATEGY_COPY[focus];
+    return {
+      title: this.i18n.t(copy.title),
+      goal: this.i18n.t(copy.goal),
+      gives: this.i18n.t(copy.gives),
+      costs: this.i18n.t(copy.costs),
+    };
+  }
+
   previewLabel(tile: StrategyTile): string {
-    if (tile.isPreviewed) return 'Karte aus';
-    if (tile.previewPaths) return 'Auf Karte';
+    if (tile.isPreviewed) return this.i18n.t('strategy.mapOff');
+    if (tile.previewPaths) return this.i18n.t('strategy.onMap');
     // No deviation to mark, but there are routes to draw: say which of the two
     // the click delivers instead of promising a look-ahead at a change.
-    if (tile.fullPaths) return 'Plan auf Karte';
-    return 'Auf Karte';
+    if (tile.fullPaths) return this.i18n.t('strategy.planOnMap');
+    return this.i18n.t('strategy.onMap');
   }
 
   focusLabel(focus: DirectorFocus): string {
-    return FOCUS_LABEL[focus];
+    return this.i18n.t(FOCUS_LABEL[focus]);
   }
 
   /**
@@ -645,7 +669,7 @@ export class StrategyOptionsComponent {
       error: () => {
         this.loading.set(false);
         this.phase.set('idle');
-        this.unavailableReason.set('Strategien konnten nicht geplant werden.');
+        this.unavailableReason.set(this.i18n.t('strategy.planFailed'));
       },
     });
   }
@@ -773,16 +797,16 @@ export class StrategyOptionsComponent {
     // Nothing changes, but the routes are there: the click still delivers
     // something, so this is a hint about *what*, not a blocker.
     if (tile.fullPaths) {
-      return 'Dieses Ziel fährt jeden Zug wie der laufende Plan — der Klick zeigt diesen Plan.';
+      return this.i18n.t('strategy.previewUnchanged');
     }
-    if (this.loading()) return 'Die Umleitung wird gerade berechnet.';
+    if (this.loading()) return this.i18n.t('strategy.previewComputing');
     if (this.waitingForPause()) {
-      return 'Pausiere den Lauf — dann wird die Umleitung berechnet und hier anklickbar.';
+      return this.i18n.t('strategy.previewPause');
     }
     if (!tile.strategy.plan) {
-      return 'Erst „Optionen berechnen“ — ohne Plan gibt es keine Route zu zeigen.';
+      return this.i18n.t('strategy.previewNoPlan');
     }
-    return 'Für dieses Ziel liegt keine Route vor.';
+    return this.i18n.t('strategy.previewNoRoute');
   }
 
   /** Commit a focus: the session's dials become the preset and the planner
@@ -842,11 +866,11 @@ export class StrategyOptionsComponent {
   private _recordChoice(tile: StrategyTile): void {
     const traded = this._tradedAway(tile);
     this.store.recordStrategyChoice({
-      title: tile.copy.title,
+      title: this.i18n.t(tile.copy.title),
       ident: tile.ident,
       axis: VALUE_AXIS_BY_FOCUS[tile.strategy.focus],
       tradedAway: traded,
-      hypothesis: strategyHypothesis(tile.strategy.focus, traded),
+      hypothesis: strategyHypothesis(tile.strategy.focus, traded, (k, p) => this.i18n.t(k, p)),
     });
   }
 
@@ -867,7 +891,10 @@ export class StrategyOptionsComponent {
       .filter((a) => a.delta !== null && a.delta < 0)
       .sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0))[0];
     if (!worst) return null;
-    return `${Math.abs(worst.delta!)} Punkte ${worst.label}`;
+    return this.i18n.t('strategy.points', {
+      n: Math.abs(worst.delta!),
+      axis: this.i18n.t(`strategy.focusLower.${worst.focus}`),
+    });
   }
 
   /** Which preset (if any) matches the session's current dial ratio. Compared
