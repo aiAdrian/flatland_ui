@@ -100,7 +100,7 @@ describe('ShiftReviewComponent', () => {
     });
     expect(cmp.arrivedPct()).toBe(50);
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('2/4 Züge am Ziel (50 %)');
+    expect(text).toContain('2/4 trains at their destination (50 %)');
   });
 
   it('says the AI ran alone when no goal was ever set', () => {
@@ -110,10 +110,10 @@ describe('ShiftReviewComponent', () => {
 
     expect(cmp.review().ranUnattended).toBeTrue();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('kein Ziel gesetzt');
+    expect(text).toContain('You set no goal');
     // The planner's own workload is part of the balance, not a footnote.
     expect(text).toContain('64');
-    expect(text).toContain('umgeplant');
+    expect(text).toContain('re-planned');
   });
 
   it('lists the moments with the reason, the price and the scoring trace', () => {
@@ -126,12 +126,12 @@ describe('ShiftReviewComponent', () => {
     expect(r.moments.length).toBe(1);
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Worüber es sich zu sprechen lohnt');
+    expect(text).toContain('Worth talking about');
     expect(text).toContain('Schützt Anschluss');
     expect(text).toContain('31 Punkte Pünktlichkeit');
     // Selection is a heuristic, so it has to be arguable.
-    expect(text).toContain('Ausgewählt weil');
-    expect(text).toContain('als Regel bestätigt');
+    expect(text).toContain('Picked because');
+    expect(text).toContain('confirmed as a rule');
   });
 
   it('shows a confirmed preference as learned', () => {
@@ -140,8 +140,8 @@ describe('ShiftReviewComponent', () => {
     fixture.detectChanges();
 
     expect(cmp.review().confirmed.length).toBe(1);
-    expect(fixture.nativeElement.textContent).toContain('Was ich über dich gelernt habe');
-    expect(fixture.nativeElement.textContent).toContain('bestätigt');
+    expect(fixture.nativeElement.textContent).toContain('What I learned about you');
+    expect(fixture.nativeElement.textContent).toContain('confirmed');
   });
 
   it('keeps a one-off apart instead of presenting it as a rule', () => {
@@ -153,8 +153,8 @@ describe('ShiftReviewComponent', () => {
     expect(r.confirmed.length).toBe(0);
     expect(r.oneOffs.length).toBe(1);
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('als Einzelfall markiert');
-    expect(text).toContain('nicht');
+    expect(text).toContain('as a one-off');
+    expect(text).toContain('did not learn');
   });
 
   it('asks about two different priorities rather than resolving them', () => {
@@ -166,8 +166,8 @@ describe('ShiftReviewComponent', () => {
 
     expect(cmp.review().contradiction).not.toBeNull();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('2× Anschluss');
-    expect(text).toContain('Was war in der Lage anders');
+    expect(text).toContain('Connections 2×');
+    expect(text).toContain('What was different about the situation');
   });
 
   it('reports the inferred weights only once they carry a preference', () => {
@@ -192,13 +192,13 @@ describe('ShiftReviewComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Connection-first');
     expect(text).toContain('67 %');
-    expect(text).toContain('3 bewussten Entscheidungen');
+    expect(text).toContain('3 deliberate decisions');
   });
 
   it('states that it is rule-based, not a language model', () => {
     withAgents();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('kein Sprachmodell');
+    expect(fixture.nativeElement.textContent).toContain('no language model');
   });
 
   // ── the plan, replayed (director-mode.md §3.7) ────────────────────────────
@@ -238,15 +238,15 @@ describe('ShiftReviewComponent', () => {
       fixture.detectChanges();
 
       const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-      expect(text).toContain('Der Plan, nachgespielt');
+      expect(text).toContain('The plan, replayed');
       expect(text).toContain('442');
       expect(text).toContain('6/17');
       expect(text).toContain('35 %');
       // The prediction is named as the clamped search value, not as a rival truth.
       expect(text).toContain('10 %');
-      expect(text).toContain('gekappter geometrischer Mittelwert');
+      expect(text).toContain('capped geometric mean');
       // And the claim is bounded: this is the plan on the episode, not the history.
-      expect(text).toContain('nicht „so lief die Schicht ab');
+      expect(text).toContain('not “this is how the shift went');
     });
 
     it('stays silent when there is nothing to replay', () => {
@@ -260,7 +260,7 @@ describe('ShiftReviewComponent', () => {
       fixture.detectChanges();
 
       expect(cmp.predictedVsVerified()).toBeNull();
-      expect(fixture.nativeElement.textContent).not.toContain('nachgespielt');
+      expect(fixture.nativeElement.textContent).not.toContain('replayed');
     });
 
     it('asks once, not on every change detection', () => {
@@ -304,7 +304,7 @@ describe('ShiftReviewComponent', () => {
       fixture.detectChanges();
 
       const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.sv-btn--primary');
-      expect(btn.textContent).toContain('Präferenzen für die nächste Schicht speichern');
+      expect(btn.textContent).toContain('Save preferences for the next shift');
       btn.click();
       // A double click must not count the shift twice.
       cmp.savePreferences();
@@ -315,10 +315,10 @@ describe('ShiftReviewComponent', () => {
 
       expect(cmp.saveState()).toBe('saved');
       const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-      expect(text).toContain('Gespeichert');
+      expect(text).toContain('Saved');
       // The proof it stuck, and the promise kept modest.
-      expect(text).toContain('1 abgeschlossene(n) Schicht(en)');
-      expect(text).toContain('Startvorschlag');
+      expect(text).toContain('1 completed shift(s)');
+      expect(text).toContain('starting suggestion');
     });
 
     it('says what is carried over and what is not, before the click', () => {
@@ -332,11 +332,11 @@ describe('ShiftReviewComponent', () => {
       // that one accumulates signals across sessions in the same process and
       // reported six for a shift with one goal choice.
       expect(cmp.decisionsThisShift()).toBe(1);
-      expect(text).toContain('1 Zielentscheidung(en) dieser Schicht');
-      expect(text).toContain('nur diesmal');
-      expect(text).toContain('startet die nächste Schicht kalt');
+      expect(text).toContain('1 goal decision(s) from this shift');
+      expect(text).toContain('just this once');
+      expect(text).toContain('the next shift starts cold');
       // First shift: no claim about earlier ones.
-      expect(text).toContain('deine erste');
+      expect(text).toContain('your first');
     });
 
     it('ignores profile evidence carried in from an earlier session', () => {
@@ -363,7 +363,7 @@ describe('ShiftReviewComponent', () => {
       model.profile.set(profileFixture({ isWarm: true, priorSessions: 3, evidenceCount: 1 }));
       fixture.detectChanges();
       expect(cmp.wasWarm()).toBeTrue();
-      expect(fixture.nativeElement.textContent).toContain('3 frühere Schicht(en)');
+      expect(fixture.nativeElement.textContent).toContain('3 earlier shift(s)');
     });
 
     it('reports a failed save instead of claiming success', () => {
@@ -380,7 +380,7 @@ describe('ShiftReviewComponent', () => {
       fixture.detectChanges();
 
       expect(cmp.saveState()).toBe('error');
-      expect(fixture.nativeElement.textContent).toContain('Nichts wurde übernommen');
+      expect(fixture.nativeElement.textContent).toContain('Nothing was carried over');
     });
 
     it('credits a rule from an earlier shift instead of denying it', () => {
@@ -400,12 +400,12 @@ describe('ShiftReviewComponent', () => {
       fixture.detectChanges();
 
       const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
-      expect(text).not.toContain('Noch keine bestätigte Präferenz');
-      expect(text).toContain('früher bestätigt');
+      expect(text).not.toContain('No confirmed preference yet');
+      expect(text).toContain('confirmed earlier');
       expect(text).toContain('Bei Zielkonflikten priorisierst du Anschlüsse.');
       // And the pattern says where it comes from.
       expect(cmp.patternIsCarried()).toBeTrue();
-      expect(text).toContain('aus früheren Schichten');
+      expect(text).toContain('from earlier shifts');
     });
 
     it('offers no save when there is nothing to carry over', () => {
@@ -414,7 +414,7 @@ describe('ShiftReviewComponent', () => {
 
       expect(cmp.hasCarryOver()).toBeFalse();
       expect(fixture.nativeElement.querySelector('.sv-btn--primary')).toBeNull();
-      expect(fixture.nativeElement.textContent).toContain('nichts zu übernehmen');
+      expect(fixture.nativeElement.textContent).toContain('nothing to carry over');
     });
   });
 

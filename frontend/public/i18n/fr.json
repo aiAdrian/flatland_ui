@@ -1041,5 +1041,73 @@
     "hypothesis": "En cas de conflit d’objectifs, vous privilégiez {{goal}}.",
     "hypothesisCost": "En cas de conflit d’objectifs, vous privilégiez {{goal}} — même si cela coûte {{cost}}.",
     "points": "{{n}} points de {{axis}}"
+  },
+  "shift": {
+    "title": "Bilan de service",
+    "subtitle": "{{arrived}}/{{total}} trains à destination ({{pct}} %)",
+    "back": "← Retour au service en cours",
+    "kpi": {
+      "arrived": "arrivés",
+      "delayed": "en retard",
+      "totalDelay": "retard total",
+      "malfunctions": "panne(s) à la fin"
+    },
+    "aiDecided": "L’IA a pris {{n}} décisions elle-même",
+    "aiReplanned": "et a replanifié {{n}} fois",
+    "youSetGoal": "— vous avez fixé l’objectif {{n}} fois.",
+    "unattended": "Vous n’avez fixé aucun objectif pendant ce service — l’IA a suivi la consigne initiale tout du long. Je n’ai donc rien pu apprendre de vos priorités.",
+    "worthDiscussing": "À discuter ({{n}})",
+    "step": "Pas {{n}}",
+    "deviation": "Ici vous avez choisi {{chosen}}, d’habitude plutôt {{usual}}.",
+    "yourReason": "Votre raison : « {{reason}} »",
+    "price": "Prix : {{price}}",
+    "pickedBecause": "Retenu parce que : {{reasons}}",
+    "response": {
+      "yes": "confirmé comme règle",
+      "once": "juste cette fois",
+      "no": "rejeté comme préférence"
+    },
+    "replayTitle": "Le plan, rejoué",
+    "replayBefore": "Sur une copie neuve du même épisode — mêmes voies, même horaire, mêmes perturbations — le plan donne {{delay}} de retard,",
+    "allArrived": "tous les trains à destination",
+    "notAllArrived": "pas tous les trains à destination",
+    "replayAfter": "et {{kept}}/{{total}} correspondances tenues ({{pct}} %) sur {{steps}} pas.",
+    "predicted": "Les modèles avaient estimé les correspondances à {{pct}} % — la valeur de recherche est une moyenne géométrique plafonnée, volontairement plus basse que la part qui compte.",
+    "predictedStability": "La stabilité était évaluée à {{pct}} %.",
+    "replayNote": "On rejoue le dernier plan adopté, depuis le pas 0. Cela dit « ce que ce plan donne sur cet épisode » — pas « voici comment s’est passé le service », car il y a eu des replanifications entre-temps.",
+    "learnedTitle": "Ce que j’ai appris sur vous",
+    "noNewCarried": "Vous n’avez confirmé aucune nouvelle préférence pendant ce service. Des services précédents, ceci reste valable :",
+    "confirmedEarlier": "confirmé auparavant",
+    "noneConfirmed": "Aucune préférence confirmée pour l’instant. Sans règle confirmée, le classement repose uniquement sur l’évaluation des KPI — je n’ajoute aucune supposition.",
+    "confirmed": "confirmé",
+    "pattern": "Schéma : {{label}} ({{pct}} % de {{n}} décisions réfléchies)",
+    "patternCarried": "Schéma : {{label}} ({{pct}} % de {{n}} décisions réfléchies des services précédents)",
+    "weightsBefore": "Pondérations déduites —",
+    "weightsAfter": "Elles valent comme suggestion, pas comme règle.",
+    "oneOffs": "Vous avez marqué {{n}} décision(s) comme cas isolé. Je ne les ai pas apprises — c’est précisément le rôle de cette option.",
+    "contradiction": "Vous avez privilégié {{first}} {{firstCount}} fois et {{second}} {{secondCount}} fois. Qu’est-ce qui changeait dans la situation — ou cela dépend-il de quelque chose que je ne connais pas encore ?",
+    "nextTitle": "Pour le prochain service",
+    "nothingToCarry": "Rien à reporter : sans décision réfléchie pendant ce service, je n’ai aucune donnée à emporter.",
+    "saved": "✓ Enregistré. Dès le prochain service, vos préférences servent de suggestion de départ — profil issu de {{n}} service(s) terminé(s). La tuile correspondante y sera marquée ; elle n’est pas activée automatiquement.",
+    "saveError": "L’enregistrement a échoué. Rien n’a été reporté — le prochain service démarre sans changement.",
+    "retry": "Réessayer",
+    "canCarry": "{{n}} décision(s) d’objectif de ce service peuvent rejoindre votre profil à long terme",
+    "alreadyHas": "— il contient déjà {{n}} service(s) précédent(s).",
+    "firstOne": "— c’est votre premier jusqu’ici.",
+    "saving": "Enregistrement…",
+    "save": "Enregistrer les préférences pour le prochain service",
+    "saveNote": "Sont reportées les données comptées et les règles confirmées. Les cas isolés (« juste cette fois ») et les approbations passives sont exclus. Sans clic, le prochain service démarre à froid.",
+    "method": "Bilan fondé sur des règles à partir du journal des décisions de ce service — aucun modèle de langage, aucune interprétation au-delà des chiffres affichés."
+  },
+  "moment": {
+    "reason": {
+      "pattern_deviation": "S’écarte de votre propre schéma (+5)",
+      "override": "Recommandation de l’IA contredite (+4)",
+      "deferred_to_ai": "Laissé à l’IA (+3)",
+      "confirmed_preference": "Confirmé comme préférence (+3)",
+      "one_off": "Marqué volontairement comme cas isolé (+2)",
+      "reasoned": "Raison indiquée (+2)",
+      "passive_accept": "Approbation tacite (+0)"
+    }
   }
 }

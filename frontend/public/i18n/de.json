@@ -1041,5 +1041,73 @@
     "hypothesis": "Bei Zielkonflikten priorisieren Sie {{goal}}.",
     "hypothesisCost": "Bei Zielkonflikten priorisieren Sie {{goal}} — auch wenn es {{cost}} kostet.",
     "points": "{{n}} Punkte {{axis}}"
+  },
+  "shift": {
+    "title": "Schichtabschluss",
+    "subtitle": "{{arrived}}/{{total}} Züge am Ziel ({{pct}} %)",
+    "back": "← Zurück zur laufenden Schicht",
+    "kpi": {
+      "arrived": "angekommen",
+      "delayed": "verspätet",
+      "totalDelay": "Verspätung gesamt",
+      "malfunctions": "Störung(en) am Ende"
+    },
+    "aiDecided": "Die KI hat {{n}} Entscheidungen selbst getroffen",
+    "aiReplanned": "und {{n}}× umgeplant",
+    "youSetGoal": "— Sie haben {{n}}× das Ziel gesetzt.",
+    "unattended": "Sie haben in dieser Schicht kein Ziel gesetzt — die KI ist durchgehend auf der Ausgangsvorgabe gefahren. Damit gibt es auch nichts, was ich über Ihre Prioritäten lernen konnte.",
+    "worthDiscussing": "Worüber es sich zu sprechen lohnt ({{n}})",
+    "step": "Schritt {{n}}",
+    "deviation": "Hier haben Sie {{chosen}} gewählt, sonst meist {{usual}}.",
+    "yourReason": "Ihr Grund: «{{reason}}»",
+    "price": "Preis: {{price}}",
+    "pickedBecause": "Ausgewählt weil: {{reasons}}",
+    "response": {
+      "yes": "als Regel bestätigt",
+      "once": "nur dieses Mal",
+      "no": "als Präferenz verneint"
+    },
+    "replayTitle": "Der Plan, nachgespielt",
+    "replayBefore": "Auf einer frischen Kopie derselben Episode — gleiche Gleise, gleicher Fahrplan, gleiche Störungen — ergibt der Plan {{delay}} Verspätung,",
+    "allArrived": "alle Züge am Ziel",
+    "notAllArrived": "nicht alle Züge am Ziel",
+    "replayAfter": "und {{kept}}/{{total}} gehaltene Anschlüsse ({{pct}} %) über {{steps}} Schritte.",
+    "predicted": "Die Modelle hatten für die Anschlüsse {{pct}} % angesetzt — der Suchwert ist ein gekappter geometrischer Mittelwert und liegt bewusst tiefer als der Anteil, der zählt.",
+    "predictedStability": "Stabilität war mit {{pct}} % bewertet.",
+    "replayNote": "Nachgespielt wird der zuletzt übernommene Plan ab Schritt 0. Das ist die Aussage «was leistet dieser Plan auf dieser Episode» — nicht «so lief die Schicht ab», denn zwischendurch wurde umgeplant.",
+    "learnedTitle": "Was ich über Sie gelernt habe",
+    "noNewCarried": "In dieser Schicht haben Sie keine neue Präferenz bestätigt. Aus früheren Schichten gilt weiterhin:",
+    "confirmedEarlier": "früher bestätigt",
+    "noneConfirmed": "Noch keine bestätigte Präferenz. Ohne bestätigte Regel bleibt das Ranking rein auf der KPI-Bewertung — ich rate nichts dazu.",
+    "confirmed": "bestätigt",
+    "pattern": "Muster: {{label}} ({{pct}} % von {{n}} bewussten Entscheidungen)",
+    "patternCarried": "Muster: {{label}} ({{pct}} % von {{n}} bewussten Entscheidungen aus früheren Schichten)",
+    "weightsBefore": "Daraus abgeleitete Zielgewichte —",
+    "weightsAfter": "Sie gelten als Vorschlag, nicht als Regel.",
+    "oneOffs": "{{n}} Entscheidung(en) haben Sie als Einzelfall markiert. Die habe ich nicht gelernt — genau dafür ist die Option da.",
+    "contradiction": "Sie haben {{firstCount}}× {{first}} und {{secondCount}}× {{second}} priorisiert. Was war in der Lage anders — oder hängt es von etwas ab, das ich noch nicht kenne?",
+    "nextTitle": "Für die nächste Schicht",
+    "nothingToCarry": "Es gibt nichts zu übernehmen: ohne bewusste Entscheidung in dieser Schicht habe ich keine Evidenz, die ich mitnehmen könnte.",
+    "saved": "✓ Gespeichert. Ihre Präferenzen gelten ab der nächsten Schicht als Startvorschlag — Profil aus {{n}} abgeschlossenen Schicht(en). Die passende Kachel wird dort markiert; gesetzt wird sie nicht automatisch.",
+    "saveError": "Speichern hat nicht funktioniert. Nichts wurde übernommen — die nächste Schicht startet unverändert.",
+    "retry": "Erneut versuchen",
+    "canCarry": "{{n}} Zielentscheidung(en) dieser Schicht können in Ihr Langzeitprofil übernommen werden",
+    "alreadyHas": "— es enthält bereits {{n}} frühere Schicht(en).",
+    "firstOne": "— es ist bisher Ihre erste.",
+    "saving": "Speichere …",
+    "save": "Präferenzen für die nächste Schicht speichern",
+    "saveNote": "Übernommen wird die gezählte Evidenz und die bestätigten Regeln. Einzelfälle («nur diesmal») und passive Zustimmungen bleiben aussen vor. Ohne Klick startet die nächste Schicht kalt.",
+    "method": "Regelbasierte Auswertung aus dem Entscheidungsprotokoll dieser Schicht — kein Sprachmodell, keine Interpretation über die gezeigten Zahlen hinaus."
+  },
+  "moment": {
+    "reason": {
+      "pattern_deviation": "Weicht vom eigenen Muster ab (+5)",
+      "override": "Override der KI-Empfehlung (+4)",
+      "deferred_to_ai": "Der KI überlassen (+3)",
+      "confirmed_preference": "Als Präferenz bestätigt (+3)",
+      "one_off": "Bewusst als Einzelfall markiert (+2)",
+      "reasoned": "Grund angegeben (+2)",
+      "passive_accept": "Stille Zustimmung (+0)"
+    }
   }
 }

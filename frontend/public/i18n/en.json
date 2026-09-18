@@ -1041,5 +1041,73 @@
     "hypothesis": "When goals conflict, you prioritise {{goal}}.",
     "hypothesisCost": "When goals conflict, you prioritise {{goal}} — even when it costs {{cost}}.",
     "points": "{{n}} points of {{axis}}"
+  },
+  "shift": {
+    "title": "Shift review",
+    "subtitle": "{{arrived}}/{{total}} trains at their destination ({{pct}} %)",
+    "back": "← Back to the running shift",
+    "kpi": {
+      "arrived": "arrived",
+      "delayed": "delayed",
+      "totalDelay": "total delay",
+      "malfunctions": "malfunction(s) at the end"
+    },
+    "aiDecided": "The AI took {{n}} decisions itself",
+    "aiReplanned": "and re-planned {{n}}×",
+    "youSetGoal": "— you set the goal {{n}}×.",
+    "unattended": "You set no goal in this shift — the AI ran on the initial directive throughout. So there is nothing I could learn about your priorities either.",
+    "worthDiscussing": "Worth talking about ({{n}})",
+    "step": "Step {{n}}",
+    "deviation": "Here you chose {{chosen}}, usually {{usual}}.",
+    "yourReason": "Your reason: “{{reason}}”",
+    "price": "Price: {{price}}",
+    "pickedBecause": "Picked because: {{reasons}}",
+    "response": {
+      "yes": "confirmed as a rule",
+      "once": "just this once",
+      "no": "rejected as a preference"
+    },
+    "replayTitle": "The plan, replayed",
+    "replayBefore": "On a fresh copy of the same episode — same tracks, same timetable, same disruptions — the plan gives {{delay}} delay,",
+    "allArrived": "all trains at their destination",
+    "notAllArrived": "not all trains at their destination",
+    "replayAfter": "and {{kept}}/{{total}} connections kept ({{pct}} %) over {{steps}} steps.",
+    "predicted": "The models had put connections at {{pct}} % — the search value is a capped geometric mean and deliberately lower than the share that counts.",
+    "predictedStability": "Stability was rated at {{pct}} %.",
+    "replayNote": "What is replayed is the plan applied last, from step 0. That says “what this plan achieves on this episode” — not “this is how the shift went”, because it was re-planned along the way.",
+    "learnedTitle": "What I learned about you",
+    "noNewCarried": "You confirmed no new preference in this shift. From earlier shifts, this still applies:",
+    "confirmedEarlier": "confirmed earlier",
+    "noneConfirmed": "No confirmed preference yet. Without a confirmed rule the ranking rests purely on the KPI assessment — I add no guesses.",
+    "confirmed": "confirmed",
+    "pattern": "Pattern: {{label}} ({{pct}} % of {{n}} deliberate decisions)",
+    "patternCarried": "Pattern: {{label}} ({{pct}} % of {{n}} deliberate decisions from earlier shifts)",
+    "weightsBefore": "Goal weights derived from this —",
+    "weightsAfter": "They count as a suggestion, not as a rule.",
+    "oneOffs": "You marked {{n}} decision(s) as a one-off. I did not learn those — that is exactly what the option is for.",
+    "contradiction": "You prioritised {{first}} {{firstCount}}× and {{second}} {{secondCount}}×. What was different about the situation — or does it depend on something I do not know yet?",
+    "nextTitle": "For the next shift",
+    "nothingToCarry": "There is nothing to carry over: without a deliberate decision in this shift I have no evidence to take along.",
+    "saved": "✓ Saved. From the next shift on, your preferences are a starting suggestion — profile from {{n}} completed shift(s). The matching tile is marked there; it is not set automatically.",
+    "saveError": "Saving did not work. Nothing was carried over — the next shift starts unchanged.",
+    "retry": "Try again",
+    "canCarry": "{{n}} goal decision(s) from this shift can go into your long-term profile",
+    "alreadyHas": "— it already holds {{n}} earlier shift(s).",
+    "firstOne": "— so far this is your first.",
+    "saving": "Saving …",
+    "save": "Save preferences for the next shift",
+    "saveNote": "What is carried over is the counted evidence and the confirmed rules. One-offs (“just this once”) and passive approvals stay out. Without a click the next shift starts cold.",
+    "method": "Rule-based review from this shift’s decision log — no language model, no interpretation beyond the numbers shown."
+  },
+  "moment": {
+    "reason": {
+      "pattern_deviation": "Departs from your own pattern (+5)",
+      "override": "Overrode the AI’s recommendation (+4)",
+      "deferred_to_ai": "Left to the AI (+3)",
+      "confirmed_preference": "Confirmed as a preference (+3)",
+      "one_off": "Deliberately marked as a one-off (+2)",
+      "reasoned": "Reason given (+2)",
+      "passive_accept": "Silent approval (+0)"
+    }
   }
 }
