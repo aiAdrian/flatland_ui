@@ -1377,7 +1377,9 @@
       "delay": "Delay {{n}}",
       "blockedBy": "blocked by train {{train}} at ({{row}}, {{col}}) — reaches it in {{eta}}, clear in {{clears}}",
       "blocking": "blocking train {{trains}}"
-    }
+    },
+    "noReroute": "No reroute for this train here.",
+    "compareTitle": "Work it out under “Plan / AI / human”"
   },
   "risk": {
     "titleTooltip": "How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.",
@@ -1454,6 +1456,22 @@
       "impact": "The Impact panel flags decision moments; Scenarios and Recommendations offer alternatives.",
       "layout": "Use the Layout Designer (app menu) to arrange and save your own panel layout.",
       "esc": "Esc closes dialogs and deselects the current train."
+    }
+  },
+  "hypothesis": {
+    "unknown": "In this situation you prefer {{strategy}} (hypothesis — context unknown).",
+    "template": "With {{conn}}, {{delay}} and {{ripple}}, you prefer {{strategy}}.",
+    "conn": {
+      "critical": "a critical connection",
+      "stable": "a stable connection"
+    },
+    "delay": {
+      "low": "little added delay",
+      "high": "more added delay"
+    },
+    "ripple": {
+      "low": "a small knock-on effect",
+      "high": "a larger knock-on effect"
     }
   }
 }

@@ -38,6 +38,9 @@ interface ReasonChip {
 export class RationaleCaptureComponent {
   store = inject(SessionStore);
   private readonly i18n = inject(LanguageService);
+  /** The hypothesis and the action label follow the language like every string here. */
+  private readonly t = (key: string, params?: Record<string, string>, fallback?: string) =>
+    this.i18n.t(key, params, fallback);
   private readonly identity = inject(TrainIdentityService);
 
   trainName(handle: number): string {
@@ -67,12 +70,12 @@ export class RationaleCaptureComponent {
   readonly hypothesis = computed(() => {
     const p = this.pending();
     if (!p) return '';
-    return buildPreferenceHypothesis(p.context, strategyLabelForAction(p.action));
+    return buildPreferenceHypothesis(p.context, strategyLabelForAction(p.action, this.t), this.t);
   });
 
   strategyLabel(): string {
     const p = this.pending();
-    return p ? strategyLabelForAction(p.action) : '';
+    return p ? strategyLabelForAction(p.action, this.t) : '';
   }
 
   toggleChip(id: string): void {

@@ -1058,9 +1058,13 @@ export class SessionStore {
     const pending = this.pendingRationale();
     if (!pending) return;
 
+    // In the operator's language: shown on the prompt, then kept on the record.
+    const t = (key: string, params?: Record<string, string>, fallback?: string) =>
+      this.i18n.t(key, params, fallback);
     const hypothesis = buildPreferenceHypothesis(
       pending.context,
-      strategyLabelForAction(pending.action),
+      strategyLabelForAction(pending.action, t),
+      t,
     );
 
     // Patch the CoLearningEntry this override produced (Co-Learning mode only).
@@ -1103,7 +1107,7 @@ export class SessionStore {
         mode: pending.mode,
         handle: pending.handle,
         action: pending.action,
-        strategyLabel: strategyLabelForAction(pending.action),
+        strategyLabel: strategyLabelForAction(pending.action, t),
         rationale: payload.rationale,
         hypothesis,
         response: payload.response,

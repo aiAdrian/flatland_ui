@@ -1377,7 +1377,9 @@
       "delay": "Verspätung {{n}}",
       "blockedBy": "blockiert von Zug {{train}} bei ({{row}}, {{col}}) — erreicht in {{eta}}, frei in {{clears}}",
       "blocking": "blockiert Zug {{trains}}"
-    }
+    },
+    "noReroute": "Für diesen Zug gibt es hier keine Umleitung.",
+    "compareTitle": "Unter «Plan / KI / Mensch» durchrechnen"
   },
   "risk": {
     "titleTooltip": "Wie weit man der KI-Ausgabe trauen kann — eine vom Modell gemeldete Konfidenz plus das Unsichere (Streuung der Alternativen). Noch nicht kalibriert.",
@@ -1454,6 +1456,22 @@
       "impact": "Das Panel «Auswirkung» markiert Entscheidungsmomente; «Szenarien» und «Empfehlungen» bieten Alternativen.",
       "layout": "Mit dem Layout Designer (App-Menü) ordnest und speicherst du dein eigenes Panel-Layout.",
       "esc": "Esc schliesst Dialoge und hebt die Auswahl des aktuellen Zuges auf."
+    }
+  },
+  "hypothesis": {
+    "unknown": "Bei dieser Situation bevorzugst du {{strategy}} (Hypothese — Kontext unbekannt).",
+    "template": "Bei {{conn}}, {{delay}} und {{ripple}} bevorzugst du {{strategy}}.",
+    "conn": {
+      "critical": "kritischem Anschluss",
+      "stable": "stabilem Anschluss"
+    },
+    "delay": {
+      "low": "geringer Zusatzverspätung",
+      "high": "höherer Zusatzverspätung"
+    },
+    "ripple": {
+      "low": "geringer Folgewirkung",
+      "high": "stärkerer Folgewirkung"
     }
   }
 }

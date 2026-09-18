@@ -576,7 +576,7 @@
           class="map-train-options__btn"
           [class.is-chosen]="isTrainOptionChosen(c.option)"
           [disabled]="trainOptionDisabled(t.handle, c.option)"
-          [title]="trainOptionDisabled(t.handle, c.option) ? 'Für diesen Zug gibt es hier keine Umleitung.' : 'Unter «Plan / KI / Mensch» durchrechnen'"
+          [title]="(trainOptionDisabled(t.handle, c.option) ? 'map.noReroute' : 'map.compareTitle') | transloco"
           (click)="chooseTrainOption(t.handle, c.option)">
           {{ c.label | transloco }}
         </button>
