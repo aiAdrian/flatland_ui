@@ -948,5 +948,98 @@
       "disruption": "Störung im Netz",
       "reserve": "Reserve aufbauen"
     }
+  },
+  "strategy": {
+    "focus": {
+      "punctuality": "Pünktlichkeit",
+      "connections": "Anschlüsse",
+      "stability": "Stabilität"
+    },
+    "copy": {
+      "punctuality": {
+        "title": "Verspätung minimieren",
+        "goal": "Züge so früh wie möglich ans Ziel — Fahrzeit vor Warten.",
+        "gives": "kleinste Verspätung",
+        "costs": "Anschlüsse brechen eher"
+      },
+      "connections": {
+        "title": "Anschlüsse halten",
+        "goal": "Umsteigebeziehungen sichern — dafür wird gewartet.",
+        "gives": "Anschlüsse haben Vorrang",
+        "costs": "Warten kostet Zeit"
+      },
+      "stability": {
+        "title": "Stabilität maximieren",
+        "goal": "Reserve im Netz behalten — robust gegen die nächste Störung.",
+        "gives": "mehr Puffer im Netz",
+        "costs": "gibt Zeit und Anschlüsse ab"
+      }
+    },
+    "title": "Strategie wählen",
+    "subtitle": "Welches Ziel soll der autonome Plan verfolgen?",
+    "nextDecision": "⏳ Nächste KI-Entscheidung",
+    "nextDecisionTrain": "(Zug {{train}})",
+    "nextDecisionIn": "in {{n}} Schritt(en) · t={{step}}",
+    "planning": "Planung läuft …",
+    "recompute": "Neu berechnen",
+    "computeOptions": "Optionen berechnen",
+    "simulatingNote": "Zwei ganze Episoden werden durchgespielt (weiter wie bisher vs. dieses Ziel, gleicher Störungsverlauf) — ~7 s.",
+    "noForecast": "Keine Prognose: {{reason}} — die Kacheln wirken trotzdem, sie setzen die Ziele des Planers.",
+    "firstPlan": "Erstplan wird berechnet (~10 s) — danach die drei Strategien.",
+    "planningNote": "Jede Strategie wird als eigener Plan durchgerechnet (drei Varianten, ~20 s, auf Kopien) — die laufende Session bleibt unberührt. Übernehmen geht schon jetzt.",
+    "waitingForPause": "Die Prognose rechne ich, sobald Sie pausieren — sie dauert ~20 s, und während der Fahrt wäre sie beim Eintreffen schon überholt. Ziele übernehmen können Sie jederzeit.",
+    "stale": "Berechnet für Schritt {{computed}}, aktuell {{current}}",
+    "staleRecompute": "— bei Pause rechne ich neu.",
+    "allAgree": "Alle drei Ziele führen hier zum selben Plan — es gibt gerade keinen Zug, der sie gegeneinander abwägt. Die Wahl greift erst am nächsten Konflikt.",
+    "active": "Aktiv",
+    "preferred": "Passt zu Ihrer gelernten Präferenz — {{why}}. Vorschlag, keine Vorauswahl.",
+    "unchanged": "Fährt jeden Zug wie der laufende Plan.",
+    "reroutes": "Leitet {{n}} Zug/Züge um.",
+    "holds": "{{n}} warten statt umzufahren.",
+    "stabilityHint": "Stabilität {{hint}}.",
+    "fellBackTo": "Der Planer nimmt hier {{plan}} — die Suche fand nichts Besseres.",
+    "forecastOnPause": "Prognose bei Pause.",
+    "forecastComputing": "Prognose wird berechnet …",
+    "noForecastYet": "Noch keine Prognose berechnet.",
+    "replayedTitle": "Nachgespielt bis Episodenende (ab Schritt {{step}})",
+    "changesNothing": "Der Planer bleibt beim laufenden Plan — dieses Ziel ändert hier nichts.",
+    "simDelay": "Verspätung {{delta}}",
+    "simArrivals": "Ankünfte {{delta}} ({{arrived}}/{{trains}})",
+    "simConnections": "Anschlüsse {{delta}} ({{kept}}/{{keptOf}})",
+    "contradicts": "Achtung: die Simulation widerspricht der Bewertung oben. Die Modelle schätzen umgeplante Strecken zu optimistisch ein — im Zweifel gilt das Nachspielen.",
+    "applying": "Übernehme …",
+    "applied": "Übernommen",
+    "apply": "Übernehmen",
+    "simTitle": "Spielt diese und die laufende Variante bis zum Episodenende durch (~7 s) und vergleicht das Ergebnis.",
+    "simulating": "Simuliere …",
+    "resimulate": "Neu simulieren",
+    "replay": "Nachspielen",
+    "mapOff": "Karte aus",
+    "onMap": "Auf Karte",
+    "planOnMap": "Plan auf Karte",
+    "simFailed": "Die Simulation ist fehlgeschlagen — es bleiben die Modellwerte oben.",
+    "planFailed": "Strategien konnten nicht geplant werden.",
+    "previewUnchanged": "Dieses Ziel fährt jeden Zug wie der laufende Plan — der Klick zeigt diesen Plan.",
+    "previewComputing": "Die Umleitung wird gerade berechnet.",
+    "previewPause": "Pausieren Sie den Lauf — dann wird die Umleitung berechnet und hier anklickbar.",
+    "previewNoPlan": "Erst «Optionen berechnen» — ohne Plan gibt es keine Route zu zeigen.",
+    "previewNoRoute": "Für dieses Ziel liegt keine Route vor.",
+    "limitedBy": "begrenzt durch {{factor}} ({{value}})",
+    "factor": {
+      "slack": "Puffer",
+      "deadlock": "Deadlock-Risiko",
+      "track": "Gleisbelegung",
+      "cascade": "Folgekonflikte"
+    },
+    "directPlan": "den direkten Linienplan (ohne Konfliktbetrachtung)",
+    "avoidancePlan": "den Ausweichplan (Konflikte umgangen, ohne Suche)",
+    "confirmedByYou": "Von Ihnen bestätigt: «{{statement}}»",
+    "deliberateWithShifts": "{{n}} bewusste Entscheidungen, davon {{shifts}} abgeschlossene Schicht(en)",
+    "deliberate": "{{n}} bewusste Entscheidungen",
+    "shareOfDecisions": "{{pct}} % Ihrer Entscheidungen ({{base}})",
+    "axisScopeOf": "von {{n}}",
+    "hypothesis": "Bei Zielkonflikten priorisieren Sie {{goal}}.",
+    "hypothesisCost": "Bei Zielkonflikten priorisieren Sie {{goal}} — auch wenn es {{cost}} kostet.",
+    "points": "{{n}} Punkte {{axis}}"
   }
 }

@@ -948,5 +948,98 @@
       "disruption": "Perturbation sur le réseau",
       "reserve": "Constituer une réserve"
     }
+  },
+  "strategy": {
+    "focus": {
+      "punctuality": "Ponctualité",
+      "connections": "Correspondances",
+      "stability": "Stabilité"
+    },
+    "copy": {
+      "punctuality": {
+        "title": "Minimiser le retard",
+        "goal": "Les trains à destination au plus tôt — rouler plutôt qu’attendre.",
+        "gives": "le plus petit retard",
+        "costs": "les correspondances sautent plus facilement"
+      },
+      "connections": {
+        "title": "Tenir les correspondances",
+        "goal": "Assurer les correspondances — on attend pour cela.",
+        "gives": "les correspondances passent d’abord",
+        "costs": "attendre coûte du temps"
+      },
+      "stability": {
+        "title": "Maximiser la stabilité",
+        "goal": "Garder de la réserve dans le réseau — robuste face à la prochaine perturbation.",
+        "gives": "plus de marge dans le réseau",
+        "costs": "sacrifie du temps et des correspondances"
+      }
+    },
+    "title": "Choisir une stratégie",
+    "subtitle": "Quel objectif le plan autonome doit-il poursuivre ?",
+    "nextDecision": "⏳ Prochaine décision de l’IA",
+    "nextDecisionTrain": "(train {{train}})",
+    "nextDecisionIn": "dans {{n}} pas · t={{step}}",
+    "planning": "Planification…",
+    "recompute": "Recalculer",
+    "computeOptions": "Calculer les options",
+    "simulatingNote": "Deux épisodes entiers sont joués (poursuivre comme avant vs cet objectif, mêmes perturbations) — environ 7 s.",
+    "noForecast": "Pas de prévision : {{reason}} — les tuiles agissent quand même, elles fixent les objectifs du planificateur.",
+    "firstPlan": "Le premier plan est calculé (environ 10 s) — ensuite les trois stratégies.",
+    "planningNote": "Chaque stratégie est planifiée à part (trois variantes, environ 20 s, sur des copies) — la session en cours n’est pas touchée. Vous pouvez déjà en adopter une.",
+    "waitingForPause": "Je calcule la prévision dès que vous mettez en pause — elle prend environ 20 s et serait déjà dépassée en cours de route. Vous pouvez adopter un objectif à tout moment.",
+    "stale": "Calculé pour le pas {{computed}}, actuellement {{current}}",
+    "staleRecompute": "— je recalcule à la pause.",
+    "allAgree": "Les trois objectifs mènent ici au même plan — aucun train ne les met en balance pour l’instant. Le choix agira au prochain conflit.",
+    "active": "Actif",
+    "preferred": "Correspond à la préférence apprise — {{why}}. Une suggestion, pas une présélection.",
+    "unchanged": "Fait circuler chaque train comme le plan actuel.",
+    "reroutes": "Détourne {{n}} train(s).",
+    "holds": "{{n}} attendent au lieu d’être détournés.",
+    "stabilityHint": "Stabilité {{hint}}.",
+    "fellBackTo": "Le planificateur prend ici {{plan}} — la recherche n’a rien trouvé de mieux.",
+    "forecastOnPause": "Prévision à la pause.",
+    "forecastComputing": "Calcul de la prévision…",
+    "noForecastYet": "Aucune prévision calculée pour l’instant.",
+    "replayedTitle": "Rejoué jusqu’à la fin de l’épisode (à partir du pas {{step}})",
+    "changesNothing": "Le planificateur garde le plan en cours — cet objectif ne change rien ici.",
+    "simDelay": "Retard {{delta}}",
+    "simArrivals": "Arrivées {{delta}} ({{arrived}}/{{trains}})",
+    "simConnections": "Correspondances {{delta}} ({{kept}}/{{keptOf}})",
+    "contradicts": "Attention : la simulation contredit l’évaluation ci-dessus. Les modèles jugent les itinéraires détournés trop favorablement — en cas de doute, c’est le rejeu qui compte.",
+    "applying": "Application…",
+    "applied": "Adopté",
+    "apply": "Adopter",
+    "simTitle": "Joue cette variante et celle en cours jusqu’à la fin de l’épisode (environ 7 s) et compare le résultat.",
+    "simulating": "Simulation…",
+    "resimulate": "Simuler à nouveau",
+    "replay": "Rejouer",
+    "mapOff": "Carte désactivée",
+    "onMap": "Sur la carte",
+    "planOnMap": "Plan sur la carte",
+    "simFailed": "La simulation a échoué — les valeurs du modèle ci-dessus restent.",
+    "planFailed": "Les stratégies n’ont pas pu être planifiées.",
+    "previewUnchanged": "Cet objectif fait circuler chaque train comme le plan actuel — le clic montre ce plan.",
+    "previewComputing": "Le détournement est en cours de calcul.",
+    "previewPause": "Mettez la conduite en pause — le détournement sera alors calculé et cliquable ici.",
+    "previewNoPlan": "D’abord « Calculer les options » — sans plan, aucune route à montrer.",
+    "previewNoRoute": "Aucune route disponible pour cet objectif.",
+    "limitedBy": "limitée par {{factor}} ({{value}})",
+    "factor": {
+      "slack": "marge",
+      "deadlock": "risque de blocage",
+      "track": "occupation des voies",
+      "cascade": "conflits en cascade"
+    },
+    "directPlan": "le plan de lignes direct (sans gestion des conflits)",
+    "avoidancePlan": "le plan d’évitement (conflits contournés, sans recherche)",
+    "confirmedByYou": "Confirmé par vous : « {{statement}} »",
+    "deliberateWithShifts": "{{n}} décisions réfléchies, dont {{shifts}} service(s) terminé(s)",
+    "deliberate": "{{n}} décisions réfléchies",
+    "shareOfDecisions": "{{pct}} % de vos décisions ({{base}})",
+    "axisScopeOf": "sur {{n}}",
+    "hypothesis": "En cas de conflit d’objectifs, vous privilégiez {{goal}}.",
+    "hypothesisCost": "En cas de conflit d’objectifs, vous privilégiez {{goal}} — même si cela coûte {{cost}}.",
+    "points": "{{n}} points de {{axis}}"
   }
 }

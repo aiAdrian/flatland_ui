@@ -948,5 +948,98 @@
       "disruption": "Disruption in the network",
       "reserve": "Build up reserve"
     }
+  },
+  "strategy": {
+    "focus": {
+      "punctuality": "Punctuality",
+      "connections": "Connections",
+      "stability": "Stability"
+    },
+    "copy": {
+      "punctuality": {
+        "title": "Minimise delay",
+        "goal": "Trains to their destination as early as possible — running time before waiting.",
+        "gives": "the smallest delay",
+        "costs": "connections break more easily"
+      },
+      "connections": {
+        "title": "Keep connections",
+        "goal": "Secure transfers — trains wait for them.",
+        "gives": "connections take priority",
+        "costs": "waiting costs time"
+      },
+      "stability": {
+        "title": "Maximise stability",
+        "goal": "Keep reserve in the network — robust against the next disruption.",
+        "gives": "more headroom in the network",
+        "costs": "gives up time and connections"
+      }
+    },
+    "title": "Choose a strategy",
+    "subtitle": "Which goal should the autonomous plan pursue?",
+    "nextDecision": "⏳ Next AI decision",
+    "nextDecisionTrain": "(train {{train}})",
+    "nextDecisionIn": "in {{n}} step(s) · t={{step}}",
+    "planning": "Planning …",
+    "recompute": "Recompute",
+    "computeOptions": "Compute options",
+    "simulatingNote": "Two whole episodes are played out (carry on as before vs. this goal, same disruptions) — about 7 s.",
+    "noForecast": "No forecast: {{reason}} — the tiles still take effect, they set the planner’s goals.",
+    "firstPlan": "The first plan is being computed (about 10 s) — then the three strategies.",
+    "planningNote": "Each strategy is planned in full (three variants, about 20 s, on copies) — the running session is untouched. You can apply one already.",
+    "waitingForPause": "I compute the forecast as soon as you pause — it takes about 20 s, and while the run moves it would already be out of date on arrival. You can apply a goal at any time.",
+    "stale": "Computed for step {{computed}}, currently {{current}}",
+    "staleRecompute": "— I recompute when you pause.",
+    "allAgree": "All three goals lead to the same plan here — no train is weighing them against each other right now. The choice takes effect at the next conflict.",
+    "active": "Active",
+    "preferred": "Fits the preference you taught me — {{why}}. A suggestion, not a preselection.",
+    "unchanged": "Runs every train like the current plan.",
+    "reroutes": "Reroutes {{n}} train(s).",
+    "holds": "{{n}} wait instead of taking another route.",
+    "stabilityHint": "Stability {{hint}}.",
+    "fellBackTo": "The planner takes {{plan}} here — the search found nothing better.",
+    "forecastOnPause": "Forecast when paused.",
+    "forecastComputing": "Computing the forecast …",
+    "noForecastYet": "No forecast computed yet.",
+    "replayedTitle": "Replayed to the end of the episode (from step {{step}})",
+    "changesNothing": "The planner stays with the running plan — this goal changes nothing here.",
+    "simDelay": "Delay {{delta}}",
+    "simArrivals": "Arrivals {{delta}} ({{arrived}}/{{trains}})",
+    "simConnections": "Connections {{delta}} ({{kept}}/{{keptOf}})",
+    "contradicts": "Careful: the simulation contradicts the assessment above. The models judge rerouted paths too optimistically — when in doubt, the replay counts.",
+    "applying": "Applying …",
+    "applied": "Applied",
+    "apply": "Take it",
+    "simTitle": "Plays this variant and the running one to the end of the episode (about 7 s) and compares the result.",
+    "simulating": "Simulating …",
+    "resimulate": "Simulate again",
+    "replay": "Replay",
+    "mapOff": "Map off",
+    "onMap": "On the map",
+    "planOnMap": "Plan on the map",
+    "simFailed": "The simulation failed — the model values above stand.",
+    "planFailed": "The strategies could not be planned.",
+    "previewUnchanged": "This goal runs every train like the current plan — the click shows that plan.",
+    "previewComputing": "The reroute is being computed.",
+    "previewPause": "Pause the run — then the reroute is computed and can be clicked here.",
+    "previewNoPlan": "First “Compute options” — without a plan there is no route to show.",
+    "previewNoRoute": "No route is available for this goal.",
+    "limitedBy": "limited by {{factor}} ({{value}})",
+    "factor": {
+      "slack": "headroom",
+      "deadlock": "deadlock risk",
+      "track": "track occupancy",
+      "cascade": "knock-on conflicts"
+    },
+    "directPlan": "the direct line plan (no conflict handling)",
+    "avoidancePlan": "the avoidance plan (conflicts routed around, no search)",
+    "confirmedByYou": "Confirmed by you: “{{statement}}”",
+    "deliberateWithShifts": "{{n}} deliberate decisions, including {{shifts}} completed shift(s)",
+    "deliberate": "{{n}} deliberate decisions",
+    "shareOfDecisions": "{{pct}} % of your decisions ({{base}})",
+    "axisScopeOf": "of {{n}}",
+    "hypothesis": "When goals conflict, you prioritise {{goal}}.",
+    "hypothesisCost": "When goals conflict, you prioritise {{goal}} — even when it costs {{cost}}.",
+    "points": "{{n}} points of {{axis}}"
   }
 }
