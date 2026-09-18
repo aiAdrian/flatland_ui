@@ -1109,5 +1109,170 @@
       "reasoned": "Grund angegeben (+2)",
       "passive_accept": "Stille Zustimmung (+0)"
     }
+  },
+  "ca": {
+    "title": "Kombinierte Massnahmen",
+    "hint": {
+      "recommendation": "Ziehen Sie einen Zug, um eine Variante abzuzweigen — Karte und ZWL zeigen, was sich ändert.",
+      "coLearning": "Drei koordinierte Massnahmen, neutral dargestellt. Ordnen Sie eine um und vergleichen Sie Ihre Variante mit der der KI.",
+      "director": "Die KI führt die markierte Massnahme aus. Nur Ansicht — das Ziel setzen Sie in den Strategieoptionen."
+    },
+    "plotShow": "Diagramm Anschlüsse/Verspätung zeigen",
+    "plotHide": "Diagramm Anschlüsse/Verspätung ausblenden",
+    "plotTitle": "Anschlüsse vs. Verspätung",
+    "calm": "Netz läuft nach Plan — keine koordinierte Massnahme nötig.",
+    "calmHint": "Die Vorschläge erscheinen bei einer Störung.",
+    "provenanceBound": "Modellierte Werte, keine Simulationsergebnisse ⓘ",
+    "provenanceWaiting": "Wartet auf einen echten Konflikt ⓘ",
+    "provenanceDetailBound": "Die Züge und der Konflikt sind echt — abgeleitet aus der laufenden Konfliktprognose dieser Session, die Anschlüsse aus ihrem eigenen Fahrplan. Die Verspätungswerte stammen aus einem deterministischen Modell, nicht aus der Simulation. Zeigen Sie auf eine Massnahme, um sie auf Karte und ZWL zu sehen.",
+    "provenanceDetailWaiting": "Noch keine Konflikte in dieser Session, aus denen sich Massnahmen bilden lassen. Das Panel zeigt Pakete, sobald die Prognose einen Konflikt voraus meldet.",
+    "summary": {
+      "sameDelay": "gleiche Verspätung",
+      "moreSaved": "{{n}} Min. mehr eingespart",
+      "lessSaved": "{{n}} Min. weniger eingespart",
+      "sameTransfers": "gleiche Anschlüsse",
+      "moreKept": "{{n}} Anschluss/Anschlüsse mehr gehalten",
+      "fewerKept": "{{n}} Anschluss/Anschlüsse weniger gehalten",
+      "variant": "{{label}}: {{delay}}, {{transfers}}",
+      "leadsBoth": "{{label}} liegt bei beidem vorn",
+      "split": "{{fastest}} spart am meisten · {{cheapest}} hält die meisten Anschlüsse"
+    },
+    "situation": {
+      "disruptions": "{{n}} Störung(en)",
+      "blocked": "{{n}} Zug/Züge blockiert",
+      "contentions": "{{n}} Konflikt(e) voraus",
+      "horizon": "Blick {{n}} min voraus"
+    },
+    "pkg": {
+      "label": "Massnahme {{id}}",
+      "A": "Lässt die durchgehenden Züge zuerst durch, der Regionalverkehr folgt.",
+      "B": "Disponiert in der Reihenfolge der geplanten Ankunft — die früheste Ankunft räumt den Engpass zuerst.",
+      "C": "Die am stärksten verspäteten Züge zuerst — begrenzt die grösste Überfälligkeit."
+    },
+    "card": {
+      "recommended": "Von der KI empfohlen",
+      "aiExecuting": "KI führt aus",
+      "humanModified": "Vom Menschen geändert",
+      "keepAria": "Welche Version behalten Sie?",
+      "keep": "Behalten",
+      "ai": "KI",
+      "variant": "Variante {{n}}",
+      "discardAria": "{{label}} verwerfen",
+      "discardTitle": "Diese Variante verwerfen",
+      "resetTitle": "Den Vorschlag der KI wieder zeigen (Varianten bleiben)",
+      "aiOrder": "KI-Reihenfolge",
+      "applied": "{{name}} übernommen",
+      "apply": "Übernehmen",
+      "moveEarlier": "{{train}} {{n}} Platz/Plätze früher",
+      "moveLater": "{{train}} {{n}} Platz/Plätze später",
+      "youMoved": "Sie haben {{moves}} verschoben."
+    },
+    "chip": {
+      "movedEarlier": "{{n}} früher als im Vorschlag der KI",
+      "movedLater": "{{n}} später als im Vorschlag der KI"
+    },
+    "seq": {
+      "aria": "Disponierreihenfolge: {{order}}",
+      "slot": "{{train}}, Position {{pos}} von {{n}}",
+      "slotEditable": "{{train}}, Position {{pos}} von {{n}}. Mit Pfeil links oder rechts verschieben."
+    },
+    "metrics": {
+      "updating": "Prognose wird aktualisiert …",
+      "delay": "Verspätung",
+      "transfersTitle": "Geplante Anschlüsse, die diese Reihenfolge hält — die zweite Achse des Zielkonflikts",
+      "transfers": "{{kept}}/{{total}} Anschlüsse",
+      "you": "Sie −{{n}}′",
+      "transfersDelta": "({{delta}} Anschlüsse)"
+    },
+    "plot": {
+      "you": "Sie",
+      "aria": "Gebrochene geplante Anschlüsse gegen die erwartete Verspätungsreduktion, ein Punkt pro Massnahmenversion",
+      "axisTransfers": "↑ gehaltene Anschlüsse",
+      "axisDelay": "mehr Verspätung eingespart →",
+      "tradeLabel": "{{min}}′ / {{broken}} Anschlüsse",
+      "aiProposal": "Vorschlag der KI",
+      "yourVariant": "Ihre Variante",
+      "pointDetail": "{{label}} · {{origin}} · −{{min}} Min. · {{kept}} von {{total}} Anschlüssen gehalten",
+      "sameDelay": "gleich viel Verspätung eingespart",
+      "moreDelay": "{{n}} Min. mehr Verspätung eingespart",
+      "lessDelay": "{{n}} Min. weniger Verspätung eingespart",
+      "sameTransfers": "gleich viele Anschlüsse gehalten",
+      "fewerTransfers": "{{n}} Anschluss/Anschlüsse weniger gehalten",
+      "moreTransfers": "{{n}} Anschluss/Anschlüsse mehr gehalten",
+      "arrow": "Ihre Variante von {{pkg}}: {{delay}}, {{transfers}}.",
+      "pointHint": "Zeigen Sie auf einen Punkt für seine Werte."
+    }
+  },
+  "cap": {
+    "aria": "Kombinierte Massnahmen",
+    "conflict": "{{location}} · {{delay}} min Verspätung ohne Eingriff, Horizont {{horizon}} min",
+    "choose": "Eine Massnahme wählen — der Abschnitt lässt sich nur einmal disponieren. Anklicken hebt die betroffenen Züge auf der Karte hervor.",
+    "chosen": "Gewählt: {{n}} Züge gesteuert · −{{min}} min",
+    "chosenModified": "· in der geänderten Reihenfolge",
+    "method": "{{n}} Kandidaten simuliert, bester je Eingriffstiefe gezeigt. Heuristische Warteschlange am Engpass, kein Flatland-Lauf.",
+    "logLabel": "{{n}} Züge gesteuert · {{strategy}}",
+    "window": {
+      "conflict_nord": {
+        "location": "Einfahrt Nord, eingleisiger Abschnitt",
+        "reason": "Sechs Züge beanspruchen denselben Abschnitt innerhalb von 30 Minuten."
+      }
+    },
+    "problem": {
+      "title": "Aktuelles Problem",
+      "delayLabel": "min Verspätung ohne Eingriff",
+      "lateLabel": "Züge verspätet",
+      "horizonLabel": "min Horizont",
+      "worst": "Am stärksten betroffen: {{train}} mit {{delay}} min — steht als {{pos}}. in der Reihenfolge hinter allen längeren Zügen.",
+      "caption": "Reihenfolge nach Fahrplan",
+      "col": {
+        "train": "Zug",
+        "brings": "bringt mit",
+        "occupies": "belegt",
+        "delay": "Verspätung"
+      }
+    },
+    "metrics": {
+      "running": "Simulation läuft …",
+      "unit": "min Verspätung",
+      "meta": "{{from}} → {{to}} min gesamt · Konfidenz {{confidence}}",
+      "compare": "KI: −{{ai}} min · jetzt: −{{now}} min",
+      "confidence": {
+        "high": "hoch",
+        "medium": "mittel",
+        "low": "niedrig"
+      }
+    },
+    "card": {
+      "steered": "Züge gesteuert",
+      "recommended": "Von der KI empfohlen",
+      "modified": "Vom Dispatcher geändert",
+      "onMap": "auf der Karte",
+      "seeImpact": "Auswirkungen ansehen",
+      "affected": "{{n}} Züge betroffen",
+      "steeredGroup": "Gesteuert",
+      "sideEffects": "Nicht gesteuert, aber betroffen",
+      "untouched": "Unberührt: {{trains}}",
+      "planDetail": "Umleitung im Detail",
+      "inOrder": "{{n}} Züge in der Reihenfolge",
+      "goesFirst": "fährt zuerst durch den Abschnitt",
+      "holdsUntil": "hält, bis {{train}} frei ist",
+      "waits": "· wartet {{n}} min",
+      "tagSteered": "gesteuert",
+      "tagTimetable": "nach Fahrplan",
+      "isChosen": "Diese Massnahme ist gewählt",
+      "revoke": "Auswahl aufheben",
+      "otherChosen": "Eine andere Massnahme ist gewählt",
+      "armQuestion": "Diese Massnahme übernehmen?",
+      "confirmFinal": "Endgültig bestätigen",
+      "cancel": "Abbrechen",
+      "reset": "Zurücksetzen",
+      "confirm": "Bestätigen"
+    },
+    "chip": {
+      "title": "{{train}} · {{service}} · {{delay}} min Verspätung · belegt den Abschnitt {{headway}} min"
+    },
+    "seq": {
+      "slot": "{{train}}, Position {{pos}} von {{n}}. Mit Alt und Pfeiltasten verschieben."
+    }
   }
 }

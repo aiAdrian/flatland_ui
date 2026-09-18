@@ -1109,5 +1109,170 @@
       "reasoned": "Reason given (+2)",
       "passive_accept": "Silent approval (+0)"
     }
+  },
+  "ca": {
+    "title": "Combined Actions",
+    "hint": {
+      "recommendation": "Drag a train to fork a variant — the map and the ZWL show what it changes.",
+      "coLearning": "Three coordinated actions, presented neutrally. Reorder one and compare your variant with the AI’s.",
+      "director": "The AI is executing the marked action. Read-only — set the objective in the strategy options."
+    },
+    "plotShow": "Show the transfers/delay chart",
+    "plotHide": "Hide the transfers/delay chart",
+    "plotTitle": "Transfers vs. delay",
+    "calm": "The network is running to plan — no coordinated action needed.",
+    "calmHint": "The proposals appear when there is a disruption.",
+    "provenanceBound": "Modelled figures, not simulation output ⓘ",
+    "provenanceWaiting": "Awaiting a live contention ⓘ",
+    "provenanceDetailBound": "The trains and the contention are real — derived from this session’s live conflict forecast, and the transfers from its own timetable. The delay figures come from a deterministic model, not from the simulation. Point at an action to see it on the map and in the ZWL.",
+    "provenanceDetailWaiting": "No session contentions to build actions from yet. The panel shows packages once the forecast flags a contention ahead.",
+    "summary": {
+      "sameDelay": "same delay",
+      "moreSaved": "{{n}} min more saved",
+      "lessSaved": "{{n}} min less saved",
+      "sameTransfers": "same transfers",
+      "moreKept": "{{n}} more transfer(s) kept",
+      "fewerKept": "{{n}} fewer transfer(s) kept",
+      "variant": "{{label}}: {{delay}}, {{transfers}}",
+      "leadsBoth": "{{label}} leads on both",
+      "split": "{{fastest}} saves most · {{cheapest}} keeps most transfers"
+    },
+    "situation": {
+      "disruptions": "{{n}} disruption(s)",
+      "blocked": "{{n}} train(s) blocked",
+      "contentions": "{{n}} conflict(s) ahead",
+      "horizon": "looking {{n}} min ahead"
+    },
+    "pkg": {
+      "label": "Action {{id}}",
+      "A": "Clears the through-running services first, regional traffic follows.",
+      "B": "Dispatches in scheduled-arrival order — the earliest ETA clears the bottleneck first.",
+      "C": "Most-delayed trains first — limits the worst overdue."
+    },
+    "card": {
+      "recommended": "Recommended by AI",
+      "aiExecuting": "AI executing",
+      "humanModified": "Human modified",
+      "keepAria": "Which version do you keep?",
+      "keep": "Keep",
+      "ai": "AI",
+      "variant": "Variant {{n}}",
+      "discardAria": "Discard {{label}}",
+      "discardTitle": "Discard this variant",
+      "resetTitle": "Show the AI’s proposal again (variants are kept)",
+      "aiOrder": "AI order",
+      "applied": "{{name}} applied",
+      "apply": "Apply",
+      "moveEarlier": "{{train}} {{n}} place(s) earlier",
+      "moveLater": "{{train}} {{n}} place(s) later",
+      "youMoved": "You moved {{moves}}."
+    },
+    "chip": {
+      "movedEarlier": "Moved {{n}} earlier than the AI proposal",
+      "movedLater": "Moved {{n}} later than the AI proposal"
+    },
+    "seq": {
+      "aria": "Dispatch order: {{order}}",
+      "slot": "{{train}}, position {{pos}} of {{n}}",
+      "slotEditable": "{{train}}, position {{pos}} of {{n}}. Use arrow left or right to move it."
+    },
+    "metrics": {
+      "updating": "Updating prediction…",
+      "delay": "delay",
+      "transfersTitle": "Planned transfers this order keeps — the second axis of the trade-off",
+      "transfers": "{{kept}}/{{total}} transfers",
+      "you": "you −{{n}}′",
+      "transfersDelta": "({{delta}} transfers)"
+    },
+    "plot": {
+      "you": "you",
+      "aria": "Planned transfers broken against predicted delay reduction, one dot per action version",
+      "axisTransfers": "↑ transfers kept",
+      "axisDelay": "more delay saved →",
+      "tradeLabel": "{{min}}′ / {{broken}} transfers",
+      "aiProposal": "AI proposal",
+      "yourVariant": "your variant",
+      "pointDetail": "{{label}} · {{origin}} · −{{min}} min · {{kept}} of {{total}} transfers kept",
+      "sameDelay": "the same delay saved",
+      "moreDelay": "{{n}} min more delay saved",
+      "lessDelay": "{{n}} min less delay saved",
+      "sameTransfers": "the same transfers kept",
+      "fewerTransfers": "{{n}} fewer transfer(s) kept",
+      "moreTransfers": "{{n}} more transfer(s) kept",
+      "arrow": "Your variant of {{pkg}}: {{delay}}, {{transfers}}.",
+      "pointHint": "Point at a dot for its figures."
+    }
+  },
+  "cap": {
+    "aria": "Combined measures",
+    "conflict": "{{location}} · {{delay}} min delay without intervention, horizon {{horizon}} min",
+    "choose": "Choose one measure — the section can be dispatched only once. Clicking highlights the affected trains on the map.",
+    "chosen": "Chosen: {{n}} trains steered · −{{min}} min",
+    "chosenModified": "· in the changed order",
+    "method": "{{n}} candidates simulated, the best per intervention depth shown. Heuristic queue at the bottleneck, not a Flatland run.",
+    "logLabel": "{{n}} trains steered · {{strategy}}",
+    "window": {
+      "conflict_nord": {
+        "location": "North entry, single-track section",
+        "reason": "Six trains claim the same section within 30 minutes."
+      }
+    },
+    "problem": {
+      "title": "Current problem",
+      "delayLabel": "min delay without intervention",
+      "lateLabel": "trains late",
+      "horizonLabel": "min horizon",
+      "worst": "Worst affected: {{train}} with {{delay}} min — number {{pos}} in the order, behind all the longer trains.",
+      "caption": "Order by timetable",
+      "col": {
+        "train": "Train",
+        "brings": "brings along",
+        "occupies": "occupies",
+        "delay": "Delay"
+      }
+    },
+    "metrics": {
+      "running": "Simulation running …",
+      "unit": "min delay",
+      "meta": "{{from}} → {{to}} min in total · confidence {{confidence}}",
+      "compare": "AI: −{{ai}} min · now: −{{now}} min",
+      "confidence": {
+        "high": "high",
+        "medium": "medium",
+        "low": "low"
+      }
+    },
+    "card": {
+      "steered": "trains steered",
+      "recommended": "Recommended by AI",
+      "modified": "Changed by the dispatcher",
+      "onMap": "on the map",
+      "seeImpact": "See the impact",
+      "affected": "{{n}} trains affected",
+      "steeredGroup": "Steered",
+      "sideEffects": "Not steered, but affected",
+      "untouched": "Untouched: {{trains}}",
+      "planDetail": "The reroute in detail",
+      "inOrder": "{{n}} trains in the order",
+      "goesFirst": "goes through the section first",
+      "holdsUntil": "holds until {{train}} is clear",
+      "waits": "· waits {{n}} min",
+      "tagSteered": "steered",
+      "tagTimetable": "per timetable",
+      "isChosen": "This measure is chosen",
+      "revoke": "Undo the choice",
+      "otherChosen": "Another measure is chosen",
+      "armQuestion": "Take this measure?",
+      "confirmFinal": "Confirm for good",
+      "cancel": "Cancel",
+      "reset": "Reset",
+      "confirm": "Confirm"
+    },
+    "chip": {
+      "title": "{{train}} · {{service}} · {{delay}} min delay · occupies the section {{headway}} min"
+    },
+    "seq": {
+      "slot": "{{train}}, position {{pos}} of {{n}}. Move with Alt and the arrow keys."
+    }
   }
 }

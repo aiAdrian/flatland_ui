@@ -1,4 +1,6 @@
-import { CUSTOM_ELEMENTS_SCHEMA, Component, Input, computed, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, Input, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ActionMetrics, ImpactConfidence } from '../../core/combined-actions-package';
@@ -7,9 +9,9 @@ import { ActionMetrics, ImpactConfidence } from '../../core/combined-actions-pac
 export type PredictionStatus = 'ready' | 'updating';
 
 const CONFIDENCE_LABELS: Record<ImpactConfidence, string> = {
-  high: 'Hoch',
-  medium: 'Mittel',
-  low: 'Niedrig',
+  high: 'cap.metrics.confidence.high',
+  medium: 'cap.metrics.confidence.medium',
+  low: 'cap.metrics.confidence.low',
 };
 
 /**
@@ -23,12 +25,13 @@ const CONFIDENCE_LABELS: Record<ImpactConfidence, string> = {
 @Component({
   selector: 'app-ca-pkg-metrics',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslocoPipe, CommonModule],
   templateUrl: './impact-metrics.component.html',
   styleUrl: './impact-metrics.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CaPkgImpactMetricsComponent {
+  private readonly i18n = inject(LanguageService);
   @Input({ required: true }) set metrics(value: ActionMetrics) {
     this._metrics.set(value);
   }
@@ -52,7 +55,7 @@ export class CaPkgImpactMetricsComponent {
 
   readonly confidenceLabel = computed(() => {
     const m = this._metrics();
-    return m ? CONFIDENCE_LABELS[m.confidence] : '';
+    return m ? this.i18n.t(CONFIDENCE_LABELS[m.confidence]) : '';
   });
 
   /** "12 → 11", only while the change is fresh and actually a change. */

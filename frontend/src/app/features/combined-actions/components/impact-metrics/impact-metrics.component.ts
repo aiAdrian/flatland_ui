@@ -1,3 +1,4 @@
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Component, Input } from '@angular/core';
 import { ImpactConfidence, ImpactPrediction } from '../../../../core/combined-actions/impact-prediction';
 
@@ -17,6 +18,7 @@ export interface ImpactDelta {
 @Component({
   selector: 'app-impact-metrics',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './impact-metrics.component.html',
   styleUrl: './impact-metrics.component.scss',
 })

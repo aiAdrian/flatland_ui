@@ -1,3 +1,4 @@
+import { LanguageService } from '../../core/i18n/language.service';
 import {
   CUSTOM_ELEMENTS_SCHEMA,
   Component,
@@ -6,6 +7,7 @@ import {
   Output,
   computed,
   signal,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -54,6 +56,7 @@ export function moveTrain(
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CaPkgTrainSequenceComponent {
+  private readonly i18n = inject(LanguageService);
   @Input({ required: true }) set order(value: readonly TrainId[]) {
     this._order.set([...value]);
   }
@@ -82,8 +85,7 @@ export class CaPkgTrainSequenceComponent {
   }
 
   label(train: TrainId, index: number): string {
-    return `${train}, Position ${index + 1} von ${this.items().length}. `
-      + 'Mit Alt und Pfeiltasten verschieben.';
+    return this.i18n.t('cap.seq.slot', { train, pos: index + 1, n: this.items().length });
   }
 
   // ── drag and drop ────────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Component, Input } from '@angular/core';
 import { TrainCategory } from '../../../../core/combined-actions/action-packages';
 
@@ -10,6 +11,7 @@ import { TrainCategory } from '../../../../core/combined-actions/action-packages
 @Component({
   selector: 'app-train-chip',
   standalone: true,
+  imports: [TranslocoPipe],
   templateUrl: './train-chip.component.html',
   styleUrl: './train-chip.component.scss',
 })

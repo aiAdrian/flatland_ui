@@ -1,4 +1,5 @@
-import { CUSTOM_ELEMENTS_SCHEMA, Component, Input, computed, signal } from '@angular/core';
+import { LanguageService } from '../../core/i18n/language.service';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, Input, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { CONFLICT_WINDOW, TrainId, trainFacts } from '../../core/combined-actions-package';
@@ -19,6 +20,7 @@ import { CONFLICT_WINDOW, TrainId, trainFacts } from '../../core/combined-action
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CaPkgTrainChipComponent {
+  private readonly i18n = inject(LanguageService);
   @Input({ required: true }) set train(value: TrainId) {
     this._train.set(value);
   }
@@ -34,6 +36,6 @@ export class CaPkgTrainChipComponent {
     const train = this._train();
     if (!train) return '';
     const f = trainFacts(CONFLICT_WINDOW, train);
-    return `${train} · ${f.service} · ${f.entryDelay} min Verspätung · belegt den Abschnitt ${f.headway} min`;
+    return this.i18n.t('cap.chip.title', { train, service: f.service, delay: f.entryDelay, headway: f.headway });
   });
 }

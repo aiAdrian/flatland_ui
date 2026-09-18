@@ -1109,5 +1109,170 @@
       "reasoned": "Raison indiquée (+2)",
       "passive_accept": "Approbation tacite (+0)"
     }
+  },
+  "ca": {
+    "title": "Actions combinées",
+    "hint": {
+      "recommendation": "Faites glisser un train pour créer une variante — la carte et le graphique horaire montrent ce qui change.",
+      "coLearning": "Trois actions coordonnées, présentées de façon neutre. Réordonnez-en une et comparez votre variante à celle de l’IA.",
+      "director": "L’IA exécute l’action marquée. Lecture seule — fixez l’objectif dans les options de stratégie."
+    },
+    "plotShow": "Afficher le graphique correspondances/retard",
+    "plotHide": "Masquer le graphique correspondances/retard",
+    "plotTitle": "Correspondances vs retard",
+    "calm": "Le réseau circule selon le plan — aucune action coordonnée nécessaire.",
+    "calmHint": "Les propositions apparaissent en cas de perturbation.",
+    "provenanceBound": "Valeurs modélisées, pas des résultats de simulation ⓘ",
+    "provenanceWaiting": "En attente d’un conflit réel ⓘ",
+    "provenanceDetailBound": "Les trains et le conflit sont réels — issus de la prévision de conflits de cette session, et les correspondances de son propre horaire. Les retards proviennent d’un modèle déterministe, pas de la simulation. Pointez une action pour la voir sur la carte et le graphique horaire.",
+    "provenanceDetailWaiting": "Pas encore de conflit dans cette session pour construire des actions. Le panneau affiche des paquets dès que la prévision signale un conflit à venir.",
+    "summary": {
+      "sameDelay": "même retard",
+      "moreSaved": "{{n}} min de plus gagnées",
+      "lessSaved": "{{n}} min de moins gagnées",
+      "sameTransfers": "mêmes correspondances",
+      "moreKept": "{{n}} correspondance(s) de plus tenue(s)",
+      "fewerKept": "{{n}} correspondance(s) de moins tenue(s)",
+      "variant": "{{label}} : {{delay}}, {{transfers}}",
+      "leadsBoth": "{{label}} mène sur les deux plans",
+      "split": "{{fastest}} fait gagner le plus · {{cheapest}} tient le plus de correspondances"
+    },
+    "situation": {
+      "disruptions": "{{n}} perturbation(s)",
+      "blocked": "{{n}} train(s) bloqué(s)",
+      "contentions": "{{n}} conflit(s) à venir",
+      "horizon": "regard à {{n}} min"
+    },
+    "pkg": {
+      "label": "Action {{id}}",
+      "A": "Fait passer d’abord les trains directs, le trafic régional suit.",
+      "B": "Régule dans l’ordre des arrivées prévues — l’arrivée la plus précoce libère d’abord le goulet.",
+      "C": "Les trains les plus en retard d’abord — limite le pire dépassement."
+    },
+    "card": {
+      "recommended": "Recommandé par l’IA",
+      "aiExecuting": "L’IA exécute",
+      "humanModified": "Modifié par l’humain",
+      "keepAria": "Quelle version gardez-vous ?",
+      "keep": "Garder",
+      "ai": "IA",
+      "variant": "Variante {{n}}",
+      "discardAria": "Supprimer {{label}}",
+      "discardTitle": "Supprimer cette variante",
+      "resetTitle": "Réafficher la proposition de l’IA (les variantes sont conservées)",
+      "aiOrder": "Ordre de l’IA",
+      "applied": "{{name}} appliqué",
+      "apply": "Appliquer",
+      "moveEarlier": "{{train}} {{n}} place(s) plus tôt",
+      "moveLater": "{{train}} {{n}} place(s) plus tard",
+      "youMoved": "Vous avez déplacé {{moves}}."
+    },
+    "chip": {
+      "movedEarlier": "Avancé de {{n}} par rapport à la proposition de l’IA",
+      "movedLater": "Reculé de {{n}} par rapport à la proposition de l’IA"
+    },
+    "seq": {
+      "aria": "Ordre de régulation : {{order}}",
+      "slot": "{{train}}, position {{pos}} sur {{n}}",
+      "slotEditable": "{{train}}, position {{pos}} sur {{n}}. Utilisez les flèches gauche ou droite pour le déplacer."
+    },
+    "metrics": {
+      "updating": "Mise à jour de la prévision…",
+      "delay": "retard",
+      "transfersTitle": "Correspondances prévues que cet ordre tient — le second axe de l’arbitrage",
+      "transfers": "{{kept}}/{{total}} correspondances",
+      "you": "vous −{{n}}′",
+      "transfersDelta": "({{delta}} correspondances)"
+    },
+    "plot": {
+      "you": "vous",
+      "aria": "Correspondances prévues rompues face à la réduction de retard prévue, un point par version d’action",
+      "axisTransfers": "↑ correspondances tenues",
+      "axisDelay": "plus de retard gagné →",
+      "tradeLabel": "{{min}}′ / {{broken}} correspondances",
+      "aiProposal": "proposition de l’IA",
+      "yourVariant": "votre variante",
+      "pointDetail": "{{label}} · {{origin}} · −{{min}} min · {{kept}} correspondances tenues sur {{total}}",
+      "sameDelay": "le même retard gagné",
+      "moreDelay": "{{n}} min de retard en plus gagnées",
+      "lessDelay": "{{n}} min de retard en moins gagnées",
+      "sameTransfers": "les mêmes correspondances tenues",
+      "fewerTransfers": "{{n}} correspondance(s) de moins tenue(s)",
+      "moreTransfers": "{{n}} correspondance(s) de plus tenue(s)",
+      "arrow": "Votre variante de {{pkg}} : {{delay}}, {{transfers}}.",
+      "pointHint": "Pointez un point pour voir ses valeurs."
+    }
+  },
+  "cap": {
+    "aria": "Mesures combinées",
+    "conflict": "{{location}} · {{delay}} min de retard sans intervention, horizon {{horizon}} min",
+    "choose": "Choisissez une mesure — le tronçon ne peut être régulé qu’une fois. Un clic met en évidence les trains concernés sur la carte.",
+    "chosen": "Choisi : {{n}} trains pilotés · −{{min}} min",
+    "chosenModified": "· dans l’ordre modifié",
+    "method": "{{n}} candidats simulés, le meilleur par profondeur d’intervention affiché. File d’attente heuristique au goulet, pas une exécution Flatland.",
+    "logLabel": "{{n}} trains pilotés · {{strategy}}",
+    "window": {
+      "conflict_nord": {
+        "location": "Entrée nord, tronçon à voie unique",
+        "reason": "Six trains se disputent le même tronçon en 30 minutes."
+      }
+    },
+    "problem": {
+      "title": "Problème actuel",
+      "delayLabel": "min de retard sans intervention",
+      "lateLabel": "trains en retard",
+      "horizonLabel": "min d’horizon",
+      "worst": "Le plus touché : {{train}} avec {{delay}} min — en position {{pos}}, derrière tous les trains plus longs.",
+      "caption": "Ordre selon l’horaire",
+      "col": {
+        "train": "Train",
+        "brings": "arrive avec",
+        "occupies": "occupe",
+        "delay": "Retard"
+      }
+    },
+    "metrics": {
+      "running": "Simulation en cours…",
+      "unit": "min de retard",
+      "meta": "{{from}} → {{to}} min au total · confiance {{confidence}}",
+      "compare": "IA : −{{ai}} min · maintenant : −{{now}} min",
+      "confidence": {
+        "high": "élevée",
+        "medium": "moyenne",
+        "low": "faible"
+      }
+    },
+    "card": {
+      "steered": "trains pilotés",
+      "recommended": "Recommandé par l’IA",
+      "modified": "Modifié par le régulateur",
+      "onMap": "sur la carte",
+      "seeImpact": "Voir les effets",
+      "affected": "{{n}} trains concernés",
+      "steeredGroup": "Pilotés",
+      "sideEffects": "Non pilotés, mais concernés",
+      "untouched": "Non concernés : {{trains}}",
+      "planDetail": "Le détournement en détail",
+      "inOrder": "{{n}} trains dans l’ordre",
+      "goesFirst": "passe en premier dans le tronçon",
+      "holdsUntil": "attend que {{train}} soit passé",
+      "waits": "· attend {{n}} min",
+      "tagSteered": "piloté",
+      "tagTimetable": "selon l’horaire",
+      "isChosen": "Cette mesure est choisie",
+      "revoke": "Annuler le choix",
+      "otherChosen": "Une autre mesure est choisie",
+      "armQuestion": "Adopter cette mesure ?",
+      "confirmFinal": "Confirmer définitivement",
+      "cancel": "Annuler",
+      "reset": "Réinitialiser",
+      "confirm": "Confirmer"
+    },
+    "chip": {
+      "title": "{{train}} · {{service}} · {{delay}} min de retard · occupe le tronçon {{headway}} min"
+    },
+    "seq": {
+      "slot": "{{train}}, position {{pos}} sur {{n}}. Déplacer avec Alt et les flèches."
+    }
   }
 }

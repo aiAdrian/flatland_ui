@@ -4,7 +4,7 @@
   [class.ts--dragging]="dragging()"
   [class.ts--compact]="compact"
   role="list"
-  [attr.aria-label]="'Dispatch order: ' + order.join(', ')"
+  [attr.aria-label]="'ca.seq.aria' | transloco: { order: order.join(', ') }"
 >
   @for (train of order; track train; let i = $index) {
     <span class="ts__gap" [class.ts__gap--active]="isInsertAt(i)" aria-hidden="true">
@@ -20,10 +20,7 @@
       [class.ts__slot--dragging]="dragIndex() === i"
       [style.transform]="offsetFor(i) ? 'translateX(' + offsetFor(i) + 'px)' : null"
       [attr.tabindex]="editable ? 0 : null"
-      [attr.aria-label]="
-        train + ', position ' + (i + 1) + ' of ' + order.length +
-        (editable ? '. Use arrow left or right to move it.' : '')
-      "
+      [attr.aria-label]="(editable ? 'ca.seq.slotEditable' : 'ca.seq.slot') | transloco: { train: train, pos: i + 1, n: order.length }"
       (pointerdown)="onPointerDown(i, $event)"
       (pointermove)="onPointerMove($event)"
       (pointerup)="onPointerUp($event)"

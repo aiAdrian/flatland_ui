@@ -21,13 +21,13 @@
          "Human modified" beside it is what stops the edited sequence from
          reading as the AI's recommendation. -->
     @if (wasRecommended) {
-      <span class="ac__badge ac__badge--ai">Recommended by AI</span>
+      <span class="ac__badge ac__badge--ai">{{ 'ca.card.recommended' | transloco }}</span>
     }
     @if (aiExecuting) {
-      <span class="ac__badge ac__badge--ai">AI executing</span>
+      <span class="ac__badge ac__badge--ai">{{ 'ca.card.aiExecuting' | transloco }}</span>
     }
     @if (modified()) {
-      <span class="ac__badge ac__badge--human">Human modified</span>
+      <span class="ac__badge ac__badge--human">{{ 'ca.card.humanModified' | transloco }}</span>
     }
 
     <span class="ac__spacer"></span>
@@ -77,8 +77,8 @@
     <!-- The choice. Only once a variant exists: before that there is nothing to
          choose between, and a one-option chooser is just noise. -->
     @if (hasChoice()) {
-      <div class="ac__choice" role="radiogroup" aria-label="Which version do you keep?">
-        <span class="ac__choice-q">Keep</span>
+      <div class="ac__choice" role="radiogroup" [attr.aria-label]="'ca.card.keepAria' | transloco">
+        <span class="ac__choice-q">{{ 'ca.card.keep' | transloco }}</span>
         @for (v of versions(); track v.id) {
           <button
             type="button"
@@ -89,7 +89,7 @@
             [attr.aria-checked]="activeId() === v.id"
             (click)="select(v.id)"
           >
-            <span class="ac__version-name">{{ v.origin === 'ai' ? 'AI' : v.label }}</span>
+            <span class="ac__version-name">{{ v.origin === 'ai' ? ('ca.card.ai' | transloco) : v.label }}</span>
             @if (v.prediction) {
               <span class="ac__version-fig">−{{ v.prediction.delayReductionMin }}′</span>
               @if (transfersOf(v.order).connectionsTotal > 0) {
@@ -101,8 +101,8 @@
             <button
               type="button"
               class="ac__discard"
-              [attr.aria-label]="'Discard ' + v.label"
-              title="Discard this variant"
+              [attr.aria-label]="'ca.card.discardAria' | transloco: { label: v.label }"
+              [attr.title]="'ca.card.discardTitle' | transloco"
               (click)="discard(v.id)"
             >×</button>
           }
@@ -122,15 +122,15 @@
           class="ac__btn ac__btn--reset"
           [disabled]="!modified()"
           (click)="reset()"
-          title="Show the AI's proposal again (variants are kept)"
+          [attr.title]="'ca.card.resetTitle' | transloco"
         >
-          AI order
+          {{ 'ca.card.aiOrder' | transloco }}
         </button>
 
         @if (applied(); as name) {
-          <span class="ac__applied" role="status">{{ name }} applied</span>
+          <span class="ac__applied" role="status">{{ 'ca.card.applied' | transloco: { name: name } }}</span>
         } @else {
-          <button type="button" class="ac__btn ac__btn--apply" (click)="apply()">Apply</button>
+          <button type="button" class="ac__btn ac__btn--apply" (click)="apply()">{{ 'ca.card.apply' | transloco }}</button>
         }
       }
     </footer>

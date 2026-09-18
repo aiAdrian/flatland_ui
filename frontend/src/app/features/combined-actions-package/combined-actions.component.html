@@ -1,16 +1,14 @@
-<section class="ca" aria-label="Kombinierte Maßnahmen">
+<section class="ca" [attr.aria-label]="'cap.aria' | transloco">
   <header class="ca-head">
-    <span class="ca-title">Kombinierte Maßnahmen</span>
+    <span class="ca-title">{{ 'ca.title' | transloco }}</span>
   </header>
 
   <p class="ca-conflict">
-    {{ window().location }} · {{ baseline().totalDelay }} min Verspätung ohne
-    Eingriff, Horizont {{ window().horizonMinutes }} min
+    {{ 'cap.conflict' | transloco: { location: windowLocation(), delay: baseline().totalDelay, horizon: window().horizonMinutes } }}
   </p>
 
   <p class="ca-choose">
-    Eine Maßnahme wählen — der Abschnitt lässt sich nur einmal disponieren.
-    Anklicken hebt die betroffenen Züge auf der Karte hervor.
+    {{ 'cap.choose' | transloco }}
   </p>
 
   <div class="ca-list">
@@ -31,16 +29,14 @@
 
   @if (lastConfirmed(); as last) {
     <p class="ca-applied" role="status">
-      Gewählt: {{ last.controlled }} Züge gesteuert · −{{ last.reduction }} min
+      {{ 'cap.chosen' | transloco: { n: last.controlled, min: last.reduction } }}
       @if (last.modified) {
-        · in der geänderten Reihenfolge
+        {{ 'cap.chosenModified' | transloco }}
       }
     </p>
   }
 
   <p class="ca-method">
-    {{ proposal().consideredCount }} Kandidaten simuliert, bester je
-    Eingriffstiefe gezeigt. Heuristische Warteschlange am Engpass, kein
-    Flatland-Lauf.
+    {{ 'cap.method' | transloco: { n: proposal().consideredCount } }}
   </p>
 </section>
