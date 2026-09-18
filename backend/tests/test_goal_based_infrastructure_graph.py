@@ -15,6 +15,7 @@ from app.policies.goal_based_policies.infrastructure_graph import (
     DIR_TO_DELTA,
     _get_transitions,
 )
+from app.utils.agent_compat import agent_initial_position, agent_target
 
 
 @pytest.fixture(scope="module")
@@ -32,8 +33,8 @@ def test_stations_are_agent_origins_and_targets(env, graph):
     assert stations, "expected at least one station"
     expected = set()
     for agent in env.agents:
-        expected.add(tuple(int(v) for v in agent.initial_position))
-        expected.add(tuple(int(v) for v in agent.target))
+        expected.add(tuple(int(v) for v in agent_initial_position(agent)))
+        expected.add(tuple(int(v) for v in agent_target(agent)))
     assert set(stations) == expected
     for cell in stations:
         assert cell in graph.nodes
@@ -253,8 +254,8 @@ def test_ecml_stations_have_platform_stops():
     # Mission cells outside the platforms are kept as extra stops.
     mission_cells = set()
     for agent in ecml_env.agents:
-        mission_cells.add(tuple(int(v) for v in agent.initial_position))
-        mission_cells.add(tuple(int(v) for v in agent.target))
+        mission_cells.add(tuple(int(v) for v in agent_initial_position(agent)))
+        mission_cells.add(tuple(int(v) for v in agent_target(agent)))
     all_stops = {c for s in stations for c in s.stop_cells}
     assert mission_cells <= all_stops
 

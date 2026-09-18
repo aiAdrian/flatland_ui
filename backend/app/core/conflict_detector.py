@@ -36,6 +36,8 @@ from flatland.callbacks.callbacks import FlatlandCallbacks
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.step_utils.states import TrainState
 
+from app.utils.agent_compat import agent_direction, agent_position
+
 
 # ── Public types ────────────────────────────────────────────────────
 
@@ -166,9 +168,10 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
         step = int(getattr(env, "_elapsed_steps", 0))
         agents = {}
         for h, ag in enumerate(env.agents):
+            pos, direction = agent_position(ag), agent_direction(ag)
             agents[h] = {
-                "pos": tuple(ag.position) if ag.position is not None else None,
-                "dir": int(ag.direction) if ag.direction is not None else None,
+                "pos": tuple(pos) if pos is not None else None,
+                "dir": int(direction) if direction is not None else None,
                 "state": ag.state.name if hasattr(ag.state, "name") else str(ag.state),
                 "malfunction": int(self._malfunction_counter(ag)),
             }
@@ -225,7 +228,8 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
             # train); the agents list then still names the emitter.
             contenders, contended_cells = self._contenders(env, h)
             agents = sorted({h, *contenders})
-            pos = tuple(ag.position) if ag.position is not None else None
+            ag_position = agent_position(ag)
+            pos = tuple(ag_position) if ag_position is not None else None
             self._conflicts.append(
                 Conflict(
                     kind="blocked",
@@ -272,7 +276,8 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
                         continue
                     emitted.add(pair)
                     ag = env.agents[h]
-                    pos = tuple(ag.position) if ag.position is not None else None
+                    ag_position = agent_position(ag)
+                    pos = tuple(ag_position) if ag_position is not None else None
                     self._conflicts.append(
                         Conflict(
                             kind="swap_attempt",
@@ -354,7 +359,7 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
         out: List[int] = []
         cells: set = set()
         for h2, a2 in enumerate(env.agents):
-            if h2 == handle or a2.position is None:
+            if h2 == handle or agent_position(a2) is None:
                 continue
             s2 = a2.state.name if hasattr(a2.state, "name") else str(a2.state)
             if s2 == "DONE":
@@ -383,9 +388,9 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
         large grids; the target is reached well within the cap on real nets.
         """
         ag = env.agents[handle]
-        if ag.position is None or ag.direction is None:
+        if agent_position(ag) is None or agent_direction(ag) is None:
             return frozenset()
-        pos = (int(ag.position[0]), int(ag.position[1]))
+        pos = (int(agent_position(ag)[0]), int(agent_position(ag)[1]))
         key = (handle, pos)
         cached = self._path_cache.get(key)
         if cached is not None:
@@ -395,7 +400,7 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
         dh = dm[handle]
         h, w, _ = dh.shape
         r, c = pos
-        cur_dir = int(ag.direction)
+        cur_dir = int(agent_direction(ag))
         cells = {(r, c)}
         cur_d = float(dh[r, c, cur_dir])
         for _ in range(cap):
@@ -433,18 +438,18 @@ class ConflictDetectionCallbacks(FlatlandCallbacks[RailEnv]):
             s = ag.state.name if hasattr(ag.state, "name") else str(ag.state)
             if s in ("DONE", "WAITING", "READY_TO_DEPART"):
                 continue
-            if ag.position is None or ag.direction is None:
+            if agent_position(ag) is None or agent_direction(ag) is None:
                 continue
-            dy, dx = _DIR_DELTA.get(int(ag.direction), (0, 0))
-            front = (int(ag.position[0]) + dy, int(ag.position[1]) + dx)
+            dy, dx = _DIR_DELTA.get(int(agent_direction(ag)), (0, 0))
+            front = (int(agent_position(ag)[0]) + dy, int(agent_position(ag)[1]) + dx)
             blockers = set()
             for h2, a2 in enumerate(env.agents):
-                if h2 == h or a2.position is None:
+                if h2 == h or agent_position(a2) is None:
                     continue
                 s2 = a2.state.name if hasattr(a2.state, "name") else str(a2.state)
                 if s2 in ("DONE", "WAITING", "READY_TO_DEPART"):
                     continue
-                if tuple(a2.position) == front:
+                if tuple(agent_position(a2)) == front:
                     blockers.add(h2)
             graph[h] = blockers
         return graph

@@ -32,6 +32,7 @@ from app.policies.goal_based_policies.schedule import (  # noqa: E402
     TrainSchedule,
     plan_avoiding_overlaps,
 )
+from app.utils.agent_compat import agent_position
 
 LAYOUT = Layout(index=0, seed=2001, size=30, cities=2)
 TRAINS = 4
@@ -222,7 +223,7 @@ def test_stale_background_plan_applies_safely_after_the_world_moved(models):
 
     for handle in handles:
         agent = env.agents[handle]
-        if agent.state.name == "DONE" or agent.position is None:
+        if agent.state.name == "DONE" or agent_position(agent) is None:
             continue
         assert (
             player.locate(handle) is not None
@@ -264,9 +265,9 @@ def test_future_paths_are_contiguous_and_start_at_the_train():
         for a, b in zip(path, path[1:]):
             assert abs(a["row"] - b["row"]) + abs(a["col"] - b["col"]) == 1
             assert b["step"] >= a["step"]
-        if agent.position is not None:
+        if agent_position(agent) is not None:
             assert (path[0]["row"], path[0]["col"]) == (
-                int(agent.position[0]), int(agent.position[1]))
+                int(agent_position(agent)[0]), int(agent_position(agent)[1]))
         terminus = graph.cell_of(player.remaining(handle)[-1].node_id)
         assert (path[-1]["row"], path[-1]["col"]) == (
             int(terminus[0]), int(terminus[1]))
@@ -341,7 +342,7 @@ def test_rollout_gate_commits_only_on_strict_simulated_improvement(monkeypatch):
 
 def test_new_malfunctions_fire_once_per_outage():
     env, _, _, _, _ = _running_setup()
-    agent = next(a for a in env.agents if a.position is not None)
+    agent = next(a for a in env.agents if agent_position(a) is not None)
     agent.malfunction_handler._set_malfunction_down_counter(8)
     known: set = set()
     now = env._elapsed_steps
@@ -356,7 +357,7 @@ def test_new_malfunctions_fire_once_per_outage():
     # Too short to react to.
     other = next(
         a for a in env.agents
-        if a.position is not None and a.handle != agent.handle
+        if agent_position(a) is not None and a.handle != agent.handle
     )
     other.malfunction_handler._set_malfunction_down_counter(2)
     assert new_malfunctions(env, known, now=now + 2) == []

@@ -45,6 +45,7 @@ from app.policies.goal_based_policies.infrastructure_graph import (
     DecisionPointGraph,
     GraphEdge,
 )
+from app.utils.agent_compat import agent_initial_direction, agent_initial_position
 from app.policies.goal_based_policies.schedule import (
     ScheduleEntry,
     TrainSchedule,
@@ -93,7 +94,7 @@ def _walk(
     read the same edges out of them. `ok=False` marks a prefix whose node
     pairs cannot all be resolved.
     """
-    heading = int(env.agents[handle].initial_direction)
+    heading = int(agent_initial_direction(env.agents[handle]))
     cells = [graph.cell_of(entry.node_id) for entry in prefix]
     for cell, nxt in zip(cells, cells[1:]):
         usable = [
@@ -242,7 +243,7 @@ def initial_prefixes(
     prefixes: Dict[int, Prefix] = {}
     for handle in chosen:
         agent = env.agents[handle]
-        origin = (int(agent.initial_position[0]), int(agent.initial_position[1]))
+        origin = (int(agent_initial_position(agent)[0]), int(agent_initial_position(agent)[1]))
         if origin not in graph.nodes:
             raise ValueError(
                 f"train {handle} starts on {origin}, which is not a node — "

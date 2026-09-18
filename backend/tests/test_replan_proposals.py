@@ -25,6 +25,7 @@ from app.core.session_manager import session_manager
 from app.planners.blackbox.utils import check_no_collisions
 from app.planners.replan import build_rail_digraph, replan_from_state, replan_orders
 from app.policies.plan_policy import PlanPolicy
+from app.utils.agent_compat import agent_direction, agent_position
 
 PRESET = "pf-ch-wn-wal-long-approach"
 DISTURBANCE = "interview-e1-breakdown-single-track"
@@ -50,8 +51,8 @@ def test_rail_digraph_has_each_train_in_its_heading():
     env = _forked_session().env
     graph = build_rail_digraph(env)
     for agent in env.agents:
-        if agent.position is not None:
-            assert (agent.position[0], agent.position[1], agent.direction) in graph
+        if agent_position(agent) is not None:
+            assert (agent_position(agent)[0], agent_position(agent)[1], agent_direction(agent)) in graph
 
 
 def test_replan_covers_the_trains_and_keeps_a_broken_down_train_standing():
@@ -64,7 +65,7 @@ def test_replan_covers_the_trains_and_keeps_a_broken_down_train_standing():
     assert trainruns is not None
     assert set(trainruns) == {0, 1, 2}
     run = trainruns[0]
-    assert tuple(run[0].waypoint.position) == tuple(env.agents[0].position)
+    assert tuple(run[0].waypoint.position) == tuple(agent_position(env.agents[0]))
     assert run[1].scheduled_at >= FORK_STEP + down
 
 

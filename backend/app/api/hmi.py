@@ -32,6 +32,7 @@ from app.models.hmi import (
 )
 from app.policies.plan_policy import plan_branch_factory
 from app.policies.registry import PLAN_POLICY_ID, scenario_policy_factories
+from app.utils.agent_compat import agent_position
 
 
 # ── Policy registry (used by /hmi/scenarios + POST /policy) ──────────
@@ -287,7 +288,7 @@ def _location_for(window: list[tuple], station_labels: dict[tuple, str]) -> dict
 def _cell_of(agent) -> Optional[tuple]:
     """(row, col) of an agent, or None when off-map. Snapshot entries carry
     the same shape under ``pos``."""
-    p = getattr(agent, "position", None)
+    p = agent_position(agent)
     if p is None:
         return None
     return (int(p[0]), int(p[1]))

@@ -14,6 +14,7 @@ import numpy as np
 from flatland.envs.fast_methods import fast_count_nonzero
 from flatland.envs.rail_env import RailEnv
 
+from app.utils.agent_compat import agent_direction
 from app.utils.shortest_distance_walker import (
     ShortestDistanceWalker,
     _get_transitions,
@@ -80,7 +81,7 @@ class DeadlockAvoidanceShortestDistanceWalker(ShortestDistanceWalker):
 
         if opp_a != -1 and opp_a != handle:
             other = self.env.agents[opp_a]
-            if other.direction != direction:
+            if agent_direction(other) != direction:
                 # Oncoming agent (head-to-head).
                 self.opp_agent_map.setdefault(handle, [])
                 if opp_a not in self.opp_agent_map[handle]:

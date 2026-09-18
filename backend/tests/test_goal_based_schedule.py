@@ -23,6 +23,12 @@ from app.policies.goal_based_policies.infrastructure_graph import (
     move_direction,
 )
 from app.policies.goal_based_policies.visualization import build_demo_env
+from app.utils.agent_compat import (
+    agent_initial_direction,
+    agent_initial_position,
+    agent_position,
+    agent_target,
+)
 
 
 def _one_train_scenario():
@@ -37,9 +43,9 @@ def _plan(env, graph, handle=0):
     return plan_shortest_path(
         graph,
         env,
-        tuple(int(v) for v in agent.initial_position),
-        int(agent.initial_direction),
-        tuple(int(v) for v in agent.target),
+        tuple(int(v) for v in agent_initial_position(agent)),
+        int(agent_initial_direction(agent)),
+        tuple(int(v) for v in agent_target(agent)),
         handle=handle,
     )
 
@@ -76,7 +82,7 @@ def _run(env, graph, schedule, max_steps=400):
     for step in range(max_steps):
         env.step(player.act_many([0]))
         agent = env.agents[0]
-        if entered is None and agent.position is not None:
+        if entered is None and agent_position(agent) is not None:
             entered = step
         if agent.state == TrainState.DONE:
             return (step - entered if entered is not None else 0), True
@@ -129,13 +135,13 @@ def test_shortest_path_plan_is_consistent_with_the_graph(scenario):
 
     agent = env.agents[0]
     cells = [graph.cell_of(e.node_id) for e in schedule.entries]
-    assert cells[0] == tuple(int(v) for v in agent.initial_position)
-    assert cells[-1] == tuple(int(v) for v in agent.target)
+    assert cells[0] == tuple(int(v) for v in agent_initial_position(agent))
+    assert cells[-1] == tuple(int(v) for v in agent_target(agent))
     assert all(e.wait == 0 for e in schedule.entries), "single train never waits"
 
     # Consecutive nodes are joined by a real edge, usable with the
     # orientation the train actually has on arrival (asserted in _edges_of).
-    edges = list(_edges_of(env, graph, schedule, agent.initial_direction))
+    edges = list(_edges_of(env, graph, schedule, agent_initial_direction(agent)))
     assert len(edges) == len(cells) - 1
 
 
@@ -149,8 +155,8 @@ def test_plan_is_as_short_as_flatlands_own_distance_map():
         for handle, agent in enumerate(env.agents):
             schedule = _plan(env, graph, handle)
             assert schedule is not None
-            start = tuple(int(v) for v in agent.initial_position)
-            heading = int(agent.initial_direction)
+            start = tuple(int(v) for v in agent_initial_position(agent))
+            heading = int(agent_initial_direction(agent))
             assert _planned_time(env, graph, schedule, heading) == (
                 distances[handle, start[0], start[1], heading]
             )
@@ -163,7 +169,7 @@ def test_planned_run_reaches_the_target_in_the_planned_time():
     assert schedule is not None
 
     planned_time = _planned_time(
-        env, graph, schedule, env.agents[0].initial_direction
+        env, graph, schedule, agent_initial_direction(env.agents[0])
     )
     steps, arrived = _run(env, graph, schedule)
     assert arrived, "train did not reach its target"
@@ -207,8 +213,8 @@ def test_player_holds_the_train_while_waiting():
         actions = player.act_many([0])
         agent = env.agents[0]
         position = (
-            tuple(int(v) for v in agent.position)
-            if agent.position is not None else None
+            tuple(int(v) for v in agent_position(agent))
+            if agent_position(agent) is not None else None
         )
         if position == wait_cell and actions[0] == RailEnvActions.STOP_MOVING.value:
             stalled += 1
@@ -235,8 +241,8 @@ def test_line_stops_lists_every_call_not_just_the_target():
     env, _ = _line_env()
     for handle, agent in enumerate(env.agents):
         stops = line_stops(env, handle)
-        assert stops[0] == tuple(int(v) for v in agent.initial_position)
-        assert stops[-1] == tuple(int(v) for v in agent.target)
+        assert stops[0] == tuple(int(v) for v in agent_initial_position(agent))
+        assert stops[-1] == tuple(int(v) for v in agent_target(agent))
         assert len(stops) == len(agent.waypoints)
         assert len(stops) > 2, "this env should generate multi-stop lines"
 

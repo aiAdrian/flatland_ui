@@ -28,6 +28,7 @@ from flatland.envs.malfunction_generators import Malfunction, NoMalfunctionGen
 from flatland.envs.rail_env import RailEnv
 
 from app.core.station_aware_env import StationAwareRailEnv
+from app.utils.agent_compat import agent_target
 
 from app.policies.goal_based_policies.infrastructure_graph import (
     DIRECTIONS,
@@ -512,7 +513,7 @@ def _widen_terminus_targets(env: RailEnv) -> None:
     stations = resolve_stations(env)
     cell_to_station = {c: s for s in stations for c in s.stop_cells}
     for agent in env.agents:
-        target = (int(agent.target[0]), int(agent.target[1]))
+        target = (int(agent_target(agent)[0]), int(agent_target(agent)[1]))
         station = cell_to_station.get(target)
         if station is None:
             continue

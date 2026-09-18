@@ -21,6 +21,7 @@ from app.core.cell_classifier import classify_cell_at
 from app.core.override_manager import override_manager
 from app.policies.deadlock_avoidance_policy import DeadLockAvoidancePolicy
 from app.policies.override_policy import OverridePolicy
+from app.utils.agent_compat import agent_direction, agent_position
 
 
 def _make_env(num_agents: int = 2, seed: int = 42) -> RailEnv:
@@ -39,9 +40,10 @@ def _drive_until_at_decision(env, max_steps: int = 30):
     for step in range(max_steps):
         env.step({h: RailEnvActions.MOVE_FORWARD for h in env.get_agent_handles()})
         for h, ag in enumerate(env.agents):
-            if ag.position is None:
+            pos, direction = agent_position(ag), agent_direction(ag)
+            if pos is None:
                 continue
-            if classify_cell_at(env, ag.position, ag.direction) in ("SWITCH", "MERGING"):
+            if classify_cell_at(env, pos, direction) in ("SWITCH", "MERGING"):
                 return h, step + 1
     return None, max_steps
 
@@ -81,8 +83,9 @@ def test_override_persists_until_decision_cell_reached():
 
     for _ in range(3):
         ag = env.agents[handle]
-        at_decision = (ag.position is not None
-                       and classify_cell_at(env, ag.position, ag.direction)
+        pos, direction = agent_position(ag), agent_direction(ag)
+        at_decision = (pos is not None
+                       and classify_cell_at(env, pos, direction)
                        in ("SWITCH", "MERGING"))
         if at_decision:
             break

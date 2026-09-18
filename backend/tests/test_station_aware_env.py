@@ -20,6 +20,7 @@ from app.policies.goal_based_policies.stations import (  # noqa: E402
     stations_from_generator_hints,
 )
 from app.policies.goal_based_policies.visualization import build_demo_env  # noqa: E402
+from app.utils.agent_compat import agent_initial_position, agent_target  # noqa: E402
 
 
 def _plain_env(seed=7, cities=3):
@@ -83,8 +84,8 @@ def test_subclass_does_not_change_the_environment_it_builds():
     )
     assert len(plain.agents) == len(aware.agents)
     for a, b in zip(plain.agents, aware.agents):
-        assert tuple(a.initial_position) == tuple(b.initial_position)
-        assert tuple(a.target) == tuple(b.target)
+        assert tuple(agent_initial_position(a)) == tuple(agent_initial_position(b))
+        assert tuple(agent_target(a)) == tuple(agent_target(b))
         assert a.earliest_departure == b.earliest_departure
         assert a.latest_arrival == b.latest_arrival
 
@@ -155,7 +156,7 @@ def test_generated_stations_group_platforms_instead_of_splitting_them():
     # Every train's origin and target is covered by some station, which the
     # mission fallback guaranteed and this must not regress.
     for agent in env.agents:
-        for cell in (tuple(agent.initial_position), tuple(agent.target)):
+        for cell in (tuple(agent_initial_position(agent)), tuple(agent_target(agent))):
             assert cell in seen, f"{cell} is not served by any station"
 
 

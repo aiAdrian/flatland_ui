@@ -35,6 +35,7 @@ from flatland.envs.step_utils.states import TrainState
 
 from app.observations.full_env_observation import FullEnvObservation
 from app.policies.base import Policy
+from app.utils.agent_compat import agent_position
 from app.utils.deadlock_avoidance_walker import (
     DeadlockAvoidanceShortestDistanceWalker,
 )
@@ -105,12 +106,13 @@ class DeadLockAvoidancePolicy(Policy):
         positions = np.full((env.height, env.width), -1, dtype=int)
         for h in range(env.get_num_agents()):
             agent = env.agents[h]
+            pos = agent_position(agent)
             if agent.state in (
                 TrainState.MOVING,
                 TrainState.STOPPED,
                 TrainState.MALFUNCTION,
-            ) and agent.position is not None:
-                positions[agent.position] = h
+            ) and pos is not None:
+                positions[pos] = h
         self._agent_positions = positions
 
     def _walk_all_agents(self) -> None:
