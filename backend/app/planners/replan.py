@@ -33,6 +33,13 @@ from app.planners.blackbox.utils import (
     is_proxy_node,
 )
 from app.policies.goal_based_policies.infrastructure_graph import _get_transitions
+from app.utils.agent_compat import (
+    agent_direction,
+    agent_initial_direction,
+    agent_initial_position,
+    agent_position,
+    agent_target,
+)
 
 _DELTA = {0: (-1, 0), 1: (0, 1), 2: (1, 0), 3: (0, -1)}
 
@@ -75,15 +82,15 @@ def _start_states(env: RailEnv) -> List[SimpleNamespace]:
     for agent in env.agents:
         if agent.state == TrainState.DONE:
             continue
-        on_map = agent.position is not None
-        cell = agent.position if on_map else agent.initial_position
-        heading = agent.direction if on_map else agent.initial_direction
+        on_map = agent_position(agent) is not None
+        cell = agent_position(agent) if on_map else agent_initial_position(agent)
+        heading = agent_direction(agent) if on_map else agent_initial_direction(agent)
         if cell is None or heading is None:
             continue
         starts.append(SimpleNamespace(
             handle=int(agent.handle),
             initial_position=(int(cell[0]), int(cell[1])),
-            target=(int(agent.target[0]), int(agent.target[1])),
+            target=(int(agent_target(agent)[0]), int(agent_target(agent)[1])),
             heading=int(heading),
             on_map=on_map,
             down=_down_steps(agent) if on_map else 0,

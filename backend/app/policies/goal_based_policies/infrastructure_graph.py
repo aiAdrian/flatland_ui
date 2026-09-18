@@ -28,6 +28,8 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from flatland.envs.rail_env import RailEnv
 
+from app.utils.agent_compat import agent_initial_position, agent_target
+
 Cell = Tuple[int, int]
 
 # Flatland convention: 0=North, 1=East, 2=South, 3=West.
@@ -269,7 +271,7 @@ def station_cells_from_env(env: RailEnv) -> List[Cell]:
     stations: List[Cell] = []
     seen: Set[Cell] = set()
     for agent in env.agents:
-        for pos in (agent.initial_position, agent.target):
+        for pos in (agent_initial_position(agent), agent_target(agent)):
             if pos is None:
                 continue
             cell = (int(pos[0]), int(pos[1]))

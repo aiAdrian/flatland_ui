@@ -25,6 +25,7 @@ from app.core.disturbances import apply_due_disturbances
 from app.core.scenario_presets import select_disturbances
 from app.core.session_manager import session_manager
 from app.policies.plan_policy import PlanPolicy, planned_arrival_steps
+from app.utils.agent_compat import agent_position
 
 PRESET = "pf-ch-wn-wal-long-approach"
 DISTURBANCE = "interview-e1-breakdown-single-track"
@@ -67,8 +68,8 @@ def _live_course(handle: int):
             break
         agent = session.env.agents[handle]
         step = int(session.env._elapsed_steps)
-        if step > FORK_STEP and agent.position is not None:
-            cells[step] = tuple(int(x) for x in agent.position)
+        if step > FORK_STEP and agent_position(agent) is not None:
+            cells[step] = tuple(int(x) for x in agent_position(agent))
         if arrival is None and agent.state == TrainState.DONE:
             arrival = step
         if dones.get("__all__"):

@@ -76,6 +76,7 @@ from app.policies.goal_based_policies.search import (
     STRATEGIES,
     SearchLimits,
 )
+from app.utils.agent_compat import agent_position
 
 # A malfunction shorter than this resolves faster than a re-plan can pay
 # off; the trigger ignores it.
@@ -158,7 +159,7 @@ def capture_progress(
             progress[handle] = _static(handle, "done", full)
             continue
 
-        if agent.position is None:
+        if agent_position(agent) is None:
             # Not on the map yet: everything is still open, but entry may
             # already be overdue (blocked origin, pre-departure malfunction).
             departure = int(getattr(agent, "earliest_departure", 0) or 0)
@@ -481,8 +482,8 @@ def simulate_forward(
         step = int(getattr(env, "_elapsed_steps", step + 1) or step + 1)
         for handle in handles:
             agent = env.agents[handle]
-            if watched and agent.position is not None:
-                cell = (int(agent.position[0]), int(agent.position[1]))
+            if watched and agent_position(agent) is not None:
+                cell = (int(agent_position(agent)[0]), int(agent_position(agent)[1]))
                 if cell in watched:
                     seen = occupancy[handle].get(cell)
                     occupancy[handle][cell] = (

@@ -25,6 +25,13 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.rail_env_action import RailEnvActions
 
+from app.utils.agent_compat import (
+    agent_direction,
+    agent_initial_direction,
+    agent_initial_position,
+    agent_position,
+    agent_target,
+)
 from app.policies.goal_based_policies.infrastructure_graph import (
     Cell,
     DecisionPointGraph,
@@ -168,8 +175,8 @@ def line_stops(env: RailEnv, handle: int) -> List[Cell]:
     waypoints = getattr(agent, "waypoints", None)
     if not waypoints:
         return [
-            (int(agent.initial_position[0]), int(agent.initial_position[1])),
-            (int(agent.target[0]), int(agent.target[1])),
+            (int(agent_initial_position(agent)[0]), int(agent_initial_position(agent)[1])),
+            (int(agent_target(agent)[0]), int(agent_target(agent)[1])),
         ]
     return [(int(w[0].position[0]), int(w[0].position[1])) for w in waypoints]
 
@@ -199,7 +206,7 @@ def plan_line(
     Returns None if any leg is unroutable.
     """
     stops = line_stops(env, handle)
-    heading = int(env.agents[handle].initial_direction)
+    heading = int(agent_initial_direction(env.agents[handle]))
     entries: List[ScheduleEntry] = []
 
     for index, target in enumerate(stops[1:], start=1):
@@ -232,7 +239,7 @@ def simulate_occupancy(
     where a hold has to be inserted to shift that occupancy later.
     """
     agent = env.agents[schedule.handle]
-    heading = int(agent.initial_direction)
+    heading = int(agent_initial_direction(agent))
     clock = int(getattr(agent, "earliest_departure", 0) or 0)
     cells = [graph.cell_of(e.node_id) for e in schedule.entries]
 
@@ -358,12 +365,12 @@ class SchedulePlayer:
         env: `(edge, index_in_path)`, or None when off the map, off plan,
         or standing on its final node."""
         agent = self.env.agents[handle]
-        if agent.position is None:
+        if agent_position(agent) is None:
             return None
         return self._locate(
             handle,
-            (int(agent.position[0]), int(agent.position[1])),
-            int(agent.direction),
+            (int(agent_position(agent)[0]), int(agent_position(agent)[1])),
+            int(agent_direction(agent)),
         )
 
     def future_path(self, handle: int) -> List[Dict[str, int]]:
@@ -398,13 +405,13 @@ class SchedulePlayer:
                 "step": int(step), "row": int(cell[0]), "col": int(cell[1]),
             })
 
-        if agent.position is None:
+        if agent_position(agent) is None:
             # Not on the map yet: the whole run, from the origin.
             departure = int(getattr(agent, "earliest_departure", 0) or 0)
             clock = max(now, departure) + malfunction + 1
             emit(self.graph.cell_of(remaining[0].node_id), clock)
             clock += remaining[0].wait
-            heading = int(agent.initial_direction)
+            heading = int(agent_initial_direction(agent))
             entries = remaining
         else:
             located = self.locate(handle)
@@ -417,7 +424,7 @@ class SchedulePlayer:
                 wait_left = max(
                     remaining[0].wait - self._waited.get(handle, 0), 0)
                 clock = now + max(wait_left, malfunction)
-                heading = int(agent.direction)
+                heading = int(agent_direction(agent))
                 entries = remaining
             else:
                 # Mid-edge: the rest of the current edge first.
@@ -507,13 +514,13 @@ class SchedulePlayer:
             return RailEnvActions.DO_NOTHING.value
 
         agent = self.env.agents[handle]
-        if agent.position is None:
+        if agent_position(agent) is None:
             # Still off map: a move action puts it on its origin, which is
             # the schedule's first node — no entry is consumed for that.
             return RailEnvActions.MOVE_FORWARD.value
 
-        position = (int(agent.position[0]), int(agent.position[1]))
-        heading = int(agent.direction)
+        position = (int(agent_position(agent)[0]), int(agent_position(agent)[1]))
+        heading = int(agent_direction(agent))
 
         if position == self.graph.cell_of(entries[0].node_id):
             if entries[0].wait > self._waited[handle]:

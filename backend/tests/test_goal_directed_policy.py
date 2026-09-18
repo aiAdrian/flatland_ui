@@ -19,6 +19,7 @@ from app.policies.registry import (  # noqa: E402
     policy_ids,
     scenario_policy_factories,
 )
+from app.utils.agent_compat import agent_position  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -195,7 +196,7 @@ def test_a_malfunction_triggers_a_residual_replan(monkeypatch, tmp_path):
 
     import time
 
-    running = next(a for a in fresh.agents if a.position is not None)
+    running = next(a for a in fresh.agents if agent_position(a) is not None)
     running.malfunction_handler._set_malfunction_down_counter(10)
     # The trigger starts a *background* re-plan; the committed plan keeps
     # driving while the search runs, and a later action request applies
