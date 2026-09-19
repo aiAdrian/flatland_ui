@@ -61,7 +61,7 @@
               <!-- Assessment only (thesis Table 1): what the situation is, not what to
                    do about it. The options are in the Plan / KI / Mensch panel. -->
               <div class="ip-why">
-                {{ 'impact.blockedBy' | transloco: { train: trainName(item.blocked_by), row: item.blocked_cell[0], col: item.blocked_cell[1] } }}
+                {{ 'impact.blockedBy' | transloco: { train: trainName(item.blocked_by), where: whereText(item) } }}
               </div>
               <dl class="ip-assessment">
                 <div><dt>{{ 'impact.reachesIn' | transloco }}</dt><dd>{{ 'impact.steps' | transloco: { n: item.eta_steps } }}</dd></div>
@@ -75,11 +75,14 @@
                     }
                   </dd>
                 </div>
+                @if (sectionText(item); as section) {
+                  <div><dt>{{ 'impact.section' | transloco }}</dt><dd>{{ section }}</dd></div>
+                }
                 <div><dt>{{ 'impact.measures' | transloco }}</dt><dd>{{ actionKinds(item) }}</dd></div>
               </dl>
             } @else {
               <div class="ip-why">
-                {{ 'impact.blockedByShort' | transloco: { train: trainName(item.blocked_by), row: item.blocked_cell[0], col: item.blocked_cell[1], eta: item.eta_steps, clears: item.clears_in_steps } }}
+                {{ 'impact.blockedByShort' | transloco: { train: trainName(item.blocked_by), where: whereText(item), eta: item.eta_steps, clears: item.clears_in_steps } }}
               </div>
             }
 

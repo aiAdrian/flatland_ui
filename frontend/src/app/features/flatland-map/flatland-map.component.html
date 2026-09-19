@@ -589,6 +589,15 @@
     </div>
   }
 
+  <!-- Place names along the line (tour only), readable at any zoom. -->
+  @for (p of placeLabels(); track p.code) {
+    <span
+      class="map-place-label"
+      [class.is-lower]="p.lower"
+      [class.is-single-track]="p.singleTrack"
+      [style.left.%]="p.left">{{ p.name }}</span>
+  }
+
   <!-- Train name plates (tour only): readable at any zoom, and clickable. -->
   @for (l of trainLabels(); track l.handle) {
     <button
@@ -597,6 +606,7 @@
       [class.is-selected]="l.selected"
       [style.left.%]="l.left"
       [style.top.%]="l.top"
+      [style.--lane]="l.lane"
       [style.border-color]="l.color"
       [attr.aria-label]="'map.selectTrain' | transloco: { name: l.name }"
       (click)="toggleSelect(l.handle)">

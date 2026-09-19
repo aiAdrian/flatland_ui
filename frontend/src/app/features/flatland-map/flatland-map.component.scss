@@ -1280,7 +1280,8 @@
 .map-train-label {
   position: absolute;
   z-index: 10;
-  transform: translate(-50%, 12px);
+  /* A plate that would overlap another moves down one lane (--lane). */
+  transform: translate(-50%, calc(12px + var(--lane, 0) * 22px));
   padding: 1px 6px;
   font: inherit;
   font-size: 11px;
@@ -1301,5 +1302,32 @@
   &.is-selected {
     color: var(--sbb-color-white);
     background: var(--sbb-color-charcoal);
+  }
+}
+
+/* Tour only: place names along the line, in two alternating lanes. */
+.map-place-label {
+  position: absolute;
+  top: 6px;
+  z-index: 9;
+  transform: translateX(-50%);
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--sbb-color-iron);
+  background: color-mix(in srgb, var(--sbb-color-white) 85%, transparent);
+  border-bottom: 2px solid var(--sbb-color-cloud);
+  pointer-events: none;
+
+  &.is-lower {
+    top: 26px;
+  }
+
+  /* The ends of the single-track section: where the trouble in the tour is. */
+  &.is-single-track {
+    font-weight: 600;
+    color: var(--sbb-color-charcoal);
+    border-bottom-color: var(--app-colearning-accent);
   }
 }

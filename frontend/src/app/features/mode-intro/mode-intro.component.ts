@@ -65,6 +65,11 @@ export class ModeIntroComponent {
 
   startScenario(): void {
     this.store.dismissDemoIntro();
+    // «Szenario starten» should start it: the pilot run waited for «Play» after
+    // a button that already said "start". A tour opts in (`autoStart`).
+    if (this.tour.autoStart() && !this.store.playing()) {
+      this.store.play(this.store.activePolicy() || this.store.defaultPolicy(), this.store.playSpeed());
+    }
   }
 
   exit(): void {

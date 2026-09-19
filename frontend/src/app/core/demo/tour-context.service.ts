@@ -24,6 +24,8 @@ export class TourContextService {
   readonly assessmentOnly = computed(() => !!this.briefing()?.assessmentOnly);
   /** Name the trains on the map and enlarge their click targets. */
   readonly mapTrainLabels = computed(() => !!this.briefing()?.mapTrainLabels);
+  /** Starting the scenario from the mode intro also starts the run. */
+  readonly autoStart = computed(() => !!this.briefing()?.autoStart);
 
   private readonly operatorModel = inject(OperatorModelService);
   private operatorIdBeforeTour: string | null = null;

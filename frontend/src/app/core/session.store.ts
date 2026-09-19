@@ -41,7 +41,7 @@ import {
   buildPreferenceHypothesis,
   strategyLabelForAction,
 } from './learning-store.service';
-import { AgentDTO, PolicyInfo, PolicyName, RailTile, SessionInfo, SessionState, StationRef } from './models';
+import { AgentDTO, PolicyInfo, PolicyName, RailTile, SceneGeography, SessionInfo, SessionState, StationRef } from './models';
 import { CombinedActionPreview } from './combined-actions/combined-actions-preview';
 
 /**
@@ -364,15 +364,63 @@ export class SessionStore {
     }
     return [...cells.values()]
       .sort((a, b) => a.row - b.row || a.col - b.col)
-      .map((cell, i) => ({ id: `${cell.row},${cell.col}`, label: `S${i + 1}`, row: cell.row, col: cell.col }));
+      .map((cell, i) => ({
+        id: `${cell.row},${cell.col}`,
+        // The scene's own name where it has one (Ziegelbrücke); a generated
+        // network has none and keeps the positional "S{n}".
+        label: this.stationNameAt(cell.row, cell.col) ?? `S${i + 1}`,
+        row: cell.row,
+        col: cell.col,
+      }));
   });
+
+  /** The scene's geography — station and place names — or null for a
+   *  generated network (loaded per session, see the constructor). */
+  readonly geography = signal<SceneGeography | null>(null);
+  private _geographySession: string | null = null;
+
+  /** Name of the platform at a cell, when the scene names one. */
+  stationNameAt(row: number, col: number): string | null {
+    const g = this.geography();
+    if (!g) return null;
+    return g.stations.find((s) => s.cell[0] === row && s.cell[1] === col)?.name ?? null;
+  }
+
+  /**
+   * Where a cell lies along the line: at a place, or between two, and whether
+   * that stretch is the single-track section. Null without a scene geography
+   * or outside the named places. Uses the column only — the scenes are
+   * corridors, rows are parallel tracks.
+   */
+  sectionForCell(cell: [number, number] | null | undefined): { from: string; to: string | null; singleTrack: boolean } | null {
+    const g = this.geography();
+    if (!g || !cell || g.locations.length === 0) return null;
+    const col = Number(cell[1]);
+    const locs = [...g.locations].sort((a, b) => a.col - b.col);
+    const exact = locs.find((l) => l.col === col);
+    if (exact) return { from: exact.name, to: null, singleTrack: false };
+    let prev: (typeof locs)[number] | null = null;
+    let next: (typeof locs)[number] | null = null;
+    for (const l of locs) {
+      if (l.col < col) prev = l;
+      else if (l.col > col && !next) next = l;
+    }
+    if (!prev || !next) return null;
+    const st = g.single_track;
+    const singleTrack = st.length === 2 && st.includes(prev.code) && st.includes(next.code);
+    return { from: prev.name, to: next.name, singleTrack };
+  }
 
   /** Shared label lookup used by the map and the timetable so a stop resolves to
    *  the same "S{n}" in both. Returns null for cells that are not a known stop. */
   stationLabelForCell(pos: [number, number] | null | undefined): string | null {
     if (!pos) return null;
     const key = `${Number(pos[0])},${Number(pos[1])}`;
-    return this.stations().find((s) => s.id === key)?.label ?? null;
+    return (
+      this.stations().find((s) => s.id === key)?.label ??
+      // A train standing at a named platform that is nobody's stop still stands somewhere.
+      this.stationNameAt(Number(pos[0]), Number(pos[1]))
+    );
   }
 
   // ── Policies (loaded once at app start) ───────────────────────
@@ -1166,6 +1214,23 @@ export class SessionStore {
   readonly focusedElement = signal<{ kind: 'train' | 'switch' | 'signal'; id: string } | null>(null);
 
   constructor() {
+    // Station and place names come with the scene; fetch them once per session.
+    effect(() => {
+      const id = this.session()?.id ?? null;
+      untracked(() => {
+        if (id === this._geographySession) return;
+        this._geographySession = id;
+        this.geography.set(null);
+        if (!id) return;
+        this.api.getGeography(id).subscribe({
+          next: (g) => {
+            if (this._geographySession === id) this.geography.set(g);
+          },
+          error: () => {},
+        });
+      });
+    });
+
     effect(() => {
       const msg = this.ws.lastMessage();
       if (!msg) return;

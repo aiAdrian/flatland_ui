@@ -211,7 +211,7 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     const [x, y, w, h] = this.viewBox().split(' ').map(Number);
     if (!(w > 0 && h > 0)) return [];
     const selected = this.store.selectedHandle();
-    const out: { handle: number; name: string; left: number; top: number; color: string; selected: boolean }[] = [];
+    const out: { handle: number; name: string; left: number; top: number; color: string; selected: boolean; lane: number }[] = [];
     for (const a of this.agents()) {
       if (!a.position) continue;
       const left = ((this.agentX(a) - x) / w) * 100;
@@ -224,7 +224,43 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
         top,
         color: this.agentColor(a.handle),
         selected: a.handle === selected,
+        lane: 0,
       });
+    }
+    // Trains running close behind each other would put their plates on top of
+    // one another (ICE_42 behind IC_703 at the incident). A plate that would
+    // overlap an earlier one moves down a lane. Widths are in percent of the
+    // map, so the threshold is a rough plate width, not pixels.
+    const byLeft = [...out].sort((a, b) => a.left - b.left);
+    byLeft.forEach((label, i) => {
+      const taken = new Set(
+        byLeft
+          .slice(0, i)
+          .filter((p) => Math.abs(p.left - label.left) < 9 && Math.abs(p.top - label.top) < 6)
+          .map((p) => p.lane),
+      );
+      while (taken.has(label.lane)) label.lane++;
+    });
+    return out;
+  });
+
+  /**
+   * The places along the line as names across the top of the map (tour only,
+   * with the train plates), so "Weesen" or "Mühlehorn" can be found on the
+   * corridor rather than inferred from a cell. Two lanes, alternating, because
+   * places a few columns apart (Tiefenwinkel, Murg) would overlap in one.
+   */
+  readonly placeLabels = computed(() => {
+    if (!this.trainLabelsOn()) return [];
+    const g = this.store.geography();
+    if (!g || g.locations.length === 0) return [];
+    const [x, , w] = this.viewBox().split(' ').map(Number);
+    if (!(w > 0)) return [];
+    const out: { code: string; name: string; left: number; lower: boolean; singleTrack: boolean }[] = [];
+    for (const l of g.locations) {
+      const left = ((l.col * this.cellSize + this.cellSize / 2 - x) / w) * 100;
+      if (left < 0 || left > 100) continue;
+      out.push({ code: l.code, name: l.name, left, lower: out.length % 2 === 1, singleTrack: g.single_track.includes(l.code) });
     }
     return out;
   });

@@ -33,7 +33,7 @@
         <button type="button"
                 class="pc-option"
                 [class.is-chosen]="isChosen(c.option)"
-                [disabled]="isDisabled(c.option)"
+                [disabled]="isDisabled(c.option) || loading()"
                 [title]="(isDisabled(c.option) ? 'proposals.noReroute' : c.hint) | transloco"
                 (click)="choose(c.option)">
           {{ c.label | transloco }}
@@ -116,7 +116,11 @@
               <span class="pc-course-name">{{ 'proposals.human' | transloco }}</span>
               <span class="pc-course-sub">{{ 'proposals.humanSub' | transloco }}</span>
             </header>
-            <p class="pc-placeholder">{{ 'proposals.placeholder' | transloco }}</p>
+            @if (loading() && chosenOption(); as option) {
+              <p class="pc-placeholder is-busy">{{ 'proposals.computing' | transloco: { option: (optionLabelKey(option) | transloco) } }}</p>
+            } @else {
+              <p class="pc-placeholder">{{ 'proposals.placeholder' | transloco }}</p>
+            }
           </section>
         }
       </div>
@@ -124,6 +128,7 @@
       @if (comparison(); as axes) {
         <section class="pc-compare">
           <div class="pc-compare-head">{{ 'proposals.compare' | transloco }} <span class="pc-compare-hint">{{ 'proposals.lessIsBetter' | transloco }}</span></div>
+          <p class="pc-compare-note">{{ 'proposals.compareNote' | transloco }}</p>
           @for (axis of axes; track axis.id) {
             <div class="pc-axis">
               <span class="pc-axis-label">{{ axis.label }}</span>

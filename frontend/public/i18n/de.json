@@ -738,8 +738,8 @@
     "summaryOne": "Ein Zug betroffen · eine Massnahme nötig",
     "summaryMany": "{{n}} Züge betroffen · {{n}} Massnahmen nötig",
     "held": "wartet",
-    "blockedBy": "blockiert durch {{train}} bei ({{row}}, {{col}})",
-    "blockedByShort": "blockiert durch {{train}} bei ({{row}}, {{col}}) · erreicht die Stelle in {{eta}} · frei in {{clears}}",
+    "blockedBy": "blockiert durch {{train}} {{where}}",
+    "blockedByShort": "blockiert durch {{train}} {{where}} · erreicht die Stelle in {{eta}} · frei in {{clears}}",
     "reachesIn": "Erreicht die Stelle in",
     "clearsIn": "Stelle frei in",
     "steps": "{{n}} Schritten",
@@ -759,7 +759,15 @@
       "high": "hoch",
       "medium": "mittel",
       "low": "gering"
-    }
+    },
+    "where": {
+      "cell": "bei ({{row}}, {{col}})",
+      "at": "in {{a}}",
+      "between": "zwischen {{a}} und {{b}}",
+      "singleTrack": "{{place}} (Einspurabschnitt)"
+    },
+    "section": "Betroffener Abschnitt",
+    "sectionSingleTrack": "{{section}} (Einspur)"
   },
   "reflection": {
     "title": "Co-Learning-Reflexion",
@@ -1344,7 +1352,9 @@
     "strandedOne": "Bei «{{name}}» kommt mindestens ein Zug im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.",
     "strandedMany": "Bei {{names}} kommen Züge im betrachteten Zeitraum nicht an — die Zahlen sind nur bedingt vergleichbar.",
     "and": "und",
-    "quoted": "«{{name}}»"
+    "quoted": "«{{name}}»",
+    "computing": "«{{option}}» wird gerechnet …",
+    "compareNote": "Summen über alle Züge, in Schritten der Simulation."
   },
   "zwl": {
     "empty": "Wähle einen Zug, um seinen Weg-Zeit-Verlauf zu sehen.",

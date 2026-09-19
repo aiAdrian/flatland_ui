@@ -100,6 +100,8 @@ export interface TourBriefing {
    * interview's first pilot run lost time hitting it.
    */
   mapTrainLabels?: boolean;
+  /** «Szenario starten» on the mode intro also starts the run, as its label says. */
+  autoStart?: boolean;
   /** Replaces the default intro of a mode while this tour runs. */
   modeIntros?: Partial<Record<InteractionMode, ModeIntro>>;
   /** Panel type → module name: these panels carry a "Co-Learning" badge. */
@@ -131,7 +133,7 @@ export interface TourBriefing {
 }
 
 const PROTOTYPE_DISCLAIMER =
-  'Die Widgets sind Entwürfe, nicht die finalen Oberflächen. Inhalte und Darstellung können sich noch ändern. Sie zeigen, in welche Richtung die Erweiterung gehen soll.';
+  'Das ist ein Prototyp: Aussehen und Texte der Panels sind nicht endgültig. Es geht darum, was die Funktionen leisten, nicht wie sie aussehen.';
 
 export const TOUR_BRIEFINGS: TourBriefing[] = [
   {
@@ -147,6 +149,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     assessmentOnly: true,
     language: 'de',
     mapTrainLabels: true,
+    autoStart: true,
     // Steps 1-9 of the thesis' interaction flow (Table 2): operational loop 1-5,
     // learning loop 6-9, with shift summary and event simulation after the episode.
     guide: [
@@ -154,7 +157,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         id: 'detect',
         loop: 'operational',
         title: 'Konflikt erkennen',
-        hint: 'Starte mit «Play» und beobachte die Strecke. Nach einer knappen halben Minute bleibt ein Zug im Einspurabschnitt stehen, und das TMS meldet die Störung links.',
+        hint: 'Die Simulation läuft. Beobachte die Strecke: Nach kurzer Zeit bleibt ein Zug im Einspurabschnitt stehen, und das TMS meldet die Störung links.',
       },
       {
         id: 'assess',
@@ -231,7 +234,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         title: 'Eine Störung am Einspurabschnitt',
         tagline: 'Die KI zeigt Auswirkungen und Optionen. Du entscheidest und lernst daraus.',
         whatHappens:
-          'Strecke Pfäffikon SZ–Chur am Walensee, von Ziegelbrücke bis Walenstadt, mit einem einspurigen Abschnitt. Drei Züge fahren nach Fahrplan. Nach einer knappen halben Minute bleibt ein Zug mitten im Einspurabschnitt stehen, und der Zug dahinter läuft auf ihn auf. Wie es weitergeht, entscheidest du.',
+          'Strecke Pfäffikon SZ–Chur am Walensee, von Ziegelbrücke bis Walenstadt, mit einem einspurigen Abschnitt. Drei Züge fahren nach Fahrplan. Nach kurzer Zeit bleibt ein Zug mitten im Einspurabschnitt stehen, und der Zug dahinter läuft auf ihn auf. Wie es weitergeht, entscheidest du.',
         focusView:
           'In der Mitte Streckenspiegel und Zeit-Weg-Linien (ZWL) als Tabs, darunter der Fahrplan. Den Streckenspiegel ziehst du mit der Maus seitlich, mit dem Mausrad zoomst du. Rechts liegen die Co-Learning-Module.',
         yourRole:
@@ -273,16 +276,22 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
       byline: 'Daniel Boos · CAS Financial Decision Making, iimt Universität Freiburg · im Rahmen von AI4REALNET',
       sections: [
         {
+          heading: 'Das Projekt',
+          body:
+            'AI4REALNET erforscht die Zusammenarbeit von Mensch und KI in sicherheitskritischen Netzen, mit MARL-Algorithmen (Multi-Agent Reinforcement Learning: mehrere lernende KI-Agenten). Co-Learning ist ein Aspekt davon.',
+        },
+        {
           heading: 'Worum es geht',
           body:
             'Co-Learning heisst: Disponentin und KI lernen voneinander. Die KI zeigt Auswirkungen und Alternativen, du entscheidest und begründest, die KI passt sich an. Es geht um eine Erweiterung des TMS, nicht um ein KI-gesteuertes System.',
         },
         {
           heading: 'Was wir von dir brauchen',
-          body: 'Deine Schätzungen fliessen in eine Monte-Carlo-Simulation über zehn Jahre.',
+          body:
+            'Deine Schätzungen fliessen in eine Kosten-Nutzen-Rechnung, die viele mögliche Verläufe über zehn Jahre durchspielt (Monte-Carlo-Simulation).',
           items: [
             'Pro Kosten- und Nutzenposition drei Werte: Maximum, Minimum, wahrscheinlichster Wert, in Personenmonaten oder CHF',
-            'Bezug ist ein eingeführtes System (TRL 9), nicht dieser Prototyp',
+            'Bezug ist ein fertiges, im Betrieb eingeführtes System, nicht dieser Prototyp',
             'Eine breite Spanne ist eine gültige Antwort',
           ],
         },
@@ -290,7 +299,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           heading: 'Wer entscheidet was',
           items: [
             'TMS: plant den Fahrplan und passt ihn mit seinem Optimierungsalgorithmus an',
-            'KI: schlägt für die konkrete Lage Abweichungen vor (gedacht als lernende Agenten, im Prototyp ein klassischer Planer)',
+            'KI: schlägt für die konkrete Lage Abweichungen vor, gedacht als MARL-Agenten; im Prototyp rechnet noch ein klassischer Planer',
             'Du: entscheidest als Fachperson, und daraus lernt die KI',
           ],
         },
@@ -347,7 +356,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           does: 'Zeitpuffer berechnen, nötige Massnahmen und betroffene Sektoren zeigen, Wirkung auf betroffene Züge abschätzen',
           inTour: 'Panel «Lage: Risiko & Auswirkung» rechts, sobald die Störung wirkt',
           status: 'partial',
-          statusNote: 'Betroffene Züge, Zeitpuffer und Art der Massnahmen live; betroffene Sektoren fehlen',
+          statusNote: 'Betroffene Züge, Zeitpuffer, Art der Massnahmen und betroffener Abschnitt live; der Abschnitt ist nur zwischen zwei Orten benannt, nicht nach Stellwerksektoren',
         },
         {
           name: 'Alternativen',
@@ -401,7 +410,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         concept: 'Konzept',
       },
       estimationReminder:
-        'Bitte schätze für ein ausgereiftes, eingeführtes System (TRL 9), nicht für diesen Prototyp: Maximum, Minimum, wahrscheinlichster Wert.',
+        'Bitte schätze für ein fertiges, im Betrieb eingeführtes System, nicht für diesen Prototyp: Maximum, Minimum, wahrscheinlichster Wert.',
       disclaimer: PROTOTYPE_DISCLAIMER,
       sources: 'Grundlagen: Hamouche et al. (2026), Mussi et al. (2025), Bessa et al. (2026), AI4REALNET.',
     },

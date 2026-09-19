@@ -175,6 +175,15 @@ export interface SessionInfo {
 /** A station (stop) derived from the trains' origins and targets. The `label`
  *  is the single shared identifier used both by the map station layer and the
  *  timetable tile, so a stop on the map can be matched to a row in the schedule. */
+/** A scene's geography (`GET /session/{id}/hmi/geography`): named platform
+ *  cells, named places along the line by column, and the single-track section.
+ *  Empty lists for a generated network. */
+export interface SceneGeography {
+  stations: { code: string | null; name: string; track: number | null; cell: [number, number] }[];
+  locations: { code: string; name: string; col: number }[];
+  single_track: string[];
+}
+
 export interface StationRef {
   /** Stable cell key "row,col". */
   id: string;

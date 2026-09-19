@@ -738,8 +738,8 @@
     "summaryOne": "One train affected · one measure needed",
     "summaryMany": "{{n}} trains affected · {{n}} measures needed",
     "held": "held",
-    "blockedBy": "blocked by {{train}} at ({{row}}, {{col}})",
-    "blockedByShort": "blocked by {{train}} at ({{row}}, {{col}}) · reaches it in {{eta}} · clears in {{clears}}",
+    "blockedBy": "blocked by {{train}} {{where}}",
+    "blockedByShort": "blocked by {{train}} {{where}} · reaches it in {{eta}} · clears in {{clears}}",
     "reachesIn": "Reaches the spot in",
     "clearsIn": "Spot clears in",
     "steps": "{{n}} steps",
@@ -759,7 +759,15 @@
       "high": "high",
       "medium": "medium",
       "low": "low"
-    }
+    },
+    "where": {
+      "cell": "at ({{row}}, {{col}})",
+      "at": "at {{a}}",
+      "between": "between {{a}} and {{b}}",
+      "singleTrack": "{{place}} (single-track section)"
+    },
+    "section": "Affected section",
+    "sectionSingleTrack": "{{section}} (single track)"
   },
   "reflection": {
     "title": "Co-Learning Reflection",
@@ -1344,7 +1352,9 @@
     "strandedOne": "With “{{name}}” at least one train does not arrive within the period considered — the figures are only partly comparable.",
     "strandedMany": "With {{names}} trains do not arrive within the period considered — the figures are only partly comparable.",
     "and": "and",
-    "quoted": "“{{name}}”"
+    "quoted": "“{{name}}”",
+    "computing": "Working out “{{option}}” …",
+    "compareNote": "Totals over all trains, in simulation steps."
   },
   "zwl": {
     "empty": "Select a train to see its time–distance trajectory.",

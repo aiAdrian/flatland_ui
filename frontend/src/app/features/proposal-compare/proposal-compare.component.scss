@@ -352,3 +352,16 @@
   color: var(--sbb-color-granite);
   font-style: italic;
 }
+
+/* The human course while its option is being worked out. */
+.pc-placeholder.is-busy {
+  color: var(--app-whatif-human);
+  font-weight: 600;
+}
+
+/* What the comparison's numbers are. */
+.pc-compare-note {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--sbb-color-granite);
+}

@@ -738,8 +738,8 @@
     "summaryOne": "Un train concerné · une mesure nécessaire",
     "summaryMany": "{{n}} trains concernés · {{n}} mesures nécessaires",
     "held": "en attente",
-    "blockedBy": "bloqué par {{train}} en ({{row}}, {{col}})",
-    "blockedByShort": "bloqué par {{train}} en ({{row}}, {{col}}) · y arrive dans {{eta}} · libre dans {{clears}}",
+    "blockedBy": "bloqué par {{train}} {{where}}",
+    "blockedByShort": "bloqué par {{train}} {{where}} · y arrive dans {{eta}} · libre dans {{clears}}",
     "reachesIn": "Atteint l’endroit dans",
     "clearsIn": "Endroit libre dans",
     "steps": "{{n}} pas",
@@ -759,7 +759,15 @@
       "high": "élevée",
       "medium": "moyenne",
       "low": "faible"
-    }
+    },
+    "where": {
+      "cell": "à ({{row}}, {{col}})",
+      "at": "à {{a}}",
+      "between": "entre {{a}} et {{b}}",
+      "singleTrack": "{{place}} (tronçon à voie unique)"
+    },
+    "section": "Tronçon concerné",
+    "sectionSingleTrack": "{{section}} (voie unique)"
   },
   "reflection": {
     "title": "Réflexion Co-Learning",
@@ -1344,7 +1352,9 @@
     "strandedOne": "Avec « {{name}} », au moins un train n’arrive pas dans la période considérée — les chiffres ne sont que partiellement comparables.",
     "strandedMany": "Avec {{names}}, des trains n’arrivent pas dans la période considérée — les chiffres ne sont que partiellement comparables.",
     "and": "et",
-    "quoted": "« {{name}} »"
+    "quoted": "« {{name}} »",
+    "computing": "Calcul de « {{option}} » …",
+    "compareNote": "Totaux sur tous les trains, en pas de simulation."
   },
   "zwl": {
     "empty": "Sélectionnez un train pour voir sa trajectoire espace-temps.",

@@ -65,6 +65,31 @@ export class ImpactPanelComponent implements OnDestroy {
     return Math.max(0, item.clears_in_steps - item.eta_steps);
   }
 
+  /**
+   * Where the block is, as a place along the line when the scene names its
+   * places ("between Mühlehorn and Tiefenwinkel, single-track section"), else as
+   * the cell. Thesis Table 1 asks for the affected sectors; the scene's place
+   * order and single-track section give them.
+   */
+  whereText(item: ImpactItem): string {
+    const s = this.store.sectionForCell(item.blocked_cell);
+    if (!s) {
+      return this.i18n.t('impact.where.cell', { row: item.blocked_cell[0], col: item.blocked_cell[1] });
+    }
+    const place = s.to
+      ? this.i18n.t('impact.where.between', { a: s.from, b: s.to })
+      : this.i18n.t('impact.where.at', { a: s.from });
+    return s.singleTrack ? this.i18n.t('impact.where.singleTrack', { place }) : place;
+  }
+
+  /** The affected section as a short name ("Mühlehorn – Tiefenwinkel"), or null. */
+  sectionText(item: ImpactItem): string | null {
+    const s = this.store.sectionForCell(item.blocked_cell);
+    if (!s) return null;
+    const base = s.to ? `${s.from} – ${s.to}` : s.from;
+    return s.singleTrack ? this.i18n.t('impact.sectionSingleTrack', { section: base }) : base;
+  }
+
   /** What could be done for this train, as words rather than buttons. */
   actionKinds(item: ImpactItem): string {
     return this.i18n.t(item.can_reroute ? 'impact.measureHoldOrReroute' : 'impact.measureHold');

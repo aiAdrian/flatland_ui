@@ -153,6 +153,11 @@ export class ProposalCompareComponent implements OnDestroy {
     this.loading.set(true);
     this.failed.set(null);
     this.committed.set(false);
+    // The human course answers the option asked last. Keep plan and AI while
+    // the new one is worked out, but never the previous option's numbers under
+    // the new option's name — the column says it is being computed instead, and
+    // stays empty if the backend refuses the option.
+    this.result.update((r) => (r ? { ...r, variants: r.variants.filter((v) => v.id !== 'human') } : r));
 
     this.api.getProposals(sess.id, handle, option ?? undefined).subscribe({
       next: (r) => {
@@ -161,9 +166,13 @@ export class ProposalCompareComponent implements OnDestroy {
         this.drawPreview(r, handle);
       },
       error: (err) => {
-        // The backend refuses an option it cannot offer (no reroute here) with
-        // its own sentence — that is the useful answer, so show it.
-        this.failed.set(err?.error?.detail ?? this.i18n.t('proposals.computeFailed'));
+        // The backend refuses an option it cannot offer (409: no reroute here).
+        // Its sentence is English; the operator gets the same answer in their language.
+        this.failed.set(
+          err?.status === 409
+            ? this.i18n.t('proposals.noReroute')
+            : (err?.error?.detail ?? this.i18n.t('proposals.computeFailed')),
+        );
         this.loading.set(false);
         this.store.whatIfPreview.set(null);
       },
@@ -275,6 +284,11 @@ export class ProposalCompareComponent implements OnDestroy {
   targetLabel(): string {
     const handle = this.targetHandle();
     return handle == null ? '' : this.identity.nameFor(handle);
+  }
+
+  /** The translation key of an option's label, for text that names it. */
+  optionLabelKey(option: ProposalOption): string {
+    return this.optionChoices.find((c) => c.option === option)?.label ?? option;
   }
 
   isChosen(option: ProposalOption): boolean {

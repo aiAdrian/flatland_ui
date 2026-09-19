@@ -427,6 +427,18 @@ def _enrich_handles(
     return out
 
 
+@router.get("/{session_id}/hmi/geography")
+def get_geography(session_id: str) -> dict:
+    """Station and place names of the session's scene, for map, timetable and
+    the impact assessment. Empty lists for a generated network."""
+    from app.core.station_names import scene_geography
+
+    sess = session_manager.get(session_id)
+    if not sess:
+        raise HTTPException(404, f"Session {session_id} not found")
+    return scene_geography(getattr(sess, "infrastructure_scene", None))
+
+
 @router.get("/{session_id}/hmi/contentions")
 def get_contentions(session_id: str):
     """The train-contentions ahead, for the Combined Actions panel to build

@@ -9,6 +9,7 @@ import {
   PolicyName,
   ScenarioPoliciesConfig,
   ScenarioPreset,
+  SceneGeography,
   SessionInfo,
   SessionState,
   StepResponse,
@@ -365,6 +366,11 @@ export class ApiService {
   getRecommendations(id: string, kpi?: KpiPriorities, guarantee = false) {
     const params = guarantee ? { ...kpiParams(kpi), guarantee: 'true' } : kpiParams(kpi);
     return this.http.get<Recommendation[]>(`${API_BASE}/session/${id}/hmi/recommendations`, { params });
+  }
+
+  /** Station and place names of the session's scene (empty for generated networks). */
+  getGeography(id: string) {
+    return this.http.get<SceneGeography>(`${API_BASE}/session/${id}/hmi/geography`);
   }
 
   getImpact(id: string) {
