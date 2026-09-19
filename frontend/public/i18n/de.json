@@ -1294,7 +1294,7 @@
   "proposals": {
     "titleTooltip": "Plan, KI-Vorschlag und deine Wahl für den ausgewählten Zug, alle gleich weit vorausgerechnet.",
     "note": "Drei Verläufe für den gewählten Zug: der Plan ohne Eingriff, der Vorschlag der KI und deine Wahl. Nichts davon wird umgesetzt, bis du eine der drei Varianten übernimmst.",
-    "empty": "Wähle einen Zug — auf der Karte, im Fahrplan oder im Impact-Panel.",
+    "empty": "Wähle einen Zug — auf der Karte, im Fahrplan oder im Lage-Panel.",
     "optionAria": "Deine Option",
     "noReroute": "Für diesen Zug gibt es hier keine Umleitung.",
     "loading": "Verläufe werden gerechnet…",

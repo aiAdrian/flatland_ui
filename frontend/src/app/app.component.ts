@@ -972,6 +972,8 @@ export class AppComponent implements OnInit {
 
   constructor() {
     this.loadPersistedSessionSettings();
+    // The tour's language holds on its closing page too (see TourContextService.closingOpen).
+    effect(() => this.tourContext.closingOpen.set(this.demoComplete() && !!this.activeBriefing()));
     effect(() => {
       const available = this.store.availablePolicies();
       if (available.length > 0 && this.welcomeScenarioPolicyIds().length === 0) {

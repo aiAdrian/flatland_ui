@@ -1,6 +1,7 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { SessionStore } from '../session.store';
 import { OperatorModelService } from '../operator-model.service';
+import { Lang, LanguageService } from '../i18n/language.service';
 import { InteractionMode } from '../events/event-types';
 import { ModeIntro } from './mode-intro-configs';
 import { TourBriefing } from './tour-briefings';
@@ -24,6 +25,15 @@ export class TourContextService {
 
   private readonly operatorModel = inject(OperatorModelService);
   private operatorIdBeforeTour: string | null = null;
+  private readonly language = inject(LanguageService);
+  private langBeforeTour: Lang | null = null;
+
+  /**
+   * The tour's closing page is open. It shows after the demo has ended, so the
+   * gated `briefing` is already null there; the tour's language has to hold
+   * until that page is left, or the page would sit in a shell of another language.
+   */
+  readonly closingOpen = signal(false);
 
   constructor() {
     // The operator model keys preferences by operator id, not by session. A tour
@@ -38,6 +48,22 @@ export class TourContextService {
         } else if (!fresh && this.operatorIdBeforeTour !== null) {
           this.operatorModel.operatorId.set(this.operatorIdBeforeTour);
           this.operatorIdBeforeTour = null;
+        }
+      });
+    });
+
+    // Same swap for the app language: a tour that names one runs in it, and the
+    // operator's own choice comes back afterwards.
+    effect(() => {
+      const wanted =
+        (this.briefing() ?? (this.closingOpen() ? this._briefing() : null))?.language ?? null;
+      untracked(() => {
+        if (wanted && this.langBeforeTour === null) {
+          this.langBeforeTour = this.language.lang();
+          if (this.langBeforeTour !== wanted) this.language.setLang(wanted);
+        } else if (!wanted && this.langBeforeTour !== null) {
+          if (this.language.lang() !== this.langBeforeTour) this.language.setLang(this.langBeforeTour);
+          this.langBeforeTour = null;
         }
       });
     });

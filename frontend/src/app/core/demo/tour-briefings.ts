@@ -87,6 +87,13 @@ export interface TourBriefing {
    * the study conditions keep the panel that decides and assesses in one place.
    */
   assessmentOnly?: boolean;
+  /**
+   * The app language while this tour runs. Tour-owned text keeps its own
+   * language, but the panels follow the app setting — without this a German
+   * tour started from the English default shows a mix. The previous language
+   * comes back when the tour ends.
+   */
+  language?: 'en' | 'de' | 'fr';
   /** Replaces the default intro of a mode while this tour runs. */
   modeIntros?: Partial<Record<InteractionMode, ModeIntro>>;
   /** Panel type → module name: these panels carry a "Co-Learning" badge. */
@@ -132,6 +139,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     // reflection panel, so switching this off needs that panel back in the preset.
     reasonDialog: true,
     assessmentOnly: true,
+    language: 'de',
     // Steps 1-9 of the thesis' interaction flow (Table 2): operational loop 1-5,
     // learning loop 6-9, with shift summary and event simulation after the episode.
     guide: [
@@ -147,7 +155,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
         module: true,
         panelType: 'impact',
         title: 'Risiko & Auswirkung',
-        hint: 'Neu: «Impact» zeigt die Lage — welcher Zug betroffen ist, wie lange er stehen würde und wie viele Massnahmen nötig sind. Entschieden wird hier nicht; der betroffene Zug wartet.',
+        hint: 'Neu: «Lage: Risiko & Auswirkung» zeigt, welcher Zug betroffen ist, wie lange er stehen würde und welche Massnahmen möglich sind. Entschieden wird hier nicht; der Zug wartet.',
       },
       {
         id: 'alternatives',
@@ -228,7 +236,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           'Nach einer Entscheidung den Grund angeben, als Regel oder nur für diesmal',
         ],
         watchFor: [
-          'Panels mit dem Zeichen «Co-Learning» sind die neue Erweiterung. Alles andere steht für das TMS als Ganzes.',
+          'Panels mit violettem Rand sind die neue Erweiterung. Alles andere steht für das TMS als Ganzes.',
           'Optionen erscheinen ohne Ranking und ohne «empfohlen»',
           'Blau steht für deine Entscheidung, gelb für die Variante der KI',
           'Oben führt ein Leitfaden durch die neun Schritte. Das jeweils nächste Modul wird hervorgehoben.',
@@ -254,57 +262,36 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
       eyebrow: 'Experteninterview · Co-Learning',
       title: 'Co-Learning in der Disposition erleben',
       lead:
-        'Diese Tour zeigt in rund einer Viertelstunde, wie eine Co-Learning-Erweiterung für ein künftiges Traffic-Management-System funktionieren könnte. Sie ist die gemeinsame Grundlage für das anschliessende Interview.',
+        'Eine Viertelstunde Co-Learning zum Ausprobieren, als gemeinsame Grundlage für das Interview danach.',
       byline: 'Daniel Boos · CAS Financial Decision Making, iimt Universität Freiburg · im Rahmen von AI4REALNET',
       sections: [
         {
-          heading: 'Thema',
+          heading: 'Worum es geht',
           body:
-            'Das EU-Forschungsprojekt AI4REALNET untersucht KI-Unterstützung für Bahnnetze. Co-Learning heisst: Disponentin und KI lernen voneinander. Die KI bewertet eine Störung und zeigt Alternativen, der Mensch entscheidet und reflektiert, und die KI passt sich an. Betrachtet wird eine Erweiterung des TMS, kein vollständig KI-gesteuertes System.',
-        },
-        {
-          heading: 'Ziel der Befragung',
-          body:
-            'Wir schätzen Kosten und Nutzen einer solchen Erweiterung ab. Einsatzdaten gibt es noch nicht (Reifegrad TRL 3–4). Deshalb fragen wir Fachpersonen nach Bandbreiten statt nach Einzelwerten. Die Werte fliessen in eine Monte-Carlo-Simulation, die zeigt, wie wahrscheinlich sich die Erweiterung über zehn Jahre lohnt.',
+            'Co-Learning heisst: Disponentin und KI lernen voneinander. Die KI zeigt Auswirkungen und Alternativen, du entscheidest und begründest, die KI passt sich an. Es geht um eine Erweiterung des TMS, nicht um ein KI-gesteuertes System.',
         },
         {
           heading: 'Was wir von dir brauchen',
+          body: 'Deine Schätzungen fliessen in eine Monte-Carlo-Simulation über zehn Jahre.',
           items: [
-            'Pro Kosten- oder Nutzenposition drei Werte: Maximum, Minimum, wahrscheinlichster Wert',
-            'Bezug ist ein ausgereiftes, eingeführtes System (TRL 9), nicht der Prototyp, den du gleich siehst',
-            'Angaben in Personenmonaten oder CHF, je nachdem, was dir leichter fällt',
-            'Eine breite Spanne ist eine gültige Antwort, wenn die Unsicherheit gross ist',
+            'Pro Kosten- und Nutzenposition drei Werte: Maximum, Minimum, wahrscheinlichster Wert, in Personenmonaten oder CHF',
+            'Bezug ist ein eingeführtes System (TRL 9), nicht dieser Prototyp',
+            'Eine breite Spanne ist eine gültige Antwort',
           ],
-        },
-        {
-          heading: 'Ablauf',
-          ordered: true,
-          items: [
-            'Einführung: diese Seite',
-            'Betrieb (Schritte 1–5): eine Störung erleben, Auswirkungen und neutrale Optionen sehen, selbst entscheiden',
-            'Lernen (Schritte 6–9): reflektieren, nach der Episode Schichtbilanz und Event-Simulation, die KI lernt mit',
-            'Übersicht aller Module mit Lerntheorie als Grundlage für die Schätzfragen',
-          ],
-        },
-        {
-          heading: 'Die Simulation',
-          body:
-            'Du siehst die Bahnsimulation Flatland: ein Gitter mit Zügen, Weichen und Haltepunkten, bewusst vereinfacht. Keine Signale, keine Fahrdynamik, ein Zeitschritt statt Sekunden und Minuten. Das genügt, um Konflikte, Auswirkungen und Entscheidungen erlebbar zu machen — Fahrzeiten oder Kapazitäten lassen sich damit nicht rechnen.',
         },
         {
           heading: 'Wer entscheidet was',
           items: [
-            'TMS: plant den Fahrplan und passt ihn bei Störungen mit seinem eigenen Optimierungsalgorithmus an. Der Fahrplan ist dabei nur das Gerüst aus Ankunfts- und Haltezeiten, die Route bleibt beweglich.',
-            'Co-Learning-KI: schaut auf die konkrete Situation und schlägt lokale Abweichungen vor — etwa, wer zuerst durch den Einspurabschnitt fährt. Gedacht ist dafür ein MARL-Ansatz, also mehrere lernende Agenten über dem Hauptalgorithmus. Im Prototyp rechnet an dieser Stelle noch ein klassischer Planungsalgorithmus, kein gelernter Agent.',
-            'Mensch: Du entscheidest als Fachperson. Deine Entscheidung und deine Begründung fliessen zurück — daraus lernt die KI, und langfristig verbessert das den Hauptalgorithmus.',
+            'TMS: plant den Fahrplan und passt ihn mit seinem Optimierungsalgorithmus an',
+            'KI: schlägt für die konkrete Lage Abweichungen vor (gedacht als lernende Agenten, im Prototyp ein klassischer Planer)',
+            'Du: entscheidest als Fachperson, und daraus lernt die KI',
           ],
         },
         {
           heading: 'Zum Prototyp',
           body:
-            'Der Playground ist ein Forschungsprototyp auf der Bahnsimulation Flatland, kein Produkt. Die neuen Co-Learning-Module tragen ein violettes Zeichen «Co-Learning», alles andere steht für das TMS als Ganzes. ' +
-            PROTOTYPE_DISCLAIMER +
-            ' Die Übersicht am Ende zeigt, was du erlebt hast und was nur skizziert ist.',
+            'Flatland ist eine bewusst vereinfachte Bahnsimulation: keine Signale, keine Fahrdynamik. Die neuen Co-Learning-Module haben einen violetten Rand. ' +
+            PROTOTYPE_DISCLAIMER,
         },
       ],
       proceedLabel: 'Weiter zur Tour',
@@ -351,18 +338,18 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
           area: 'Impact Analysis',
           kolbPhase: 'Konkrete Erfahrung',
           does: 'Zeitpuffer berechnen, nötige Massnahmen und betroffene Sektoren zeigen, Wirkung auf betroffene Züge abschätzen',
-          inTour: 'Panel «Impact» rechts, sobald die Störung wirkt',
+          inTour: 'Panel «Lage: Risiko & Auswirkung» rechts, sobald die Störung wirkt',
           status: 'partial',
-          statusNote: 'Betroffene Züge live, Zeitpuffer und Sektoren vereinfacht',
+          statusNote: 'Betroffene Züge, Zeitpuffer und Art der Massnahmen live; betroffene Sektoren fehlen',
         },
         {
           name: 'Alternativen',
           area: 'Alternative Actions',
           kolbPhase: 'Konkrete Erfahrung',
           does: 'Von der KI berechnete Handlungsalternativen',
-          inTour: 'Optionen im Panel «Impact», ohne Ranking',
+          inTour: 'Panel «Plan / KI / Mensch»: Plan, KI-Neuplanung und deine Wahl im Vergleich, auch direkt am Zug auf der Karte',
           status: 'live',
-          statusNote: 'Im Prototyp erlebbar',
+          statusNote: 'Erlebbar; die KI rechnet mit einem klassischen Planer statt mit gelernten Agenten',
         },
         {
           name: 'Reflexion',
