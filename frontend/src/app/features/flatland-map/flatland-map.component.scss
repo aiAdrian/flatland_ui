@@ -1267,3 +1267,39 @@
     cursor: not-allowed;
   }
 }
+
+/* Tour only (mapTrainLabels): the invisible, larger click target around a train. */
+.agent-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+/* Tour only: a name plate under each train, sized in screen pixels. */
+.map-train-label {
+  position: absolute;
+  z-index: 10;
+  transform: translate(-50%, 12px);
+  padding: 1px 6px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--sbb-color-charcoal);
+  background: var(--sbb-color-white);
+  border: 2px solid var(--sbb-color-cloud);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:hover {
+    background: color-mix(in srgb, var(--app-whatif-human) 8%, var(--sbb-color-white));
+  }
+
+  &.is-selected {
+    color: var(--sbb-color-white);
+    background: var(--sbb-color-charcoal);
+  }
+}

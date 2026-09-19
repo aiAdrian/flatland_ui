@@ -198,6 +198,37 @@ export class FlatlandMapComponent implements AfterViewInit, OnDestroy {
     return { handle, name: this.identity.nameFor(handle), left, top };
   });
 
+  /** Tour only (`mapTrainLabels`): named, larger targets for the trains. */
+  readonly trainLabelsOn = computed(() => this.tourContext.mapTrainLabels());
+
+  /**
+   * A name plate under every train on the map, in percent of the map like the
+   * option strip, so it stays readable at any zoom. It is also a click target:
+   * the dot itself is a few pixels on the corridor view.
+   */
+  readonly trainLabels = computed(() => {
+    if (!this.trainLabelsOn()) return [];
+    const [x, y, w, h] = this.viewBox().split(' ').map(Number);
+    if (!(w > 0 && h > 0)) return [];
+    const selected = this.store.selectedHandle();
+    const out: { handle: number; name: string; left: number; top: number; color: string; selected: boolean }[] = [];
+    for (const a of this.agents()) {
+      if (!a.position) continue;
+      const left = ((this.agentX(a) - x) / w) * 100;
+      const top = ((this.agentY(a) - y) / h) * 100;
+      if (left < 0 || left > 100 || top < 0 || top > 100) continue;
+      out.push({
+        handle: a.handle,
+        name: this.identity.nameFor(a.handle),
+        left,
+        top,
+        color: this.agentColor(a.handle),
+        selected: a.handle === selected,
+      });
+    }
+    return out;
+  });
+
   chooseTrainOption(handle: number, option: ProposalOption): void {
     this.proposalChoice.choose(handle, option);
   }

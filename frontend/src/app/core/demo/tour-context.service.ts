@@ -22,6 +22,8 @@ export class TourContextService {
   readonly reasonDialog = computed(() => !!this.briefing()?.reasonDialog);
   /** Impact panel shows the assessment only; the options live in the proposals panel. */
   readonly assessmentOnly = computed(() => !!this.briefing()?.assessmentOnly);
+  /** Name the trains on the map and enlarge their click targets. */
+  readonly mapTrainLabels = computed(() => !!this.briefing()?.mapTrainLabels);
 
   private readonly operatorModel = inject(OperatorModelService);
   private operatorIdBeforeTour: string | null = null;

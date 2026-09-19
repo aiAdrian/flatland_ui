@@ -411,6 +411,11 @@
           (mouseenter)="onAgentMouseEnter(a.handle)"
         (mouseleave)="onAgentMouseLeave()"
         (click)="toggleSelect(a.handle)">
+        @if (trainLabelsOn()) {
+          <!-- A larger, invisible click target (tour only): at corridor scale
+               the dot below is a few pixels across. -->
+          <circle class="agent-hit" [attr.cx]="agentX(a)" [attr.cy]="agentY(a)" [attr.r]="cellSize * 0.9" />
+        }
         <circle
           [attr.cx]="agentX(a)"
           [attr.cy]="agentY(a)"
@@ -582,6 +587,21 @@
         </button>
       }
     </div>
+  }
+
+  <!-- Train name plates (tour only): readable at any zoom, and clickable. -->
+  @for (l of trainLabels(); track l.handle) {
+    <button
+      type="button"
+      class="map-train-label"
+      [class.is-selected]="l.selected"
+      [style.left.%]="l.left"
+      [style.top.%]="l.top"
+      [style.border-color]="l.color"
+      [attr.aria-label]="'map.selectTrain' | transloco: { name: l.name }"
+      (click)="toggleSelect(l.handle)">
+      {{ l.name }}
+    </button>
   }
 
   <!-- Map Navigation Overlay (unten links) -->

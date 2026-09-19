@@ -1379,7 +1379,8 @@
       "blocking": "blocking train {{trains}}"
     },
     "noReroute": "No reroute for this train here.",
-    "compareTitle": "Work it out under “Plan / AI / human”"
+    "compareTitle": "Work it out under “Plan / AI / human”",
+    "selectTrain": "Select {{name}}"
   },
   "risk": {
     "titleTooltip": "How much to trust the AI output — a model-reported confidence plus what is uncertain (alternatives dispersion). Not yet calibrated.",

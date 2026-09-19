@@ -94,6 +94,12 @@ export interface TourBriefing {
    * comes back when the tour ends.
    */
   language?: 'en' | 'de' | 'fr';
+  /**
+   * Name every train on the map and give it a larger click target. On a long
+   * corridor shown at about 0.4 scale a train is a dot of a few pixels, and the
+   * interview's first pilot run lost time hitting it.
+   */
+  mapTrainLabels?: boolean;
   /** Replaces the default intro of a mode while this tour runs. */
   modeIntros?: Partial<Record<InteractionMode, ModeIntro>>;
   /** Panel type → module name: these panels carry a "Co-Learning" badge. */
@@ -140,6 +146,7 @@ export const TOUR_BRIEFINGS: TourBriefing[] = [
     reasonDialog: true,
     assessmentOnly: true,
     language: 'de',
+    mapTrainLabels: true,
     // Steps 1-9 of the thesis' interaction flow (Table 2): operational loop 1-5,
     // learning loop 6-9, with shift summary and event simulation after the episode.
     guide: [

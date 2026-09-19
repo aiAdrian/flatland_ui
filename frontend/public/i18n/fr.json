@@ -1379,7 +1379,8 @@
       "blocking": "bloque le train {{trains}}"
     },
     "noReroute": "Pas de détournement possible pour ce train ici.",
-    "compareTitle": "Calculer sous « Plan / IA / humain »"
+    "compareTitle": "Calculer sous « Plan / IA / humain »",
+    "selectTrain": "Sélectionner {{name}}"
   },
   "risk": {
     "titleTooltip": "Quel crédit accorder à la sortie de l’IA — une confiance déclarée par le modèle et ce qui reste incertain (dispersion des alternatives). Pas encore calibrée.",

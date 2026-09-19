@@ -1379,7 +1379,8 @@
       "blocking": "blockiert Zug {{trains}}"
     },
     "noReroute": "Für diesen Zug gibt es hier keine Umleitung.",
-    "compareTitle": "Unter «Plan / KI / Mensch» durchrechnen"
+    "compareTitle": "Unter «Plan / KI / Mensch» durchrechnen",
+    "selectTrain": "{{name}} auswählen"
   },
   "risk": {
     "titleTooltip": "Wie weit man der KI-Ausgabe trauen kann — eine vom Modell gemeldete Konfidenz plus das Unsichere (Streuung der Alternativen). Noch nicht kalibriert.",
