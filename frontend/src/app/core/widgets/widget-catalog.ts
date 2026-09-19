@@ -1073,6 +1073,27 @@ export const WIDGET_CATALOG: WidgetMeta[] = [
     minHeight: 400,
   },
   {
+    type: 'reflection-prompt',
+    title: 'Reflection with guided questions',
+    dataSource: 'mixed',
+    kind: 'capitalization',
+    granularity: 'detail',
+    writes: 'record',
+    status: 'first-cut',
+    description: 'Right after a decision: which factors mattered (reason chips, always), two guided questions drawn at random from gut feeling, missing information and the drawback accepted on purpose, then the preference hypothesis with rule / just once / no.',
+    promise: 'Say why in a few clicks, answer one or two questions worth thinking about, and let the AI learn only what you confirm.',
+    grounding:
+      'Kolb reflection phase; the team’s reflection questions (interview tour, 2026-09). Same learning path as rationale-capture — reason chip ids give the value axis — plus answers kept on the decision entry. A variant, not a replacement: the experiments keep rationale-capture.',
+    availableModes: ['co-learning'],
+    perMode: {
+      recommendation: null,
+      'co-learning': 'The interview tour’s “why?” dialog; the number of guided questions follows the session’s reflection-question limit.',
+      director: null,
+    },
+    defaultZone: 'right',
+    minHeight: 220,
+  },
+  {
     type: 'co-learning-reflection',
     title: 'Co-Learning Reflection',
     dataSource: 'mixed',

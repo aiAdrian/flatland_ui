@@ -1484,5 +1484,29 @@
       "low": "a small knock-on effect",
       "high": "a larger knock-on effect"
     }
+  },
+  "reflectionPrompt": {
+    "title": "Why this decision?",
+    "optional": "optional, a few words",
+    "more": "More questions ({{n}})",
+    "ruleHint": "As a rule: the AI takes this into account in similar situations. Just this once: it keeps your reason but learns nothing from it.",
+    "q": {
+      "factors": "Which factors mattered?",
+      "gut": "Did a gut feeling play a part?",
+      "missing": "What information was missing?",
+      "tradeoff": "Which drawback did you accept on purpose, and why?"
+    },
+    "gut": {
+      "fit": "It matched the decision",
+      "against": "It pointed the other way",
+      "none": "None"
+    },
+    "missing": {
+      "duration": "How long the disruption lasts",
+      "connections": "Effect on connections",
+      "otherTrains": "What the other trains do",
+      "nothing": "Nothing",
+      "other": "Something else"
+    }
   }
 }

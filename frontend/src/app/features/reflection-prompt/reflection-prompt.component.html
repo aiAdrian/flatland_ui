@@ -1,0 +1,72 @@
+@if (pending(); as p) {
+  <div class="rp" role="dialog" [attr.aria-label]="'reflectionPrompt.title' | transloco">
+    <div class="rp-head">
+      <span class="rp-title">{{ 'reflectionPrompt.title' | transloco }}</span>
+      <span class="rp-context">{{ trainName(p.handle) }} → <strong>{{ strategyLabel() }}</strong></span>
+      <button type="button" class="rp-close" (click)="dismiss()" [attr.title]="'rationale.close' | transloco">×</button>
+    </div>
+
+    <div class="rp-q">
+      <span class="rp-q-label">{{ 'reflectionPrompt.q.factors' | transloco }}</span>
+      <div class="rp-chips" role="group" [attr.aria-label]="'reflectionPrompt.q.factors' | transloco">
+        @for (c of factors; track c.id) {
+          <button type="button" class="rp-chip" [class.is-selected]="selectedFactors().has(c.id)" (click)="toggleFactor(c.id)">
+            {{ c.labelKey | transloco }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @for (q of shown(); track q) {
+      <div class="rp-q">
+        <span class="rp-q-label">{{ 'reflectionPrompt.q.' + q | transloco }}</span>
+        @switch (q) {
+          @case ('gut') {
+            <div class="rp-chips" role="group">
+              @for (c of gutChips; track c.id) {
+                <button type="button" class="rp-chip" [class.is-selected]="gut() === c.id" (click)="setGut(c.id)">
+                  {{ c.labelKey | transloco }}
+                </button>
+              }
+            </div>
+          }
+          @case ('missing') {
+            <div class="rp-chips" role="group">
+              @for (c of missingChips; track c.id) {
+                <button type="button" class="rp-chip" [class.is-selected]="missing().has(c.id)" (click)="toggleMissing(c.id)">
+                  {{ c.labelKey | transloco }}
+                </button>
+              }
+            </div>
+          }
+          @case ('tradeoff') {
+            <input
+              type="text"
+              class="rp-text"
+              [value]="tradeoff()"
+              (input)="tradeoff.set($any($event.target).value)"
+              [attr.placeholder]="'reflectionPrompt.optional' | transloco" />
+          }
+        }
+      </div>
+    }
+
+    @if (more().length > 0 && !showMore()) {
+      <button type="button" class="rp-more" (click)="showMore.set(true)">
+        {{ 'reflectionPrompt.more' | transloco: { n: more().length } }}
+      </button>
+    }
+
+    <div class="rp-hypothesis">
+      <span class="rp-q-label">{{ 'rationale.hypothesisLabel' | transloco }}</span>
+      <p>{{ hypothesis() }}</p>
+    </div>
+
+    <div class="rp-actions">
+      <button type="button" class="rp-btn rp-btn--yes" [disabled]="!canConfirm()" (click)="submit('yes')">{{ 'rationale.yes' | transloco }}</button>
+      <button type="button" class="rp-btn" [disabled]="!canConfirm()" (click)="submit('once')">{{ 'rationale.once' | transloco }}</button>
+      <button type="button" class="rp-btn" (click)="submit('no')">{{ 'rationale.no' | transloco }}</button>
+    </div>
+    <p class="rp-rule">{{ 'reflectionPrompt.ruleHint' | transloco }}</p>
+  </div>
+}

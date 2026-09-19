@@ -21,6 +21,7 @@ import { RecommendationsClassicComponent } from '../../../recommendations-classi
 import { ImpactPanelComponent } from '../../../impact-panel/impact-panel.component';
 import { WhatifCompareComponent } from '../../../whatif-compare/whatif-compare.component';
 import { ProposalCompareComponent } from '../../../proposal-compare/proposal-compare.component';
+import { ReflectionPromptComponent } from '../../../reflection-prompt/reflection-prompt.component';
 import { RiskUncertaintyPanelComponent } from '../../../risk-uncertainty/risk-uncertainty-panel.component';
 import { DecisionLogPanelComponent } from '../../../decision-log/decision-log-panel.component';
 import { FlatlandMapComponent } from '../../../flatland-map/flatland-map.component';
@@ -68,6 +69,7 @@ type ViewMode = 'only-map' | 'only-marey' | 'split';
     ImpactPanelComponent,
     WhatifCompareComponent,
     ProposalCompareComponent,
+    ReflectionPromptComponent,
     RiskUncertaintyPanelComponent,
     DecisionLogPanelComponent,
     FlatlandMapComponent,

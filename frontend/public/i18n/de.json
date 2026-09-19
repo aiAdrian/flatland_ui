@@ -1484,5 +1484,29 @@
       "low": "geringer Folgewirkung",
       "high": "stärkerer Folgewirkung"
     }
+  },
+  "reflectionPrompt": {
+    "title": "Warum diese Entscheidung?",
+    "optional": "freiwillig, ein paar Worte",
+    "more": "Weitere Fragen ({{n}})",
+    "ruleHint": "Als Regel: Die KI berücksichtigt das künftig in ähnlichen Lagen. Nur diesmal: Sie merkt sich deinen Grund, lernt aber nichts daraus.",
+    "q": {
+      "factors": "Welche Faktoren waren wichtig?",
+      "gut": "Hat ein Bauchgefühl mitgespielt?",
+      "missing": "Welche Informationen haben dir gefehlt?",
+      "tradeoff": "Welchen Nachteil hast du bewusst in Kauf genommen, und warum?"
+    },
+    "gut": {
+      "fit": "passte zur Entscheidung",
+      "against": "sprach dagegen",
+      "none": "keins"
+    },
+    "missing": {
+      "duration": "Dauer der Störung",
+      "connections": "Folgen für Anschlüsse",
+      "otherTrains": "Was die anderen Züge tun",
+      "nothing": "Nichts",
+      "other": "Anderes"
+    }
   }
 }

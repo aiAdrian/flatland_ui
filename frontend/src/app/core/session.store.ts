@@ -1102,6 +1102,8 @@ export class SessionStore {
     /** The value axis the chosen reason chips stand for, if any. Stated by the
      *  capture surface because the rationale text itself is translated. */
     valueAxis?: DecisionValueAxis | null;
+    /** Answers to guided reflection questions, when the capture surface asks them. */
+    reflection?: Record<string, string>;
   }): void {
     const pending = this.pendingRationale();
     if (!pending) return;
@@ -1142,6 +1144,9 @@ export class SessionStore {
               valueAxis: payload.valueAxis ?? e.valueAxis,
               preferenceHypothesis: hypothesis,
               hypothesisResponse: payload.response,
+              ...(payload.reflection && Object.keys(payload.reflection).length > 0
+                ? { reflection: payload.reflection }
+                : {}),
             }
           : e,
       ),

@@ -23,6 +23,8 @@ export const PANEL_MODE_AVAILABILITY: Record<string, InteractionMode[]> = {
   // same mode availability as the default v2.
   'recommendations-classic': ['recommendation'],
   'co-learning-reflection': ['co-learning'],
+  // Variant of the reflection for the interview tour (guided questions).
+  'reflection-prompt': ['co-learning'],
   // The Plan / KI / Mensch cut of widget B1: neutral options, no ranking, the
   // human's own course beside them — the §3.3 framing.
   'proposal-compare': ['co-learning'],

@@ -62,6 +62,10 @@
       <app-agents-table [embedded]="true" [viewOnly]="zoneViewOnly"></app-agents-table>
     }
 
+    @case ('reflection-prompt') {
+      <app-reflection-prompt></app-reflection-prompt>
+    }
+
     @case ('co-learning-reflection') {
       <app-co-learning-reflection [embedded]="true"></app-co-learning-reflection>
     }

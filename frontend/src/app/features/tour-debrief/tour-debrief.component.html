@@ -56,6 +56,9 @@
                     @if (responseLabel(i.response); as label) {
                       <span class="db-item__response">{{ label }}</span>
                     }
+                    @for (line of reflectionLines(i); track line) {
+                      <span class="db-item__reflection">{{ line }}</span>
+                    }
                   </li>
                 }
               </ul>
@@ -63,6 +66,16 @@
             @if (systemHolds() > 0) {
               <p class="db-note">Das System hat {{ systemHolds() }}× vorsorglich einen Zug angehalten, bis du entschieden hast.</p>
             }
+          </div>
+
+          <div class="db-block">
+            <span class="db-block__title">Was ist deine wichtigste Erkenntnis für das nächste Mal?</span>
+            <textarea
+              class="db-insight"
+              rows="2"
+              [value]="insight()"
+              (input)="insight.set($any($event.target).value)"
+              placeholder="freiwillig, ein paar Worte"></textarea>
           </div>
 
           @if (r.moments.length > 0) {

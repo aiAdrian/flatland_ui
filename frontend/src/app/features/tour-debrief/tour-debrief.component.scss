@@ -345,3 +345,23 @@
   padding-top: 8px;
   border-top: 1px solid var(--sbb-color-cloud);
 }
+
+/* Guided reflection answers under an intervention. */
+.db-item__reflection {
+  display: block;
+  font-size: 12px;
+  color: var(--sbb-color-iron);
+}
+
+/* The shift's closing question. */
+.db-insight {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--sbb-color-charcoal);
+  border: 1px solid var(--sbb-color-cloud);
+  border-radius: 4px;
+  resize: vertical;
+}

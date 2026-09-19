@@ -150,6 +150,12 @@ export interface DecisionLogEntry {
    *  overfitting guard — a one-off decision that must not become a rule. */
   hypothesisResponse?: 'yes' | 'once' | 'no';
   /**
+   * Answers to the guided reflection questions (tour's reflection prompt):
+   * question id → answer. Chip answers are ids (language-independent), free
+   * text is kept as typed. Absent where no question was answered.
+   */
+  reflection?: Record<string, string>;
+  /**
    * The value axis this decision is evidence for, when the decision *states* it
    * rather than implying it. A Director strategy choice does: picking
    * "Anschlüsse halten" over two named alternatives with quantified costs is a

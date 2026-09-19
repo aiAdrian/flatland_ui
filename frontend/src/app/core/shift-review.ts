@@ -136,6 +136,8 @@ export interface ShiftIntervention {
   action: DecisionAction;
   reason: string | null;
   response: 'yes' | 'once' | 'no' | null;
+  /** Guided reflection answers, question id → answer (see DecisionLogEntry.reflection). */
+  reflection: Record<string, string> | null;
 }
 
 /**
@@ -154,6 +156,7 @@ export function interventionsFrom(decisionLog: DecisionLogEntry[]): ShiftInterve
       action: e.action,
       reason: statedReason(e.rationale),
       response: e.hypothesisResponse ?? null,
+      reflection: e.reflection ?? null,
     }));
 }
 

@@ -1484,5 +1484,29 @@
       "low": "un faible effet domino",
       "high": "un effet domino plus fort"
     }
+  },
+  "reflectionPrompt": {
+    "title": "Pourquoi cette décision ?",
+    "optional": "facultatif, quelques mots",
+    "more": "Autres questions ({{n}})",
+    "ruleHint": "Comme règle : l’IA en tiendra compte dans des situations semblables. Seulement cette fois : elle garde votre raison mais n’en tire rien.",
+    "q": {
+      "factors": "Quels facteurs ont compté ?",
+      "gut": "Une intuition a-t-elle joué un rôle ?",
+      "missing": "Quelles informations vous ont manqué ?",
+      "tradeoff": "Quel inconvénient avez-vous accepté sciemment, et pourquoi ?"
+    },
+    "gut": {
+      "fit": "Elle allait dans le sens de la décision",
+      "against": "Elle allait dans l’autre sens",
+      "none": "Aucune"
+    },
+    "missing": {
+      "duration": "La durée de la perturbation",
+      "connections": "L’effet sur les correspondances",
+      "otherTrains": "Ce que font les autres trains",
+      "nothing": "Rien",
+      "other": "Autre chose"
+    }
   }
 }

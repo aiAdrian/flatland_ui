@@ -4,7 +4,8 @@ import { DecisionAction } from '../../core/decision-log';
 import { OperatorModelService } from '../../core/operator-model.service';
 import { REFLECTION_CASE_LABELS, ReflectionCaseType } from '../../core/reflection-moments';
 import { SessionStore } from '../../core/session.store';
-import { ShiftKpis, buildShiftReview, interventionsFrom } from '../../core/shift-review';
+import { ShiftIntervention, ShiftKpis, buildShiftReview, interventionsFrom } from '../../core/shift-review';
+import { LanguageService } from '../../core/i18n/language.service';
 import { TourGuideService } from '../../core/demo/tour-guide.service';
 import { SandboxCase, SandboxVariant } from '../../core/demo/sandbox-outcomes';
 import { SANDBOX_OUTCOMES } from '../../core/demo/sandbox-outcomes.generated';
@@ -53,6 +54,12 @@ export class TourDebriefComponent {
   readonly guide = inject(TourGuideService);
   private readonly identity = inject(TrainIdentityService);
   private readonly model = inject(OperatorModelService);
+  private readonly i18n = inject(LanguageService);
+
+  /** Step 7's closing question, asked once for the whole shift rather than per
+   *  decision: right after a decision there is rarely an insight yet. Kept for
+   *  the interview; not stored with the run. */
+  readonly insight = signal('');
 
   readonly sections = SECTIONS;
   readonly active = signal<DebriefSection>('shift-summary');
@@ -114,6 +121,24 @@ export class TourDebriefComponent {
     if (last === 'hold') return 'hold-no-release';
     if (last === 'proceed') return own.includes('hold') ? 'hold-release' : 'proceed';
     return null;
+  }
+
+  /** The guided reflection answers of an intervention, as short lines. */
+  reflectionLines(i: ShiftIntervention): string[] {
+    const r = i.reflection;
+    if (!r) return [];
+    const lines: string[] = [];
+    if (r['gut']) {
+      lines.push(`Bauchgefühl: ${this.i18n.t(`reflectionPrompt.gut.${r['gut']}`)}`);
+    }
+    if (r['missing']) {
+      const items = r['missing'].split(',').map((id) => this.i18n.t(`reflectionPrompt.missing.${id}`));
+      lines.push(`Gefehlt: ${items.join(', ')}`);
+    }
+    if (r['tradeoff']) {
+      lines.push(`In Kauf genommen: «${r['tradeoff']}»`);
+    }
+    return lines;
   }
 
   isUserChoice(sandboxCase: SandboxCase, variant: SandboxVariant): boolean {
