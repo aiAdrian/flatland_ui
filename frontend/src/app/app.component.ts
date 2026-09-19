@@ -652,6 +652,10 @@ export class AppComponent implements OnInit {
   readonly selectedStudyCondition = computed(
     () => this.studyConditions.find((c) => c.layoutId === this._studyLayoutId()) ?? this.studyConditions[0],
   );
+  /** Set by `applyWelcomeDeepLink()` from `#/experiment/<layoutId>/<scenarioId>`
+   *  when the scenario presets have not loaded yet; applied once they have
+   *  (planScenarioPresets needs them to validate the id). */
+  private pendingExperimentScenarioId: string | null = null;
 
   /** Only scenarios that ship a premade plan: that is what makes a run reproducible. */
   readonly planScenarioPresets = computed(() =>
@@ -685,6 +689,84 @@ export class AppComponent implements OnInit {
   setExperimentScenario(id: string): void {
     this._experimentScenarioId.set(id);
     this.setSelectedRuntimeInfrastructure(id);
+  }
+
+  // ── Deep links into the welcome screen ("send the current URL") ─────────
+  /**
+   * Reads a `#/tour/<tourId>` or `#/experiment/<layoutId>[/<scenarioId>]`
+   * hash on load and preselects the matching door — never auto-starts, so a
+   * shared link (including through the Hugging Face Space iframe, which
+   * forwards the parent's hash to this app only on initial load) always lands
+   * on the one-Start welcome screen with the right choice already made rather
+   * than skipping the person's own "Start" decision.
+   *
+   * The experiment scenario id can only be validated once the scenario
+   * presets have loaded (`planScenarioPresets`), so it is stashed in
+   * `pendingExperimentScenarioId` and applied from the `listScenarioPresets`
+   * callback in `ngOnInit`.
+   */
+  private applyWelcomeDeepLink(): void {
+    const hash = window.location.hash;
+
+    const tourMatch = hash.match(/^#\/tour\/([^/?#]+)/);
+    if (tourMatch) {
+      const id = decodeURIComponent(tourMatch[1]);
+      if (tourById(id)) {
+        this.setWelcomeDoor('introduction');
+        this.setSelectedTour(id);
+      }
+      return;
+    }
+
+    const experimentMatch = hash.match(/^#\/experiment\/([^/?#]+)(?:\/([^/?#]+))?/);
+    if (experimentMatch) {
+      const [, layoutId, scenarioId] = experimentMatch;
+      const decodedLayoutId = decodeURIComponent(layoutId);
+      if (this.studyConditions.some((c) => c.layoutId === decodedLayoutId)) {
+        this.setWelcomeDoor('experiments');
+        this.setStudyCondition(decodedLayoutId);
+      }
+      if (scenarioId) this.pendingExperimentScenarioId = decodeURIComponent(scenarioId);
+    }
+  }
+
+  /**
+   * Keeps the address bar's hash in sync with the welcome screen's
+   * Introduction/Experiments selection, so copying the current URL reproduces
+   * it — the counterpart to `applyWelcomeDeepLink()`. Only while the welcome
+   * screen is actually showing (no session, and no other hash-routed view
+   * such as `#/widgets`): once a session starts, the hash is free for other
+   * deep links again.
+   */
+  private syncWelcomeDeepLink(): void {
+    if (this.store.session()) return;
+    if (this.showWidgetsGallery || this.showAlgorithmsGallery || this.showInfrastructureBuilder
+      || this.showLayoutDesigner || this.showContribute) return;
+
+    const door = this.welcomeDoor();
+    let next: string | null = null;
+    if (door === 'introduction') {
+      next = `#/tour/${encodeURIComponent(this.selectedTourId())}`;
+    } else if (door === 'experiments') {
+      const layoutId = encodeURIComponent(this.selectedStudyCondition().layoutId);
+      const scenarioId = this.selectedExperimentScenarioId();
+      next = `#/experiment/${layoutId}${scenarioId ? `/${encodeURIComponent(scenarioId)}` : ''}`;
+    }
+
+    if (!next || window.location.hash === next) return;
+    window.history.replaceState(null, '', next);
+
+    // Static/Docker Spaces don't sync the embedded app's hash back to the
+    // huggingface.co address bar on their own (only forward parent → iframe,
+    // and only on initial load) — this is the documented opt-in:
+    // https://huggingface.co/docs/hub/spaces-handle-url-parameters
+    if (window.parent !== window) {
+      try {
+        window.parent.postMessage({ hash: next }, 'https://huggingface.co');
+      } catch {
+        // Not embedded in a Space, or the host blocks it — hash still works locally.
+      }
+    }
   }
 
   /** The label of the one Start button, naming what it will start. */
@@ -972,6 +1054,11 @@ export class AppComponent implements OnInit {
 
   constructor() {
     this.loadPersistedSessionSettings();
+    // Read any #/tour/… or #/experiment/… deep link before the sync effect
+    // below runs its first pass — otherwise that effect's initial write would
+    // overwrite the incoming hash with the (still default) welcome-door state.
+    this.applyWelcomeDeepLink();
+    effect(() => this.syncWelcomeDeepLink());
     // The tour's language holds on its closing page too (see TourContextService.closingOpen).
     effect(() => this.tourContext.closingOpen.set(this.demoComplete() && !!this.activeBriefing()));
     effect(() => {
@@ -1586,7 +1673,18 @@ export class AppComponent implements OnInit {
     this.refreshRuntimeInfrastructures();
     this.store.loadPolicies();
     this.api.listScenarioPresets().subscribe({
-      next: (presets) => this.scenarioPresets.set(presets ?? []),
+      next: (presets) => {
+        this.scenarioPresets.set(presets ?? []);
+        // Apply an #/experiment/… deep link's scenario id now that it can be
+        // validated against the (plan-only) scenario list — see applyWelcomeDeepLink().
+        const pending = this.pendingExperimentScenarioId;
+        if (pending) {
+          this.pendingExperimentScenarioId = null;
+          if (this.planScenarioPresets().some((preset) => preset.id === pending)) {
+            this.setExperimentScenario(pending);
+          }
+        }
+      },
       error: () => this.scenarioPresets.set([]),
     });
   }
